@@ -656,6 +656,7 @@
       <section id="profilePage" class="page hidden"></section>
       <section id="messagesPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
+      <section id="setupPage" class="page hidden"></section>
 
       <p class="footer-note">
         Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh.
@@ -674,9 +675,9 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const LS_TOKEN = 'scn_token_v2';
-const LS_USER = 'scn_user_v2';
-const LS_LAST_PAGE = 'scn_last_page_v2';
+const LS_TOKEN = 'scn_token_v4';
+const LS_USER = 'scn_user_v4';
+const LS_LAST_PAGE = 'scn_last_page_v4';
 
 const state = {
   token: localStorage.getItem(LS_TOKEN) || '',
@@ -684,6 +685,8 @@ const state = {
   dashboard: null,
   students: [],
   messages: [],
+  setup: null,
+  lastImportedAccounts: [],
   currentPage: localStorage.getItem(LS_LAST_PAGE) || 'dashboard',
   currentStudentID: ''
 };
@@ -883,7 +886,8 @@ function renderNav(){
     { id:'students', label:'Học sinh', show:role === 'GVCN' },
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
-    { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' }
+    { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
+    { id:'setup', label:'Thiết lập', show:role === 'GVCN' }
   ].filter(i => i.show);
 
   $('#nav').innerHTML = items.map(i => `
@@ -900,10 +904,11 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','students','profile','messages','reset'].includes(page)) page = 'dashboard';
+  if(!['dashboard','students','profile','messages','reset','setup'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && state.user.Role !== 'GVCN') page = 'dashboard';
   if(page === 'reset' && state.user.Role !== 'GVCN') page = 'dashboard';
+  if(page === 'setup' && state.user.Role !== 'GVCN') page = 'dashboard';
 
   state.currentPage = page;
   if(save) localStorage.setItem(LS_LAST_PAGE, page);
@@ -918,6 +923,7 @@ async function goPage(page, save=true){
   if(page === 'profile') await openDefaultProfile();
   if(page === 'messages') await loadMessages();
   if(page === 'reset') await loadResetRequests();
+  if(page === 'setup') await loadSetup();
 }
 
 async function refreshCurrent(){
@@ -1430,6 +1436,7 @@ function renderProfile(data){
             <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
             <button class="btn btn-ghost full" onclick="openEditStudentModal('${escapeJS(s.StudentID)}')">Sửa thông tin cơ bản</button>
             <button class="btn btn-primary full" style="margin-top:8px" onclick="openAddRecordModal('${escapeJS(s.StudentID)}')">+ Cập nhật hồ sơ nội bộ</button>
+            <button class="btn btn-soft full" style="margin-top:8px" onclick="openAIModal('${escapeJS(s.StudentID)}')">🤖 Nhờ AI hỗ trợ</button>
             <button class="btn btn-soft full" style="margin-top:8px" onclick="openSendMessageModal('${escapeJS(s.StudentID)}')">✉️ Nhắn HS/PHHS</button>
           ` : `
             <div class="notice" style="margin-top:14px">Thông tin riêng tư chỉ hiển thị theo phân quyền của GVCN.</div>
@@ -1521,6 +1528,122 @@ function openAddRecordModal(studentID){
       await loadStudentProfile(studentID);
     }, 'Đang lưu hồ sơ...');
   });
+}
+
+
+/* =========================================================
+   AI HỖ TRỢ GVCN XỬ LÍ TÌNH HUỐNG
+========================================================= */
+
+function openAIModal(studentID){
+  const student = (state.students || []).find(s => String(s.StudentID) === String(studentID));
+  const studentName = student ? student.FullName : studentID;
+
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(760px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>Nhờ AI hỗ trợ xử lí tình huống</h2>
+            <p class="muted" style="margin:.25rem 0 0">Học sinh: <b>${escapeHTML(studentName || studentID)}</b>. AI sẽ dùng dữ liệu trong <b>Dòng thời gian hồ sơ</b> và <b>Nhật ký chủ nhiệm</b> của học sinh này.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="notice warn">
+          AI chỉ gợi ý để GVCN tham khảo, không chẩn đoán tâm lí và không thay thế quyết định của giáo viên/nhà trường. Không nhập số điện thoại, địa chỉ hoặc thông tin quá riêng tư nếu không cần thiết.
+        </div>
+
+        <form id="aiForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Loại tình huống</label>
+              <select id="aiLoai" class="select">
+                ${['Học tập','Nề nếp','Mâu thuẫn bạn bè','Gia đình','Tâm lí','Bạo lực học đường','An toàn học sinh','Khác'].map(x => `<option>${x}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Mức độ GVCN đánh giá</label>
+              <select id="aiMucDo" class="select">
+                ${['Cần theo dõi','Cần gặp riêng','Cần phối hợp PHHS','Khẩn','Bình thường'].map(x => `<option>${x}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Mô tả tình huống</label>
+            <textarea id="aiSituation" class="textarea" placeholder="Ví dụ: Em gần đây ít nói, 2 lần không làm bài, CMHS phản hồi em hay thức khuya. Trước đây em học khá, tính hiền..."></textarea>
+          </div>
+
+          <div class="field">
+            <label>Mong muốn của GVCN</label>
+            <textarea id="aiMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Tôi muốn gặp riêng em, trao đổi với PHHS nhẹ nhàng và có kế hoạch theo dõi trong 2 tuần."></textarea>
+          </div>
+
+          <button id="aiSubmitBtn" class="btn btn-primary full" type="submit">🤖 Nhờ AI gợi ý</button>
+        </form>
+
+        <div id="aiResultWrap" class="hidden" style="margin-top:14px">
+          <div class="card" style="box-shadow:none;background:#f8fafc">
+            <div class="card-title">
+              <div>
+                <h2>Gợi ý của AI</h2>
+                <p id="aiMeta" class="muted" style="margin:.25rem 0 0"></p>
+              </div>
+              <button id="copyAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
+            </div>
+            <div id="aiResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  openModal(html);
+
+  $('#aiForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const situation = $('#aiSituation').value.trim();
+    if(!situation){
+      showToast('Vui lòng nhập mô tả tình huống.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      $('#aiSubmitBtn').disabled = true;
+      const data = await api('askAI', {
+        token: state.token,
+        studentID,
+        loaiTinhHuong: $('#aiLoai').value,
+        mucDo: $('#aiMucDo').value,
+        situation,
+        mongMuonGVCN: $('#aiMongMuon').value.trim()
+      });
+
+      $('#aiResultWrap').classList.remove('hidden');
+      $('#aiMeta').textContent = `${data.model || 'AI'} · Hồ sơ động: ${data.timelineCount || 0} bản ghi · Nhật ký: ${data.logCount || 0} bản ghi · Đã lưu vào AI_TuVan`;
+      $('#aiResult').textContent = data.response || '';
+      $('#copyAIResultBtn').onclick = () => copyText(data.response || '');
+      showToast('AI đã gợi ý xong.', 'success');
+    }, 'AI đang phân tích hồ sơ và tình huống...');
+
+    const btn = $('#aiSubmitBtn');
+    if(btn) btn.disabled = false;
+  });
+}
+
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => showToast('Đã sao chép.', 'success'));
+    return;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  ta.remove();
+  showToast('Đã sao chép.', 'success');
 }
 
 /* =========================================================
@@ -1712,6 +1835,342 @@ async function openSendMessageModal(studentID=''){
       else await loadDashboard();
     }, 'Đang gửi tin nhắn...');
   });
+}
+
+
+/* =========================================================
+   THIẾT LẬP / CHUYỂN GIAO
+========================================================= */
+
+async function loadSetup(){
+  if(state.user.Role !== 'GVCN') return;
+  await withLoading(async () => {
+    state.setup = await api('getSetupData', { token: state.token });
+    renderSetup();
+  }, 'Đang tải thiết lập...');
+}
+
+function renderSetup(){
+  const setup = state.setup || {};
+  const cfg = setup.config || {};
+  const ai = setup.ai || {};
+  const stats = setup.stats || {};
+  const sheetStatus = setup.sheetStatus || [];
+  const missingSheets = sheetStatus.filter(s => !s.exists || !s.headerOk).length;
+
+  $('#setupPage').innerHTML = `
+    <div class="grid">
+      <div class="col-12">
+        <div class="notice">
+          <b>Bản V5 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card stat">
+          <div class="stat-icon">👥</div>
+          <div>
+            <div class="stat-value">${escapeHTML(String(stats.studentCount || 0))}</div>
+            <div class="stat-label">Học sinh</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card stat">
+          <div class="stat-icon">🔐</div>
+          <div>
+            <div class="stat-value">${escapeHTML(String(stats.userCount || 0))}</div>
+            <div class="stat-label">Tài khoản</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card stat">
+          <div class="stat-icon">${missingSheets ? '⚠️' : '✅'}</div>
+          <div>
+            <div class="stat-value">${missingSheets ? missingSheets : 'OK'}</div>
+            <div class="stat-label">Cấu trúc sheet</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Thiết lập lớp</h2>
+              <p class="muted" style="margin:.25rem 0 0">Các thông tin này lưu trong sheet <b>CauHinh</b>.</p>
+            </div>
+          </div>
+
+          <form id="setupConfigForm" class="form-grid">
+            <div class="field">
+              <label>Tên tiện ích</label>
+              <input id="cfgAppName" class="input" value="${escapeHTML(cfg.APP_NAME || 'Sổ chủ nhiệm số')}" />
+            </div>
+            <div class="split">
+              <div class="field">
+                <label>Tên trường</label>
+                <input id="cfgSchool" class="input" value="${escapeHTML(cfg.TEN_TRUONG || '')}" />
+              </div>
+              <div class="field">
+                <label>Tên lớp</label>
+                <input id="cfgClass" class="input" value="${escapeHTML(cfg.TEN_LOP || '')}" placeholder="Ví dụ: 8A" />
+              </div>
+            </div>
+            <div class="split">
+              <div class="field">
+                <label>Họ tên GVCN</label>
+                <input id="cfgTeacher" class="input" value="${escapeHTML(cfg.TEN_GVCN || '')}" />
+              </div>
+              <div class="field">
+                <label>Số điện thoại GVCN</label>
+                <input id="cfgTeacherPhone" class="input" value="${escapeHTML(cfg.SO_DIEN_THOAI_GVCN || '')}" />
+              </div>
+            </div>
+            <div class="split">
+              <div class="field">
+                <label>Mật khẩu mặc định khi tạo tài khoản</label>
+                <input id="cfgDefaultPass" class="input" value="${escapeHTML(cfg.DEFAULT_PASSWORD || '123456')}" />
+              </div>
+              <div class="field">
+                <label>Số ngày lưu đăng nhập</label>
+                <input id="cfgSessionDays" class="input" value="${escapeHTML(cfg.SESSION_DAYS || '30')}" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Web App URL</label>
+              <input id="cfgWebAppUrl" class="input" value="${escapeHTML(cfg.WEB_APP_URL || '')}" placeholder="Dán URL Apps Script Web App để ghi nhớ" />
+            </div>
+            <button class="btn btn-primary full" type="submit">Lưu thiết lập lớp</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-6">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Cấu hình AI</h2>
+              <p class="muted" style="margin:.25rem 0 0">API key lưu trong Apps Script Properties, không lưu trong GitHub.</p>
+            </div>
+            ${ai.currentProviderHasKey ? '<span class="badge badge-green">Đã có key</span>' : '<span class="badge badge-yellow">Chưa có key</span>'}
+          </div>
+
+          <form id="aiSettingsForm" class="form-grid">
+            <div class="split">
+              <div class="field">
+                <label>Bật AI hỗ trợ</label>
+                <select id="aiEnabled" class="select">
+                  <option value="TRUE" ${ai.enabled ? 'selected' : ''}>Bật</option>
+                  <option value="FALSE" ${!ai.enabled ? 'selected' : ''}>Tắt</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Nhà cung cấp</label>
+                <select id="aiProvider" class="select">
+                  <option value="gemini" ${ai.provider === 'gemini' ? 'selected' : ''}>Gemini</option>
+                  <option value="openai" ${ai.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                </select>
+              </div>
+            </div>
+            <div class="split">
+              <div class="field">
+                <label>Model</label>
+                <input id="aiModel" class="input" value="${escapeHTML(ai.model || 'gemini-2.5-flash-lite')}" />
+              </div>
+              <div class="field">
+                <label>Giới hạn lượt/ngày</label>
+                <input id="aiLimit" class="input" value="${escapeHTML(ai.dailyLimit || '30')}" />
+              </div>
+            </div>
+            <div class="field">
+              <label>API key mới nếu muốn cập nhật</label>
+              <input id="aiApiKey" class="input" type="password" placeholder="Để trống nếu không đổi API key" />
+            </div>
+            <button class="btn btn-primary full" type="submit">Lưu cấu hình AI</button>
+          </form>
+
+          <div class="notice warn" style="margin-top:12px">
+            Khi chuyển giao, GVCN khác có thể bỏ qua AI. Tiện ích vẫn dùng được các chức năng hồ sơ, tin nhắn, tài khoản.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Nhập học sinh hàng loạt</h2>
+              <p class="muted" style="margin:.25rem 0 0">Copy từ Excel/Google Sheet rồi dán vào ô dưới. Hệ thống tự tạo tài khoản HS và PHHS.</p>
+            </div>
+          </div>
+          <div class="notice">
+            Cột nên có: <b>MaHocSinh, Lop, HoTenHocSinh, GioiTinh, NgaySinh, SoDienThoaiHocSinh, HoTenCMHS, SoDienThoaiCMHS, DiaChi</b>. Có thể dán cả dòng tiêu đề.
+          </div>
+          <form id="bulkImportForm" class="form-grid">
+            <textarea id="bulkRaw" class="textarea" style="min-height:170px" placeholder="MaHocSinh&#9;Lop&#9;HoTenHocSinh&#9;GioiTinh&#9;NgaySinh&#9;SoDienThoaiHocSinh&#9;HoTenCMHS&#9;SoDienThoaiCMHS&#9;DiaChi
+HS001&#9;8A&#9;Nguyễn Văn A&#9;Nam&#9;2012-01-01&#9;0911111111&#9;Phụ huynh A&#9;0922222222&#9;"></textarea>
+            <div class="split">
+              <div class="field">
+                <label>Lớp mặc định nếu dòng không có lớp</label>
+                <input id="bulkClass" class="input" value="${escapeHTML(cfg.TEN_LOP || '')}" />
+              </div>
+              <div class="field">
+                <label>Mật khẩu mặc định</label>
+                <input id="bulkPassword" class="input" value="${escapeHTML(cfg.DEFAULT_PASSWORD || '123456')}" />
+              </div>
+            </div>
+            <button class="btn btn-primary full" type="submit">Nhập học sinh và tạo tài khoản</button>
+          </form>
+          <div id="bulkResult" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Danh sách tài khoản</h2>
+              <p class="muted" style="margin:.25rem 0 0">Dùng để rà soát tài khoản. Mật khẩu cũ không thể xem lại vì đã mã hóa.</p>
+            </div>
+            <button class="btn btn-soft btn-small" onclick="loadAccountList()">Tải danh sách</button>
+          </div>
+          <div id="accountListBox" class="empty">Bấm “Tải danh sách” để xem tài khoản HS/PHHS.</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  bindSetupForms();
+}
+
+function bindSetupForms(){
+  $('#setupConfigForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    await withLoading(async () => {
+      await api('saveSetupConfig', {
+        token: state.token,
+        config: {
+          APP_NAME: $('#cfgAppName').value.trim(),
+          TEN_TRUONG: $('#cfgSchool').value.trim(),
+          TEN_LOP: $('#cfgClass').value.trim(),
+          TEN_GVCN: $('#cfgTeacher').value.trim(),
+          SO_DIEN_THOAI_GVCN: $('#cfgTeacherPhone').value.trim(),
+          DEFAULT_PASSWORD: $('#cfgDefaultPass').value.trim(),
+          SESSION_DAYS: $('#cfgSessionDays').value.trim(),
+          WEB_APP_URL: $('#cfgWebAppUrl').value.trim()
+        }
+      });
+      showToast('Đã lưu thiết lập lớp.', 'success');
+      await loadSetup();
+    }, 'Đang lưu thiết lập...');
+  });
+
+  $('#aiSettingsForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    await withLoading(async () => {
+      await api('saveAISettings', {
+        token: state.token,
+        enabled: $('#aiEnabled').value,
+        provider: $('#aiProvider').value,
+        model: $('#aiModel').value.trim(),
+        dailyLimit: $('#aiLimit').value.trim(),
+        apiKey: $('#aiApiKey').value.trim()
+      });
+      showToast('Đã lưu cấu hình AI.', 'success');
+      await loadSetup();
+    }, 'Đang lưu cấu hình AI...');
+  });
+
+  $('#bulkImportForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const raw = $('#bulkRaw').value.trim();
+    if(!raw){
+      showToast('Vui lòng dán danh sách học sinh.', 'warn');
+      return;
+    }
+    await withLoading(async () => {
+      const data = await api('bulkImportStudents', {
+        token: state.token,
+        raw,
+        defaultClassName: $('#bulkClass').value.trim(),
+        defaultPassword: $('#bulkPassword').value.trim(),
+        createAccounts: 'TRUE'
+      });
+      state.lastImportedAccounts = data.accounts || [];
+      renderBulkResult(data);
+      showToast(data.message || 'Đã nhập danh sách.', 'success', 5600);
+    }, 'Đang nhập học sinh hàng loạt...');
+  });
+}
+
+function renderBulkResult(data){
+  const accounts = data.accounts || [];
+  const errors = data.errors || [];
+  $('#bulkResult').innerHTML = `
+    <div class="notice ${errors.length ? 'warn' : ''}">
+      ${escapeHTML(data.message || '')}
+      ${accounts.length ? '<br>Danh sách tài khoản mới tạo đang hiển thị bên dưới. Nên sao chép/lưu lại ngay vì sau này không xem lại được mật khẩu.' : ''}
+    </div>
+    ${accounts.length ? accountTable(accounts, true) : ''}
+    ${errors.length ? `
+      <h3 style="margin:14px 0 8px">Dòng lỗi/bỏ qua</h3>
+      <div class="table-wrap"><table><thead><tr><th>Dòng</th><th>Nội dung</th><th>Lỗi</th></tr></thead><tbody>
+        ${errors.map(e => `<tr><td>${escapeHTML(e.line)}</td><td>${escapeHTML(e.content)}</td><td>${escapeHTML(e.error)}</td></tr>`).join('')}
+      </tbody></table></div>
+    ` : ''}
+    ${accounts.length ? `<button class="btn btn-soft" style="margin-top:10px" onclick="copyAccountsFromImport()">Sao chép danh sách tài khoản mới</button>` : ''}
+  `;
+}
+
+async function loadAccountList(){
+  await withLoading(async () => {
+    const data = await api('getAccountList', { token: state.token });
+    $('#accountListBox').className = '';
+    $('#accountListBox').innerHTML = `
+      <div class="notice warn">${escapeHTML(data.note || 'Mật khẩu đã mã hóa nên không thể xem lại.')}</div>
+      ${accountTable(data.accounts || [], false)}
+      <button class="btn btn-soft" style="margin-top:10px" onclick="copyAccountListVisible()">Sao chép bảng tài khoản</button>
+    `;
+  }, 'Đang tải danh sách tài khoản...');
+}
+
+function accountTable(rows, includePassword){
+  if(!rows.length) return '<div class="empty">Chưa có tài khoản.</div>';
+  return `
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Tài khoản HS</th><th>Tài khoản PHHS</th>${includePassword ? '<th>Mật khẩu</th>' : ''}
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `<tr>
+          <td>${escapeHTML(r.StudentID || '')}</td>
+          <td>${escapeHTML(r.FullName || '')}</td>
+          <td>${escapeHTML(r.ClassName || '')}</td>
+          <td>${escapeHTML(r.StudentUsername || '')}</td>
+          <td>${escapeHTML(r.ParentUsername || '')}</td>
+          ${includePassword ? `<td><b>${escapeHTML(r.DefaultPassword || '')}</b></td>` : ''}
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+  `;
+}
+
+function copyAccountsFromImport(){
+  const rows = state.lastImportedAccounts || [];
+  if(!rows.length){ showToast('Không có tài khoản mới để sao chép.', 'warn'); return; }
+  const text = ['MaHocSinh\tHoTenHocSinh\tLop\tTaiKhoanHS\tTaiKhoanPHHS\tMatKhauMacDinh']
+    .concat(rows.map(r => [r.StudentID,r.FullName,r.ClassName,r.StudentUsername,r.ParentUsername,r.DefaultPassword].map(v => String(v || '')).join('\t')))
+    .join('\n');
+  copyText(text);
+}
+
+function copyAccountListVisible(){
+  const trs = Array.from(document.querySelectorAll('#accountListBox table tr'));
+  if(!trs.length){ showToast('Chưa có bảng tài khoản để sao chép.', 'warn'); return; }
+  const text = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('\t')).join('\n');
+  copyText(text);
 }
 
 /* =========================================================
