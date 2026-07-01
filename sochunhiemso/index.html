@@ -1,0 +1,1815 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="Sổ chủ nhiệm số kết nối GVCN, học sinh và cha mẹ học sinh." />
+  <title>Sổ chủ nhiệm số</title>
+
+  <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
+  <link rel="manifest" href="manifest.json" />
+
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#dbe4f0;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --primary-soft:#dbeafe;
+      --success:#16a34a;
+      --warning:#f59e0b;
+      --danger:#dc2626;
+      --radius:18px;
+      --shadow:0 14px 32px rgba(15,23,42,.08);
+      --shadow-soft:0 8px 20px rgba(15,23,42,.06);
+      --focus:0 0 0 4px rgba(37,99,235,.16);
+      --max:1160px;
+      --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:var(--font);
+      background:
+        radial-gradient(circle at top left,rgba(37,99,235,.13),transparent 34rem),
+        linear-gradient(180deg,#f8fbff 0%,var(--bg) 70%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .danger-text{color:var(--danger)}
+    .success-text{color:var(--success)}
+    .warning-text{color:#b45309}
+
+    .app-shell{
+      width:min(var(--max),calc(100% - 28px));
+      margin:0 auto;
+      padding:18px 0 28px;
+    }
+
+    .login-wrap{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:18px;
+    }
+
+    .login-card{
+      width:min(470px,100%);
+      background:rgba(255,255,255,.94);
+      backdrop-filter:blur(18px);
+      border:1px solid rgba(219,228,240,.9);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:24px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    .brand-mark{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      background:linear-gradient(135deg,#2563eb,#38bdf8);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      box-shadow:0 12px 24px rgba(37,99,235,.25);
+      flex:0 0 auto;
+    }
+
+    .brand h1{
+      font-size:1.35rem;
+      line-height:1.2;
+      margin:0;
+    }
+
+    .brand p{
+      margin:4px 0 0;
+      font-size:.92rem;
+      color:var(--muted);
+    }
+
+    .form-grid{display:grid;gap:12px}
+    .field label{
+      display:block;
+      font-size:.86rem;
+      font-weight:750;
+      margin-bottom:6px;
+      color:#334155;
+    }
+
+    .input,.select,.textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 13px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:.16s ease;
+    }
+
+    .textarea{
+      min-height:112px;
+      resize:vertical;
+      line-height:1.55;
+    }
+
+    .input:focus,.select:focus,.textarea:focus{
+      border-color:var(--primary);
+      box-shadow:var(--focus);
+    }
+
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:11px 14px;
+      background:#e2e8f0;
+      color:#0f172a;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition:.16s ease;
+      min-height:44px;
+      text-decoration:none;
+    }
+
+    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-soft{background:var(--primary-soft);color:#1e40af}
+    .btn-danger{background:#fee2e2;color:#991b1b}
+    .btn-success{background:#dcfce7;color:#166534}
+    .btn-ghost{background:transparent;color:#334155;border:1px solid var(--line)}
+    .btn-small{min-height:36px;padding:8px 11px;border-radius:12px;font-size:.9rem}
+    .full{width:100%}
+
+    .login-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-top:14px;
+      flex-wrap:wrap;
+    }
+
+    .link-btn{
+      background:none;
+      border:0;
+      color:var(--primary);
+      padding:0;
+      font-weight:800;
+      text-decoration:none;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(244,247,251,.84);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid rgba(219,228,240,.72);
+      margin:0 -14px 18px;
+      padding:12px 14px;
+    }
+
+    .topbar-inner{
+      width:min(var(--max),100%);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .user-pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:7px 10px;
+      box-shadow:0 6px 14px rgba(15,23,42,.04);
+      min-width:0;
+    }
+
+    .avatar{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#2563eb,#7c3aed);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      flex:0 0 auto;
+    }
+
+    .user-pill strong,.user-pill span{
+      display:block;
+      max-width:250px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .user-pill strong{font-size:.92rem}
+    .user-pill span{font-size:.78rem;color:var(--muted)}
+
+    .top-actions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .nav{
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding:0 0 12px;
+      margin-bottom:4px;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    .nav button{
+      border:1px solid var(--line);
+      background:#fff;
+      color:#334155;
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:800;
+      white-space:nowrap;
+      min-height:42px;
+      transition:.15s ease;
+    }
+
+    .nav button.active{
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+      box-shadow:0 10px 18px rgba(37,99,235,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:14px;
+    }
+
+    .col-12{grid-column:span 12}
+    .col-8{grid-column:span 8}
+    .col-6{grid-column:span 6}
+    .col-4{grid-column:span 4}
+    .col-3{grid-column:span 3}
+
+    .card{
+      background:rgba(255,255,255,.95);
+      border:1px solid rgba(219,228,240,.96);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow-soft);
+      padding:16px;
+    }
+
+    .card-title{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .card h2,.card h3{
+      margin:0;
+      line-height:1.25;
+    }
+
+    .card h2{font-size:1.12rem}
+    .card h3{font-size:1rem}
+    .card p{line-height:1.6}
+
+    .stat{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .stat-icon{
+      width:44px;
+      height:44px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      background:var(--primary-soft);
+      color:var(--primary);
+      font-weight:900;
+      flex:0 0 auto;
+    }
+
+    .stat-value{
+      font-size:1.55rem;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .stat-label{
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:4px;
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+
+    .item{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:16px;
+      padding:12px;
+      transition:.15s ease;
+    }
+
+    .item:hover{box-shadow:0 8px 18px rgba(15,23,42,.05)}
+
+    .item-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .item-title{
+      font-weight:900;
+      margin:0 0 4px;
+    }
+
+    .item-meta{
+      color:var(--muted);
+      font-size:.86rem;
+      line-height:1.45;
+    }
+
+    .item-content{
+      margin:8px 0 0;
+      color:#334155;
+      line-height:1.55;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      border-radius:999px;
+      padding:5px 9px;
+      font-weight:800;
+      font-size:.78rem;
+      background:#e2e8f0;
+      color:#334155;
+      white-space:nowrap;
+    }
+
+    .badge-blue{background:#dbeafe;color:#1e40af}
+    .badge-green{background:#dcfce7;color:#166534}
+    .badge-yellow{background:#fef3c7;color:#92400e}
+    .badge-red{background:#fee2e2;color:#991b1b}
+    .badge-purple{background:#ede9fe;color:#5b21b6}
+
+    .split{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:12px;
+    }
+
+    .notice{
+      border:1px solid #bfdbfe;
+      background:#eff6ff;
+      color:#1e3a8a;
+      border-radius:16px;
+      padding:12px;
+      line-height:1.55;
+      margin-bottom:12px;
+    }
+
+    .notice.warn{
+      border-color:#fde68a;
+      background:#fffbeb;
+      color:#92400e;
+    }
+
+    .notice.danger{
+      border-color:#fecaca;
+      background:#fef2f2;
+      color:#991b1b;
+    }
+
+    .table-wrap{
+      width:100%;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:720px;
+    }
+
+    th,td{
+      padding:11px 12px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:top;
+      font-size:.92rem;
+    }
+
+    th{
+      background:#f8fafc;
+      font-size:.8rem;
+      color:#475569;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    tr:last-child td{border-bottom:0}
+
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      background:rgba(15,23,42,.46);
+      display:grid;
+      place-items:center;
+      padding:16px;
+    }
+
+    .modal{
+      width:min(600px,100%);
+      max-height:min(86vh,760px);
+      overflow:auto;
+      background:#fff;
+      border-radius:24px;
+      border:1px solid var(--line);
+      box-shadow:0 24px 70px rgba(15,23,42,.24);
+      padding:18px;
+    }
+
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .modal-head h2{
+      margin:0;
+      font-size:1.16rem;
+      line-height:1.25;
+    }
+
+    .close{
+      border:0;
+      background:#f1f5f9;
+      width:38px;
+      height:38px;
+      border-radius:50%;
+      font-size:1.2rem;
+      line-height:1;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      z-index:200;
+      width:min(540px,calc(100% - 28px));
+      background:#0f172a;
+      color:#fff;
+      border-radius:16px;
+      padding:12px 14px;
+      box-shadow:0 18px 44px rgba(15,23,42,.28);
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      line-height:1.45;
+    }
+
+    .toast.error{background:#991b1b}
+    .toast.success{background:#166534}
+    .toast.warn{background:#92400e}
+
+    .loader{
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      border:3px solid rgba(255,255,255,.4);
+      border-top-color:#fff;
+      animation:spin .8s linear infinite;
+      flex:0 0 auto;
+      margin-top:1px;
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .empty{
+      color:var(--muted);
+      text-align:center;
+      padding:24px 10px;
+      border:1px dashed var(--line);
+      border-radius:16px;
+      background:#f8fafc;
+    }
+
+    .footer-note{
+      margin:24px 0 0;
+      color:var(--muted);
+      font-size:.86rem;
+      text-align:center;
+      line-height:1.55;
+    }
+
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .col-12,.col-8,.col-6,.col-4,.col-3{grid-column:span 1}
+      .split{grid-template-columns:1fr}
+      .topbar-inner{align-items:flex-start}
+      .top-actions .optional{display:none}
+      .user-pill strong,.user-pill span{max-width:160px}
+    }
+
+    @media (max-width:560px){
+      .app-shell{width:calc(100% - 20px);padding-top:10px}
+      .login-card{padding:18px;border-radius:22px}
+      .topbar{margin:0 -10px 14px;padding:10px}
+      .topbar-inner{gap:8px}
+      .brand h1{font-size:1.18rem}
+      .brand-mark{width:42px;height:42px;border-radius:14px}
+      .card{padding:13px;border-radius:17px}
+      .btn{padding:10px 12px}
+      .top-actions{gap:6px}
+      .user-pill{padding:6px 8px}
+      .avatar{width:32px;height:32px}
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toastRoot"></div>
+
+  <!-- LOGIN -->
+  <main id="loginView" class="login-wrap">
+    <section class="login-card">
+      <div class="brand">
+        <div class="brand-mark">CN</div>
+        <div>
+          <h1>Sổ chủ nhiệm số</h1>
+          <p>Kết nối GVCN, học sinh và cha mẹ học sinh</p>
+        </div>
+      </div>
+
+      <div id="loginNotice" class="notice hidden"></div>
+
+      <form id="loginForm" class="form-grid">
+        <div class="field">
+          <label for="username">Tài khoản</label>
+          <input id="username" class="input" autocomplete="username" placeholder="Ví dụ: gvcn01, 8A01, ph_8A01" />
+        </div>
+
+        <div class="field">
+          <label for="password">Mật khẩu</label>
+          <input id="password" class="input" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" />
+        </div>
+
+        <button class="btn btn-primary full" type="submit">Đăng nhập</button>
+
+        <div class="login-actions">
+          <button id="forgotBtn" type="button" class="link-btn">Quên mật khẩu?</button>
+          <span class="muted">Mật khẩu ban đầu do GVCN cấp.</span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- APP -->
+  <main id="appView" class="hidden">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="user-pill">
+          <div id="userAvatar" class="avatar">CN</div>
+          <div>
+            <strong id="userName">Người dùng</strong>
+            <span id="userRole">Vai trò</span>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
+          <button id="changePassBtn" class="btn btn-soft btn-small" type="button">🔐 <span class="optional">Đổi mật khẩu</span></button>
+          <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-shell">
+      <nav id="nav" class="nav"></nav>
+
+      <section id="dashboardPage" class="page"></section>
+      <section id="studentsPage" class="page hidden"></section>
+      <section id="profilePage" class="page hidden"></section>
+      <section id="messagesPage" class="page hidden"></section>
+      <section id="resetPage" class="page hidden"></section>
+
+      <p class="footer-note">
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh.
+      </p>
+    </div>
+  </main>
+
+  <div id="modalRoot" class="hidden"></div>
+
+<script>
+/* =========================================================
+   CẤU HÌNH
+   Thầy thay URL bên dưới bằng Web App URL của Apps Script.
+   Ví dụ:
+   const API_URL = 'https://script.google.com/macros/s/AKfycb.../exec';
+========================================================= */
+const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
+
+const LS_TOKEN = 'scn_token_v2';
+const LS_USER = 'scn_user_v2';
+const LS_LAST_PAGE = 'scn_last_page_v2';
+
+const state = {
+  token: localStorage.getItem(LS_TOKEN) || '',
+  user: readJSON(localStorage.getItem(LS_USER), null),
+  dashboard: null,
+  students: [],
+  messages: [],
+  currentPage: localStorage.getItem(LS_LAST_PAGE) || 'dashboard',
+  currentStudentID: ''
+};
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+document.addEventListener('DOMContentLoaded', init);
+
+function init(){
+  bindBaseEvents();
+
+  if(!validApiUrl()){
+    showLoginNotice('Thầy cần thay <b>API_URL</b> trong file index.html bằng Web App URL của Apps Script trước khi sử dụng.', 'warn');
+  }
+
+  if(state.token){
+    bootSession();
+  }else{
+    showLogin();
+  }
+
+  registerServiceWorkerIfAny();
+}
+
+function bindBaseEvents(){
+  $('#loginForm').addEventListener('submit', onLogin);
+  $('#forgotBtn').addEventListener('click', openForgotPasswordModal);
+  $('#logoutBtn').addEventListener('click', logout);
+  $('#changePassBtn').addEventListener('click', () => openChangePasswordModal(false));
+  $('#refreshBtn').addEventListener('click', refreshCurrent);
+}
+
+function validApiUrl(){
+  return API_URL && API_URL.startsWith('http') && !API_URL.includes('DAN_WEB_APP_URL');
+}
+
+/* =========================================================
+   API
+========================================================= */
+
+async function api(action, data = {}){
+  if(!validApiUrl()){
+    throw new Error('Chưa cấu hình API_URL trong index.html.');
+  }
+
+  const payload = { action, data };
+
+  let res;
+  try{
+    res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+  }catch(err){
+    throw new Error('Không kết nối được backend. Nếu chạy trên GitHub Pages bị CORS, ta sẽ thêm Cloudflare Worker proxy.');
+  }
+
+  let json;
+  try{
+    json = await res.json();
+  }catch(err){
+    throw new Error('Backend không trả về JSON hợp lệ. Kiểm tra Web App URL hoặc quyền truy cập Apps Script.');
+  }
+
+  if(!json.ok){
+    throw new Error(json.error || 'Có lỗi xảy ra.');
+  }
+
+  return json.data;
+}
+
+async function withLoading(fn, text='Đang xử lí...'){
+  const id = showToast(text, 'loading', 30000);
+  try{
+    const result = await fn();
+    hideToast(id);
+    return result;
+  }catch(err){
+    hideToast(id);
+    showToast(err.message || String(err), 'error', 5200);
+    throw err;
+  }
+}
+
+/* =========================================================
+   LOGIN / SESSION
+========================================================= */
+
+async function onLogin(e){
+  e.preventDefault();
+
+  const username = $('#username').value.trim();
+  const password = $('#password').value;
+
+  if(!username || !password){
+    showToast('Vui lòng nhập tài khoản và mật khẩu.', 'warn');
+    return;
+  }
+
+  await withLoading(async () => {
+    const data = await api('login', {
+      username,
+      password,
+      deviceInfo: getDeviceInfo()
+    });
+
+    state.token = data.token;
+    state.user = data.user;
+    localStorage.setItem(LS_TOKEN, state.token);
+    localStorage.setItem(LS_USER, JSON.stringify(state.user));
+
+    showApp();
+
+    if(data.mustChangePassword || String(data.user.MustChangePassword).toUpperCase() === 'TRUE'){
+      openChangePasswordModal(true);
+    }
+
+    await loadDashboard();
+  }, 'Đang đăng nhập...');
+}
+
+async function bootSession(){
+  try{
+    await withLoading(async () => {
+      const me = await api('me', { token: state.token });
+      state.user = me.user;
+      localStorage.setItem(LS_USER, JSON.stringify(state.user));
+      showApp();
+      await loadDashboard();
+    }, 'Đang mở phiên đăng nhập...');
+  }catch(err){
+    clearSession();
+    showLogin();
+  }
+}
+
+function showLogin(){
+  $('#loginView').classList.remove('hidden');
+  $('#appView').classList.add('hidden');
+}
+
+function showApp(){
+  $('#loginView').classList.add('hidden');
+  $('#appView').classList.remove('hidden');
+  renderUser();
+  renderNav();
+}
+
+function clearSession(){
+  state.token = '';
+  state.user = null;
+  state.dashboard = null;
+  state.students = [];
+  state.messages = [];
+  localStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_USER);
+}
+
+async function logout(){
+  if(!state.token){
+    clearSession();
+    showLogin();
+    return;
+  }
+
+  await withLoading(async () => {
+    try{
+      await api('logout', { token: state.token });
+    }catch(e){}
+    clearSession();
+    showLogin();
+    showToast('Đã đăng xuất.', 'success');
+  }, 'Đang đăng xuất...');
+}
+
+function renderUser(){
+  if(!state.user) return;
+
+  $('#userName').textContent = state.user.FullName || state.user.Username || 'Người dùng';
+  $('#userRole').textContent = roleLabel(state.user.Role) + (state.user.StudentID ? ' · ' + state.user.StudentID : '');
+  $('#userAvatar').textContent = avatarText(state.user.FullName || state.user.Username || 'CN');
+}
+
+/* =========================================================
+   NAV / PAGES
+========================================================= */
+
+function renderNav(){
+  const role = state.user?.Role;
+  const items = [
+    { id:'dashboard', label:'Tổng quan', show:true },
+    { id:'students', label:'Học sinh', show:role === 'GVCN' },
+    { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
+    { id:'messages', label:'Tin nhắn', show:true },
+    { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' }
+  ].filter(i => i.show);
+
+  $('#nav').innerHTML = items.map(i => `
+    <button type="button" data-page="${i.id}" class="${state.currentPage === i.id ? 'active' : ''}">
+      ${escapeHTML(i.label)}
+    </button>
+  `).join('');
+
+  $$('#nav button').forEach(btn => {
+    btn.addEventListener('click', () => goPage(btn.dataset.page));
+  });
+
+  goPage(state.currentPage, false);
+}
+
+async function goPage(page, save=true){
+  if(!['dashboard','students','profile','messages','reset'].includes(page)) page = 'dashboard';
+
+  if(page === 'students' && state.user.Role !== 'GVCN') page = 'dashboard';
+  if(page === 'reset' && state.user.Role !== 'GVCN') page = 'dashboard';
+
+  state.currentPage = page;
+  if(save) localStorage.setItem(LS_LAST_PAGE, page);
+
+  $$('.page').forEach(p => p.classList.add('hidden'));
+  $('#' + page + 'Page').classList.remove('hidden');
+
+  $$('#nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.page === page));
+
+  if(page === 'dashboard') await loadDashboard();
+  if(page === 'students') await loadStudents();
+  if(page === 'profile') await openDefaultProfile();
+  if(page === 'messages') await loadMessages();
+  if(page === 'reset') await loadResetRequests();
+}
+
+async function refreshCurrent(){
+  await goPage(state.currentPage, false);
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+async function loadDashboard(){
+  await withLoading(async () => {
+    state.dashboard = await api('getDashboard', { token: state.token });
+    renderDashboard();
+  }, 'Đang tải tổng quan...');
+}
+
+function renderDashboard(){
+  const d = state.dashboard || {};
+  const role = state.user.Role;
+
+  let cards = '';
+
+  if(role === 'GVCN'){
+    cards += statCard('👥', d.studentCount || 0, 'Học sinh trong lớp');
+    cards += statCard('✉️', d.unreadCount || 0, 'Tin nhắn chưa đọc');
+    cards += statCard('🟡', d.needAttentionCount || 0, 'Ghi nhận cần quan tâm');
+    cards += statCard('🔐', d.pendingResetCount || 0, 'Yêu cầu quên mật khẩu');
+  }else{
+    cards += statCard('✉️', d.unreadCount || 0, 'Tin nhắn chưa đọc');
+    cards += statCard(role === 'PHHS' ? '👪' : '🎒', d.student?.FullName || '—', role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em', true);
+  }
+
+  const recent = (d.recentMessages || []).slice(0,5);
+
+  $('#dashboardPage').innerHTML = `
+    <div class="grid">
+      ${cards}
+      <div class="col-8">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Thông tin mới</h2>
+              <p class="muted" style="margin:.25rem 0 0">Tin nhắn và việc cần chú ý gần đây.</p>
+            </div>
+            <button class="btn btn-soft btn-small" onclick="goPage('messages')">Xem tin nhắn</button>
+          </div>
+          ${recent.length ? `
+            <div class="list">
+              ${recent.map(renderMessageItem).join('')}
+            </div>
+          ` : `<div class="empty">Chưa có tin nhắn.</div>`}
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card">
+          <h2>Gợi ý sử dụng</h2>
+          <p class="muted">
+            GVCN nên cập nhật hồ sơ học sinh theo dòng thời gian: sự việc, biểu hiện, hoàn cảnh, biện pháp đã làm và kết quả theo dõi.
+          </p>
+          <div class="notice warn">
+            Không công khai thông tin riêng tư, không dùng tiện ích để dán nhãn học sinh.
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function statCard(icon, value, label, textValue=false){
+  return `
+    <div class="col-3">
+      <div class="card stat">
+        <div class="stat-icon">${icon}</div>
+        <div>
+          <div class="stat-value" style="${textValue ? 'font-size:1.05rem;line-height:1.25' : ''}">${escapeHTML(String(value))}</div>
+          <div class="stat-label">${escapeHTML(label)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   STUDENTS
+========================================================= */
+
+async function loadStudents(){
+  if(state.user.Role !== 'GVCN') return;
+
+  await withLoading(async () => {
+    const data = await api('getStudentList', { token: state.token });
+    state.students = data.students || [];
+    renderStudents();
+  }, 'Đang tải danh sách học sinh...');
+}
+
+function renderStudents(){
+  const rows = state.students || [];
+
+  $('#studentsPage').innerHTML = `
+    <div class="card">
+      <div class="card-title">
+        <div>
+          <h2>Danh sách học sinh</h2>
+          <p class="muted" style="margin:.25rem 0 0">Chọn một học sinh để xem và cập nhật hồ sơ.</p>
+        </div>
+        <button class="btn btn-soft btn-small" onclick="loadStudents()">Làm mới</button>
+      </div>
+
+      ${rows.length ? `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã HS</th>
+                <th>Họ tên</th>
+                <th>Lớp</th>
+                <th>PHHS</th>
+                <th>SĐT PHHS</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(s => `
+                <tr>
+                  <td><b>${escapeHTML(s.StudentID || '')}</b></td>
+                  <td>${escapeHTML(s.FullName || '')}</td>
+                  <td>${escapeHTML(s.ClassName || '')}</td>
+                  <td>${escapeHTML(s.ParentName || '')}</td>
+                  <td>${escapeHTML(s.ParentPhone || '')}</td>
+                  <td>
+                    <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeJS(s.StudentID)}')">Xem hồ sơ</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `<div class="empty">Chưa có học sinh.</div>`}
+    </div>
+  `;
+}
+
+async function viewStudent(studentID){
+  state.currentStudentID = studentID;
+  state.currentPage = 'profile';
+  localStorage.setItem(LS_LAST_PAGE, 'profile');
+  await goPage('profile', false);
+}
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+async function openDefaultProfile(){
+  if(state.user.Role === 'GVCN'){
+    if(!state.currentStudentID && state.students.length){
+      state.currentStudentID = state.students[0].StudentID;
+    }
+
+    if(!state.currentStudentID){
+      await loadStudents();
+      if(state.students.length) state.currentStudentID = state.students[0].StudentID;
+    }
+
+    if(!state.currentStudentID){
+      $('#profilePage').innerHTML = `
+        <div class="card">
+          <h2>Hồ sơ học sinh</h2>
+          <div class="empty">Chưa có học sinh. Thầy cần nhập dữ liệu vào sheet HocSinh trước.</div>
+        </div>`;
+      return;
+    }
+
+    await loadStudentProfile(state.currentStudentID);
+  }else{
+    await loadStudentProfile(state.user.StudentID);
+  }
+}
+
+async function loadStudentProfile(studentID){
+  await withLoading(async () => {
+    const data = await api('getStudentProfile', { token: state.token, studentID });
+    renderProfile(data);
+  }, 'Đang tải hồ sơ...');
+}
+
+function renderProfile(data){
+  const s = data.student || {};
+  const records = data.profileRecords || [];
+  const logs = data.logs || [];
+  const isTeacher = state.user.Role === 'GVCN';
+
+  $('#profilePage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>${escapeHTML(s.FullName || 'Học sinh')}</h2>
+              <p class="muted" style="margin:.25rem 0 0">${escapeHTML(s.StudentID || '')} · ${escapeHTML(s.ClassName || '')}</p>
+            </div>
+            <span class="badge badge-blue">${escapeHTML(s.Status || 'active')}</span>
+          </div>
+
+          <div class="list">
+            ${infoLine('Giới tính', s.Gender)}
+            ${infoLine('Ngày sinh', formatDate(s.Birthday))}
+            ${infoLine('SĐT HS', s.Phone)}
+            ${infoLine('PHHS', s.ParentName)}
+            ${infoLine('SĐT PHHS', s.ParentPhone)}
+            ${infoLine('Địa chỉ', s.Address)}
+          </div>
+
+          ${isTeacher ? `
+            <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+            <button class="btn btn-primary full" onclick="openAddRecordModal('${escapeJS(s.StudentID)}')">+ Cập nhật hồ sơ động</button>
+            <button class="btn btn-soft full" style="margin-top:8px" onclick="openSendMessageModal('${escapeJS(s.StudentID)}')">✉️ Nhắn HS/PHHS</button>
+          ` : `
+            <div class="notice" style="margin-top:14px">Thông tin riêng tư chỉ hiển thị theo phân quyền của GVCN.</div>
+          `}
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Dòng thời gian hồ sơ</h2>
+              <p class="muted" style="margin:.25rem 0 0">Hoàn cảnh, tính cách, tâm lí, sở trường, hạn chế và các ghi nhận theo thời gian.</p>
+            </div>
+          </div>
+
+          ${records.length ? `
+            <div class="list">
+              ${records.map(r => `
+                <div class="item">
+                  <div class="item-row">
+                    <div>
+                      <p class="item-title">${escapeHTML(r.NhomThongTin || 'Ghi nhận')}</p>
+                      <div class="item-meta">
+                        ${escapeHTML(formatDateTime(r.NgayCapNhat || r.CreatedAt))} · ${escapeHTML(r.NguoiCapNhat || '')}
+                      </div>
+                    </div>
+                    ${levelBadge(r.MucDo)}
+                  </div>
+                  <div class="item-content">${escapeHTML(r.NoiDung || '')}</div>
+                  <div class="item-meta" style="margin-top:8px">Phạm vi: ${escapeHTML(r.RiengTu || 'GVCN')}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<div class="empty">Chưa có bản ghi hồ sơ động.</div>`}
+        </div>
+
+        ${isTeacher ? `
+          <div class="card" style="margin-top:14px">
+            <h2>Nhật ký chủ nhiệm gần đây</h2>
+            ${logs.length ? `
+              <div class="list" style="margin-top:12px">
+                ${logs.map(l => `
+                  <div class="item">
+                    <div class="item-row">
+                      <div>
+                        <p class="item-title">${escapeHTML(l.LoaiGhiNhan || 'Ghi nhận')}</p>
+                        <div class="item-meta">${escapeHTML(formatDateTime(l.Ngay || l.CreatedAt))}</div>
+                      </div>
+                      ${levelBadge(l.MucDo)}
+                    </div>
+                    <div class="item-content">${escapeHTML(l.NoiDung || '')}</div>
+                    ${l.BienPhap ? `<div class="item-meta" style="margin-top:8px"><b>Biện pháp:</b> ${escapeHTML(l.BienPhap)}</div>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : `<div class="empty" style="margin-top:12px">Chưa có nhật ký chủ nhiệm.</div>`}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function infoLine(label, value){
+  return `
+    <div class="item" style="padding:10px 12px">
+      <div class="item-meta">${escapeHTML(label)}</div>
+      <div style="font-weight:800;margin-top:2px">${escapeHTML(value || '—')}</div>
+    </div>
+  `;
+}
+
+function openAddRecordModal(studentID){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Cập nhật hồ sơ học sinh</h2>
+            <p class="muted" style="margin:.25rem 0 0">Lưu thông tin theo thời gian, không xóa lịch sử cũ.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="addRecordForm" class="form-grid">
+          <div class="field">
+            <label>Nhóm thông tin</label>
+            <select id="recGroup" class="select">
+              ${['Hoàn cảnh gia đình','Tính cách','Tâm lí','Sở trường','Hạn chế','Quan hệ bạn bè','Học tập','Nề nếp','Sức khỏe','Ghi chú khác'].map(x => `<option>${x}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Mức độ</label>
+              <select id="recLevel" class="select">
+                ${['Bình thường','Cần theo dõi','Cần gặp riêng','Cần phối hợp PHHS','Khẩn'].map(x => `<option>${x}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Phạm vi hiển thị</label>
+              <select id="recPrivacy" class="select">
+                <option value="GVCN">Chỉ GVCN</option>
+                <option value="GVCN_HS">GVCN và học sinh</option>
+                <option value="GVCN_PHHS">GVCN và PHHS</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Nội dung cập nhật</label>
+            <textarea id="recContent" class="textarea" placeholder="Ví dụ: Em có sở trường vẽ, trình bày sản phẩm nhóm tốt; gần đây tự tin hơn khi thuyết trình."></textarea>
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Lưu cập nhật</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#addRecordForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const noiDung = $('#recContent').value.trim();
+    if(!noiDung){
+      showToast('Vui lòng nhập nội dung cập nhật.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      await api('addProfileRecord', {
+        token: state.token,
+        studentID,
+        nhomThongTin: $('#recGroup').value,
+        mucDo: $('#recLevel').value,
+        riengTu: $('#recPrivacy').value,
+        noiDung
+      });
+      closeModal();
+      showToast('Đã cập nhật hồ sơ.', 'success');
+      await loadStudentProfile(studentID);
+    }, 'Đang lưu hồ sơ...');
+  });
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+async function loadMessages(){
+  await withLoading(async () => {
+    const data = await api('getMessages', { token: state.token });
+    state.messages = data.messages || [];
+    renderMessages();
+  }, 'Đang tải tin nhắn...');
+}
+
+function renderMessages(){
+  const isTeacher = state.user.Role === 'GVCN';
+  const messages = state.messages || [];
+
+  $('#messagesPage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <h2>Gửi tin nhắn</h2>
+          <p class="muted">Tin nhắn được lưu vào hồ sơ trao đổi, không thay thế trao đổi trực tiếp khi có tình huống nghiêm trọng.</p>
+          <button class="btn btn-primary full" onclick="openSendMessageModal()">+ Soạn tin nhắn</button>
+          ${isTeacher ? `<button class="btn btn-soft full" style="margin-top:8px" onclick="goPage('reset')">Xem yêu cầu quên mật khẩu</button>` : ''}
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Hộp thư</h2>
+              <p class="muted" style="margin:.25rem 0 0">${messages.length} tin nhắn.</p>
+            </div>
+            <button class="btn btn-soft btn-small" onclick="loadMessages()">Làm mới</button>
+          </div>
+
+          ${messages.length ? `
+            <div class="list">
+              ${messages.map(renderMessageItem).join('')}
+            </div>
+          ` : `<div class="empty">Chưa có tin nhắn.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMessageItem(m){
+  const unread = String(m.ReadStatus) !== 'Đã đọc';
+  const sentByMe = String(m.FromUserID) === String(state.user?.UserID);
+  return `
+    <div class="item">
+      <div class="item-row">
+        <div>
+          <p class="item-title">
+            ${unread ? '<span class="badge badge-red">Mới</span> ' : ''}
+            ${escapeHTML(m.Subject || 'Tin nhắn')}
+          </p>
+          <div class="item-meta">
+            ${sentByMe ? 'Tôi gửi' : 'Tin nhận'} · ${escapeHTML(formatDateTime(m.CreatedAt))} · HS: ${escapeHTML(m.StudentID || '—')}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          ${priorityBadge(m.Priority)}
+          ${!sentByMe && unread ? `<button class="btn btn-small btn-success" onclick="markMessageRead('${escapeJS(m.MessageID)}')">Đã đọc</button>` : ''}
+        </div>
+      </div>
+      <div class="item-content">${escapeHTML(m.Content || '')}</div>
+      <div class="item-meta" style="margin-top:8px">
+        From: ${escapeHTML(m.FromUserID || '')} · To: ${escapeHTML(m.ToUserID || '')} · ${escapeHTML(m.MessageType || '')}
+      </div>
+    </div>
+  `;
+}
+
+async function markMessageRead(messageID){
+  await withLoading(async () => {
+    await api('markRead', { token: state.token, messageID });
+    await loadMessages();
+    await loadDashboard();
+  }, 'Đang cập nhật...');
+}
+
+async function openSendMessageModal(studentID=''){
+  if(state.user.Role === 'GVCN' && !state.students.length){
+    try{
+      const data = await api('getStudentList', { token: state.token });
+      state.students = data.students || [];
+    }catch(e){}
+  }
+
+  const isTeacher = state.user.Role === 'GVCN';
+
+  const studentOptions = state.students.map(s => `
+    <option value="${escapeHTML(s.StudentID)}" ${studentID === s.StudentID ? 'selected' : ''}>
+      ${escapeHTML(s.StudentID + ' - ' + s.FullName)}
+    </option>
+  `).join('');
+
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Soạn tin nhắn</h2>
+            <p class="muted" style="margin:.25rem 0 0">${isTeacher ? 'Gửi riêng cho học sinh hoặc PHHS.' : 'Gửi tin nhắn đến GVCN.'}</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="sendMsgForm" class="form-grid">
+          ${isTeacher ? `
+            <div class="field">
+              <label>Học sinh liên quan</label>
+              <select id="msgStudentID" class="select">
+                <option value="">-- Chọn học sinh --</option>
+                ${studentOptions}
+              </select>
+            </div>
+            <div class="field">
+              <label>Người nhận</label>
+              <select id="msgTargetRole" class="select">
+                <option value="HS">Học sinh</option>
+                <option value="PHHS">PHHS</option>
+              </select>
+            </div>
+          ` : ''}
+
+          <div class="split">
+            <div class="field">
+              <label>Chủ đề</label>
+              <input id="msgSubject" class="input" placeholder="Ví dụ: Trao đổi tình hình học tập" />
+            </div>
+            <div class="field">
+              <label>Mức độ</label>
+              <select id="msgPriority" class="select">
+                <option>Bình thường</option>
+                <option>Quan trọng</option>
+                <option>Khẩn</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Nội dung</label>
+            <textarea id="msgContent" class="textarea" placeholder="Nhập nội dung cần trao đổi..."></textarea>
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Gửi tin nhắn</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#sendMsgForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const content = $('#msgContent').value.trim();
+    if(!content){
+      showToast('Vui lòng nhập nội dung tin nhắn.', 'warn');
+      return;
+    }
+
+    const payload = {
+      token: state.token,
+      subject: $('#msgSubject').value.trim(),
+      content,
+      priority: $('#msgPriority').value
+    };
+
+    if(isTeacher){
+      payload.studentID = $('#msgStudentID').value;
+      payload.targetRole = $('#msgTargetRole').value;
+      if(!payload.studentID){
+        showToast('Vui lòng chọn học sinh liên quan.', 'warn');
+        return;
+      }
+    }
+
+    await withLoading(async () => {
+      await api('sendMessage', payload);
+      closeModal();
+      showToast('Đã gửi tin nhắn.', 'success');
+      if(state.currentPage === 'messages') await loadMessages();
+      else await loadDashboard();
+    }, 'Đang gửi tin nhắn...');
+  });
+}
+
+/* =========================================================
+   RESET PASSWORD
+========================================================= */
+
+function openForgotPasswordModal(){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Quên mật khẩu</h2>
+            <p class="muted" style="margin:.25rem 0 0">Nhập tài khoản và số điện thoại đã đăng kí. Yêu cầu sẽ gửi đến GVCN.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="forgotForm" class="form-grid">
+          <div class="field">
+            <label>Tài khoản</label>
+            <input id="forgotUsername" class="input" placeholder="Ví dụ: 8A01 hoặc ph_8A01" />
+          </div>
+          <div class="field">
+            <label>Số điện thoại</label>
+            <input id="forgotPhone" class="input" inputmode="tel" placeholder="Số điện thoại đã đăng kí" />
+          </div>
+          <div class="field">
+            <label>Lí do / ghi chú</label>
+            <textarea id="forgotReason" class="textarea" placeholder="Ví dụ: Em quên mật khẩu, xin cô/thầy đặt lại giúp."></textarea>
+          </div>
+          <button class="btn btn-primary full" type="submit">Gửi yêu cầu</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#forgotForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = $('#forgotUsername').value.trim();
+    const phone = $('#forgotPhone').value.trim();
+
+    if(!username || !phone){
+      showToast('Vui lòng nhập tài khoản và số điện thoại.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      const data = await api('requestPasswordReset', {
+        username,
+        phone,
+        reason: $('#forgotReason').value.trim()
+      });
+      closeModal();
+      showToast(data.message || 'Đã gửi yêu cầu.', 'success', 5600);
+    }, 'Đang gửi yêu cầu...');
+  });
+}
+
+async function loadResetRequests(){
+  if(state.user.Role !== 'GVCN') return;
+
+  await withLoading(async () => {
+    const data = await api('teacherListResetRequests', { token: state.token });
+    renderResetRequests(data.requests || []);
+  }, 'Đang tải yêu cầu...');
+}
+
+function renderResetRequests(requests){
+  $('#resetPage').innerHTML = `
+    <div class="card">
+      <div class="card-title">
+        <div>
+          <h2>Yêu cầu quên mật khẩu</h2>
+          <p class="muted" style="margin:.25rem 0 0">GVCN xác minh rồi đặt lại mật khẩu cho HS/PHHS.</p>
+        </div>
+        <button class="btn btn-soft btn-small" onclick="loadResetRequests()">Làm mới</button>
+      </div>
+
+      ${requests.length ? `
+        <div class="list">
+          ${requests.map(r => `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <p class="item-title">${escapeHTML(r.Username || '')}</p>
+                  <div class="item-meta">
+                    ${escapeHTML(r.Role || '')} · ${escapeHTML(r.StudentID || '')} · ${escapeHTML(formatDateTime(r.CreatedAt))}
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-small" onclick="openTeacherResetModal('${escapeJS(r.Username)}')">Đặt lại</button>
+              </div>
+              <div class="item-content">SĐT: ${escapeHTML(r.Phone || '')}\n${escapeHTML(r.Reason || '')}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div class="empty">Không có yêu cầu chờ xử lí.</div>`}
+    </div>
+  `;
+}
+
+function openTeacherResetModal(username){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Đặt lại mật khẩu</h2>
+            <p class="muted" style="margin:.25rem 0 0">Tài khoản: <b>${escapeHTML(username)}</b></p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="teacherResetForm" class="form-grid">
+          <div class="field">
+            <label>Mật khẩu mới</label>
+            <input id="teacherNewPassword" class="input" placeholder="Bỏ trống để hệ thống tự tạo 6 số" />
+          </div>
+          <button class="btn btn-primary full" type="submit">Đặt lại mật khẩu</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#teacherResetForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    await withLoading(async () => {
+      const data = await api('resetPasswordByTeacher', {
+        token: state.token,
+        username,
+        newPassword: $('#teacherNewPassword').value.trim()
+      });
+      closeModal();
+      await loadResetRequests();
+      showToast(`Mật khẩu mới của ${data.username}: ${data.newPassword}`, 'success', 10000);
+    }, 'Đang đặt lại mật khẩu...');
+  });
+}
+
+/* =========================================================
+   CHANGE PASSWORD
+========================================================= */
+
+function openChangePasswordModal(force=false){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>${force ? 'Cần đổi mật khẩu lần đầu' : 'Đổi mật khẩu'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Mật khẩu mới nên có ít nhất 6 kí tự.</p>
+          </div>
+          ${force ? '' : '<button class="close" onclick="closeModal()">×</button>'}
+        </div>
+
+        ${force ? `<div class="notice warn">Tài khoản đang dùng mật khẩu ban đầu. Vui lòng đổi mật khẩu để tiếp tục sử dụng an toàn hơn.</div>` : ''}
+
+        <form id="changePasswordForm" class="form-grid">
+          <div class="field">
+            <label>Mật khẩu cũ</label>
+            <input id="oldPass" class="input" type="password" autocomplete="current-password" />
+          </div>
+          <div class="field">
+            <label>Mật khẩu mới</label>
+            <input id="newPass" class="input" type="password" autocomplete="new-password" />
+          </div>
+          <div class="field">
+            <label>Nhập lại mật khẩu mới</label>
+            <input id="newPass2" class="input" type="password" autocomplete="new-password" />
+          </div>
+          <button class="btn btn-primary full" type="submit">Lưu mật khẩu mới</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#changePasswordForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const oldPassword = $('#oldPass').value;
+    const newPassword = $('#newPass').value;
+    const newPassword2 = $('#newPass2').value;
+
+    if(!oldPassword || !newPassword){
+      showToast('Vui lòng nhập đủ mật khẩu cũ và mật khẩu mới.', 'warn');
+      return;
+    }
+    if(newPassword.length < 6){
+      showToast('Mật khẩu mới cần có ít nhất 6 kí tự.', 'warn');
+      return;
+    }
+    if(newPassword !== newPassword2){
+      showToast('Hai lần nhập mật khẩu mới chưa khớp.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      await api('changePassword', {
+        token: state.token,
+        oldPassword,
+        newPassword
+      });
+      state.user.MustChangePassword = 'FALSE';
+      localStorage.setItem(LS_USER, JSON.stringify(state.user));
+      closeModal();
+      showToast('Đã đổi mật khẩu.', 'success');
+    }, 'Đang đổi mật khẩu...');
+  });
+}
+
+/* =========================================================
+   MODAL / TOAST
+========================================================= */
+
+function openModal(html){
+  $('#modalRoot').innerHTML = html;
+  $('#modalRoot').classList.remove('hidden');
+}
+
+function closeModal(){
+  $('#modalRoot').classList.add('hidden');
+  $('#modalRoot').innerHTML = '';
+}
+
+function showToast(message, type='info', timeout=3600){
+  const id = 'toast_' + Date.now() + '_' + Math.floor(Math.random()*999);
+  const root = $('#toastRoot');
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warn' ? 'warn' : '');
+  div.innerHTML = `${type === 'loading' ? '<span class="loader"></span>' : ''}<div>${message}</div>`;
+  root.appendChild(div);
+
+  if(timeout){
+    setTimeout(() => hideToast(id), timeout);
+  }
+  return id;
+}
+
+function hideToast(id){
+  const el = document.getElementById(id);
+  if(el) el.remove();
+}
+
+function showLoginNotice(html, type='info'){
+  const el = $('#loginNotice');
+  el.className = 'notice ' + (type === 'warn' ? 'warn' : type === 'danger' ? 'danger' : '');
+  el.innerHTML = html;
+  el.classList.remove('hidden');
+}
+
+/* =========================================================
+   UTILS
+========================================================= */
+
+function roleLabel(role){
+  return {
+    GVCN:'Giáo viên chủ nhiệm',
+    HS:'Học sinh',
+    PHHS:'Cha mẹ học sinh'
+  }[role] || role || 'Người dùng';
+}
+
+function avatarText(name){
+  const parts = String(name || 'CN').trim().split(/\s+/);
+  if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[parts.length-2][0] + parts[parts.length-1][0]).toUpperCase();
+}
+
+function formatDateTime(value){
+  if(!value) return '—';
+  const d = new Date(value);
+  if(isNaN(d.getTime())) return String(value);
+  return d.toLocaleString('vi-VN', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function formatDate(value){
+  if(!value) return '—';
+  const d = new Date(value);
+  if(isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('vi-VN');
+}
+
+function escapeHTML(str){
+  return String(str ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
+function escapeJS(str){
+  return String(str ?? '')
+    .replaceAll('\\','\\\\')
+    .replaceAll("'","\\'")
+    .replaceAll('\n','\\n')
+    .replaceAll('\r','');
+}
+
+function readJSON(str, fallback){
+  try{return JSON.parse(str)}catch(e){return fallback}
+}
+
+function getDeviceInfo(){
+  return `${navigator.platform || ''} · ${navigator.userAgent || ''}`.slice(0,300);
+}
+
+function levelBadge(level){
+  const l = String(level || 'Bình thường');
+  let cls = 'badge-blue';
+  if(l.includes('theo dõi')) cls = 'badge-yellow';
+  if(l.includes('gặp riêng') || l.includes('phối hợp')) cls = 'badge-purple';
+  if(l.includes('Khẩn')) cls = 'badge-red';
+  if(l.includes('Bình thường')) cls = 'badge-green';
+  return `<span class="badge ${cls}">${escapeHTML(l)}</span>`;
+}
+
+function priorityBadge(priority){
+  const p = String(priority || 'Bình thường');
+  if(p === 'Khẩn') return `<span class="badge badge-red">Khẩn</span>`;
+  if(p === 'Quan trọng') return `<span class="badge badge-yellow">Quan trọng</span>`;
+  return `<span class="badge badge-green">Bình thường</span>`;
+}
+
+function registerServiceWorkerIfAny(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {
+        // Bản hiện tại chưa bắt buộc có service-worker.js.
+      });
+    });
+  }
+}
+</script>
+</body>
+</html>
