@@ -1026,7 +1026,10 @@ function renderStudents(){
           <h2>Danh sách học sinh</h2>
           <p class="muted" style="margin:.25rem 0 0">Chọn một học sinh để xem và cập nhật hồ sơ.</p>
         </div>
-        <button class="btn btn-soft btn-small" onclick="loadStudents()">Làm mới</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn btn-primary btn-small" onclick="openCreateStudentModal()">+ Thêm học sinh</button>
+            <button class="btn btn-soft btn-small" onclick="loadStudents()">Làm mới</button>
+          </div>
       </div>
 
       ${rows.length ? `
@@ -1068,6 +1071,230 @@ async function viewStudent(studentID){
   state.currentPage = 'profile';
   localStorage.setItem(LS_LAST_PAGE, 'profile');
   await goPage('profile', false);
+}
+
+function openCreateStudentModal(){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Thêm học sinh</h2>
+            <p class="muted" style="margin:.25rem 0 0">GVCN nhập thông tin học sinh và tạo tài khoản HS/PHHS.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="createStudentForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Mã học sinh</label>
+              <input id="newStudentID" class="input" placeholder="Ví dụ: HS001 hoặc 8A01" />
+            </div>
+            <div class="field">
+              <label>Lớp</label>
+              <input id="newClassName" class="input" placeholder="Ví dụ: 8A" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Họ tên học sinh</label>
+            <input id="newFullName" class="input" placeholder="Nhập họ tên học sinh" />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Giới tính</label>
+              <select id="newGender" class="select">
+                <option value="">-- Chọn --</option>
+                <option>Nam</option>
+                <option>Nữ</option>
+                <option>Khác</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ngày sinh</label>
+              <input id="newBirthday" class="input" type="date" />
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Số điện thoại học sinh</label>
+              <input id="newPhone" class="input" inputmode="tel" />
+            </div>
+            <div class="field">
+              <label>Số điện thoại CMHS</label>
+              <input id="newParentPhone" class="input" inputmode="tel" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Họ tên CMHS</label>
+            <input id="newParentName" class="input" placeholder="Cha/mẹ/người giám hộ" />
+          </div>
+
+          <div class="field">
+            <label>Địa chỉ</label>
+            <input id="newAddress" class="input" placeholder="Nhập ngắn gọn nếu cần" />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Tài khoản học sinh</label>
+              <input id="newStudentUsername" class="input" placeholder="Bỏ trống sẽ lấy theo mã HS" />
+            </div>
+            <div class="field">
+              <label>Tài khoản PHHS</label>
+              <input id="newParentUsername" class="input" placeholder="Bỏ trống sẽ là ph_MaHS" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Mật khẩu ban đầu</label>
+            <input id="newDefaultPassword" class="input" value="123456" />
+          </div>
+
+          <div class="notice warn">
+            Sau khi tạo tài khoản, HS/PHHS cần đổi mật khẩu ở lần đăng nhập đầu tiên.
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Lưu học sinh và tạo tài khoản</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#createStudentForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const studentID = $('#newStudentID').value.trim();
+    const fullName = $('#newFullName').value.trim();
+
+    if(!studentID || !fullName){
+      showToast('Vui lòng nhập mã học sinh và họ tên học sinh.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      const data = await api('createStudentAndAccounts', {
+        token: state.token,
+        studentID,
+        className: $('#newClassName').value.trim(),
+        fullName,
+        gender: $('#newGender').value,
+        birthday: $('#newBirthday').value,
+        phone: $('#newPhone').value.trim(),
+        parentName: $('#newParentName').value.trim(),
+        parentPhone: $('#newParentPhone').value.trim(),
+        address: $('#newAddress').value.trim(),
+        studentUsername: $('#newStudentUsername').value.trim(),
+        parentUsername: $('#newParentUsername').value.trim(),
+        defaultPassword: $('#newDefaultPassword').value.trim() || '123456',
+        createAccounts: true
+      });
+
+      closeModal();
+      await loadStudents();
+      showToast('Đã thêm học sinh. Tài khoản: ' + (data.result?.accounts || []).map(a => `${a.role}: ${a.username}/${a.password}`).join(' · '), 'success', 12000);
+    }, 'Đang thêm học sinh...');
+  });
+}
+
+function openEditStudentModal(studentID){
+  const student = (state.students || []).find(s => String(s.StudentID) === String(studentID));
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Sửa thông tin cơ bản</h2>
+            <p class="muted" style="margin:.25rem 0 0">Chỉ sửa thông tin hành chính; hồ sơ nội bộ vẫn lưu theo dòng thời gian.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="editStudentForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Mã học sinh</label>
+              <input class="input" value="${escapeHTML(studentID)}" disabled />
+            </div>
+            <div class="field">
+              <label>Lớp</label>
+              <input id="editClassName" class="input" value="${escapeHTML(student?.ClassName || '')}" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Họ tên học sinh</label>
+            <input id="editFullName" class="input" value="${escapeHTML(student?.FullName || '')}" />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Giới tính</label>
+              <input id="editGender" class="input" value="${escapeHTML(student?.Gender || '')}" />
+            </div>
+            <div class="field">
+              <label>Ngày sinh</label>
+              <input id="editBirthday" class="input" value="${escapeHTML(student?.Birthday || '')}" />
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Số điện thoại học sinh</label>
+              <input id="editPhone" class="input" value="${escapeHTML(student?.Phone || '')}" />
+            </div>
+            <div class="field">
+              <label>Số điện thoại CMHS</label>
+              <input id="editParentPhone" class="input" value="${escapeHTML(student?.ParentPhone || '')}" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Họ tên CMHS</label>
+            <input id="editParentName" class="input" value="${escapeHTML(student?.ParentName || '')}" />
+          </div>
+
+          <div class="field">
+            <label>Địa chỉ</label>
+            <input id="editAddress" class="input" value="${escapeHTML(student?.Address || '')}" />
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Lưu thông tin cơ bản</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#editStudentForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    await withLoading(async () => {
+      await api('updateStudentBasic', {
+        token: state.token,
+        studentID,
+        ClassName: $('#editClassName').value.trim(),
+        FullName: $('#editFullName').value.trim(),
+        Gender: $('#editGender').value.trim(),
+        Birthday: $('#editBirthday').value.trim(),
+        Phone: $('#editPhone').value.trim(),
+        ParentName: $('#editParentName').value.trim(),
+        ParentPhone: $('#editParentPhone').value.trim(),
+        Address: $('#editAddress').value.trim(),
+        Status: 'active'
+      });
+
+      closeModal();
+      await loadStudents();
+      await loadStudentProfile(studentID);
+      showToast('Đã cập nhật thông tin cơ bản.', 'success');
+    }, 'Đang lưu thông tin...');
+  });
 }
 
 /* =========================================================
@@ -1113,6 +1340,71 @@ function renderProfile(data){
   const logs = data.logs || [];
   const isTeacher = state.user.Role === 'GVCN';
 
+  const teacherTimeline = `
+    <div class="card">
+      <div class="card-title">
+        <div>
+          <h2>Dòng thời gian hồ sơ</h2>
+          <p class="muted" style="margin:.25rem 0 0">Hoàn cảnh, tính cách, tâm lí, sở trường, hạn chế và các ghi nhận theo thời gian. Phần này chỉ GVCN xem.</p>
+        </div>
+      </div>
+
+      ${records.length ? `
+        <div class="list">
+          ${records.map(r => `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <p class="item-title">${escapeHTML(r.NhomThongTin || 'Ghi nhận')}</p>
+                  <div class="item-meta">
+                    ${escapeHTML(formatDateTime(r.NgayCapNhat || r.CreatedAt))} · ${escapeHTML(r.NguoiCapNhat || '')}
+                  </div>
+                </div>
+                ${levelBadge(r.MucDo)}
+              </div>
+              <div class="item-content">${escapeHTML(r.NoiDung || '')}</div>
+              <div class="item-meta" style="margin-top:8px">Phạm vi: Chỉ GVCN</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div class="empty">Chưa có bản ghi hồ sơ động.</div>`}
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Nhật ký chủ nhiệm gần đây</h2>
+      ${logs.length ? `
+        <div class="list" style="margin-top:12px">
+          ${logs.map(l => `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <p class="item-title">${escapeHTML(l.LoaiGhiNhan || 'Ghi nhận')}</p>
+                  <div class="item-meta">${escapeHTML(formatDateTime(l.Ngay || l.CreatedAt))}</div>
+                </div>
+                ${levelBadge(l.MucDo)}
+              </div>
+              <div class="item-content">${escapeHTML(l.NoiDung || '')}</div>
+              ${l.BienPhap ? `<div class="item-meta" style="margin-top:8px"><b>Biện pháp:</b> ${escapeHTML(l.BienPhap)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div class="empty" style="margin-top:12px">Chưa có nhật ký chủ nhiệm.</div>`}
+    </div>
+  `;
+
+  const publicPanel = `
+    <div class="card">
+      <h2>Thông tin hiển thị</h2>
+      <div class="notice warn" style="margin-top:12px">
+        Học sinh và PHHS chỉ xem thông tin chung. Các ghi nhận nội bộ về hoàn cảnh, tính cách, tâm lí, sở trường, hạn chế, sự vụ và nhật ký chủ nhiệm chỉ GVCN quản lí.
+      </div>
+      <p class="muted">
+        Nếu cần trao đổi thêm, học sinh hoặc PHHS dùng mục <b>Tin nhắn</b> để liên hệ GVCN.
+      </p>
+      <button class="btn btn-primary" onclick="goPage('messages')">Nhắn GVCN</button>
+    </div>
+  `;
+
   $('#profilePage').innerHTML = `
     <div class="grid">
       <div class="col-4">
@@ -1136,7 +1428,8 @@ function renderProfile(data){
 
           ${isTeacher ? `
             <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-            <button class="btn btn-primary full" onclick="openAddRecordModal('${escapeJS(s.StudentID)}')">+ Cập nhật hồ sơ động</button>
+            <button class="btn btn-ghost full" onclick="openEditStudentModal('${escapeJS(s.StudentID)}')">Sửa thông tin cơ bản</button>
+            <button class="btn btn-primary full" style="margin-top:8px" onclick="openAddRecordModal('${escapeJS(s.StudentID)}')">+ Cập nhật hồ sơ nội bộ</button>
             <button class="btn btn-soft full" style="margin-top:8px" onclick="openSendMessageModal('${escapeJS(s.StudentID)}')">✉️ Nhắn HS/PHHS</button>
           ` : `
             <div class="notice" style="margin-top:14px">Thông tin riêng tư chỉ hiển thị theo phân quyền của GVCN.</div>
@@ -1145,61 +1438,12 @@ function renderProfile(data){
       </div>
 
       <div class="col-8">
-        <div class="card">
-          <div class="card-title">
-            <div>
-              <h2>Dòng thời gian hồ sơ</h2>
-              <p class="muted" style="margin:.25rem 0 0">Hoàn cảnh, tính cách, tâm lí, sở trường, hạn chế và các ghi nhận theo thời gian.</p>
-            </div>
-          </div>
-
-          ${records.length ? `
-            <div class="list">
-              ${records.map(r => `
-                <div class="item">
-                  <div class="item-row">
-                    <div>
-                      <p class="item-title">${escapeHTML(r.NhomThongTin || 'Ghi nhận')}</p>
-                      <div class="item-meta">
-                        ${escapeHTML(formatDateTime(r.NgayCapNhat || r.CreatedAt))} · ${escapeHTML(r.NguoiCapNhat || '')}
-                      </div>
-                    </div>
-                    ${levelBadge(r.MucDo)}
-                  </div>
-                  <div class="item-content">${escapeHTML(r.NoiDung || '')}</div>
-                  <div class="item-meta" style="margin-top:8px">Phạm vi: ${escapeHTML(r.RiengTu || 'GVCN')}</div>
-                </div>
-              `).join('')}
-            </div>
-          ` : `<div class="empty">Chưa có bản ghi hồ sơ động.</div>`}
-        </div>
-
-        ${isTeacher ? `
-          <div class="card" style="margin-top:14px">
-            <h2>Nhật ký chủ nhiệm gần đây</h2>
-            ${logs.length ? `
-              <div class="list" style="margin-top:12px">
-                ${logs.map(l => `
-                  <div class="item">
-                    <div class="item-row">
-                      <div>
-                        <p class="item-title">${escapeHTML(l.LoaiGhiNhan || 'Ghi nhận')}</p>
-                        <div class="item-meta">${escapeHTML(formatDateTime(l.Ngay || l.CreatedAt))}</div>
-                      </div>
-                      ${levelBadge(l.MucDo)}
-                    </div>
-                    <div class="item-content">${escapeHTML(l.NoiDung || '')}</div>
-                    ${l.BienPhap ? `<div class="item-meta" style="margin-top:8px"><b>Biện pháp:</b> ${escapeHTML(l.BienPhap)}</div>` : ''}
-                  </div>
-                `).join('')}
-              </div>
-            ` : `<div class="empty" style="margin-top:12px">Chưa có nhật ký chủ nhiệm.</div>`}
-          </div>
-        ` : ''}
+        ${isTeacher ? teacherTimeline : publicPanel}
       </div>
     </div>
   `;
 }
+
 
 function infoLine(label, value){
   return `
@@ -1239,11 +1483,7 @@ function openAddRecordModal(studentID){
             </div>
             <div class="field">
               <label>Phạm vi hiển thị</label>
-              <select id="recPrivacy" class="select">
-                <option value="GVCN">Chỉ GVCN</option>
-                <option value="GVCN_HS">GVCN và học sinh</option>
-                <option value="GVCN_PHHS">GVCN và PHHS</option>
-              </select>
+              <input class="input" value="Chỉ GVCN" disabled />
             </div>
           </div>
 
@@ -1273,7 +1513,7 @@ function openAddRecordModal(studentID){
         studentID,
         nhomThongTin: $('#recGroup').value,
         mucDo: $('#recLevel').value,
-        riengTu: $('#recPrivacy').value,
+        riengTu: 'GVCN',
         noiDung
       });
       closeModal();
