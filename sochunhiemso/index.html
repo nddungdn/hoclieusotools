@@ -658,6 +658,7 @@
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
       <section id="setupPage" class="page hidden"></section>
+      <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
         Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh.
@@ -676,9 +677,9 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const LS_TOKEN = 'scn_token_v4';
-const LS_USER = 'scn_user_v4';
-const LS_LAST_PAGE = 'scn_last_page_v4';
+const LS_TOKEN = 'scn_token_v7';
+const LS_USER = 'scn_user_v7';
+const LS_LAST_PAGE = 'scn_last_page_v7';
 
 const state = {
   token: localStorage.getItem(LS_TOKEN) || '',
@@ -889,7 +890,8 @@ function renderNav(){
     { id:'messages', label:'Tin nhắn', show:true },
     { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role === 'HS' || role === 'PHHS' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
-    { id:'setup', label:'Thiết lập', show:role === 'GVCN' }
+    { id:'setup', label:'Thiết lập', show:role === 'GVCN' },
+    { id:'aiStats', label:'Thống kê AI', show:role === 'GVCN' }
   ].filter(i => i.show);
 
   $('#nav').innerHTML = items.map(i => `
@@ -906,12 +908,13 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','students','profile','messages','aiSupport','reset','setup'].includes(page)) page = 'dashboard';
+  if(!['dashboard','students','profile','messages','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && state.user.Role !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && !(state.user.Role === 'HS' || state.user.Role === 'PHHS')) page = 'dashboard';
   if(page === 'reset' && state.user.Role !== 'GVCN') page = 'dashboard';
   if(page === 'setup' && state.user.Role !== 'GVCN') page = 'dashboard';
+  if(page === 'aiStats' && state.user.Role !== 'GVCN') page = 'dashboard';
 
   state.currentPage = page;
   if(save) localStorage.setItem(LS_LAST_PAGE, page);
@@ -928,6 +931,7 @@ async function goPage(page, save=true){
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
   if(page === 'setup') await loadSetup();
+  if(page === 'aiStats') await loadAIStats();
 }
 
 async function refreshCurrent(){
@@ -1629,7 +1633,7 @@ function openAIModal(studentID){
       $('#aiMeta').textContent = `${data.model || 'AI'} · Hồ sơ động: ${data.timelineCount || 0} bản ghi · Nhật ký: ${data.logCount || 0} bản ghi · Đã lưu vào AI_TuVan`;
       $('#aiResult').textContent = data.response || '';
       $('#copyAIResultBtn').onclick = () => copyText(data.response || '');
-      showToast('AI đã gợi ý xong.', 'success');
+      showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích hồ sơ và tình huống...');
 
     const btn = $('#aiSubmitBtn');
@@ -1867,7 +1871,7 @@ function renderSetup(){
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Bản V6 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
+          <b>Bản V7 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
         </div>
       </div>
 
@@ -2277,15 +2281,83 @@ function renderAISupportPage(){
         mongMuon: $('#personalMongMuon').value.trim()
       });
       $('#personalAIResultWrap').classList.remove('hidden');
-      $('#personalAIMeta').textContent = `${data.model || 'AI'} · Đã lưu vào AI_TuVan`;
+      $('#personalAIMeta').textContent = `${data.model || 'AI'} · Chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp`;
       $('#personalAIResult').textContent = data.response || '';
       $('#copyPersonalAIResultBtn').onclick = () => copyText(data.response || '');
-      showToast('AI đã gợi ý xong.', 'success');
+      showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích tình huống...').finally(() => {
       const btn = $('#personalAISubmit');
       if(btn) btn.disabled = false;
     });
   });
+}
+
+
+/* =========================================================
+   THỐNG KÊ AI HS/PHHS - CHỈ LƯỢT DÙNG, KHÔNG LƯU NỘI DUNG
+========================================================= */
+
+async function loadAIStats(){
+  if(state.user.Role !== 'GVCN') return;
+  await withLoading(async () => {
+    const data = await api('getAIUsageStats', { token: state.token });
+    renderAIStats(data);
+  }, 'Đang tải thống kê AI...');
+}
+
+function renderAIStats(data){
+  const byRole = data.byRole || {};
+  const byDate = data.byDate || {};
+  const bySupportType = data.bySupportType || {};
+  const recent = data.recent || [];
+  const dateRows = Object.keys(byDate).sort().reverse().slice(0, 14);
+  const typeRows = Object.keys(bySupportType).sort((a,b) => bySupportType[b] - bySupportType[a]).slice(0, 10);
+
+  $('#aiStatsPage').innerHTML = `
+    <div class="grid">
+      <div class="col-12">
+        <div class="notice">
+          <b>Nguyên tắc V7:</b> HS/PHHS hỏi AI thì hệ thống <b>chỉ thống kê lượt sử dụng</b> để phục vụ quản lí và viết sáng kiến; <b>không lưu nội dung câu hỏi, không lưu câu trả lời</b> của HS/PHHS.
+        </div>
+      </div>
+
+      <div class="col-3"><div class="card stat"><div class="stat-icon">🤖</div><div><div class="stat-value">${escapeHTML(String(data.total || 0))}</div><div class="stat-label">Tổng lượt AI HS/PHHS</div></div></div></div>
+      <div class="col-3"><div class="card stat"><div class="stat-icon">🎒</div><div><div class="stat-value">${escapeHTML(String(byRole.HS || 0))}</div><div class="stat-label">Lượt học sinh</div></div></div></div>
+      <div class="col-3"><div class="card stat"><div class="stat-icon">👪</div><div><div class="stat-value">${escapeHTML(String(byRole.PHHS || 0))}</div><div class="stat-label">Lượt phụ huynh</div></div></div></div>
+      <div class="col-3"><div class="card stat"><div class="stat-icon">✅</div><div><div class="stat-value">${escapeHTML(String(data.successCount || 0))}</div><div class="stat-label">Lượt thành công</div></div></div></div>
+
+      <div class="col-6">
+        <div class="card">
+          <div class="card-title"><div><h2>Thống kê theo ngày</h2><p class="muted" style="margin:.25rem 0 0">14 ngày gần nhất có dữ liệu.</p></div></div>
+          ${dateRows.length ? `<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Lượt</th></tr></thead><tbody>${dateRows.map(d => `<tr><td>${escapeHTML(d)}</td><td><b>${escapeHTML(String(byDate[d]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
+        </div>
+      </div>
+
+      <div class="col-6">
+        <div class="card">
+          <div class="card-title"><div><h2>Thống kê theo dạng hỗ trợ</h2><p class="muted" style="margin:.25rem 0 0">Chỉ lưu loại hỗ trợ, không lưu nội dung.</p></div></div>
+          ${typeRows.length ? `<div class="table-wrap"><table><thead><tr><th>Dạng hỗ trợ</th><th>Lượt</th></tr></thead><tbody>${typeRows.map(t => `<tr><td>${escapeHTML(t)}</td><td><b>${escapeHTML(String(bySupportType[t]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="card-title">
+            <div><h2>Lịch sử lượt sử dụng gần đây</h2><p class="muted" style="margin:.25rem 0 0">Bảng này không có nội dung hỏi/đáp, chỉ có dữ liệu thống kê.</p></div>
+            <button class="btn btn-soft btn-small" onclick="copyAIStatsVisible()">Sao chép bảng</button>
+          </div>
+          ${recent.length ? `<div id="aiStatsTable" class="table-wrap"><table><thead><tr><th>Thời điểm</th><th>Vai trò</th><th>Mã HS</th><th>Dạng hỗ trợ</th><th>Mức độ</th><th>Model</th><th>Kết quả</th></tr></thead><tbody>${recent.map(r => `<tr><td>${escapeHTML(formatDateTime(r.CreatedAt))}</td><td>${escapeHTML(r.Role || '')}</td><td>${escapeHTML(r.StudentID || '')}</td><td>${escapeHTML(r.SupportType || '')}</td><td>${escapeHTML(r.Level || '')}</td><td>${escapeHTML(r.Model || '')}</td><td>${escapeHTML(String(r.Success || ''))}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có lượt sử dụng AI của HS/PHHS.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function copyAIStatsVisible(){
+  const trs = Array.from(document.querySelectorAll('#aiStatsTable table tr'));
+  if(!trs.length){ showToast('Chưa có bảng thống kê để sao chép.', 'warn'); return; }
+  const text = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('\t')).join('\n');
+  copyText(text);
 }
 
 /* =========================================================
