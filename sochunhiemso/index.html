@@ -655,6 +655,7 @@
       <section id="studentsPage" class="page hidden"></section>
       <section id="profilePage" class="page hidden"></section>
       <section id="messagesPage" class="page hidden"></section>
+      <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
       <section id="setupPage" class="page hidden"></section>
 
@@ -886,6 +887,7 @@ function renderNav(){
     { id:'students', label:'Học sinh', show:role === 'GVCN' },
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
+    { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role === 'HS' || role === 'PHHS' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
     { id:'setup', label:'Thiết lập', show:role === 'GVCN' }
   ].filter(i => i.show);
@@ -904,9 +906,10 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','students','profile','messages','reset','setup'].includes(page)) page = 'dashboard';
+  if(!['dashboard','students','profile','messages','aiSupport','reset','setup'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && state.user.Role !== 'GVCN') page = 'dashboard';
+  if(page === 'aiSupport' && !(state.user.Role === 'HS' || state.user.Role === 'PHHS')) page = 'dashboard';
   if(page === 'reset' && state.user.Role !== 'GVCN') page = 'dashboard';
   if(page === 'setup' && state.user.Role !== 'GVCN') page = 'dashboard';
 
@@ -922,6 +925,7 @@ async function goPage(page, save=true){
   if(page === 'students') await loadStudents();
   if(page === 'profile') await openDefaultProfile();
   if(page === 'messages') await loadMessages();
+  if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
   if(page === 'setup') await loadSetup();
 }
@@ -1408,6 +1412,7 @@ function renderProfile(data){
         Nếu cần trao đổi thêm, học sinh hoặc PHHS dùng mục <b>Tin nhắn</b> để liên hệ GVCN.
       </p>
       <button class="btn btn-primary" onclick="goPage('messages')">Nhắn GVCN</button>
+      <button class="btn btn-soft" style="margin-left:8px" onclick="goPage('aiSupport')">🤖 Nhờ AI hỗ trợ</button>
     </div>
   `;
 
@@ -1862,7 +1867,7 @@ function renderSetup(){
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Bản V5 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
+          <b>Bản V6 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
         </div>
       </div>
 
@@ -2171,6 +2176,116 @@ function copyAccountListVisible(){
   if(!trs.length){ showToast('Chưa có bảng tài khoản để sao chép.', 'warn'); return; }
   const text = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('\t')).join('\n');
   copyText(text);
+}
+
+
+/* =========================================================
+   AI HỖ TRỢ HỌC SINH / PHHS
+========================================================= */
+
+function renderAISupportPage(){
+  const role = state.user.Role;
+  const isStudent = role === 'HS';
+  const title = isStudent ? 'AI hỗ trợ em' : 'AI hỗ trợ phụ huynh';
+  const desc = isStudent
+    ? 'Em có thể chia sẻ khó khăn học tập, bạn bè, cảm xúc hoặc tình huống cần xử lí. AI chỉ gợi ý bước an toàn; em vẫn nên nói với GVCN, cha mẹ hoặc người lớn tin cậy khi cần.'
+    : 'Phụ huynh có thể mô tả tình huống của con để nhận gợi ý cách lắng nghe, trao đổi với con và phối hợp GVCN.';
+
+  const options = isStudent
+    ? ['Áp lực học tập','Mâu thuẫn bạn bè','Bị trêu chọc/bắt nạt','Khó nói với cha mẹ','Buồn/lo lắng/căng thẳng','Ứng xử trên mạng','Khác']
+    : ['Con áp lực học tập','Con mâu thuẫn bạn bè','Con ít nói/khép kín','Con dùng điện thoại/mạng xã hội','Con chống đối/khó hợp tác','Phối hợp với GVCN','Khác'];
+
+  $('#aiSupportPage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <h2>${escapeHTML(title)}</h2>
+          <p class="muted">${escapeHTML(desc)}</p>
+          <div class="notice warn">
+            AI không thay thế GVCN, cha mẹ, bác sĩ hay chuyên gia tâm lí. Nếu có nguy cơ tự làm hại, bị bạo lực, bị xâm hại hoặc mất an toàn, hãy báo ngay cho người lớn có trách nhiệm.
+          </div>
+          <div class="notice">
+            Phần này <b>không sử dụng Dòng thời gian hồ sơ nội bộ</b> của GVCN. Hồ sơ nội bộ vẫn chỉ GVCN biết.
+          </div>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>${escapeHTML(title)}</h2>
+              <p class="muted" style="margin:.25rem 0 0">Nhập tình huống cụ thể để AI gợi ý cách xử lí an toàn, tôn trọng và phù hợp lứa tuổi THCS.</p>
+            </div>
+          </div>
+          <form id="personalAIForm" class="form-grid">
+            <div class="split">
+              <div class="field">
+                <label>Dạng hỗ trợ</label>
+                <select id="personalSupportType" class="select">
+                  ${options.map(x => `<option>${escapeHTML(x)}</option>`).join('')}
+                </select>
+              </div>
+              <div class="field">
+                <label>Mức độ tự đánh giá</label>
+                <select id="personalLevel" class="select">
+                  ${['Bình thường','Cần tư vấn','Cần trao đổi với GVCN','Quan trọng','Khẩn'].map(x => `<option>${x}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>${isStudent ? 'Điều em muốn chia sẻ' : 'Tình huống của con'}</label>
+              <textarea id="personalSituation" class="textarea" placeholder="${isStudent ? 'Ví dụ: Em bị một nhóm bạn xa lánh, em thấy buồn và không biết nên nói với ai...' : 'Ví dụ: Con gần đây ít nói, hay căng thẳng, không muốn đi học. Gia đình muốn biết nên trò chuyện với con thế nào...'}"></textarea>
+            </div>
+            <div class="field">
+              <label>Mong muốn nhận được hỗ trợ</label>
+              <textarea id="personalMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Gợi ý cách nói chuyện với GVCN/cha mẹ/con và việc nên làm trong vài ngày tới."></textarea>
+            </div>
+            <button id="personalAISubmit" class="btn btn-primary full" type="submit">🤖 Nhờ AI gợi ý</button>
+          </form>
+
+          <div id="personalAIResultWrap" class="hidden" style="margin-top:14px">
+            <div class="card" style="box-shadow:none;background:#f8fafc">
+              <div class="card-title">
+                <div>
+                  <h2>Gợi ý của AI</h2>
+                  <p id="personalAIMeta" class="muted" style="margin:.25rem 0 0"></p>
+                </div>
+                <button id="copyPersonalAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
+              </div>
+              <div id="personalAIResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('#personalAIForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const situation = $('#personalSituation').value.trim();
+    if(!situation){
+      showToast('Vui lòng nhập tình huống hoặc điều cần chia sẻ.', 'warn');
+      return;
+    }
+    await withLoading(async () => {
+      $('#personalAISubmit').disabled = true;
+      const data = await api('askAIPersonal', {
+        token: state.token,
+        supportType: $('#personalSupportType').value,
+        mucDo: $('#personalLevel').value,
+        situation,
+        mongMuon: $('#personalMongMuon').value.trim()
+      });
+      $('#personalAIResultWrap').classList.remove('hidden');
+      $('#personalAIMeta').textContent = `${data.model || 'AI'} · Đã lưu vào AI_TuVan`;
+      $('#personalAIResult').textContent = data.response || '';
+      $('#copyPersonalAIResultBtn').onclick = () => copyText(data.response || '');
+      showToast('AI đã gợi ý xong.', 'success');
+    }, 'AI đang phân tích tình huống...').finally(() => {
+      const btn = $('#personalAISubmit');
+      if(btn) btn.disabled = false;
+    });
+  });
 }
 
 /* =========================================================
