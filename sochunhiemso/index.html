@@ -661,7 +661,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh.
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V7.2 - có AI HS/PHHS</b>
       </p>
     </div>
   </main>
@@ -802,6 +802,7 @@ async function onLogin(e){
 
     state.token = data.token;
     state.user = data.user;
+    normalizeCurrentUserRole();
     localStorage.setItem(LS_TOKEN, state.token);
     localStorage.setItem(LS_USER, JSON.stringify(state.user));
 
@@ -820,6 +821,7 @@ async function bootSession(){
     await withLoading(async () => {
       const me = await api('me', { token: state.token });
       state.user = me.user;
+      normalizeCurrentUserRole();
       localStorage.setItem(LS_USER, JSON.stringify(state.user));
       showApp();
       await loadDashboard();
@@ -873,7 +875,8 @@ function renderUser(){
   if(!state.user) return;
 
   $('#userName').textContent = state.user.FullName || state.user.Username || 'Người dùng';
-  $('#userRole').textContent = roleLabel(state.user.Role) + (state.user.StudentID ? ' · ' + state.user.StudentID : '');
+  const role = normalizeRole(state.user.Role);
+  $('#userRole').textContent = roleLabel(role) + (state.user.StudentID ? ' · ' + state.user.StudentID : '');
   $('#userAvatar').textContent = avatarText(state.user.FullName || state.user.Username || 'CN');
 }
 
@@ -882,13 +885,13 @@ function renderUser(){
 ========================================================= */
 
 function renderNav(){
-  const role = state.user?.Role;
+  const role = normalizeRole(state.user?.Role);
   const items = [
     { id:'dashboard', label:'Tổng quan', show:true },
     { id:'students', label:'Học sinh', show:role === 'GVCN' },
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
-    { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role === 'HS' || role === 'PHHS' },
+    { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
     { id:'setup', label:'Thiết lập', show:role === 'GVCN' },
     { id:'aiStats', label:'Thống kê AI', show:role === 'GVCN' }
@@ -910,11 +913,11 @@ function renderNav(){
 async function goPage(page, save=true){
   if(!['dashboard','students','profile','messages','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
 
-  if(page === 'students' && state.user.Role !== 'GVCN') page = 'dashboard';
-  if(page === 'aiSupport' && !(state.user.Role === 'HS' || state.user.Role === 'PHHS')) page = 'dashboard';
-  if(page === 'reset' && state.user.Role !== 'GVCN') page = 'dashboard';
-  if(page === 'setup' && state.user.Role !== 'GVCN') page = 'dashboard';
-  if(page === 'aiStats' && state.user.Role !== 'GVCN') page = 'dashboard';
+  if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
+  if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
+  if(page === 'reset' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
+  if(page === 'setup' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
+  if(page === 'aiStats' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
 
   state.currentPage = page;
   if(save) localStorage.setItem(LS_LAST_PAGE, page);
@@ -1021,7 +1024,7 @@ function statCard(icon, value, label, textValue=false){
 ========================================================= */
 
 async function loadStudents(){
-  if(state.user.Role !== 'GVCN') return;
+  if(normalizeRole(state.user.Role) !== 'GVCN') return;
 
   await withLoading(async () => {
     const data = await api('getStudentList', { token: state.token });
@@ -1316,7 +1319,7 @@ function openEditStudentModal(studentID){
 ========================================================= */
 
 async function openDefaultProfile(){
-  if(state.user.Role === 'GVCN'){
+  if(normalizeRole(state.user.Role) === 'GVCN'){
     if(!state.currentStudentID && state.students.length){
       state.currentStudentID = state.students[0].StudentID;
     }
@@ -1352,7 +1355,7 @@ function renderProfile(data){
   const s = data.student || {};
   const records = data.profileRecords || [];
   const logs = data.logs || [];
-  const isTeacher = state.user.Role === 'GVCN';
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
 
   const teacherTimeline = `
     <div class="card">
@@ -1668,7 +1671,7 @@ async function loadMessages(){
 }
 
 function renderMessages(){
-  const isTeacher = state.user.Role === 'GVCN';
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
   const messages = state.messages || [];
 
   $('#messagesPage').innerHTML = `
@@ -1740,14 +1743,14 @@ async function markMessageRead(messageID){
 }
 
 async function openSendMessageModal(studentID=''){
-  if(state.user.Role === 'GVCN' && !state.students.length){
+  if(normalizeRole(state.user.Role) === 'GVCN' && !state.students.length){
     try{
       const data = await api('getStudentList', { token: state.token });
       state.students = data.students || [];
     }catch(e){}
   }
 
-  const isTeacher = state.user.Role === 'GVCN';
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
 
   const studentOptions = state.students.map(s => `
     <option value="${escapeHTML(s.StudentID)}" ${studentID === s.StudentID ? 'selected' : ''}>
@@ -1852,7 +1855,7 @@ async function openSendMessageModal(studentID=''){
 ========================================================= */
 
 async function loadSetup(){
-  if(state.user.Role !== 'GVCN') return;
+  if(normalizeRole(state.user.Role) !== 'GVCN') return;
   await withLoading(async () => {
     state.setup = await api('getSetupData', { token: state.token });
     renderSetup();
@@ -2298,7 +2301,7 @@ function renderAISupportPage(){
 ========================================================= */
 
 async function loadAIStats(){
-  if(state.user.Role !== 'GVCN') return;
+  if(normalizeRole(state.user.Role) !== 'GVCN') return;
   await withLoading(async () => {
     const data = await api('getAIUsageStats', { token: state.token });
     renderAIStats(data);
@@ -2419,7 +2422,7 @@ function openForgotPasswordModal(){
 }
 
 async function loadResetRequests(){
-  if(state.user.Role !== 'GVCN') return;
+  if(normalizeRole(state.user.Role) !== 'GVCN') return;
 
   await withLoading(async () => {
     const data = await api('teacherListResetRequests', { token: state.token });
@@ -2616,6 +2619,25 @@ function showLoginNotice(html, type='info'){
 /* =========================================================
    UTILS
 ========================================================= */
+
+
+function normalizeRole(role){
+  const r = String(role || '').trim().toUpperCase()
+    .replace(/\s+/g,'')
+    .replaceAll('Ọ','O').replaceAll('Ọ','O');
+  const raw = String(role || '').trim().toLowerCase();
+
+  if(r === 'GVCN' || raw.includes('giáo viên') || raw.includes('giao vien')) return 'GVCN';
+  if(r === 'HS' || raw.includes('học sinh') || raw.includes('hoc sinh')) return 'HS';
+  if(r === 'PHHS' || r === 'CMHS' || raw.includes('phụ huynh') || raw.includes('phu huynh') || raw.includes('cha mẹ') || raw.includes('cha me') || raw.includes('cmhs')) return 'PHHS';
+  return String(role || '').trim();
+}
+
+function normalizeCurrentUserRole(){
+  if(state.user && state.user.Role){
+    state.user.Role = normalizeRole(state.user.Role);
+  }
+}
 
 function roleLabel(role){
   return {
