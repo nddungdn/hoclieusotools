@@ -1,0 +1,662 @@
+<div id="app-goi-ten-ngau-nhien" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #faf6f0; min-height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; overflow: hidden; position: relative; width: 100%;">
+
+    <button id="gtnn-fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to toàn màn hình">⛶ Toàn màn hình</button>
+
+    <style>
+        #app-goi-ten-ngau-nhien * {
+            box-sizing: border-box;
+        }
+        #gtnn-fullscreen-btn {
+            position: absolute;
+            top: 5px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            color: #4f39f6;
+            border: 1px solid #4f39f6
+;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+            transition: background 0.2s;
+        }
+        #gtnn-fullscreen-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        #gtnn-title {
+            color: #4f39f6; /* Màu vàng */
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #gtnn-main-container {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            gap: 50px; 
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        /* Chỉnh CSS khi ở chế độ Fullscreen */
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-title,
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-input-section,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-title,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-input-section {
+            display: none !important; 
+        }
+        #app-goi-ten-ngau-nhien:fullscreen, 
+        #app-goi-ten-ngau-nhien:-webkit-full-screen {
+            justify-content: center; 
+            background: #003366; 
+            padding: 0;
+        }
+        
+        /* Cấu hình Fullscreen: Khung quay chiếm trọn màn hình */
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-wheel-section,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-wheel-section {
+            transform: none; 
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-canvas-container,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-canvas-container {
+            width: 90vmin; /* Phóng to tối đa theo màn hình */
+            height: 90vmin;
+        }
+
+        /* Fullscreen: Mũi tên to lên tương ứng */
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-pointer,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-pointer {
+            border-top: 4vmin solid transparent;
+            border-bottom: 4vmin solid transparent;
+            border-right: 8vmin solid #ff0000;
+            right: -8vmin;
+        }
+
+        /* Fullscreen: Nút quay sang giữa lề căn trái */
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn {
+            left: 5vw; /* Cách lề trái 5% */
+            top: 50%;
+            bottom: auto;
+            transform: translateY(-50%); /* Căn giữa dọc */
+            font-size: clamp(24px, 3vw, 40px);
+            padding: clamp(15px, 2vw, 25px) clamp(30px, 4vw, 50px);
+        }
+
+        /* Fullscreen: Hiệu ứng active/disabled cho nút bên trái */
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn:active,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn:active {
+            transform: translateY(calc(-50% + 4px));
+        }
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn.disabled,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn.disabled {
+            transform: translateY(-50%);
+        }
+
+        #gtnn-wheel-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 80px; 
+            transition: transform 0.3s ease; 
+        }
+        #gtnn-canvas-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: #fff;
+            border: none; 
+        }
+        #gtnn-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
+        #gtnn-pointer {
+            position: absolute;
+            right: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 25px solid transparent;
+            border-bottom: 25px solid transparent;
+            border-right: 50px solid #ff0000;
+            z-index: 10;
+            filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.4));
+        }
+        #gtnn-spin-btn {
+            position: absolute;
+            bottom: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff007f;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: 900;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #c50062, 0 10px 10px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 20;
+        }
+        #gtnn-spin-btn:active, #gtnn-spin-btn.disabled {
+            box-shadow: 0 2px 0 #c50062, 0 4px 4px rgba(0,0,0,0.3);
+            transform: translateX(-50%) translateY(4px);
+        }
+        #gtnn-spin-btn.disabled {
+            background: #aaa;
+            box-shadow: 0 6px 0 #888;
+            cursor: not-allowed;
+            transform: translateX(-50%);
+        }
+
+        #gtnn-input-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+        #gtnn-input-section h3 {
+            margin: 0;
+            color: #003366;
+            text-align: center;
+        }
+        #gtnn-upload-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s, transform 0.2s;
+        }
+        #gtnn-upload-btn:hover { background: #1976d2; transform: scale(1.02); }
+        #gtnn-namelist {
+            width: 100%;
+            height: 120px; 
+            resize: none;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        #gtnn-update-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        #gtnn-update-btn:hover { background: #43a047; transform: scale(1.02); }
+
+        #gtnn-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #gtnn-modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: gtnn-popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            border: 5px solid #ff007f;
+        }
+        @keyframes gtnn-popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #gtnn-winner-name {
+            font-size: 3rem;
+            color: #e91e63;
+            margin: 10px 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 1.2;
+            word-wrap: break-word;
+        }
+        #gtnn-fun-action {
+            font-size: 1.5rem;
+            color: #3f51b5;
+            margin: 20px 0;
+            padding: 15px;
+            background: #e8eaf6;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        #gtnn-close-modal {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        #gtnn-close-modal:hover { background: #1976d2; }
+
+        @media (max-width: 768px) {
+            #gtnn-canvas-container { width: 300px; height: 300px; }
+            #gtnn-title { font-size: 2rem; }
+            #gtnn-spin-btn { font-size: 18px; padding: 10px 30px; bottom: -50px; }
+            #gtnn-pointer { border-right-width: 35px; border-top-width: 15px; border-bottom-width: 15px; right: -20px; }
+            #gtnn-main-container { gap: 60px; }
+            #gtnn-winner-name { font-size: 2.2rem; }
+        }
+    </style>
+
+    <h1 id="gtnn-title">GỌI TÊN NGẪU NHIÊN</h1>
+
+    <div id="gtnn-main-container">
+        
+        <div id="gtnn-wheel-section">
+            <div id="gtnn-canvas-container">
+                <canvas id="gtnn-canvas" width="600" height="600"></canvas>
+                <div id="gtnn-pointer"></div>
+            </div>
+            <button id="gtnn-spin-btn" onclick="spin()">QUAY</button>
+        </div>
+
+        <div id="gtnn-input-section">
+            <h3>DANH SÁCH HỌC SINH</h3>
+            
+            <input type="file" id="gtnn-file-upload" accept=".csv, .txt" style="display: none;" onchange="handleFileUpload(event)">
+            <button id="gtnn-upload-btn" onclick="document.getElementById('gtnn-file-upload').click()">📂 Tải file danh sách (.csv, .txt)</button>
+
+            <textarea id="gtnn-namelist" placeholder="Nhập tên học sinh vào đây...&#10;Ví dụ:&#10;Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C"></textarea>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; margin-bottom: 5px;">
+                <label for="gtnn-spin-time" style="font-weight: bold; color: #d81b60; font-size: 14px;">⏳ Thời gian quay (giây):</label>
+                <input type="number" id="gtnn-spin-time" value="6" min="1" max="60" style="width: 70px; padding: 8px; border-radius: 5px; border: 2px solid #ccc; font-size: 16px; font-weight: bold; text-align: center; color: #333;">
+            </div>
+
+            <button id="gtnn-update-btn" onclick="updateWheel()">CẬP NHẬT VÒNG QUAY</button>
+        </div>
+
+    </div>
+
+    <div id="gtnn-modal">
+        <div id="gtnn-modal-content">
+            <h2 style="color:#ff9800; margin-top:0;">🎉 CHÚC MỪNG 🎉</h2>
+            <div id="gtnn-winner-name">Tên Học Sinh</div>
+            <div id="gtnn-fun-action">Phần thưởng/Hình phạt hiển thị ở đây</div>
+            <button id="gtnn-close-modal" onclick="closeModal()">Tiếp Tục</button>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý chế độ Fullscreen
+        function toggleFullScreen() {
+            const elem = document.getElementById("app-goi-ten-ngau-nhien");
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // Lắng nghe sự kiện thay đổi màn hình để đổi tên nút
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+
+        function updateFullscreenButton() {
+            const btn = document.getElementById('gtnn-fullscreen-btn');
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                btn.innerHTML = '🗗 Thu nhỏ';
+            } else {
+                btn.innerHTML = '⛶ Toàn màn hình';
+            }
+        }
+
+        const colors = [
+            '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', 
+            '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55',
+            '#E57373', '#F06292', '#BA68C8', '#9575CD',
+            '#7986CB', '#64B5F6', '#4FC3F7', '#4DD0E1',
+            '#4DB6AC', '#81C784', '#AED581', '#DCE775'
+        ];
+
+        const funActions = [
+            "🎁 Trả lời đúng được cộng 1 điểm KTTX!",
+            "🎤 Hát một bài ngắn cho cả lớp nghe.",
+            "🤝 Em được quyền nhờ trợ giúp của bạn thân.",
+            "🍀 May mắn quá! Được bỏ qua câu này.",
+            "🤪 Làm một mặt cười thật xấu xí.",
+            "👏 Cả lớp vỗ tay tuyên dương!",
+            "🏃 Em có thể đứng một chân để trả lời.",
+            "🍬 Được tặng 1 viên kẹo (nếu thầy cô có).",
+            "👑 Em được chọn câu hỏi khác (nếu muốn).",
+            "💡 Em có thể 'đá' câu hỏi cho bạn khác."
+        ];
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                let rawNames = text.split(/\r?\n/).map(name => {
+                    name = name.trim();
+                    name = name.replace(/,/g, ''); 
+                    if(name.startsWith('"') && name.endsWith('"')) {
+                        name = name.substring(1, name.length - 1);
+                    }
+                    return name;
+                }).filter(n => n !== "");
+
+                if (rawNames.length > 0) {
+                    document.getElementById('gtnn-namelist').value = rawNames.join('\n');
+                    updateWheel();
+                } else {
+                    alert("File không có dữ liệu hợp lệ!");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        let names = ["Hoàng Anh",
+"Thiên Ân",
+"Ngọc Diệp",
+"Huyền Diệu",
+"Hoàng Hải",
+"Bảo Hân",
+"Gia Hân",
+"Quang Huy",
+"Ngân Khánh",
+"Đăng Khoa",
+"Anh Khôi",
+"Khánh Linh",
+"Phương Mai",
+"Ngọc Minh",
+"Khánh Ngân",
+"Bích Ngân",
+"Bảo Nghi",
+"Bảo Ngọc",
+"Thảo Nguyên",
+"Uyển Nhã",
+"Khánh Nhật",
+"Quỳnh Nhi",
+"Quan Phong",
+"Văn Phú",
+"Xuân Phúc",
+"Thanh Tâm",
+"Hữu Thắng",
+"Minh Thiên",
+"Công Tín",
+"Ngọc Vân"];
+        let startAngle = 0;
+        let arc = 0;
+        let spinTimeout = null;
+        let isSpinning = false;
+        
+        let spinAngleStart = 0;
+        let spinTime = 0;
+        let spinTimeTotal = 0;
+
+        const canvas = document.getElementById("gtnn-canvas");
+        const ctx = canvas.getContext("2d");
+        const btnSpin = document.getElementById("gtnn-spin-btn");
+
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTickSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playWinSound() {
+            if (!audioCtx) return;
+            const freqs = [440, 554.37, 659.25];
+            freqs.forEach(freq => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            });
+        }
+
+        function drawWheel() {
+            arc = Math.PI / (names.length / 2);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+
+            for (let i = 0; i < names.length; i++) {
+                const angle = startAngle + i * arc;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, canvas.width / 2, angle, angle + arc, false);
+                ctx.lineTo(0, 0);
+                ctx.fill();
+
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#ffffff";
+                ctx.stroke();
+
+                ctx.save();
+                ctx.fillStyle = "white";
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 3;
+                
+                // Tăng nhẹ kích thước font chữ
+                let fontSize = 28;
+                if(names.length > 20) fontSize = 18;
+                else if(names.length > 15) fontSize = 22;
+                
+                ctx.font = `bold ${fontSize}px Arial`;
+                
+                // Đưa chữ ra sát viền hơn (0.95 thay vì 0.85)
+                ctx.translate(Math.cos(angle + arc / 2) * (canvas.width / 2 * 0.95), 
+                              Math.sin(angle + arc / 2) * (canvas.height / 2 * 0.95));
+                ctx.rotate(angle + arc / 2);
+                
+                const text = names[i];
+                ctx.textAlign = "right"; // Căn phải để đuôi chữ sát mép
+                ctx.textBaseline = "middle";
+                ctx.strokeText(text, 0, 0);
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+
+            // Vẽ vòng tròn tâm
+            ctx.beginPath();
+            ctx.fillStyle = "#fff";
+            ctx.arc(0, 0, 40, 0, 2 * Math.PI, false);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.fillStyle = "#333";
+            ctx.arc(0, 0, 30, 0, 2 * Math.PI, false);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.fillStyle = "#e0e0e0";
+            ctx.arc(0, 0, 15, 0, 2 * Math.PI, false);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function updateWheel() {
+            if(isSpinning) return;
+            const textarea = document.getElementById('gtnn-namelist');
+            const rawNames = textarea.value.split('\n').map(n => n.trim()).filter(n => n !== "");
+            
+            if (rawNames.length < 2) {
+                alert("Vui lòng nhập ít nhất 2 tên để quay!");
+                return;
+            }
+            
+            names = rawNames;
+            startAngle = 0;
+            drawWheel();
+        }
+
+        let lastTickAngle = 0;
+
+        function rotateWheel() {
+            spinTime += 30;
+            if (spinTime >= spinTimeTotal) {
+                stopRotateWheel();
+                return;
+            }
+            const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+            startAngle += (spinAngle * Math.PI / 180);
+            
+            const currentArcAngle = startAngle % (Math.PI * 2);
+            if (Math.abs(currentArcAngle - lastTickAngle) > arc) {
+                playTickSound();
+                lastTickAngle = currentArcAngle;
+            }
+
+            drawWheel();
+            spinTimeout = requestAnimationFrame(rotateWheel);
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            
+            initAudio(); 
+            
+            isSpinning = true;
+            btnSpin.classList.add('disabled');
+            
+            let timeSeconds = parseFloat(document.getElementById('gtnn-spin-time').value);
+            if (isNaN(timeSeconds) || timeSeconds <= 0) timeSeconds = 6; 
+            
+            spinAngleStart = Math.random() * 10 + 20; 
+            spinTime = 0;
+            spinTimeTotal = timeSeconds * 1000; 
+            
+            lastTickAngle = startAngle % (Math.PI * 2);
+            rotateWheel();
+        }
+
+        function stopRotateWheel() {
+            cancelAnimationFrame(spinTimeout);
+            
+            const degrees = startAngle * 180 / Math.PI + 90;
+            const arcd = arc * 180 / Math.PI;
+            
+            let adjustedAngle = (360 - (startAngle * 180 / Math.PI) % 360) % 360;
+            let index = Math.floor(adjustedAngle / arcd);
+            
+            const text = names[index];
+            
+            const randomAction = funActions[Math.floor(Math.random() * funActions.length)];
+
+            setTimeout(() => {
+                playWinSound();
+                document.getElementById('gtnn-winner-name').innerText = text;
+                document.getElementById('gtnn-fun-action').innerText = randomAction;
+                document.getElementById('gtnn-modal').style.display = 'flex';
+                
+                isSpinning = false;
+                btnSpin.classList.remove('disabled');
+            }, 300); 
+        }
+
+        function easeOut(t, b, c, d) {
+            const ts = (t /= d) * t;
+            const tc = ts * t;
+            return b + c * (tc + -3 * ts + 3 * t);
+        }
+
+        function closeModal() {
+            document.getElementById('gtnn-modal').style.display = 'none';
+        }
+
+        // Khởi tạo ban đầu
+        document.getElementById('gtnn-namelist').value = names.join('\n');
+        drawWheel();
+
+    </script>
+</div>

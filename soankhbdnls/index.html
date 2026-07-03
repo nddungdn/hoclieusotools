@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soạn giáo án năng lực số</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!--
+    APP MỘT FILE INDEX.HTML
+    - Có thể đưa thẳng lên GitHub Pages, Blogger Page, hoặc hosting tĩnh.
+    - Muốn sửa giao diện: tìm phần CSS trong <style>.
+    - Muốn sửa prompt/model/môn học: tìm phần CONFIG trong <script>.
+  -->
+
+  <style>
+    :root {
+      --blue-50: #eff6ff;
+      --blue-100: #dbeafe;
+      --blue-200: #bfdbfe;
+      --blue-300: #93c5fd;
+      --blue-500: #3b82f6;
+      --blue-600: #2563eb;
+      --blue-700: #1d4ed8;
+      --blue-800: #1e40af;
+      --indigo-600: #4f46e5;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --green-50: #f0fdf4;
+      --green-600: #16a34a;
+      --red-50: #fef2f2;
+      --red-600: #dc2626;
+      --amber-500: #f59e0b;
+      --radius: 18px;
+      --shadow: 0 12px 32px rgba(37, 99, 235, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #eaf6ff 0%, #dff1ff 100%);
+      color: var(--slate-800);
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-header {
+      background: linear-gradient(90deg, var(--blue-600), var(--blue-700));
+      color: white;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, .28);
+    }
+
+    .header-inner {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand-icon {
+      width: 52px; height: 52px;
+      display: grid; place-items: center;
+      border-radius: 12px;
+      background: rgba(30, 64, 175, .8);
+      font-size: 28px;
+      flex: 0 0 auto;
+    }
+    .brand h1 { margin: 0; font-size: clamp(20px, 3vw, 28px); letter-spacing: -.03em; line-height: 1.1; }
+    .brand p { margin: 6px 0 0; color: #dbeafe; font-size: 14px; }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill, .ghost-btn {
+      border: 0;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      color: white;
+      background: rgba(255, 255, 255, .13);
+      transition: .18s ease;
+      white-space: nowrap;
+    }
+    .ghost-btn:hover, .pill:hover { background: rgba(255, 255, 255, .22); transform: translateY(-1px); }
+    .header-api { width: min(420px, 42vw); min-width: 290px; display: grid; gap: 6px; }
+    .header-api-line { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .header-api input {
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.95);
+      color: var(--slate-800);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .api-help-link { color: #fde68a; text-decoration: none; font-size: 12.5px; font-weight: 800; line-height: 1.25; }
+    .api-help-link:hover { text-decoration: underline; }
+    .model-btn { width: 42px; height: 42px; padding: 0; justify-content: center; border-radius: 12px; flex: 0 0 auto; }
+
+    .page {
+      width: min(1100px, calc(100% - 32px));
+      margin: 34px auto 48px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .card {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 20px;
+      color: #0f3f91;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 32px;
+      border-radius: 999px;
+      background: var(--blue-600);
+      flex: 0 0 auto;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 22px; }
+    .option-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; align-items: end; margin-top: 12px; }
+    .option-row .hint { display: block; color: var(--slate-500); }
+    label { display: block; font-weight: 600; font-size: 14px; color: var(--slate-700); margin-bottom: 8px; }
+    select, input[type="password"], input[type="text"], textarea {
+      width: 100%;
+      border: 1px solid var(--slate-200);
+      background: var(--slate-50);
+      color: var(--slate-800);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      transition: .18s ease;
+    }
+    textarea { resize: vertical; min-height: 120px; line-height: 1.55; }
+    select:focus, input:focus, textarea:focus { border-color: var(--blue-500); box-shadow: 0 0 0 4px rgba(59,130,246,.14); }
+
+    .upload-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
+    .upload-box {
+      position: relative;
+      min-height: 210px;
+      border: 2px dashed var(--blue-200);
+      border-radius: 16px;
+      background: #f0f7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      transition: .18s ease;
+    }
+    .upload-box:hover { border-color: var(--blue-500); background: #eaf3ff; transform: translateY(-1px); }
+    .upload-box.loaded { border-color: #86efac; background: var(--green-50); }
+    .upload-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .file-icon {
+      width: 56px; height: 56px; border-radius: 999px;
+      display: grid; place-items: center;
+      background: white;
+      color: var(--blue-600);
+      margin: 0 auto 14px;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(37,99,235,.10);
+    }
+    .upload-title { font-weight: 800; color: var(--slate-800); margin-bottom: 8px; }
+    .upload-sub { color: var(--slate-500); font-size: 14px; line-height: 1.45; }
+    .support { display: inline-block; margin-top: 12px; font-size: 12px; color: var(--blue-500); background: white; border: 1px solid var(--blue-100); padding: 5px 9px; border-radius: 8px; }
+    .required { color: var(--red-600); font-size: 13px; margin-top: 10px; }
+    .optional { color: var(--slate-500); font-size: 13px; margin-top: 10px; }
+
+    .advanced-line {
+      border: 1px solid var(--blue-200);
+      background: #eff8ff;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .advanced-line input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--blue-600); }
+    .hint { color: var(--blue-600); font-size: 13px; margin-top: 4px; }
+
+    details.manual { border: 1px dashed var(--blue-200); border-radius: 14px; padding: 16px; background: #fbfdff; }
+    details.manual summary { cursor: pointer; font-weight: 700; color: #0f3f91; }
+    details.manual textarea { margin-top: 14px; }
+
+    .main-button {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 18px 24px;
+      background: linear-gradient(90deg, var(--blue-600), var(--blue-800));
+      color: white;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .02em;
+      box-shadow: 0 12px 24px rgba(37,99,235,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: .18s ease;
+    }
+    .main-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 28px rgba(37,99,235,.42); }
+    .main-button:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+    .side-card {
+      background: white;
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+    .quick { background: #1e40af; color: white; border: 0; }
+    .quick h3 { margin: 0 0 16px; font-size: 18px; }
+    .quick ol { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 12px; }
+    .quick li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; color: #dbeafe; font-size: 14px; line-height: 1.45; }
+    .num { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: rgba(96,165,250,.8); color: white; font-weight: 800; font-size: 12px; }
+    .domains h3 { color: #0f3f91; margin: 0 0 12px; font-size: 17px; }
+    .domains ul { margin: 0; padding-left: 18px; color: var(--slate-600); line-height: 1.9; font-size: 14px; }
+    .domains li::marker { color: var(--blue-500); }
+
+    .status-card { display: none; text-align: center; padding: 34px 24px; }
+    .status-card.show { display: block; }
+    .circle {
+      --p: 0;
+      width: 98px; height: 98px; border-radius: 50%;
+      background: conic-gradient(var(--blue-500) calc(var(--p) * 1%), var(--slate-200) 0);
+      display: grid; place-items: center;
+      margin: 0 auto 22px;
+      position: relative;
+    }
+    .circle::after { content: ""; width: 76px; height: 76px; border-radius: 50%; background: white; position: absolute; }
+    .circle strong { position: relative; z-index: 1; color: var(--blue-600); font-size: 22px; }
+    .bar { width: min(460px, 100%); height: 12px; background: var(--slate-200); border-radius: 999px; overflow: hidden; margin: 0 auto 18px; }
+    .bar > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue-500), var(--blue-700)); border-radius: inherit; transition: width .25s ease; }
+    .status-text { font-weight: 800; color: #0f3f91; margin-bottom: 8px; }
+    .do-not-close { color: var(--amber-500); font-size: 13px; font-weight: 700; }
+
+    .result-card { display: none; }
+    .result-card.show { display: block; }
+    .result-toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .tool-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .small-btn {
+      border: 1px solid var(--blue-200);
+      background: white;
+      color: var(--blue-700);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800;
+      transition: .18s ease;
+    }
+    .small-btn:hover { background: var(--blue-50); transform: translateY(-1px); }
+    .small-btn.primary { background: var(--blue-600); color: white; border-color: var(--blue-600); }
+    .small-btn.danger { color: var(--red-600); border-color: #fecaca; }
+    .result-area { min-height: 430px; background: #fff; font-family: "Times New Roman", serif; font-size: 16px; }
+    .note { color: var(--slate-500); font-size: 13px; line-height: 1.6; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, .55);
+      z-index: 99;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: min(520px, 100%);
+      max-height: min(780px, calc(100vh - 40px));
+      overflow: auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(15,23,42,.35);
+    }
+    .modal-head {
+      background: linear-gradient(90deg, var(--blue-600), var(--blue-700));
+      color: white;
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-head h2 { margin: 0; font-size: 20px; }
+    .close-btn { background: transparent; border: 0; color: white; font-size: 28px; line-height: 1; }
+    .modal-body { padding: 22px; }
+    .model-list { display: grid; gap: 12px; margin-bottom: 20px; }
+    .model-option {
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 22px;
+      gap: 12px;
+      align-items: center;
+      background: white;
+      transition: .18s ease;
+    }
+    .model-option:hover { border-color: var(--blue-300); background: var(--blue-50); }
+    .model-option.selected { border-color: var(--blue-600); background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,.10); }
+    .model-name { font-weight: 800; margin-bottom: 3px; }
+    .model-desc { color: var(--slate-500); font-size: 13px; }
+    .check { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; background: var(--slate-100); color: transparent; font-weight: 900; }
+    .model-option.selected .check { background: var(--blue-500); color: white; }
+    .save-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+    .link-row { text-align: center; border-top: 1px solid var(--slate-100); margin-top: 20px; padding-top: 18px; }
+    .link-row a { color: var(--blue-600); text-decoration: none; font-weight: 800; }
+    .error-box {
+      display: none;
+      border: 1px solid #fecaca;
+      background: var(--red-50);
+      color: #991b1b;
+      padding: 14px 16px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      line-height: 1.55;
+    }
+    .error-box.show { display: block; }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { order: -1; }
+      .quick { display: none; }
+      .header-inner { align-items: flex-start; flex-direction: column; }
+      .header-actions { width: 100%; justify-content: flex-start; }
+      .header-api { width: min(100%, 520px); }
+    }
+    @media (max-width: 680px) {
+      .grid-2, .upload-grid, .option-row { grid-template-columns: 1fr; }
+      .page, .header-inner { width: min(100% - 20px, 1100px); }
+      .card, .side-card { padding: 18px; }
+      .brand-icon { width: 44px; height: 44px; font-size: 24px; }
+      .main-button { font-size: 15px; }
+      .pill span.hide-sm { display: none; }
+    }
+
+    @media print {
+      .app-header, .side, .card:not(.result-card), .status-card, .result-toolbar, .note, .modal-backdrop { display: none !important; }
+      body { background: white; }
+      .page, .layout { width: 100%; margin: 0; display: block; }
+      .result-card { display: block !important; border: 0; box-shadow: none; padding: 0; }
+      .result-area { border: 0; min-height: auto; }
+    }
+  </style>
+
+  <!-- Thư viện đọc DOCX/PDF. Các thư viện này chạy trực tiếp trong trình duyệt. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    });
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <h1>SOẠN GIÁO ÁN NĂNG LỰC SỐ</h1>
+          <p>Hỗ trợ tích hợp năng lực số vào kế hoạch bài dạy</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="header-api">
+          <div class="header-api-line">
+            <input id="apiKeyHeader" type="password" placeholder="Nhập API Key" autocomplete="off" />
+            <button class="ghost-btn model-btn" id="openSettingsTop" type="button" title="Chọn model AI">⚙️</button>
+          </div>
+          <a class="api-help-link" href="https://hoclieuso.id.vn" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="layout">
+      <section class="main">
+        <div class="error-box" id="errorBox"></div>
+
+        <section class="card">
+          <h2 class="section-title">Thông tin Kế hoạch bài dạy</h2>
+          <div class="grid-2">
+            <div>
+              <label for="subject">Môn học</label>
+              <select id="subject"></select>
+            </div>
+            <div>
+              <label for="grade">Khối lớp</label>
+              <select id="grade"></select>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">Tài liệu đầu vào</h2>
+          <div class="upload-grid">
+            <div>
+              <label><span style="color:#dc2626">*</span> File Giáo án</label>
+              <div class="upload-box" id="lessonBox">
+                <input id="lessonFile" type="file" accept=".docx,.pdf" />
+                <div>
+                  <div class="file-icon">📄</div>
+                  <div class="upload-title" id="lessonTitle">Tải lên Giáo án</div>
+                  <div class="upload-sub" id="lessonSub">Giáo án bài dạy cần tích hợp</div>
+                  <span class="support">Hỗ trợ .docx, .pdf</span>
+                </div>
+              </div>
+              <div class="required">ⓘ Bắt buộc, trừ khi bạn dán nội dung thủ công bên dưới.</div>
+            </div>
+            <div>
+              <label>File Phân phối chương trình</label>
+              <div class="upload-box" id="ppctBox">
+                <input id="ppctFile" type="file" accept=".docx,.pdf" />
+                <div>
+                  <div class="file-icon">📤</div>
+                  <div class="upload-title" id="ppctTitle">Tải lên PPCT</div>
+                  <div class="upload-sub" id="ppctSub">Tài liệu tham khảo năng lực nếu có</div>
+                  <span class="support">Hỗ trợ .docx, .pdf</span>
+                </div>
+              </div>
+              <div class="optional">Tùy chọn. Giúp AI xác định năng lực chính xác hơn.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <details class="manual">
+            <summary>Dán nội dung giáo án thủ công nếu file không đọc được</summary>
+            <textarea id="manualLesson" placeholder="Dán nội dung giáo án tại đây. Nếu có nội dung ở ô này, app sẽ ưu tiên dùng nội dung bạn dán thay cho file tải lên."></textarea>
+          </details>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">Tùy chọn nâng cao</h2>
+          <label class="advanced-line">
+            <input type="checkbox" id="aiOption" />
+            <span>
+              <strong>Thêm năng lực trí tuệ nhân tạo vào giáo án</strong>
+              <span class="hint">AI sẽ phân tích và gợi ý hoạt động sử dụng AI phù hợp, an toàn, có trách nhiệm.</span>
+            </span>
+          </label>
+          <div class="option-row">
+            <div>
+              <label for="nlsCount">Số năng lực số muốn tích hợp</label>
+              <span class="hint">Nên chọn 1–3 năng lực chính để tránh giáo án bị nặng và gượng ép.</span>
+            </div>
+            <select id="nlsCount">
+              <option value="auto">Tự động hợp lí</option>
+              <option value="1">1 năng lực</option>
+              <option value="2">2 năng lực</option>
+              <option value="3" selected>3 năng lực</option>
+              <option value="4">4 năng lực</option>
+              <option value="5">5 năng lực</option>
+            </select>
+          </div>
+          <div style="height:12px"></div>
+          <label class="advanced-line">
+            <input type="checkbox" id="safeLongOption" checked />
+            <span>
+              <strong>Chế độ an toàn khi giáo án/PPCT dài</strong>
+              <span class="hint">Tự rút gọn thông minh, đặt thời gian chờ và nếu tài liệu quá dài sẽ tạo phần bổ sung NLS theo vị trí chèn thay vì bắt AI viết lại toàn bộ.</span>
+            </span>
+          </label>
+        </section>
+
+        <div style="display:flex; justify-content:flex-end; margin:-8px 2px 22px;">
+          <button class="small-btn" id="openSettingsLink" type="button">🔑 Cấu hình API Key</button>
+        </div>
+
+        <button class="main-button" id="generateBtn" type="button">✨ BẮT ĐẦU SOẠN GIÁO ÁN</button>
+
+        <section class="card status-card" id="statusCard">
+          <div class="circle" id="progressCircle" style="--p:0"><strong id="progressNumber">0%</strong></div>
+          <div class="bar"><span id="progressBar"></span></div>
+          <div class="status-text" id="statusText">Đang chuẩn bị...</div>
+          <p class="do-not-close">💡 Vui lòng không đóng trang này</p>
+        </section>
+
+        <section class="card result-card" id="resultCard">
+          <div class="result-toolbar">
+            <div>
+              <h2 class="section-title" style="margin-bottom:4px">Kết quả giáo án</h2>
+              <div class="note">Bạn có thể sửa trực tiếp nội dung trong ô dưới đây trước khi xuất Word.</div>
+            </div>
+            <div class="tool-buttons">
+              <button class="small-btn" id="copyBtn" type="button">📋 Sao chép</button>
+              <button class="small-btn" id="txtBtn" type="button">⬇️ Tải TXT</button>
+              <button class="small-btn primary" id="docxBtn" type="button">📘 Xuất Word</button>
+              <button class="small-btn" id="printBtn" type="button">🖨️ In/PDF</button>
+              <button class="small-btn danger" id="clearBtn" type="button">Làm lại</button>
+            </div>
+          </div>
+          <textarea class="result-area" id="resultArea" spellcheck="false"></textarea>
+        </section>
+      </section>
+
+      <aside class="side">
+        <div class="side-card quick">
+          <h3>Hướng dẫn nhanh</h3>
+          <ol>
+            <li><span class="num">1</span><span>Chọn môn học và khối lớp.</span></li>
+            <li><span class="num">2</span><span><b>Bắt buộc:</b> tải file giáo án .docx/.pdf hoặc dán nội dung thủ công.</span></li>
+            <li><span class="num">3</span><span><i>Tùy chọn:</i> tải PPCT nếu muốn AI bám năng lực cụ thể.</span></li>
+          </ol>
+        </div>
+        <div class="side-card domains">
+          <h3>Miền năng lực số</h3>
+          <ul>
+            <li>Khai thác dữ liệu và thông tin</li>
+            <li>Giao tiếp và hợp tác</li>
+            <li>Sáng tạo nội dung số</li>
+            <li>An toàn số</li>
+            <li>Giải quyết vấn đề</li>
+            <li>Ứng dụng AI</li>
+          </ul>
+        </div>
+        <div class="side-card domains">
+          <h3>Lưu ý bảo mật</h3>
+          <p class="note">API key được lưu trong trình duyệt của bạn bằng localStorage. Nội dung giáo án sẽ được gửi trực tiếp từ trình duyệt tới Gemini để xử lí.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="settingsModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-head">
+        <h2 id="settingsTitle">🔑 Thiết lập Model & API Key</h2>
+        <button class="close-btn" id="closeSettings" type="button" aria-label="Đóng">×</button>
+      </div>
+      <div class="modal-body">
+        <label>Chọn Model AI</label>
+        <div class="model-list" id="modelList"></div>
+
+        <div style="margin: 18px 0;">
+          <label for="customModel">Tên model tùy chỉnh</label>
+          <input id="customModel" type="text" placeholder="Ví dụ: gemini-2.5-flash" />
+          <div class="note">Dùng khi Google đổi tên model hoặc bạn muốn thử model khác.</div>
+        </div>
+
+        <p class="note">Nhập Gemini API Key của bạn. Key sẽ được lưu trên trình duyệt, không gửi về máy chủ riêng của app.</p>
+        <label for="apiKey">Gemini API Key</label>
+        <input id="apiKey" type="password" placeholder="AIza... hoặc AQ..." autocomplete="off" />
+
+        <div class="save-row">
+          <button class="small-btn primary" id="saveSettings" type="button">💾 Lưu cấu hình</button>
+        </div>
+
+        <div class="link-row">
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">👉 Lấy API key tại đây</a>
+          <div class="note">Sau khi lấy key, quay lại app và dán vào ô trên.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*****************************************************************
+     * CONFIG - SỬA Ở ĐÂY KHI MUỐN NÂNG CẤP APP
+     *****************************************************************/
+    const APP = {
+      name: "Soạn giáo án năng lực số",
+      apiStorageKey: "nls_gemini_api_key",
+      modelStorageKey: "nls_gemini_model",
+      customModelStorageKey: "nls_custom_model",
+      endpoint: "https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={KEY}",
+      maxLessonChars: 36000,
+      maxPpctChars: 12000,
+      longInputThreshold: 52000,
+      requestTimeoutMs: 180000,
+    };
+
+    const SUBJECTS = [
+      "Toán", "Ngữ Văn", "Vật Lí", "Hóa Học", "Sinh Học", "Tiếng Anh",
+      "Lịch Sử", "Địa Lí", "GDCD", "Công Nghệ", "Tin Học", "Thể Dục",
+      "Nghệ thuật", "Hoạt động trải nghiệm", "Giáo dục Quốc phòng - An ninh", "Giáo dục Địa phương"
+    ];
+
+    const MODELS = [
+      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", desc: "Theo mẫu gốc; nếu lỗi, đổi sang 2.5 Flash" },
+      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", desc: "Nhanh, tiết kiệm chi phí" },
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", desc: "Suy luận sâu, preview" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", desc: "Ổn định, độ trễ thấp" },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", desc: "Nhẹ, tiết kiệm" },
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", desc: "Chất lượng cao" },
+      { id: "custom", name: "Model tùy chỉnh", desc: "Nhập tên model ở ô bên dưới" },
+    ];
+
+    const DIGITAL_COMPETENCE_FRAMEWORK = `
+KHUNG NĂNG LỰC SỐ THAM CHIẾU - DÙNG ĐỂ TÍCH HỢP VÀO KẾ HOẠCH BÀI DẠY
+
+NGUYÊN TẮC TRIỂN KHAI:
+- Không gây quá tải chương trình; chỉ lồng ghép khi phù hợp với yêu cầu cần đạt, nội dung môn học và điều kiện lớp học.
+- Kế hoạch bài dạy cần nêu rõ nội dung/hoạt động cụ thể nhằm phát triển NLS trong từng hoạt động học.
+- Môn Tin học giữ vai trò chủ đạo; các môn học khác tạo môi trường cho học sinh vận dụng kỹ năng số vào thực tiễn.
+- Chú ý công nghệ mới như AI, IoT, VR khi phù hợp; bảo đảm an toàn thông tin và đạo đức số.
+
+MỨC ĐỘ THEO KHỐI LỚP:
+- Lớp 1,2,3: Cơ bản 1 - nhiệm vụ đơn giản, có sự hướng dẫn.
+- Lớp 4,5: Cơ bản 2 - nhiệm vụ đơn giản, tự chủ và có hướng dẫn khi cần.
+- Lớp 6,7: Trung cấp 1 - nhiệm vụ rõ ràng, vấn đề đơn giản, tự chủ hoàn toàn.
+- Lớp 8,9: Trung cấp 2 - nhiệm vụ rõ ràng nhưng không thường xuyên, độc lập theo nhu cầu cá nhân.
+- Lớp 10,11,12: Nâng cao 1 - nhiệm vụ/vấn đề khác nhau, có thể hướng dẫn người khác.
+
+6 MIỀN NĂNG LỰC VÀ NĂNG LỰC THÀNH PHẦN:
+1. Khai thác dữ liệu và thông tin
+   1.1. Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số.
+   1.2. Đánh giá dữ liệu, thông tin và nội dung số.
+   1.3. Quản lí dữ liệu, thông tin và nội dung số.
+2. Giao tiếp và hợp tác
+   2.1. Tương tác thông qua công nghệ số.
+   2.2. Chia sẻ thông tin và nội dung thông qua công nghệ số.
+   2.3. Sử dụng công nghệ số để thực hiện trách nhiệm công dân.
+   2.4. Hợp tác thông qua công nghệ số.
+   2.5. Quy tắc ứng xử trên mạng.
+   2.6. Quản lí danh tính số.
+3. Sáng tạo nội dung số
+   3.1. Phát triển nội dung số.
+   3.2. Tích hợp và tái cấu trúc nội dung số.
+   3.3. Bản quyền và giấy phép.
+   3.4. Lập trình.
+4. An toàn
+   4.1. Bảo vệ thiết bị.
+   4.2. Bảo vệ dữ liệu cá nhân và quyền riêng tư.
+   4.3. Bảo vệ sức khỏe và tinh thần.
+   4.4. Bảo vệ môi trường.
+5. Giải quyết vấn đề
+   5.1. Giải quyết các vấn đề kỹ thuật.
+   5.2. Xác định nhu cầu và giải pháp công nghệ.
+   5.3. Sử dụng sáng tạo công nghệ số.
+   5.4. Xác định các vấn đề cần cải thiện/cập nhật NLS.
+6. Ứng dụng trí tuệ nhân tạo
+   6.1. Nhận biết, hiểu bản chất và giới hạn của AI ở mức phù hợp lứa tuổi.
+   6.2. Sử dụng công cụ AI trong học tập một cách có kiểm soát.
+   6.3. Đánh giá kết quả AI, bảo đảm đạo đức, trích dẫn và trách nhiệm cá nhân.
+`;
+
+
+    const SUBJECT_GUIDANCE = {
+      "Ngữ Văn": `
+Gợi ý riêng cho môn Ngữ văn:
+- Ưu tiên đọc hiểu có hỗ trợ nguồn số đáng tin cậy, tra cứu từ ngữ/ngữ cảnh, kiểm chứng thông tin.
+- Có thể tổ chức học sinh tạo sản phẩm số: sơ đồ tư duy, nhật kí đọc, infographic, podcast, video ngắn, phiếu đọc số.
+- Nhấn mạnh bản quyền, trích dẫn nguồn, ứng xử văn minh khi bình luận/chia sẻ tác phẩm.
+- Nếu dùng AI: học sinh dùng AI như công cụ gợi ý, không chép nguyên văn; biết kiểm tra, chỉnh sửa, chịu trách nhiệm về sản phẩm.
+`,
+      "Toán": `Gợi ý riêng cho môn Toán: ưu tiên máy tính cầm tay, GeoGebra, bảng tính, mô phỏng, kiểm chứng kết quả và trình bày lời giải bằng công cụ số.`,
+      "Tin Học": `Gợi ý riêng cho môn Tin học: ưu tiên an toàn số, thuật toán, lập trình, dữ liệu, sản phẩm số, đạo đức số.`,
+      "Tiếng Anh": `Gợi ý riêng cho môn Tiếng Anh: ưu tiên từ điển số, luyện nghe nói, công cụ ghi âm, học liệu trực tuyến, giao tiếp số an toàn.`
+    };
+
+    /*****************************************************************
+     * STATE
+     *****************************************************************/
+    const state = {
+      subject: "Ngữ Văn",
+      grade: 7,
+      lessonText: "",
+      ppctText: "",
+      lessonFileName: "",
+      ppctFileName: "",
+      result: "",
+      apiKey: localStorage.getItem(APP.apiStorageKey) || "",
+      model: localStorage.getItem(APP.modelStorageKey) || "gemini-2.5-flash",
+      customModel: localStorage.getItem(APP.customModelStorageKey) || "",
+      isBusy: false,
+    };
+
+    /*****************************************************************
+     * DOM HELPERS
+     *****************************************************************/
+    const $ = (selector) => document.querySelector(selector);
+    const els = {
+      subject: $("#subject"), grade: $("#grade"),
+      lessonFile: $("#lessonFile"), ppctFile: $("#ppctFile"),
+      lessonBox: $("#lessonBox"), ppctBox: $("#ppctBox"),
+      lessonTitle: $("#lessonTitle"), lessonSub: $("#lessonSub"),
+      ppctTitle: $("#ppctTitle"), ppctSub: $("#ppctSub"),
+      manualLesson: $("#manualLesson"), aiOption: $("#aiOption"), nlsCount: $("#nlsCount"), safeLongOption: $("#safeLongOption"),
+      generateBtn: $("#generateBtn"), errorBox: $("#errorBox"),
+      statusCard: $("#statusCard"), progressCircle: $("#progressCircle"),
+      progressNumber: $("#progressNumber"), progressBar: $("#progressBar"), statusText: $("#statusText"),
+      resultCard: $("#resultCard"), resultArea: $("#resultArea"),
+      copyBtn: $("#copyBtn"), txtBtn: $("#txtBtn"), docxBtn: $("#docxBtn"), printBtn: $("#printBtn"), clearBtn: $("#clearBtn"),
+      modal: $("#settingsModal"), modelList: $("#modelList"), apiKey: $("#apiKey"), apiKeyHeader: $("#apiKeyHeader"), customModel: $("#customModel"),
+      openSettingsTop: $("#openSettingsTop"), openSettingsLink: $("#openSettingsLink"), closeSettings: $("#closeSettings"), saveSettings: $("#saveSettings"),
+    };
+
+    function showError(message) {
+      els.errorBox.innerHTML = message;
+      els.errorBox.classList.add("show");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function clearError() { els.errorBox.classList.remove("show"); els.errorBox.textContent = ""; }
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    /*****************************************************************
+     * INIT UI
+     *****************************************************************/
+    function initSelects() {
+      els.subject.innerHTML = SUBJECTS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+      els.grade.innerHTML = Array.from({ length: 12 }, (_, i) => i + 1).map(g => `<option value="${g}">Lớp ${g}</option>`).join("");
+      els.subject.value = state.subject;
+      els.grade.value = state.grade;
+      els.subject.addEventListener("change", () => state.subject = els.subject.value);
+      els.grade.addEventListener("change", () => state.grade = Number(els.grade.value));
+    }
+
+    function initModelList() {
+      els.modelList.innerHTML = MODELS.map(m => `
+        <button type="button" class="model-option" data-model="${m.id}">
+          <span>
+            <span class="model-name">${escapeHtml(m.name)}</span>
+            <span class="model-desc">${escapeHtml(m.desc)}</span>
+          </span>
+          <span class="check">✓</span>
+        </button>
+      `).join("");
+      els.modelList.addEventListener("click", (event) => {
+        const item = event.target.closest(".model-option");
+        if (!item) return;
+        state.model = item.dataset.model;
+        renderModelSelection();
+      });
+      els.apiKey.value = state.apiKey;
+      els.apiKeyHeader.value = state.apiKey;
+      els.customModel.value = state.customModel;
+      renderModelSelection();
+    }
+
+    function renderModelSelection() {
+      document.querySelectorAll(".model-option").forEach(btn => {
+        btn.classList.toggle("selected", btn.dataset.model === state.model);
+      });
+    }
+
+    /*****************************************************************
+     * FILE READING
+     *****************************************************************/
+    async function readUploadedFile(file, kind) {
+      clearError();
+      const isLesson = kind === "lesson";
+      const box = isLesson ? els.lessonBox : els.ppctBox;
+      const title = isLesson ? els.lessonTitle : els.ppctTitle;
+      const sub = isLesson ? els.lessonSub : els.ppctSub;
+      try {
+        title.textContent = "Đang đọc file...";
+        sub.textContent = file.name;
+        const text = await extractText(file);
+        if (!text.trim()) {
+          throw new Error("Không đọc được chữ trong file. File có thể là PDF scan/ảnh. Hãy dán nội dung thủ công.");
+        }
+        if (isLesson) {
+          state.lessonText = text;
+          state.lessonFileName = file.name;
+        } else {
+          state.ppctText = text;
+          state.ppctFileName = file.name;
+        }
+        box.classList.add("loaded");
+        title.textContent = file.name;
+        sub.textContent = `Đã đọc khoảng ${text.length.toLocaleString("vi-VN")} kí tự. Nhấn để thay đổi.`;
+      } catch (err) {
+        console.error(err);
+        box.classList.remove("loaded");
+        title.textContent = isLesson ? "Tải lên Giáo án" : "Tải lên PPCT";
+        sub.textContent = err.message || "Có lỗi khi đọc file.";
+        showError(`<strong>Không đọc được file:</strong> ${escapeHtml(err.message || String(err))}`);
+      }
+    }
+
+    async function extractText(file) {
+      const name = file.name.toLowerCase();
+      const arrayBuffer = await file.arrayBuffer();
+      if (name.endsWith(".docx")) return extractDocx(arrayBuffer);
+      if (name.endsWith(".pdf")) return extractPdf(arrayBuffer);
+      throw new Error("Định dạng chưa hỗ trợ. Vui lòng dùng .docx hoặc .pdf.");
+    }
+
+    async function extractDocx(arrayBuffer) {
+      if (!window.mammoth) throw new Error("Chưa tải được thư viện đọc DOCX. Hãy kiểm tra mạng.");
+      const result = await window.mammoth.extractRawText({ arrayBuffer });
+      return result.value || "";
+    }
+
+    async function extractPdf(arrayBuffer) {
+      if (!window.pdfjsLib) throw new Error("Chưa tải được thư viện đọc PDF. Hãy kiểm tra mạng.");
+      const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+      let allText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join(" ");
+        allText += `\n\n--- Trang ${i} ---\n${pageText}`;
+      }
+      return allText;
+    }
+
+    /*****************************************************************
+     * GEMINI
+     *****************************************************************/
+    function getActiveModel() {
+      if (state.model === "custom") return state.customModel.trim();
+      return state.model;
+    }
+
+    function validateBeforeGenerate() {
+      syncApiKeyFromHeader();
+      const lesson = els.manualLesson.value.trim() || state.lessonText.trim();
+      if (!lesson) return "Bạn cần tải file giáo án hoặc dán nội dung giáo án thủ công.";
+      if (!state.apiKey.trim()) return "Bạn chưa nhập Gemini API Key ở ô trên header.";
+      if (!/^AIzaSy|^AQ/.test(state.apiKey.trim())) return "API Key có vẻ chưa đúng định dạng. Hãy kiểm tra lại.";
+      if (!getActiveModel()) return "Bạn chưa chọn hoặc nhập tên model AI.";
+      return "";
+    }
+
+    function truncateForPrompt(text, max) {
+      if (text.length <= max) return text;
+      return text.slice(0, max) + `\n\n[Đã rút gọn do nội dung quá dài. Tổng độ dài gốc: ${text.length} kí tự.]`;
+    }
+
+    function buildPrompt() {
+      const rawLesson = els.manualLesson.value.trim() || state.lessonText;
+      const rawPpct = state.ppctText;
+      const combinedLength = rawLesson.length + rawPpct.length;
+      const longMode = els.safeLongOption.checked && combinedLength > APP.longInputThreshold;
+      const lesson = truncateForPrompt(rawLesson, longMode ? 30000 : APP.maxLessonChars, "lesson");
+      const ppct = truncateForPrompt(rawPpct, longMode ? 8000 : APP.maxPpctChars, "ppct");
+      const subjectHint = SUBJECT_GUIDANCE[state.subject] || "Hãy chọn năng lực số phù hợp với đặc thù môn học, tránh gượng ép, tránh biến tiết học thành tiết Tin học.";
+      const useAI = els.aiOption.checked;
+      const nlsCount = els.nlsCount.value;
+      const nlsCountText = nlsCount === "auto" ? "Tự động hợp lí, ưu tiên 1-3 năng lực chính" : `${nlsCount} năng lực chính`;
+
+      return `
+Bạn là trợ lý chuyên hỗ trợ giáo viên Việt Nam soạn Kế hoạch bài dạy theo định hướng phát triển phẩm chất, năng lực và tích hợp năng lực số.
+
+THÔNG TIN:
+- Môn học: ${state.subject}
+- Khối lớp: Lớp ${state.grade}
+- Yêu cầu thêm năng lực AI: ${useAI ? "Có" : "Không"}
+- Số năng lực số muốn tích hợp: ${nlsCountText}
+- Chế độ xử lí tài liệu dài: ${longMode ? "Có - ưu tiên trả kết quả gọn, chắc chắn" : "Không"}
+
+${DIGITAL_COMPETENCE_FRAMEWORK}
+
+${subjectHint}
+
+YÊU CẦU XỬ LÍ:
+1. Đọc giáo án gốc và xác định đúng các hoạt động học trong nội dung được cung cấp. Giáo án tải lên có thể chỉ là một phần của một bài/chủ đề lớn; không tự mở rộng sang các phần khác nếu giáo án gốc không có.
+2. Tích hợp NLS theo tinh thần: phù hợp, thực tiễn, không gây quá tải, không biến tiết học thành tiết Tin học.
+3. Số năng lực số chính cần chọn: ${nlsCountText}. Nếu người dùng chọn số cụ thể, hãy cố gắng chọn đúng số đó; nếu không đủ vị trí phù hợp thì chọn ít hơn và nêu lí do ngắn gọn.
+4. Mỗi năng lực số chính phải có vị trí chèn rõ ràng trong hoạt động học; tránh nhồi nhiều năng lực vào một hoạt động.
+5. Bổ sung NLS vào đúng vị trí: mục tiêu, nội dung, sản phẩm, tổ chức thực hiện hoặc đánh giá.
+6. Nội dung bổ sung phải ngắn, rõ, dùng được ngay trong giáo án.
+7. Đánh dấu rõ phần bổ sung bằng tiền tố: 🔴 [NLS]
+8. Nếu có PPCT và PPCT nêu rõ năng lực số/mã năng lực, phải ưu tiên bám PPCT, không tự bịa thêm năng lực không có căn cứ.
+9. Nếu yêu cầu thêm năng lực AI là “Không”, không đưa AI vào trừ khi thật sự cần. Nếu “Có”, thêm hoạt động dùng AI có kiểm chứng, có đạo đức sử dụng, không để học sinh chép nguyên văn.
+
+${longMode ? `
+VÌ TÀI LIỆU DÀI/PHỨC TẠP, KHÔNG VIẾT LẠI TOÀN BỘ GIÁO ÁN. Hãy trả về bản "PHẦN BỔ SUNG NĂNG LỰC SỐ ĐỂ CHÈN VÀO GIÁO ÁN" gồm:
+A. Mục tiêu cần bổ sung.
+B. Bảng vị trí chèn theo từng hoạt động: Hoạt động - Năng lực số chính - Vị trí chèn - Nội dung NLS đề xuất - Sản phẩm/đánh giá.
+C. Lưu ý triển khai để không quá tải.
+D. Nếu có AI: yêu cầu kiểm chứng, trích dẫn, bảo mật dữ liệu.
+` : `
+Trả về GIÁO ÁN HOÀN CHỈNH ĐÃ TÍCH HỢP. Giữ tối đa cấu trúc và nội dung gốc của giáo án, không giải thích ngoài lề.
+`}
+
+PHÂN PHỐI CHƯƠNG TRÌNH/THAM KHẢO NẾU CÓ:
+${ppct || "[Không có PPCT]"}
+
+GIÁO ÁN GỐC:
+${lesson}
+`;
+    }
+
+    async function callGemini(prompt) {
+      const model = getActiveModel().replace(/^models\//, "").trim();
+      const url = APP.endpoint
+        .replace("{MODEL}", encodeURIComponent(model))
+        .replace("{KEY}", encodeURIComponent(state.apiKey.trim()));
+
+      const body = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.28,
+          topP: 0.9,
+          maxOutputTokens: 8192,
+        }
+      };
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), APP.requestTimeoutMs);
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = data?.error?.message || `Lỗi HTTP ${response.status}`;
+          throw new Error(message);
+        }
+
+        const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n") || "";
+        if (!text.trim()) {
+          const reason = data?.candidates?.[0]?.finishReason || "Không rõ nguyên nhân";
+          throw new Error(`Gemini không trả về nội dung. Finish reason: ${reason}`);
+        }
+        return text.trim();
+      } catch (err) {
+        if (err.name === "AbortError") {
+          throw new Error("Quá thời gian chờ. Tài liệu có thể quá dài hoặc model đang phản hồi chậm. App đã có chế độ rút gọn; hãy thử lại hoặc chọn model nhẹ hơn.");
+        }
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function handleGenerate() {
+      clearError();
+      const validationMessage = validateBeforeGenerate();
+      if (validationMessage) { showError(validationMessage); return; }
+
+      try {
+        state.isBusy = true;
+        setBusy(true);
+        els.resultCard.classList.remove("show");
+        els.statusCard.classList.add("show");
+        updateProgress(5, "Đang chuẩn bị dữ liệu...");
+        await sleep(250);
+        updateProgress(22, "Đang đọc giáo án và PPCT...");
+        await sleep(250);
+        const prompt = buildPrompt();
+        updateProgress(38, "Đang phân tích vị trí tích hợp năng lực số...");
+        await sleep(250);
+        updateProgress(52, "Đang gửi yêu cầu tới Gemini...");
+        const result = await callGemini(prompt);
+        updateProgress(86, "Đang hoàn thiện bản giáo án...");
+        await sleep(350);
+        state.result = result;
+        els.resultArea.value = result;
+        updateProgress(100, "Hoàn tất!");
+        await sleep(500);
+        els.statusCard.classList.remove("show");
+        els.resultCard.classList.add("show");
+        els.resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (err) {
+        console.error(err);
+        showError(`<strong>Có lỗi khi soạn giáo án:</strong> ${escapeHtml(err.message || String(err))}<br><br>
+        Gợi ý: kiểm tra API key, đổi model sang <b>gemini-2.5-flash</b>, bật <b>Chế độ an toàn khi giáo án/PPCT dài</b>, hoặc dán phần giáo án cần xử lí vào ô thủ công.`);
+      } finally {
+        state.isBusy = false;
+        setBusy(false);
+      }
+    }
+
+    function setBusy(isBusy) {
+      els.generateBtn.disabled = isBusy;
+      els.generateBtn.textContent = isBusy ? "ĐANG XỬ LÝ..." : "✨ BẮT ĐẦU SOẠN GIÁO ÁN";
+    }
+
+    function updateProgress(percent, text) {
+      const safe = Math.max(0, Math.min(100, percent));
+      els.progressCircle.style.setProperty("--p", safe);
+      els.progressNumber.textContent = `${safe}%`;
+      els.progressBar.style.width = `${safe}%`;
+      els.statusText.textContent = text;
+    }
+
+    /*****************************************************************
+     * EXPORT
+     *****************************************************************/
+    function getResultText() {
+      return els.resultArea.value.trim();
+    }
+
+    async function copyResult() {
+      const text = getResultText();
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      els.copyBtn.textContent = "✅ Đã sao chép";
+      setTimeout(() => els.copyBtn.textContent = "📋 Sao chép", 1500);
+    }
+
+    function downloadTxt() {
+      const text = getResultText();
+      if (!text) return;
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      downloadBlob(blob, makeFileName("txt"));
+    }
+
+    async function downloadDocx() {
+      const text = getResultText();
+      if (!text) return;
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Giáo án NLS</title>
+        <style>body{font-family:"Times New Roman",serif;font-size:13pt;line-height:1.45} .nls{color:#c00000;font-weight:bold}</style>
+        </head><body>${textToHtml(text)}</body></html>`;
+      const blob = new Blob(['\ufeff', html], { type: "application/msword;charset=utf-8" });
+      downloadBlob(blob, makeFileName("doc"));
+    }
+
+    function textToHtml(text) {
+      return escapeHtml(text)
+        .replace(/🔴 \[NLS\]/g, '<span class="nls">[NLS]</span>')
+        .split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
+    }
+
+    function textToDocxParagraphs(text) {
+      const lines = text.replace(/\r\n/g, "\n").split("\n");
+      return lines.map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return new Paragraph({ text: "" });
+
+        const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+        if (headingMatch) {
+          const level = headingMatch[1].length === 1 ? HeadingLevel.HEADING_1 : headingMatch[1].length === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3;
+          return new Paragraph({ text: headingMatch[2], heading: level });
+        }
+
+        const isLikelyHeading = trimmed.length < 90 && (
+          /^[IVX]+\./.test(trimmed) ||
+          /^\d+\./.test(trimmed) ||
+          /^[A-ZÀ-Ỵ\s]{8,}$/.test(trimmed)
+        );
+
+        const runs = [];
+        const parts = trimmed.split(/(🔴 \[NLS\])/g).filter(Boolean);
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          if (part === "🔴 [NLS]") {
+            const next = parts[i + 1] || "";
+            runs.push(new TextRun({ text: "[NLS]" + next, color: "C00000", bold: true }));
+            i++;
+          } else {
+            runs.push(new TextRun({ text: part, bold: isLikelyHeading }));
+          }
+        }
+        return new Paragraph({
+          children: runs.length ? runs : [new TextRun(trimmed)],
+          spacing: { after: 120 },
+        });
+      });
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function makeFileName(ext) {
+      const safeSubject = removeVietnameseTones(state.subject).replace(/\s+/g, "_");
+      const date = new Date().toISOString().slice(0, 10);
+      return `Giao_an_NLS_${safeSubject}_lop_${state.grade}_${date}.${ext}`;
+    }
+
+    function clearAll() {
+      state.lessonText = ""; state.ppctText = ""; state.lessonFileName = ""; state.ppctFileName = ""; state.result = "";
+      els.lessonFile.value = ""; els.ppctFile.value = ""; els.manualLesson.value = ""; els.nlsCount.value = "3"; els.resultArea.value = "";
+      els.lessonBox.classList.remove("loaded"); els.ppctBox.classList.remove("loaded");
+      els.lessonTitle.textContent = "Tải lên Giáo án"; els.lessonSub.textContent = "Giáo án bài dạy cần tích hợp";
+      els.ppctTitle.textContent = "Tải lên PPCT"; els.ppctSub.textContent = "Tài liệu tham khảo năng lực nếu có";
+      els.statusCard.classList.remove("show"); els.resultCard.classList.remove("show");
+      clearError();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /*****************************************************************
+     * SETTINGS
+     *****************************************************************/
+    function openSettings() {
+      els.apiKey.value = state.apiKey;
+      els.apiKeyHeader.value = state.apiKey;
+      els.customModel.value = state.customModel;
+      renderModelSelection();
+      els.modal.classList.add("show");
+      els.modal.setAttribute("aria-hidden", "false");
+      setTimeout(() => els.apiKey.focus(), 100);
+    }
+    function closeSettings() {
+      els.modal.classList.remove("show");
+      els.modal.setAttribute("aria-hidden", "true");
+    }
+    function saveSettings() {
+      state.apiKey = els.apiKey.value.trim();
+      els.apiKeyHeader.value = state.apiKey;
+      state.customModel = els.customModel.value.trim();
+      localStorage.setItem(APP.apiStorageKey, state.apiKey);
+      localStorage.setItem(APP.modelStorageKey, state.model);
+      localStorage.setItem(APP.customModelStorageKey, state.customModel);
+      closeSettings();
+      clearError();
+    }
+
+    function syncApiKeyFromHeader() {
+      state.apiKey = (els.apiKeyHeader.value || "").trim();
+      if (state.apiKey) localStorage.setItem(APP.apiStorageKey, state.apiKey);
+      if (els.apiKey.value !== state.apiKey) els.apiKey.value = state.apiKey;
+    }
+
+    /*****************************************************************
+     * UTILITIES
+     *****************************************************************/
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;"
+      }[char]));
+    }
+
+    function removeVietnameseTones(str) {
+      return str.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d").replace(/Đ/g, "D")
+        .replace(/[^a-zA-Z0-9_\s-]/g, "");
+    }
+
+    /*****************************************************************
+     * EVENTS
+     *****************************************************************/
+    initSelects();
+    initModelList();
+
+    els.lessonFile.addEventListener("change", (e) => e.target.files[0] && readUploadedFile(e.target.files[0], "lesson"));
+    els.ppctFile.addEventListener("change", (e) => e.target.files[0] && readUploadedFile(e.target.files[0], "ppct"));
+    els.generateBtn.addEventListener("click", handleGenerate);
+    els.copyBtn.addEventListener("click", copyResult);
+    els.txtBtn.addEventListener("click", downloadTxt);
+    els.docxBtn.addEventListener("click", downloadDocx);
+    els.printBtn.addEventListener("click", () => window.print());
+    els.clearBtn.addEventListener("click", clearAll);
+    els.apiKeyHeader.addEventListener("input", syncApiKeyFromHeader);
+    els.openSettingsTop.addEventListener("click", openSettings);
+    els.openSettingsLink.addEventListener("click", openSettings);
+    els.closeSettings.addEventListener("click", closeSettings);
+    els.saveSettings.addEventListener("click", saveSettings);
+    els.modal.addEventListener("click", (e) => { if (e.target === els.modal) closeSettings(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
+  </script>
+</body>
+</html>

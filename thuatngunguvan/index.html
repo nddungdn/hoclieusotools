@@ -1,0 +1,611 @@
+<div id="tl-van-hoc-app">
+<style>
+/* ===== RESET SCOPED ===== */
+#tl-van-hoc-app,#tl-van-hoc-app *,#tl-van-hoc-app *::before,#tl-van-hoc-app *::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ===== BIẾN MÀU — đồng bộ với theme web ===== */
+#tl-van-hoc-app{
+  /* Light */
+  --tl-bg:#faf6f0;
+  --tl-surface:#f5f0e8;
+  --tl-card:#ffffff;
+  --tl-border:#e8e2d9;
+  --tl-text:#1c1917;
+  --tl-text2:#44403c;
+  --tl-muted:#78716c;
+  --tl-dim:#a8a29e;
+  --tl-accent:#a21caf;
+  --tl-accent-h:#86198f;
+  --tl-accent-bg:rgba(162,28,175,.07);
+  --tl-accent-bg2:rgba(162,28,175,.14);
+  --tl-accent-border:rgba(162,28,175,.25);
+  --tl-active-text:#fff;
+  --tl-badge-bg:#fef9c3;
+  --tl-badge-text:#713f12;
+  --tl-shadow:0 1px 4px rgba(28,25,23,.07),0 4px 16px rgba(28,25,23,.05);
+  --tl-shadow-md:0 4px 20px rgba(28,25,23,.1);
+  --tl-list-item-bg:#f0f9ff;
+  --tl-list-item-border:#bae6fd;
+  --tl-list-item-text:#0f172a;
+  --tl-list-item-hover-text:#a21caf;
+  --tl-def-border:#a21caf;
+  --tl-ex-border:#d97706;
+  --tl-ex-bg:rgba(217,119,6,.05);
+  --tl-related-bg:#f8f5ff;
+  --tl-related-border:rgba(162,28,175,.25);
+  --tl-header-bg:#a21caf;
+  --tl-header-text:#fff;
+  --tl-filter-active-bg:#a21caf;
+  --tl-filter-active-text:#fff;
+  --tl-scrollbar:rgba(162,28,175,.3);
+}
+html.dark #tl-van-hoc-app{
+  --tl-bg:#0c0a09;
+  --tl-surface:#1c1917;
+  --tl-card:#1c1917;
+  --tl-border:#2e2a24;
+  --tl-text:#f5f5f4;
+  --tl-text2:#d6d3d1;
+  --tl-muted:#a8a29e;
+  --tl-dim:#78716c;
+  --tl-accent:#f472b6;
+  --tl-accent-h:#fb7185;
+  --tl-accent-bg:rgba(244,114,182,.08);
+  --tl-accent-bg2:rgba(244,114,182,.16);
+  --tl-accent-border:rgba(244,114,182,.25);
+  --tl-active-text:#1c1917;
+  --tl-badge-bg:#292524;
+  --tl-badge-text:#f472b6;
+  --tl-shadow:0 1px 4px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);
+  --tl-shadow-md:0 4px 20px rgba(0,0,0,.35);
+  --tl-list-item-bg:#1c1917;
+  --tl-list-item-border:#2e2a24;
+  --tl-list-item-text:#d6d3d1;
+  --tl-list-item-hover-text:#f472b6;
+  --tl-def-border:#f472b6;
+  --tl-ex-border:#f59e0b;
+  --tl-ex-bg:rgba(245,158,11,.07);
+  --tl-related-bg:#1c1917;
+  --tl-related-border:rgba(244,114,182,.25);
+  --tl-header-bg:#1c1917;
+  --tl-header-text:#f5f5f4;
+  --tl-filter-active-bg:#f472b6;
+  --tl-filter-active-text:#1c1917;
+  --tl-scrollbar:rgba(244,114,182,.3);
+}
+
+/* ===== LAYOUT CHÍNH ===== */
+#tl-van-hoc-app{
+  display:flex;flex-direction:column;
+  font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--tl-bg);color:var(--tl-text);
+  width:100%;height:85vh;min-height:560px;max-height:820px;
+  overflow:hidden;border-radius:16px;
+  border:1px solid var(--tl-border);
+  box-shadow:var(--tl-shadow-md);
+  -webkit-user-select:none;user-select:none;
+}
+#tl-van-hoc-app .tl-selectable{-webkit-user-select:text;user-select:text}
+
+/* Scrollbar */
+#tl-van-hoc-app .tl-scroll::-webkit-scrollbar{width:5px;height:5px}
+#tl-van-hoc-app .tl-scroll::-webkit-scrollbar-track{background:transparent}
+#tl-van-hoc-app .tl-scroll::-webkit-scrollbar-thumb{background:var(--tl-scrollbar);border-radius:10px}
+
+/* ===== HEADER ===== */
+#tl-van-hoc-app .tl-header{
+  background:var(--tl-header-bg);color:var(--tl-header-text);
+  padding:14px 20px;display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;gap:12px;
+  border-bottom:1px solid var(--tl-border);
+}
+#tl-van-hoc-app .tl-header-left h1{
+  font-size:1.05rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  margin-bottom:2px;line-height:1.2;
+}
+#tl-van-hoc-app .tl-header-left p{
+  font-size:.72rem;opacity:.75;font-style:italic;
+}
+#tl-van-hoc-app .tl-btn-fs{
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+  background:var(--tl-accent-bg2);color:var(--tl-header-text);
+  border:1px solid var(--tl-accent-border);
+  padding:6px 13px;border-radius:8px;cursor:pointer;
+  font-size:.75rem;font-weight:700;font-family:inherit;
+  transition:background .2s,transform .1s;
+}
+#tl-van-hoc-app .tl-btn-fs:hover{background:var(--tl-accent-bg2);filter:brightness(1.1);transform:translateY(-1px)}
+html.dark #tl-van-hoc-app .tl-btn-fs{color:var(--tl-text)}
+
+/* ===== FILTER BAR ===== */
+#tl-van-hoc-app .tl-filter-bar{
+  background:var(--tl-card);padding:8px 16px;
+  display:flex;gap:6px;overflow-x:auto;flex-shrink:0;
+  border-bottom:1px solid var(--tl-border);
+}
+#tl-van-hoc-app .tl-filter-bar::-webkit-scrollbar{display:none}
+#tl-van-hoc-app .tl-filter-btn{
+  background:transparent;color:var(--tl-muted);
+  border:1.5px solid var(--tl-border);
+  padding:4px 14px;border-radius:99px;cursor:pointer;
+  font-size:.75rem;font-weight:700;white-space:nowrap;font-family:inherit;
+  transition:all .2s;
+}
+#tl-van-hoc-app .tl-filter-btn:hover{border-color:var(--tl-accent);color:var(--tl-accent)}
+#tl-van-hoc-app .tl-filter-btn.active{
+  background:var(--tl-filter-active-bg);border-color:var(--tl-filter-active-bg);
+  color:var(--tl-filter-active-text);
+  box-shadow:0 2px 8px var(--tl-accent-bg2);
+}
+
+/* ===== MAIN ===== */
+#tl-van-hoc-app .tl-main{display:flex;flex:1;overflow:hidden}
+
+/* ===== PANEL TRÁI ===== */
+#tl-van-hoc-app .tl-panel-left{
+  width:280px;flex-shrink:0;
+  background:var(--tl-bg);border-right:1px solid var(--tl-border);
+  display:flex;flex-direction:column;
+}
+#tl-van-hoc-app .tl-search-wrap{
+  padding:10px 12px;background:var(--tl-card);
+  border-bottom:1px solid var(--tl-border);flex-shrink:0;
+}
+#tl-van-hoc-app .tl-search-input{
+  width:100%;padding:8px 12px;
+  background:var(--tl-surface);border:1.5px solid var(--tl-border);
+  border-radius:8px;font-size:.85rem;font-family:inherit;
+  color:var(--tl-text);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  -webkit-user-select:text;user-select:text;
+}
+#tl-van-hoc-app .tl-search-input::placeholder{color:var(--tl-dim)}
+#tl-van-hoc-app .tl-search-input:focus{
+  border-color:var(--tl-accent);
+  box-shadow:0 0 0 3px var(--tl-accent-bg);
+  background:var(--tl-card);
+}
+
+/* Đã xem gần đây */
+#tl-van-hoc-app .tl-recent-wrap{
+  padding:8px 12px;background:var(--tl-surface);
+  border-bottom:1px solid var(--tl-border);flex-shrink:0;
+}
+#tl-van-hoc-app .tl-recent-title{
+  font-size:.65rem;font-weight:800;color:var(--tl-dim);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;
+}
+#tl-van-hoc-app .tl-recent-list{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px}
+#tl-van-hoc-app .tl-recent-list::-webkit-scrollbar{display:none}
+#tl-van-hoc-app .tl-recent-btn{
+  background:var(--tl-card);color:var(--tl-muted);
+  border:1px solid var(--tl-border);
+  padding:3px 10px;border-radius:99px;font-size:.72rem;
+  white-space:nowrap;cursor:pointer;font-family:inherit;
+  transition:all .2s;
+}
+#tl-van-hoc-app .tl-recent-btn:hover{border-color:var(--tl-accent);color:var(--tl-accent)}
+
+/* Danh sách thuật ngữ */
+#tl-van-hoc-app .tl-term-list{
+  flex:1;overflow-y:auto;overflow-x:hidden;list-style:none;
+  padding:8px;display:flex;flex-direction:column;gap:4px;
+}
+#tl-van-hoc-app .tl-term-item{
+  padding:9px 10px 9px 16px;
+  background:var(--tl-list-item-bg);border:1px solid var(--tl-list-item-border);
+  border-radius:9px;cursor:pointer;
+  font-weight:600;font-size:.82rem;color:var(--tl-list-item-text);
+  line-height:1.45;word-break:break-word;white-space:normal;
+  position:relative;
+  transition:background .2s,border-color .2s,color .2s,box-shadow .2s;
+}
+#tl-van-hoc-app .tl-term-item::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:transparent;transition:background .2s;
+  border-radius:3px 0 0 3px;
+}
+#tl-van-hoc-app .tl-term-item:hover{
+  border-color:var(--tl-accent-border);
+  color:var(--tl-list-item-hover-text);
+  background:var(--tl-accent-bg);
+}
+#tl-van-hoc-app .tl-term-item:hover::before{background:var(--tl-accent)}
+#tl-van-hoc-app .tl-term-item.active{
+  background:var(--tl-accent);border-color:transparent;
+  color:var(--tl-active-text);
+  box-shadow:0 3px 10px var(--tl-accent-bg2);
+}
+#tl-van-hoc-app .tl-term-item.active::before{background:rgba(255,255,255,.5)}
+
+/* ===== PANEL PHẢI ===== */
+#tl-van-hoc-app .tl-panel-right{
+  flex:1;overflow-y:auto;padding:20px;
+  background:var(--tl-bg);
+  -webkit-user-select:text;user-select:text;
+}
+#tl-van-hoc-app .tl-content-card{
+  background:var(--tl-card);border-radius:16px;padding:24px;
+  border:1px solid var(--tl-border);box-shadow:var(--tl-shadow);
+  max-width:860px;margin:0 auto;
+}
+
+/* Tiêu đề */
+#tl-van-hoc-app .tl-content-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;margin-bottom:20px;padding-bottom:16px;
+  border-bottom:2px solid var(--tl-accent-bg2);
+  flex-wrap:wrap;
+}
+#tl-van-hoc-app .tl-content-title{
+  font-size:1.7rem;font-weight:800;color:var(--tl-accent);
+  line-height:1.2;letter-spacing:-.02em;
+}
+#tl-van-hoc-app .tl-grade-badge{
+  display:inline-flex;align-items:center;
+  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  background:var(--tl-badge-bg);color:var(--tl-badge-text);
+  border:1px solid var(--tl-accent-border);
+  padding:.3rem .8rem;border-radius:99px;white-space:nowrap;flex-shrink:0;margin-top:.35rem;
+}
+
+/* Section label */
+#tl-van-hoc-app .tl-section-label{
+  display:flex;align-items:center;gap:7px;
+  font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+#tl-van-hoc-app .tl-label-def{color:var(--tl-accent)}
+#tl-van-hoc-app .tl-label-ex{color:var(--tl-ex-border)}
+#tl-van-hoc-app .tl-label-rel{color:var(--tl-muted)}
+
+/* Định nghĩa */
+#tl-van-hoc-app .tl-content-body{
+  font-size:1rem;line-height:1.75;color:var(--tl-text2);
+  background:var(--tl-accent-bg);
+  padding:14px 18px;border-radius:10px;
+  border-left:4px solid var(--tl-def-border);
+  margin-bottom:18px;
+}
+
+/* Ví dụ */
+#tl-van-hoc-app .tl-content-example{
+  font-size:.95rem;line-height:1.75;color:var(--tl-text2);
+  background:var(--tl-ex-bg);
+  padding:14px 18px;border-radius:10px;
+  border-left:4px solid var(--tl-ex-border);
+}
+
+/* Divider */
+#tl-van-hoc-app .tl-divider{
+  border:none;border-top:1px solid var(--tl-border);margin:18px 0;
+}
+
+/* Liên quan */
+#tl-van-hoc-app .tl-related-wrap{margin-top:4px}
+#tl-van-hoc-app .tl-related-list{display:flex;flex-wrap:wrap;gap:7px}
+#tl-van-hoc-app .tl-related-btn{
+  background:var(--tl-related-bg);color:var(--tl-accent);
+  border:1px solid var(--tl-related-border);
+  padding:5px 14px;border-radius:8px;
+  font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .2s;
+}
+#tl-van-hoc-app .tl-related-btn:hover{
+  background:var(--tl-accent);color:var(--tl-active-text);
+  transform:translateY(-2px);box-shadow:0 4px 10px var(--tl-accent-bg2);
+}
+
+/* Trạng thái trống / loading */
+#tl-van-hoc-app .tl-state-msg{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:32px 16px;
+  color:var(--tl-muted);font-size:.9rem;font-weight:600;text-align:center;
+}
+
+/* Footer */
+#tl-van-hoc-app .tl-footer{
+  background:var(--tl-card);padding:9px 20px;text-align:center;
+  font-size:.72rem;color:var(--tl-dim);font-style:italic;
+  border-top:1px solid var(--tl-border);flex-shrink:0;
+}
+
+/* Spin */
+@keyframes tl-spin{100%{transform:rotate(360deg)}}
+#tl-van-hoc-app .tl-spin{animation:tl-spin 1s linear infinite}
+
+/* Responsive */
+@media(max-width:680px){
+  #tl-van-hoc-app{height:90vh;max-height:none;border-radius:10px}
+  #tl-van-hoc-app .tl-main{flex-direction:column}
+  #tl-van-hoc-app .tl-panel-left{width:100%;height:42%;border-right:none;border-bottom:1px solid var(--tl-border)}
+  #tl-van-hoc-app .tl-panel-right{height:58%;padding:14px}
+  #tl-van-hoc-app .tl-header{flex-direction:column;gap:8px;text-align:center;padding:12px 16px}
+  #tl-van-hoc-app .tl-content-card{padding:14px;border-radius:10px}
+  #tl-van-hoc-app .tl-content-title{font-size:1.3rem}
+}
+</style>
+
+<!--HEADER-->
+<header class="tl-header">
+  <div class="tl-header-left">
+    <h1>📚 Tra Cứu Thuật Ngữ Ngữ Văn</h1>
+    <p>Tiện ích đang trong thời gian hoàn thiện, có thể có sai sót</p>
+  </div>
+  <button class="tl-btn-fs" id="tl-btn-fs">
+    <svg fill="none" height="13" stroke-width="2" stroke="currentColor" viewbox="0 0 24 24" width="13"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+    <span id="tl-fs-text">Mở rộng</span>
+  </button>
+</header>
+
+<!--FILTER-->
+<div class="tl-filter-bar" id="tl-class-menu">
+  <button class="tl-filter-btn active" data-class="all">Tất cả</button>
+  <button class="tl-filter-btn" data-class="6">Lớp 6</button>
+  <button class="tl-filter-btn" data-class="7">Lớp 7</button>
+  <button class="tl-filter-btn" data-class="8">Lớp 8</button>
+  <button class="tl-filter-btn" data-class="9">Lớp 9</button>
+  <button class="tl-filter-btn" data-class="10">Lớp 10</button>
+  <button class="tl-filter-btn" data-class="11">Lớp 11</button>
+  <button class="tl-filter-btn" data-class="12">Lớp 12</button>
+</div>
+
+<main class="tl-main">
+  <!--PANEL TRÁI-->
+  <aside class="tl-panel-left">
+    <div class="tl-search-wrap">
+      <input class="tl-search-input" id="tl-search" placeholder="Nhập thuật ngữ cần tìm..." type="text" />
+    </div>
+
+    <div class="tl-recent-wrap" id="tl-recent-wrap" style="display: none;">
+      <div class="tl-recent-title">Đã xem gần đây</div>
+      <div class="tl-recent-list" id="tl-recent-list"></div>
+    </div>
+
+    <div class="tl-state-msg" id="tl-loading">
+      <svg class="tl-spin" fill="none" height="22" stroke-width="2" stroke="currentColor" style="color: var(--tl-accent);" viewbox="0 0 24 24" width="22"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8M21 3v5h-5"></path></svg>
+      Đang tải dữ liệu...
+    </div>
+
+    <ul class="tl-term-list tl-scroll" id="tl-term-list"></ul>
+  </aside>
+
+  <!--PANEL PHẢI-->
+  <article class="tl-panel-right tl-scroll">
+    <div class="tl-content-card" id="tl-content-card" style="display: none;">
+      <!--Header: tên + badge-->
+      <div class="tl-content-header">
+        <h2 class="tl-content-title" id="tl-title"></h2>
+        <span class="tl-grade-badge" id="tl-badge" style="display: none;"></span>
+      </div>
+
+      <!--Định nghĩa-->
+      <div class="tl-section-label tl-label-def">
+        <svg fill="none" height="16" stroke-width="2" stroke="currentColor" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"><path d="M12 16v-4M12 8h.01"></path></circle></svg>
+        Giải thích thuật ngữ
+      </div>
+      <div class="tl-content-body tl-selectable" id="tl-body"></div>
+
+      <!--Ví dụ-->
+      <hr class="tl-divider" />
+      <div id="tl-example-section">
+        <div class="tl-section-label tl-label-ex">
+          <svg fill="none" height="16" stroke-width="2" stroke="currentColor" viewbox="0 0 24 24" width="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"><polyline points="14 2 14 8 20 8"><line x1="16" x2="8" y1="13" y2="13"><line x1="16" x2="8" y1="17" y2="17"></line></line></polyline></path></svg>
+          Ví dụ minh họa
+        </div>
+        <div class="tl-content-example tl-selectable" id="tl-example"></div>
+      </div>
+
+      <!--Liên quan-->
+      <div id="tl-related-section" style="display: none;">
+        <hr class="tl-divider" />
+        <div class="tl-section-label tl-label-rel">
+          <svg fill="none" height="16" stroke-width="2" stroke="currentColor" viewbox="0 0 24 24" width="16"><path d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1"></path></svg>
+          Khám phá thêm
+        </div>
+        <div class="tl-related-list" id="tl-related-list"></div>
+      </div>
+    </div>
+
+    <div class="tl-state-msg" id="tl-empty" style="margin-top: 8%;">
+      <svg fill="none" height="40" stroke-width="1.5" stroke="currentColor" style="color: var(--tl-dim);" viewbox="0 0 24 24" width="40"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"></path></svg>
+      Chọn một thuật ngữ ở danh sách bên trái để xem nội dung chi tiết.
+    </div>
+  </article>
+</main>
+
+<footer class="tl-footer">
+  Nguồn: Sách Ngữ văn lớp 6–12 bộ <i>Kết nối tri thức với cuộc sống, Chân trời sáng tạo, Cánh Diều</i>
+</footer>
+
+<script>
+(function(){
+  var app=document.getElementById('tl-van-hoc-app');
+
+  /* ── Fullscreen ── */
+  var btnFs=document.getElementById('tl-btn-fs');
+  var fsText=document.getElementById('tl-fs-text');
+  if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))btnFs.style.display='none';
+  btnFs.addEventListener('click',function(){
+    var inFs=document.fullscreenElement||document.webkitFullscreenElement;
+    if(!inFs){
+      (app.requestFullscreen||app.webkitRequestFullscreen).call(app);
+      app.style.cssText+='height:100vh!important;max-height:100vh!important;border-radius:0!important';
+    } else {
+      (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      app.style.height='85vh';app.style.maxHeight='820px';app.style.borderRadius='16px';
+    }
+  });
+  ['fullscreenchange','webkitfullscreenchange'].forEach(function(ev){
+    document.addEventListener(ev,function(){
+      fsText.textContent=(document.fullscreenElement||document.webkitFullscreenElement)?'Thu nhỏ':'Mở rộng';
+    });
+  });
+
+  /* ── Data & State ── */
+  var apiUrl='https://script.google.com/macros/s/AKfycbxBX5xBbTaoISaLk6Gbgrj9NOGpZUsr8oaoi4kmfrl_E99-0OCmFzIDGeSghgo2BW6F/exec';
+  var data=[],filter='all',search='',recent=[];
+
+  var elList=document.getElementById('tl-term-list');
+  var elSearch=document.getElementById('tl-search');
+  var elLoading=document.getElementById('tl-loading');
+  var elCard=document.getElementById('tl-content-card');
+  var elEmpty=document.getElementById('tl-empty');
+  var elTitle=document.getElementById('tl-title');
+  var elBadge=document.getElementById('tl-badge');
+  var elBody=document.getElementById('tl-body');
+  var elExample=document.getElementById('tl-example');
+  var elRecentWrap=document.getElementById('tl-recent-wrap');
+  var elRecentList=document.getElementById('tl-recent-list');
+  var elRelatedSection=document.getElementById('tl-related-section');
+  var elRelatedList=document.getElementById('tl-related-list');
+
+  /* ── Load data ── */
+  async function loadData(){
+    try{
+      var r=await fetch(apiUrl);
+      if(!r.ok)throw new Error('Lỗi kết nối API');
+      var rows=await r.json();
+      if(!rows||rows.length===0)throw new Error('Dữ liệu trống');
+
+      var h=rows[0].map(function(c){return typeof c==='string'?c.toLowerCase().trim():''});
+      var tI=h.findIndex(function(c){return c.includes('thuật ngữ')||c==='từ'});
+      var dI=h.findIndex(function(c){return c.includes('giải thích')||c.includes('nội dung')||c.includes('nghĩa')});
+      var gI=h.findIndex(function(c){return c.includes('lớp')||c.includes('khối')});
+      var eI=h.findIndex(function(c){return c.includes('ví dụ')||c.includes('minh họa')});
+      if(tI<0)tI=0; if(dI<0)dI=1; if(gI<0)gI=2; if(eI<0)eI=3;
+      rows.shift();
+
+      data=rows
+        .filter(function(row){return row[tI]&&row[tI].toString().trim()})
+        .map(function(row,i){return{
+          id:i,
+          term:(row[tI]||'').toString().trim(),
+          definition:(row[dI]||'(Chưa có nội dung)').toString().trim(),
+          grade:(row[gI]||'').toString().trim(),
+          example:(row[eI]||'').toString().trim()
+        }});
+      data.sort(function(a,b){return(a.term||'').localeCompare(b.term||'','vi')});
+
+      elLoading.style.display='none';
+      renderFilter();
+    }catch(e){
+      elLoading.innerHTML='<span style="color:var(--tl-accent)">❌ Lỗi: '+e.message+'</span>';
+    }
+  }
+
+  /* ── Filter & render list ── */
+  function renderFilter(){
+    var filtered=data;
+    if(filter!=='all'){
+      filtered=filtered.filter(function(t){
+        if(!t.grade)return false;
+        var g=t.grade.toLowerCase();
+        return new RegExp('\\b'+filter+'\\b').test(g)||g.includes('lớp '+filter);
+      });
+    }
+    if(search){
+      filtered=filtered.filter(function(t){
+        return t.term.toLowerCase().includes(search)||t.definition.toLowerCase().includes(search);
+      });
+    }
+    renderList(filtered);
+  }
+
+  function renderList(arr){
+    elList.innerHTML='';
+    if(!arr.length){
+      elList.innerHTML='<li style="padding:20px;text-align:center;color:var(--tl-muted);font-size:.875rem;font-weight:600">Không có kết quả.</li>';
+      return;
+    }
+    arr.forEach(function(item){
+      var li=document.createElement('li');
+      li.className='tl-term-item';
+      li.id='tl-item-'+item.id;
+      li.textContent=item.term;
+      li.onclick=function(){selectTerm(item.id)};
+      elList.appendChild(li);
+    });
+  }
+
+  /* ── Filters ── */
+  document.querySelectorAll('#tl-class-menu .tl-filter-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#tl-class-menu .tl-filter-btn').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      filter=btn.getAttribute('data-class');
+      renderFilter();
+    });
+  });
+  elSearch.addEventListener('input',function(){
+    search=elSearch.value.toLowerCase().trim();
+    renderFilter();
+  });
+
+  /* ── Recent ── */
+  function updateRecent(item){
+    recent=recent.filter(function(t){return t.id!==item.id});
+    recent.unshift(item);
+    if(recent.length>5)recent.pop();
+    if(recent.length){
+      elRecentWrap.style.display='block';
+      elRecentList.innerHTML=recent.map(function(t){
+        return '<button class="tl-recent-btn" onclick="tlSelect('+t.id+')">'+t.term+'</button>';
+      }).join('');
+    }
+  }
+
+  /* ── Related ── */
+  function showRelated(item){
+    var pool=data.filter(function(t){return t.id!==item.id});
+    var sameGrade=pool.filter(function(t){return t.grade===item.grade}).sort(function(){return .5-Math.random()}).slice(0,4);
+    var rel=sameGrade.length?sameGrade:pool.sort(function(){return .5-Math.random()}).slice(0,4);
+    if(rel.length){
+      elRelatedSection.style.display='block';
+      elRelatedList.innerHTML=rel.map(function(t){
+        return '<button class="tl-related-btn" onclick="tlSelect('+t.id+')">'+t.term+'</button>';
+      }).join('');
+    } else {
+      elRelatedSection.style.display='none';
+    }
+  }
+
+  /* ── Select term ── */
+  window.tlSelect=function(id){selectTerm(id)};
+  function selectTerm(id){
+    var item=data.find(function(t){return t.id===id});
+    if(!item)return;
+
+    document.querySelectorAll('.tl-term-item').forEach(function(el){el.classList.remove('active')});
+    var el=document.getElementById('tl-item-'+id);
+    if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+    elEmpty.style.display='none';
+    elCard.style.display='block';
+
+    elTitle.textContent=item.term;
+    if(item.grade){
+      var g=item.grade.toLowerCase().includes('lớp')?item.grade:'Lớp '+item.grade;
+      elBadge.textContent=g.charAt(0).toUpperCase()+g.slice(1);
+      elBadge.style.display='inline-flex';
+    } else {
+      elBadge.style.display='none';
+    }
+
+    elBody.innerHTML=item.definition;
+    if(item.example){
+      elExample.innerHTML=item.example;
+      elExample.style.opacity='1';
+    } else {
+      elExample.innerHTML='<i style="color:var(--tl-dim)">(Chưa có ví dụ minh họa)</i>';
+      elExample.style.opacity='.6';
+    }
+
+    updateRecent(item);
+    showRelated(item);
+  }
+
+  loadData();
+})();
+</script>
+</div>

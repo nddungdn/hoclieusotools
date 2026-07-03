@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đấu Trường Ngữ Văn 8</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <div id="view-login" class="flex-grow flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-100">
+      <div class="text-center mb-6">
+        <div class="text-5xl mb-2">📚</div>
+        <h1 class="text-2xl font-bold text-slate-800 uppercase tracking-wide">Đấu Trường Ngữ Văn 8</h1>
+        <p class="text-sm text-slate-500 mt-1">Đăng nhập bằng Mã học sinh để luyện tập</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Mã Học Sinh</label>
+          <input type="text" id="login-maHS" placeholder="Ví dụ: HS001" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Mật khẩu</label>
+          <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <button onclick="handleLogin()" id="btn-login" class="w-full bg-amber-600 text-white font-bold py-3.5 rounded-xl hover:bg-amber-700 transition shadow-md">Bước Vào Đấu Trường</button>
+      </div>
+      <div class="text-center mt-6">
+        <button onclick="alert('Em hãy liên hệ trực tiếp với thầy Dũng để được cấp lại mật khẩu nhé!')" class="text-xs text-amber-700 hover:underline font-medium">Quên mật khẩu?</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-dashboard" class="hidden flex-grow max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+    <div class="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+      <div>
+        <p class="text-xs text-slate-400">Học sinh đang đăng nhập</p>
+        <h2 id="user-info" class="text-lg font-bold text-slate-800">---</h2>
+      </div>
+      <div class="flex space-x-2">
+        <button onclick="showChangePasswordModal()" class="text-xs bg-slate-100 text-slate-600 px-3 py-2 rounded-xl hover:bg-slate-200 transition">Đổi mật khẩu</button>
+        <button onclick="handleLogout()" class="text-xs bg-rose-50 text-rose-600 px-3 py-2 rounded-xl hover:bg-rose-100 transition font-medium">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between items-center text-center">
+        <div class="w-full flex justify-between items-center mb-4">
+          <span id="pet-tier" class="text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold">Mầm Văn Học</span>
+          <span id="pet-level" class="bg-amber-100 text-amber-800 font-bold text-xs px-2.5 py-1 rounded-lg">Lv.1</span>
+        </div>
+        <div id="pet-avatar" class="text-7xl my-6 filter drop-shadow-md">🥚</div>
+        <div class="w-full space-y-3 mt-2">
+          <div>
+            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1"><span>Sinh Lực (HP)</span><span id="txt-hp">100/100</span></div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden"><div id="bar-hp" class="bg-rose-500 h-full transition-all duration-500" style="width: 100%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1"><span>Kinh Nghiệm (EXP)</span><span id="txt-exp">0/100</span></div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden"><div id="bar-exp" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 md:col-span-2 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">📝 Luyện Tập Đọc Hiểu / Viết Ngắn</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Chọn Đề Bài</label>
+            <select id="assignment-title" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="Đọc hiểu văn bản Trong lòng mẹ">Đọc hiểu văn bản "Trong lòng mẹ" (Nguyên Hồng)</option>
+              <option value="Viết ngắn cảm nhận về Thơ trào phúng">Viết đoạn văn ngắn cảm nhận về Thơ trào phúng lớp 8</option>
+              <option value="Phân tích một chi tiết nghệ thuật trong Lão Hạc">Phân tích một chi tiết nghệ thuật đắt giá trong truyện "Lão Hạc"</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nội dung bài làm</label>
+            <textarea id="assignment-content" rows="6" placeholder="Nhập bài làm của em gửi thầy chấm điểm..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+          </div>
+          <button onclick="handleSubmitAssignment()" id="btn-submit" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition text-sm">Nộp Bài Cho Thầy Chấm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-4 text-xs text-slate-400">© 2026 Học Liệu Số.</footer>
+
+  <div id="modal-password" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
+      <h3 class="font-bold text-lg text-slate-800 mb-4">Thay Đổi Mật Khẩu</h3>
+      <input type="password" id="new-password" placeholder="Nhập mật khẩu mới" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+      <div class="flex space-x-2 justify-end">
+        <button onclick="closeChangePasswordModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs">Hủy</button>
+        <button onclick="handleChangePassword()" class="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // THẦY DÁN ĐƯỜNG LINK WEB APP URL (/exec) CỦA THẦY VÀO ĐÂY
+    const SCRIPT_URL = "ĐƯỜNG_DẪN_WEB_APP_URL_CỦA_THẦY_Ở_BƯỚC_2";
+
+    function handleLogin() {
+      const maHS = document.getElementById("login-maHS").value.trim();
+      const matKhau = document.getElementById("login-password").value;
+      const btn = document.getElementById("btn-login");
+      if (!maHS || !matKhau) { alert("Vui lòng nhập đầy đủ!"); return; }
+      btn.disabled = true; btn.innerText = "Đang kiểm tra...";
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "login", maHS: maHS, matKhau: matKhau })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false; btn.innerText = "Bước Vào Đấu Trường";
+        if (data.success) {
+          sessionStorage.setItem("currentStudent", JSON.stringify(data));
+          renderDashboard();
+        } else { alert(data.message); }
+      })
+      .catch(err => { btn.disabled = false; btn.innerText = "Bước Vào Đấu Trường"; alert("Lỗi kết nối máy chủ Sheets!"); });
+    }
+
+    function renderDashboard() {
+      const student = JSON.parse(sessionStorage.getItem("currentStudent"));
+      if (!student) return;
+      document.getElementById("view-login").classList.add("hidden");
+      document.getElementById("view-dashboard").classList.remove("hidden");
+      document.getElementById("user-info").innerText = `${student.hoTen} - Lớp ${student.lop}`;
+      document.getElementById("pet-level").innerText = `Lv.${student.lv}`;
+      document.getElementById("txt-hp").innerText = `${student.hp}/100`;
+      document.getElementById("txt-exp").innerText = `${student.exp}/100`;
+      document.getElementById("bar-hp").style.width = `${student.hp}%`;
+      document.getElementById("bar-exp").style.width = `${student.exp}%`;
+
+      let petIcon = "🥚"; let petTier = "Mầm Văn Học";
+      if (student.lv >= 6 && student.lv <= 10) { petIcon = "🐛"; petTier = "Dế Mèn Phiêu Lưu (Hệ Tự Sự)"; }
+      else if (student.lv >= 11 && student.lv <= 15) { petIcon = "🦅"; petTier = "Cánh Chim Tự Do (Hệ Trữ Tình)"; }
+      else if (student.lv > 15) { petIcon = "👑"; petTier = "Đại Bàng Trí Tuệ (Hệ Nghị Luận)"; }
+      document.getElementById("pet-avatar").innerText = petIcon;
+      document.getElementById("pet-tier").innerText = petTier;
+    }
+
+    function handleSubmitAssignment() {
+      const student = JSON.parse(sessionStorage.getItem("currentStudent"));
+      const tenBai = document.getElementById("assignment-title").value;
+      const noiDung = document.getElementById("assignment-content").value.trim();
+      const btn = document.getElementById("btn-submit");
+      if (!noiDung) { alert("Em chưa nhập bài!"); return; }
+      btn.disabled = true; btn.innerText = "Đang gửi...";
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "nopBai", maHS: student.maHS, tenBai: tenBai, noiDung: noiDung })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false; btn.innerText = "Nộp Bài Cho Thầy Chấm";
+        if (data.success) { alert("Bài làm đã được gửi thành công!"); document.getElementById("assignment-content").value = ""; }
+      }).catch(() => { btn.disabled = false; alert("Lỗi khi nộp bài."); });
+    }
+
+    function handleChangePassword() {
+      const student = JSON.parse(sessionStorage.getItem("currentStudent"));
+      const newPass = document.getElementById("new-password").value.trim();
+      if (!newPass) return;
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "doiMatKhau", rowId: student.rowId, matKhauMoi: newPass })
+      })
+      .then(res => res.json())
+      .then(data => { if (data.success) { alert("Đã đổi mật khẩu!"); closeChangePasswordModal(); } });
+    }
+
+    function handleLogout() { sessionStorage.clear(); window.location.reload(); }
+    function showChangePasswordModal() { document.getElementById("modal-password").classList.remove("hidden"); }
+    function closeChangePasswordModal() { document.getElementById("modal-password").classList.add("hidden"); document.getElementById("new-password").value = ""; }
+    window.onload = function() { if (sessionStorage.getItem("currentStudent")) { renderDashboard(); } };
+  </script>
+</body>
+</html>

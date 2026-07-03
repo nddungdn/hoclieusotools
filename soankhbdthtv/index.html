@@ -1,0 +1,777 @@
+<div id="ai-lesson-planner-wrapper">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+    
+    /* TOÀN BỘ CSS ĐƯỢC ĐỒNG BỘ THEO TÔNG MÀU SÁNG SANG TRỌNG CỦA HLS.ID.VN */
+    #ai-lesson-planner-wrapper {
+      --bg-dark: #f5eedc;                 /* Màu cát ấm đặc trưng của trang web hls.id.vn */
+      --bg-panel: #ffffff;                /* Màu trắng tinh tế cho các bảng điều khiển */
+      --bg-header: #ffffff;               /* Màu nền header sạch sẽ */
+      --border-color: #6025e6;            /* Màu tím violet đậm thương hiệu từ logo hls.id.vn */
+      --border-dim: #e3dbcf;              /* Đường viền xám ấm hài hòa với nền */
+      --text-primary: #1a1523;            /* Màu chữ đen tím tối ưu độ tương phản */
+      --text-secondary: #4a3e56;          /* Màu chữ phụ */
+      --text-muted: #7e718a;              /* Màu chữ chú thích nhạt */
+      --accent-primary: #6025e6;          /* Tím violet thương hiệu */
+      --accent-secondary: #7c3aed;        /* Tím sáng hơn cho các trạng thái hover */
+      --accent-secondary-hover: #4f1bc9;
+      --bg-input: #fdfcfb;                /* Màu nền nhập liệu trắng ấm nhẹ nhàng */
+      
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      box-sizing: border-box; 
+      width: 100%;
+      height: 135vh; 
+      min-height: 800px;
+      border-radius: 12px;
+      border: 2px solid var(--border-color);
+      margin: 10px 0;
+      display: flex; 
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(96, 37, 230, 0.1);
+    }
+
+    #ai-lesson-planner-wrapper:fullscreen {
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      border: none;
+      margin: 0;
+    }
+    
+    #ai-lesson-planner-wrapper *, #ai-lesson-planner-wrapper *:before, #ai-lesson-planner-wrapper *:after {
+      box-sizing: inherit;
+    }
+    
+    .ai-lp-header { 
+      padding: 20px 15px; 
+      text-align: center; 
+      border-bottom: 2px solid var(--border-color); 
+      background-color: var(--bg-header);
+      flex-shrink: 0; 
+      width: 100%;
+      display: flex; 
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(96, 37, 230, 0.05);
+    }
+    
+    .ai-lp-header h1 { 
+      color: var(--accent-primary); 
+      font-size: 1.5rem; 
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 0 0 5px 0;
+      line-height: 1.2;
+      letter-spacing: 0.5px;
+    }
+
+    .ai-lp-header .ai-lp-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin: 0 0 10px 0;
+      line-height: 1.5;
+      max-width: 850px;
+    }
+
+    .ai-lp-header-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 450px;
+      margin-top: 5px;
+    }
+
+    .ai-lp-fullscreen-btn {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(96, 37, 230, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .ai-lp-fullscreen-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(96, 37, 230, 0.35);
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-secondary-hover) 100%);
+    }
+
+    /* KHU VỰC NHẬP API KEY SÁNG SỦA, ĐỒNG BỘ */
+    .ai-lp-api-box {
+      width: 100%;
+      background: #fbfaf7;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px dashed var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ai-lp-api-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .ai-lp-api-input {
+      flex: 1;
+      background-color: #ffffff !important;
+      border: 1px solid var(--border-dim) !important;
+      border-radius: 4px;
+      padding: 6px 10px;
+      color: var(--text-primary) !important;
+      font-size: 0.8rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .ai-lp-api-input:focus {
+      border-color: var(--accent-primary) !important;
+      box-shadow: 0 0 5px rgba(96, 37, 230, 0.15);
+    }
+
+    .ai-lp-api-link {
+      color: var(--accent-primary);
+      font-size: 0.75rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .ai-lp-api-link:hover {
+      color: var(--accent-secondary);
+      text-decoration: underline;
+    }
+    
+    .ai-lp-main-container { 
+      display: flex; 
+      flex: 1; 
+      overflow: hidden; 
+      width: 100%; 
+      background-color: transparent;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .ai-lp-config-panel { 
+      width: 360px; 
+      background-color: var(--bg-panel); 
+      border-right: 2px solid var(--border-dim); 
+      display: flex; 
+      flex-direction: column; 
+      overflow-y: auto; 
+      padding: 20px; 
+      flex-shrink: 0;
+    }
+
+    .ai-lp-chat-panel { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      background-color: rgba(255, 255, 255, 0.35);
+      min-width: 0;
+    }
+
+    .ai-lp-config-panel h2 { 
+      font-size: 0.95rem; 
+      margin: 0 0 18px 0; 
+      color: var(--accent-primary); 
+      text-transform: uppercase; 
+      border-left: 4px solid var(--accent-primary); 
+      padding-left: 10px; 
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .ai-lp-input-group { margin-bottom: 18px; }
+    
+    .ai-lp-label-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .ai-lp-label-header label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;}
+    
+    .ai-lp-upload-btn { 
+      display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; 
+      color: var(--accent-primary); 
+      background-color: rgba(96, 37, 230, 0.08); 
+      padding: 4px 8px; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      border: 1px solid rgba(96, 37, 230, 0.2);
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .ai-lp-upload-btn:hover { background-color: var(--accent-primary); color: #ffffff; border-color: var(--accent-primary); }
+
+    .ai-lp-input-group textarea, 
+    .ai-lp-input-group input,
+    .ai-lp-input-group select { 
+      width: 100%; 
+      background-color: var(--bg-input); 
+      border: 1.5px solid var(--border-dim); 
+      border-radius: 6px; 
+      padding: 10px; 
+      color: var(--text-primary); 
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      resize: vertical;
+      transition: all 0.3s;
+    }
+
+    .ai-lp-input-group textarea:focus {
+      border-color: var(--accent-primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 8px rgba(96, 37, 230, 0.15);
+    }
+
+    .ai-lp-btn-start { 
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); 
+      color: #ffffff; 
+      border: none; 
+      padding: 12px; 
+      border-radius: 6px; 
+      font-weight: 700; 
+      cursor: pointer; 
+      width: 100%; 
+      text-transform: uppercase;
+      margin-top: 10px;
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+      box-shadow: 0 4px 12px rgba(96, 37, 230, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .ai-lp-btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(96, 37, 230, 0.35);
+    }
+
+    .ai-lp-btn-start:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .ai-lp-chat-history { 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px; 
+    }
+    
+    .ai-lp-message { max-width: 90%; line-height: 1.7; }
+    
+    /* Tin nhắn người dùng: Tím dịu lãng mạn */
+    .ai-lp-message.user { 
+      align-self: flex-end; 
+      background: rgba(96, 37, 230, 0.08); 
+      color: var(--text-primary);
+      padding: 12px 18px; 
+      border-radius: 12px; 
+      border-bottom-right-radius: 0; 
+      border: 1px solid rgba(96, 37, 230, 0.2); 
+    }
+    
+    .ai-lp-message.model { align-self: flex-start; width: 100%; }
+    
+    /* Tin nhắn AI: Màu trắng với bóng mờ thanh lịch */
+    .ai-lp-message-content { 
+      background: #ffffff; 
+      color: var(--text-primary);
+      padding: 18px; 
+      border-radius: 12px; 
+      border-bottom-left-radius: 0; 
+      border: 1px solid rgba(96, 37, 230, 0.12); 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    
+    /* Thiết kế bảng phong cách trang nhã tinh khiết */
+    .ai-lp-message-content table { border-collapse: collapse; width: 100%; margin: 15px 0; border: 2px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+    .ai-lp-message-content th, .ai-lp-message-content td { border: 1px solid rgba(96, 37, 230, 0.15); padding: 12px; text-align: left; font-size: 0.9rem; }
+    .ai-lp-message-content th { background: rgba(96, 37, 230, 0.08); color: var(--accent-primary); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+    .ai-lp-message-content tr:nth-child(even) { background: rgba(96, 37, 230, 0.02); }
+
+    .ai-lp-msg-actions { margin-top: 10px; display: flex; gap: 10px; }
+    .ai-lp-action-btn { 
+      font-size: 0.7rem; 
+      padding: 6px 14px; 
+      border: 1px solid var(--border-color); 
+      background: #ffffff; 
+      color: var(--accent-primary); 
+      cursor: pointer; 
+      border-radius: 4px; 
+      text-transform: uppercase; 
+      font-weight: 700; 
+      transition: all 0.2s; 
+    }
+    .ai-lp-action-btn:hover { background: var(--accent-primary); color: #ffffff; }
+
+    .ai-lp-chat-input-container { padding: 20px; background: var(--bg-header); border-top: 1px solid var(--border-dim); }
+    .ai-lp-chat-input-wrapper { display: flex; gap: 10px; position: relative; max-width: 1000px; margin: 0 auto;}
+    .ai-lp-chat-input-wrapper input { width: 100%; background: var(--bg-input); border: 1.5px solid var(--border-dim); color: var(--text-primary); padding: 12px 15px; border-radius: 6px; outline: none; font-size: 0.9rem; transition: all 0.3s; }
+    .ai-lp-chat-input-wrapper input:focus { border-color: var(--accent-primary); background-color: #ffffff; }
+    
+    .ai-lp-toast {
+      position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); color: #ffffff; padding: 10px 20px; border-radius: 6px;
+      font-size: 0.85rem; font-weight: 700; z-index: 9999; animation: ai-lp-fade 3.5s forwards;
+      box-shadow: 0 5px 15px rgba(96, 37, 230, 0.25);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    @keyframes ai-lp-fade { 0% {opacity: 0; transform: translate(-50%, 15px);} 15% {opacity: 1; transform: translate(-50%, 0);} 85% {opacity: 1; transform: translate(-50%, 0);} 100% {opacity: 0; transform: translate(-50%, -15px);} }
+
+    /* Thanh cuộn phong cách sáng sủa */
+    .ai-lp-config-panel::-webkit-scrollbar, .ai-lp-chat-history::-webkit-scrollbar { width: 6px; }
+    .ai-lp-config-panel::-webkit-scrollbar-track, .ai-lp-chat-history::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+    .ai-lp-config-panel::-webkit-scrollbar-thumb, .ai-lp-chat-history::-webkit-scrollbar-thumb { background: rgba(96, 37, 230, 0.2); border-radius: 3px; }
+    .ai-lp-config-panel::-webkit-scrollbar-thumb:hover, .ai-lp-chat-history::-webkit-scrollbar-thumb:hover { background: rgba(96, 37, 230, 0.4); }
+
+    @media (max-width: 768px) {
+      #ai-lesson-planner-wrapper { height: auto; min-height: 1200px; }
+      .ai-lp-main-container { flex-direction: column; overflow: visible; }
+      .ai-lp-config-panel { width: 100%; height: auto; max-height: 450px; border-right: none; border-bottom: 2.5px solid var(--border-dim); }
+      .ai-lp-chat-panel { height: 500px; }
+      .ai-lp-header h1 { font-size: 1.15rem; }
+    }
+  </style>
+
+  <div id="ai-lp-root" style="display: flex; flex-direction: column; height: 100%;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script crossorigin="" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin="" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin="" src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const defaultStructure = `Tuần: .... Ngày soạn: ....
+Tiết PPCT: .... Ngày dạy: ....
+TÊN BÀI HỌC: [TÊN BÀI HỌC]
+**A. MỤC TIÊU BÀI HỌC**
+1. Kiến thức
+2. Năng lực
+2.1. Năng lực đặc thù
+2.2. Năng lực chung
+3. Phẩm chất
+
+**B. PHƯƠNG PHÁP TRỌNG TÂM**
+
+**C. CHUẨN BỊ CỦA GIÁO VIÊN VÀ HỌC SINH**
+
+**D. TIẾN TRÌNH DẠY HỌC**
+| TỔ CHỨC HOẠT ĐỘNG | YÊU CẦU CẦN ĐẠT (NỘI DUNG GHI BẢNG) |
+|---|---|
+| **HOẠT ĐỘNG 1: KHỞI ĐỘNG** <br> **- Thời gian:** <br> **- Mục tiêu:** <br> **- Tổ chức thực hiện:** <br> **Bước 1:** Chuyển giao nhiệm vụ <br> **Bước 2:** Thực hiện nhiệm vụ <br> **Bước 3:** Báo cáo kết quả <br> **Bước 4:** Đánh giá kết quả | |`;
+
+    const defaultSample = `BÀI MẪU THAM KHẢO: THỰC HÀNH TIẾNG VIỆT
+**A. MỤC TIÊU BÀI HỌC**
+1. Kiến thức: Tri thức về đặc điểm và tác dụng của thán từ.
+2. Năng lực: Giao tiếp, hợp tác, tự học.
+3. Phẩm chất: Tích cực, sôi nổi.
+**B. PHƯƠNG PHÁP TRỌNG TÂM:** Trò chơi, Thảo luận nhóm.
+**C. CHUẨB BỊ:** GV chuẩn bị PPT. HS đọc trước bài.`;
+
+    function App() {
+      const [contextStructure, setContextStructure] = useState(defaultStructure);
+      const [contextSample, setContextSample] = useState(defaultSample);
+      const [contextTextbook, setContextTextbook] = useState('');
+      const [messages, setMessages] = useState([]);
+      const [inputValue, setInputValue] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [toastMsg, setToastMsg] = useState('');
+      const [fileProcessingMsg, setFileProcessingMsg] = useState('');
+      
+      // Khởi tạo API Key từ localStorage nếu có
+      const [userApiKey, setUserApiKey] = useState(() => {
+        try {
+          return localStorage.getItem('user_gemini_api_key') || '';
+        } catch (e) {
+          return '';
+        }
+      });
+      
+      const chatEndRef = useRef(null);
+      const structureInputRef = useRef(null);
+      const sampleInputRef = useRef(null);
+      const textbookInputRef = useRef(null);
+
+      useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, [messages, isLoading, fileProcessingMsg]);
+
+      const handleApiKeyChange = (value) => {
+        setUserApiKey(value);
+        try {
+          localStorage.setItem('user_gemini_api_key', value);
+        } catch (e) {
+          console.error("Không thể lưu API Key vào LocalStorage:", e);
+        }
+      };
+
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(''), 3500);
+      };
+
+      const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+
+      const handleExportWord = (htmlString, index) => {
+        let processedHtml = htmlString
+          .replace(/<td(.*?)>/gi, '<td$1><p>')
+          .replace(/<\/td>/gi, '</p></td>')
+          .replace(/<th(.*?)>/gi, '<th$1><p>')
+          .replace(/<\/th>/gi, '</p></th>')
+          .replace(/<br\s*\/?>/gi, '</p><p>');
+
+        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Giáo Án</title>
+        <style>
+          @page { size: A4; margin: 2cm; }
+          body { font-family: 'Times New Roman', serif; font-size: 14pt; text-align: justify; }
+          table { border-collapse: collapse; width: 100%; margin-bottom: 15pt; }
+          th, td { border: 1px solid black; padding: 8pt; vertical-align: top; text-align: justify; }
+          th { font-weight: bold; text-align: center; }
+          p { margin: 0 0 6pt 0; text-align: justify; line-height: 1.3; }
+        </style>
+        </head><body>`;
+        const footer = "</body></html>";
+        const sourceHTML = header + processedHtml + footer;
+        
+        const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+        const fileDownload = document.createElement("a");
+        document.body.appendChild(fileDownload);
+        fileDownload.href = source;
+        fileDownload.download = `Giao_An_AI_${index}.doc`;
+        fileDownload.click();
+        document.body.removeChild(fileDownload);
+        
+        showToast('✅ Đã tải file Word về máy!');
+      };
+
+      const handleCopy = (text) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) showToast('✅ Đã sao chép thành công!');
+        } catch (err) {
+          showToast('❌ Trình duyệt chặn sao chép.');
+        }
+        document.body.removeChild(textArea);
+      };
+
+      const handleFileUpload = async (event, setterFunc, isAppendMode = false) => {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+        
+        const activeApiKey = userApiKey.trim();
+        if (!activeApiKey) {
+          showToast("⚠️ Hãy nhập API Key ở bảng phía trên trước khi tải file!");
+          event.target.value = '';
+          return;
+        }
+
+        let successCount = 0;
+        let failCount = 0;
+        let lastError = "";
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileType = file.type;
+
+          // Cập nhật thông báo tiến trình hiển thị rõ thứ tự tệp khi tải lên nhiều file cùng lúc
+          setFileProcessingMsg(`Đang xử lý tệp ${i + 1}/${files.length}: ${file.name}... Vui lòng đợi!`);
+
+          try {
+            if (file.name.endsWith('.docx')) {
+              const arrayBuffer = await file.arrayBuffer();
+              const result = await mammoth.extractRawText({ arrayBuffer });
+              setterFunc(prev => isAppendMode ? prev + (prev ? "\n\n" : "") + result.value : result.value);
+              successCount++;
+            } else if (fileType.startsWith('image/') || fileType === 'application/pdf') {
+              const base64Data = await fileToBase64(file);
+              const requestModel = "gemini-2.5-flash";
+              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${requestModel}:generateContent?key=${activeApiKey}`;
+              
+              const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [
+                      { text: "Hãy trích xuất nguyên văn văn bản từ tài liệu này. Luôn dùng gạch ngang dài (—) để đánh dấu lời của nhân vật. Các chú thích in đậm và để trong cặp dấu ngoặc đơn (ví dụ (1)), chú thích đặt ở cuối truyện. Tuyệt đối không thêm bình luận nào khác ngoài văn bản." },
+                      { inlineData: { mimeType: fileType, data: base64Data } }
+                    ]
+                  }]
+                })
+              });
+              
+              const data = await response.json();
+              
+              if (!response.ok) {
+                 if (data.error && data.error.message.includes("referer")) {
+                     throw new Error("Lỗi Referer: Tên miền chưa được cấp quyền.");
+                 }
+                 if (response.status === 400 || (data.error && data.error.message.includes("API key"))) {
+                     throw new Error("Lỗi xác thực API Key của bạn không chính xác!");
+                 }
+                 throw new Error(data.error?.message || "Lỗi xử lý API");
+              }
+              
+              if (data.candidates && data.candidates[0].content) {
+                  const text = data.candidates[0].content.parts[0].text;
+                  setterFunc(prev => isAppendMode ? prev + (prev ? `\n\n--- Hết trang trước, chuyển trang tiếp theo ---\n\n` : "") + text : text);
+                  successCount++;
+              } else {
+                  throw new Error("Nội dung phản hồi trống.");
+              }
+            } else if (file.name.endsWith('.txt')) {
+              const text = await file.text();
+              setterFunc(prev => isAppendMode ? prev + (prev ? "\n\n" : "") + text : text);
+              successCount++;
+            } else {
+              throw new Error("Định dạng tệp không được hỗ trợ.");
+            }
+          } catch (err) {
+            console.error("Lỗi xử lý file:", err);
+            lastError = err.message;
+            failCount++;
+          }
+        }
+        
+        setFileProcessingMsg('');
+        event.target.value = '';
+
+        if (failCount > 0) {
+          showToast(`⚠️ Lỗi ${failCount} tệp: ${lastError}`);
+        } else if (successCount > 0) {
+          showToast(`✅ Đã trích xuất xong ${successCount} tệp!`);
+        }
+      };
+
+      const handleStartDrafting = () => {
+         handleSendMessage("Dựa vào thông tin đã cung cấp, hãy soạn một giáo án hoàn chỉnh.");
+      };
+
+      const handleSendMessage = async (customText) => {
+        const textToSend = typeof customText === 'string' ? customText : inputValue;
+        if (!textToSend.trim()) return;
+        
+        const activeApiKey = userApiKey.trim();
+        if (!activeApiKey) {
+          showToast("⚠️ Thầy/cô vui lòng cung cấp Gemini API Key để thực hiện soạn giáo án!");
+          return;
+        }
+
+        setMessages(prev => [...prev, { role: 'user', text: textToSend }]);
+        if (typeof customText !== 'string') setInputValue('');
+        setIsLoading(true);
+
+        const systemInstructionText = `Bạn là chuyên gia sư phạm. Soạn giáo án chi tiết dựa vào SGK, Cấu trúc Framework và Dữ liệu mẫu. 
+Luôn dùng gạch ngang dài (—) cho lời thoại. Chú thích in đậm trong ngoặc đơn ở cuối bài. Mọi bảng biểu chỉ dùng mã HTML <br> để xuống dòng bên trong ô, tuyệt đối không ấn enter.
+BẮT BUỘC: Toàn bộ phần "D. TIẾN TRÌNH DẠY HỌC" (hoặc các hoạt động dạy học) phải được kẻ BẢNG (table) rõ ràng, tuyệt đối không viết dạng văn bản thường ngoài bảng.
+
+[CẤU TRÚC BẮT BUỘC]
+${contextStructure}
+
+[DỮ LIỆU MẪU]
+${contextSample}
+
+[NỘI DUNG SÁCH GIÁO KHOA]
+${contextTextbook}`;
+
+        const requestModel = "gemini-2.5-flash";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${requestModel}:generateContent?key=${activeApiKey}`;
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: textToSend }] }],
+              systemInstruction: { parts: [{ text: systemInstructionText }] }
+            })
+          });
+          const data = await response.json();
+          
+          if (!response.ok) {
+             if (data.error && data.error.message.includes("referer")) {
+                 throw new Error("Lỗi Referer: Tên miền chưa được cấp quyền.");
+             }
+             if (response.status === 400 || (data.error && data.error.message.includes("API key"))) {
+                 throw new Error("Khóa API Key của bạn không hợp lệ hoặc sai định dạng!");
+             }
+             throw new Error(data.error?.message || "Lỗi xử lý API");
+          }
+          
+          if (data.candidates && data.candidates[0].content) {
+              setMessages(prev => [...prev, { role: 'model', text: data.candidates[0].content.parts[0].text }]);
+          }
+        } catch (err) {
+          showToast("❌ " + err.message);
+        }
+        setIsLoading(false);
+      };
+
+      return (
+        <React.Fragment>
+          <div className="ai-lp-header">
+            <h1>TRỢ LÍ SOẠN KHBD THỰC HÀNH TIẾNG VIỆT</h1>
+            <div className="ai-lp-subtitle">Công cụ được xây dựng bởi <b>"Học liệu số"</b></div>
+            
+            <div className="ai-lp-header-actions">
+              <button className="ai-lp-fullscreen-btn" onClick={() => document.getElementById('ai-lesson-planner-wrapper').requestFullscreen()}>
+                🔳 TOÀN MÀN HÌNH
+              </button>
+              
+              {/* KHUNG NHẬP API KEY */}
+              <div className="ai-lp-api-box">
+                <div className="ai-lp-api-row">
+                  <input 
+                    type="password" 
+                    className="ai-lp-api-input" 
+                    placeholder="Dán khóa Gemini API Key của bạn tại đây..." 
+                    value={userApiKey} 
+                    onChange={(e) => handleApiKeyChange(e.target.value)}
+                  />
+                </div>
+                {/* Đã được điều chỉnh căn giữa theo mong muốn */}
+                <div style={{ textAlign: 'center' }}>
+                  <a href="https://www.hls.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer" className="ai-lp-api-link">
+                    🔑 Xem cách tạo API Key ở đây
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="ai-lp-main-container">
+            <div className="ai-lp-config-panel">
+              <h2>1. BẢNG ĐIỀU KHIỂN</h2>
+
+              <div className="ai-lp-input-group">
+                <div className="ai-lp-label-header">
+                  <label>CẤU TRÚC FRAMEWORK</label>
+                  <label className="ai-lp-upload-btn" onClick={() => structureInputRef.current.click()}>📁 NHẬP FILE</label>
+                </div>
+                <input type="file" ref={structureInputRef} style={{display: 'none'}} accept=".txt,.docx" onChange={(e) => handleFileUpload(e, setContextStructure, false)} />
+                <textarea style={{height: '100px'}} value={contextStructure} onChange={(e)=>setContextStructure(e.target.value)} />
+              </div>
+
+              <div className="ai-lp-input-group">
+                <div className="ai-lp-label-header">
+                  <label>DỮ LIỆU HUẤN LUYỆN</label>
+                  <label className="ai-lp-upload-btn" onClick={() => sampleInputRef.current.click()}>📁 NHẬP FILE</label>
+                </div>
+                <input type="file" ref={sampleInputRef} style={{display: 'none'}} accept=".txt,.docx" onChange={(e) => handleFileUpload(e, setContextSample, false)} />
+                <textarea style={{height: '100px'}} value={contextSample} onChange={(e)=>setContextSample(e.target.value)} />
+              </div>
+
+              <div className="ai-lp-input-group">
+                <div className="ai-lp-label-header">
+                  <label>NGUỒN SÁCH GIÁO KHOA</label>
+                  <label className="ai-lp-upload-btn" onClick={() => textbookInputRef.current.click()}>📷 TẢI ẢNH/PDF</label>
+                </div>
+                {/* Thuộc tính "multiple" hỗ trợ chọn nhiều file cùng lúc */}
+                <input type="file" ref={textbookInputRef} multiple style={{display: 'none'}} accept=".docx,.pdf,image/*,.txt" onChange={(e) => handleFileUpload(e, setContextTextbook, true)} />
+                <textarea 
+                  style={{height: '130px'}} 
+                  value={contextTextbook} 
+                  onChange={(e)=>setContextTextbook(e.target.value)} 
+                  placeholder="Dán nội dung hoặc tải lên nhiều tệp cùng lúc (ảnh, PDF, Word, Txt) bằng nút bên trên... (Thầy cô có thể chọn nhiều ảnh cùng lúc bằng cách giữ phím Ctrl hoặc Shift khi chọn tệp)" 
+                />
+              </div>
+
+              <button className="ai-lp-btn-start" onClick={handleStartDrafting} disabled={isLoading || fileProcessingMsg !== ''}>
+                🚀 BẮT ĐẦU SOẠN THẢO
+              </button>
+            </div>
+
+            <div className="ai-lp-chat-panel">
+              <div className="ai-lp-chat-history">
+                {messages.length === 0 && !fileProcessingMsg && (
+                  <div style={{margin: 'auto', textAlign: 'center', opacity: 0.85}}>
+                    <div style={{fontSize: '3.5rem', marginBottom: '15px'}}>👩‍🏫</div>
+                    <div style={{color: 'var(--accent-primary)', fontWeight: '700', fontSize: '1.1rem'}}>Kế hoạch bài dạy hiển thị ở đây.</div>
+                    <div style={{fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '5px'}}>Vui lòng cấu hình bảng điều khiển và nhập API Key để bắt đầu giáo án.</div>
+                  </div>
+                )}
+                
+                {messages.map((m, i) => (
+                  <div key={i} className={`ai-lp-message ${m.role}`}>
+                    <div className="ai-lp-message-content" dangerouslySetInnerHTML={{ __html: m.role === 'model' ? marked.parse(m.text) : m.text }}></div>
+                    {m.role === 'model' && (
+                      <div className="ai-lp-msg-actions">
+                        <button className="ai-lp-action-btn" onClick={() => handleCopy(m.text)}>Sao chép giáo án</button>
+                        <button className="ai-lp-action-btn" onClick={() => handleExportWord(marked.parse(m.text), i)}>Tải file Word</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* THÔNG BÁO TIẾN TRÌNH XỬ LÝ ẢNH/PDF */}
+                {fileProcessingMsg && (
+                  <div style={{backgroundColor: 'rgba(96, 37, 230, 0.08)', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '15px', borderRadius: '8px', textAlign: 'center', fontStyle: 'italic', margin: '10px 0', fontWeight: '500'}}>
+                    ⏳ {fileProcessingMsg}
+                  </div>
+                )}
+
+                {/* THÔNG BÁO KHI ĐANG SOẠN THẢO GIÁO ÁN */}
+                {isLoading && !fileProcessingMsg && (
+                  <div style={{color: 'var(--accent-primary)', fontSize: '0.95rem', fontStyle: 'italic', padding: '10px 0', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600'}}>
+                    <span>🔮 Đang soạn thảo kế hoạch bài dạy. Thầy cô vui lòng chờ trong giây lát...</span>
+                  </div>
+                )}
+                
+                <div ref={chatEndRef} />
+              </div>
+              <div className="ai-lp-chat-input-container">
+                <div className="ai-lp-chat-input-wrapper">
+                  <input value={inputValue} onChange={(e)=>setInputValue(e.target.value)} onKeyDown={(e)=>e.key==='Enter'&&handleSendMessage()} placeholder="Thầy/ cô nhập yêu cầu chỉnh sửa ở đây..." />
+                  <button className="ai-lp-btn-start" style={{width: '100px', marginTop: 0, padding: '10px'}} onClick={() => handleSendMessage()}>GỬI</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {toastMsg && <div className="ai-lp-toast">{toastMsg}</div>}
+        </React.Fragment>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('ai-lp-root'));
+    root.render(<App />);
+  </script>
+</div>

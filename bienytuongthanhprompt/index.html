@@ -1,0 +1,505 @@
+<div id="go-wrap">
+<style>
+#go-wrap *,#go-wrap *::before,#go-wrap *::after{box-sizing:border-box;margin:0;padding:0}
+
+/* Light mode */
+#go-wrap{
+  --go-bg:#faf6f0;
+  --go-surface:#f5f0e8;
+  --go-card:#ffffff;
+  --go-border:#e8e2d9;
+  --go-border-focus:#a21caf;
+  --go-accent:#a21caf;
+  --go-accent-light:#c026d3;
+  --go-accent-bg:rgba(162,28,175,.08);
+  --go-accent-bg2:rgba(162,28,175,.15);
+  --go-text:#1c1917;
+  --go-muted:#78716c;
+  --go-dim:#a8a29e;
+  --go-success:#15803d;
+  --go-success-bg:rgba(21,128,61,.1);
+  --go-error:#b91c1c;
+  --go-error-bg:rgba(185,28,28,.08);
+  --go-shadow:0 2px 12px rgba(28,25,23,.08);
+  --go-shadow-lg:0 8px 32px rgba(28,25,23,.12);
+  background:var(--go-bg);
+  color:var(--go-text);
+  font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;
+  border-radius:16px;
+  padding:2rem 1.25rem;
+  border:1px solid var(--go-border);
+}
+/* Dark mode — theo class dark trên html */
+html.dark #go-wrap{
+  --go-bg:#0c0a09;
+  --go-surface:#1c1917;
+  --go-card:#1c1917;
+  --go-border:#2e2a24;
+  --go-border-focus:#f472b6;
+  --go-accent:#f472b6;
+  --go-accent-light:#fb7185;
+  --go-accent-bg:rgba(244,114,182,.1);
+  --go-accent-bg2:rgba(244,114,182,.2);
+  --go-text:#f5f5f4;
+  --go-muted:#a8a29e;
+  --go-dim:#78716c;
+  --go-success:#34d399;
+  --go-success-bg:rgba(52,211,153,.1);
+  --go-error:#f87171;
+  --go-error-bg:rgba(248,113,113,.08);
+  --go-shadow:0 2px 12px rgba(0,0,0,.3);
+  --go-shadow-lg:0 8px 32px rgba(0,0,0,.4);
+  background:var(--go-bg);
+  border-color:var(--go-border);
+}
+
+/* Header */
+#go-wrap header{text-align:center;padding:1.5rem 0 2rem}
+#go-wrap .go-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--go-accent-bg2);border:1px solid var(--go-accent);
+  border-radius:99px;padding:.3rem 1rem;font-size:.7rem;
+  color:var(--go-accent);letter-spacing:.07em;text-transform:uppercase;
+  font-weight:700;margin-bottom:1rem;
+}
+#go-wrap h1{
+  font-size:clamp(1.5rem,4vw,2.1rem);font-weight:700;
+  color:var(--go-text);line-height:1.25;letter-spacing:-.02em;margin-bottom:.6rem;
+}
+#go-wrap h1 span{color:var(--go-accent)}
+#go-wrap header p{color:var(--go-muted);font-size:.9rem}
+
+/* Grid */
+#go-wrap .go-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:620px){#go-wrap .go-grid{grid-template-columns:1fr}}
+#go-wrap .go-full{grid-column:1/-1}
+
+/* Card */
+#go-wrap .go-card{
+  background:var(--go-card);border:1px solid var(--go-border);
+  border-radius:12px;padding:1.25rem;
+  box-shadow:var(--go-shadow);
+  transition:border-color .25s,box-shadow .25s;
+}
+#go-wrap .go-card:focus-within{
+  border-color:var(--go-border-focus);
+  box-shadow:var(--go-shadow),0 0 0 3px var(--go-accent-bg);
+}
+
+#go-wrap .go-card-title{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--go-muted);margin-bottom:1rem;
+}
+#go-wrap .go-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--go-accent);flex-shrink:0;
+}
+
+/* Form */
+#go-wrap label{display:block;font-size:.8rem;color:var(--go-muted);margin-bottom:.35rem;font-weight:600}
+#go-wrap input[type=text],
+#go-wrap input[type=number],
+#go-wrap input[type=password],
+#go-wrap select,
+#go-wrap textarea{
+  width:100%;background:var(--go-surface);border:1px solid var(--go-border);
+  border-radius:8px;padding:.6rem .85rem;color:var(--go-text);
+  font-family:inherit;font-size:.875rem;
+  transition:border-color .2s,box-shadow .2s;outline:none;
+}
+#go-wrap input[type=text]:focus,
+#go-wrap input[type=number]:focus,
+#go-wrap input[type=password]:focus,
+#go-wrap select:focus,
+#go-wrap textarea:focus{
+  border-color:var(--go-border-focus);
+  box-shadow:0 0 0 3px var(--go-accent-bg);
+}
+#go-wrap textarea{resize:vertical;min-height:85px;line-height:1.55}
+
+/* API key */
+#go-wrap .go-key-wrap{position:relative}
+#go-wrap .go-key-wrap input{padding-right:2.6rem}
+#go-wrap .go-eye{
+  position:absolute;right:.7rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--go-muted);
+  font-size:.9rem;padding:.2rem;line-height:1;
+  transition:color .2s;
+}
+#go-wrap .go-eye:hover{color:var(--go-accent)}
+#go-wrap .go-hint{font-size:.72rem;color:var(--go-dim);margin-top:.35rem}
+#go-wrap .go-hint a{color:var(--go-accent);text-decoration:none;font-weight:600}
+#go-wrap .go-hint a:hover{text-decoration:underline}
+
+/* Row */
+#go-wrap .go-row{display:flex;align-items:center;gap:.75rem}
+#go-wrap .go-row label{margin:0;white-space:nowrap;flex-shrink:0}
+#go-wrap .go-row input{max-width:72px}
+
+/* Checkboxes */
+#go-wrap .go-cb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem}
+#go-wrap .go-cb{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--go-surface);border:1px solid var(--go-border);
+  border-radius:8px;padding:.45rem .7rem;cursor:pointer;
+  transition:border-color .2s,background .2s;font-size:.78rem;color:var(--go-text);
+}
+#go-wrap .go-cb:hover{border-color:var(--go-accent);background:var(--go-accent-bg)}
+#go-wrap .go-cb input[type=checkbox]{
+  width:14px;height:14px;cursor:pointer;accent-color:var(--go-accent);flex-shrink:0;
+}
+
+/* Button */
+#go-wrap .go-btn{
+  width:100%;padding:.9rem;border:none;border-radius:10px;cursor:pointer;
+  background:var(--go-accent);color:#fff;
+  font-family:inherit;font-size:.95rem;font-weight:700;
+  letter-spacing:.01em;
+  transition:background .2s,transform .1s,box-shadow .2s;
+  display:flex;align-items:center;justify-content:center;gap:.55rem;
+  box-shadow:0 4px 14px rgba(162,28,175,.35);
+}
+html.dark #go-wrap .go-btn{box-shadow:0 4px 14px rgba(244,114,182,.3)}
+#go-wrap .go-btn:hover:not(:disabled){background:var(--go-accent-light);box-shadow:0 6px 20px rgba(162,28,175,.45)}
+#go-wrap .go-btn:active:not(:disabled){transform:scale(.99)}
+#go-wrap .go-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+@keyframes go-spin{to{transform:rotate(360deg)}}
+#go-wrap .go-spinner{
+  width:16px;height:16px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:50%;animation:go-spin .7s linear infinite;
+}
+
+/* Results */
+#go-wrap .go-results{
+  display:flex;flex-direction:column;gap:0;
+}
+#go-wrap .go-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--go-dim);text-align:center;gap:.6rem;
+  padding:3rem 2rem;
+  background:var(--go-surface);border:1px solid var(--go-border);
+  border-radius:10px;
+}
+#go-wrap .go-empty-icon{font-size:2rem;opacity:.4}
+
+@keyframes go-fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Prompt card — standalone, full width, no scroll container */
+#go-wrap .go-pcard{
+  background:var(--go-card);border:1px solid var(--go-border);
+  border-radius:12px;padding:1.4rem;
+  box-shadow:var(--go-shadow);
+  animation:go-fadeup .35s ease both;
+  margin-bottom:1.25rem;
+}
+#go-wrap .go-pcard:last-child{margin-bottom:0}
+
+/* Header row of each prompt card */
+#go-wrap .go-pcard-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;padding-bottom:.75rem;
+  border-bottom:2px solid var(--go-accent-bg2);
+  gap:.75rem;
+}
+#go-wrap .go-pnum{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--go-accent);
+  background:var(--go-accent-bg);border:1px solid var(--go-accent);
+  border-radius:99px;padding:.25rem .75rem;white-space:nowrap;
+}
+#go-wrap .go-copy{
+  display:inline-flex;align-items:center;gap:.35rem;
+  background:var(--go-accent);border:none;
+  border-radius:7px;padding:.38rem .85rem;color:#fff;
+  font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .2s,transform .1s;white-space:nowrap;flex-shrink:0;
+}
+#go-wrap .go-copy:hover{background:var(--go-accent-light)}
+#go-wrap .go-copy:active{transform:scale(.97)}
+#go-wrap .go-copy.copied{background:var(--go-success)}
+
+/* Prompt body */
+#go-wrap .go-ptext{font-size:.875rem;line-height:1.75;color:var(--go-text);word-break:break-word}
+#go-wrap .go-ptext h3{
+  color:var(--go-accent);font-size:.925rem;font-weight:700;
+  margin:1.1rem 0 .4rem;padding-left:.6rem;
+  border-left:3px solid var(--go-accent);
+}
+#go-wrap .go-ptext h3:first-child{margin-top:0}
+#go-wrap .go-ptext strong{color:var(--go-text);font-weight:700}
+#go-wrap .go-ptext p{margin:.35rem 0}
+#go-wrap .go-ptext code{
+  background:var(--go-accent-bg);color:var(--go-accent);
+  padding:1px 6px;border-radius:4px;font-size:.8rem;font-family:monospace;
+}
+#go-wrap .go-ptext ul,#go-wrap .go-ptext ol{padding-left:1.4rem;margin:.4rem 0}
+#go-wrap .go-ptext li{margin:.2rem 0}
+
+#go-wrap .go-err{
+  background:var(--go-error-bg);border:1px solid var(--go-error);
+  border-radius:8px;padding:.85rem;color:var(--go-error);
+  font-size:.84rem;text-align:center;
+}
+
+/* Toast */
+@keyframes go-toast{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+#go-toast{
+  position:fixed;bottom:1.25rem;right:1.25rem;
+  padding:.6rem 1rem;border-radius:9px;font-size:.84rem;font-weight:600;
+  z-index:99999;animation:go-toast .25s ease;
+  box-shadow:var(--go-shadow-lg);display:none;font-family:'Plus Jakarta Sans',sans-serif;
+}
+#go-toast.ok{background:var(--go-success-bg);color:var(--go-success);border:1px solid var(--go-success)}
+#go-toast.err{background:var(--go-error-bg);color:var(--go-error);border:1px solid var(--go-error)}
+
+/* Footer */
+#go-wrap footer{text-align:center;padding:1.5rem 0 .25rem;color:var(--go-dim);font-size:.75rem}
+#go-wrap footer span{color:var(--go-accent);font-weight:600}
+
+/* Divider inside card */
+#go-wrap .go-sep{border:none;border-top:1px solid var(--go-border);margin:.85rem 0}
+</style>
+
+<header>
+  <div class="go-badge">✦ HỌC LIỆU SỐ</div>
+  <h1>Công cụ tối ưu <span>Prompt trò chơi</span></h1>
+  <p>Biến ý tưởng đơn giản thành prompt trò chơi tương tác chuyên sâu (Sử dụng trên Gemini Canvas)</p>
+</header>
+<div class="go-grid">
+  <!--API Key-->
+  <div class="go-card go-full">
+    <div class="go-card-title"><span class="go-dot"></span>API Key</div>
+    <label>🔑 Google AI Studio API Key</label>
+    <div class="go-key-wrap">
+      <input autocomplete="off" id="go-apikey" type="password" />
+      <button class="go-eye" onclick="goToggleEye()" title="Hiện/ẩn">👁</button>
+    </div>
+    <div class="go-hint">🔒 API Key chỉ lưu cục bộ trên trình duyệt của bạn. &nbsp;·&nbsp; <a href="https://www.hls.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank">Xem cách tạo API Key →</a></div>
+  </div>
+
+  <!--Settings-->
+  <div class="go-card" style="display: flex; flex-direction: column; gap: 0.85rem;">
+    <div class="go-card-title"><span class="go-dot"></span>Ý Tưởng &amp; Cài Đặt</div>
+    <div>
+      <label>💡 Mô tả ý tưởng trò chơi *</label>
+      <textarea id="go-idea" placeholder="Ví dụ: Trò chơi nhận biết từ ngữ toàn dân và từ ngữ địa phương Việt Nam..."></textarea>
+    </div>
+    <div class="go-row">
+      <label>📦 Số prompt (1–5):</label>
+      <input id="go-count" max="5" type="number" value="3" />
+    </div>
+    <div>
+      <label>✍️ Tên người sáng tạo</label>
+      <input id="go-creator" placeholder="Ví dụ: Nguyễn Văn A" type="text" />
+    </div>
+    <div>
+      <label>🎨 Phong cách giao diện</label>
+      <select id="go-style" onchange="goToggleCustom()">
+        <option>Cute 3D style</option>
+        <option>Anime 3D</option>
+        <option>Colorful style</option>
+        <option>2D Illustration</option>
+        <option>3D UI</option>
+        <option value="custom">Tùy chỉnh...</option>
+      </select>
+    </div>
+    <div id="go-custom-wrap" style="display: none;">
+      <label>✏️ Mô tả phong cách tùy chỉnh</label>
+      <input id="go-custom" placeholder="Mô tả phong cách của bạn" type="text" />
+    </div>
+  </div>
+
+  <!--Features-->
+  <div class="go-card">
+    <div class="go-card-title"><span class="go-dot"></span>Tính Năng</div>
+    <div class="go-cb-grid">
+      <label class="go-cb"><input checked="" name="studentName" type="checkbox" /> 👤 Nhập tên</label>
+      <label class="go-cb"><input checked="" name="leaderboard" type="checkbox" /> 🏆 Bảng xếp hạng</label>
+      <label class="go-cb"><input checked="" name="soundEffects" type="checkbox" /> 🔊 Âm thanh</label>
+      <label class="go-cb"><input checked="" name="backgroundMusic" type="checkbox" /> 🎵 Nhạc nền</label>
+      <label class="go-cb"><input name="musicToggle" type="checkbox" /> 🎛 Bật/tắt nhạc</label>
+      <label class="go-cb"><input name="localStorage" type="checkbox" /> 💾 Lưu dữ liệu</label>
+      <label class="go-cb"><input name="disableRightClick" type="checkbox" /> 🖱 Khóa chuột phải</label>
+      <label class="go-cb"><input name="disableF12" type="checkbox" /> ⌨️ Khóa F12</label>
+      <label class="go-cb"><input name="obfuscateCode" type="checkbox" /> 🔐 Mã hóa code</label>
+    </div>
+  </div>
+
+  <!--Generate-->
+  <div class="go-full">
+    <button class="go-btn" id="go-btn" onclick="goGenerate()">
+      <span id="go-btn-inner">🪄 Tạo Prompt Chuyên Sâu</span>
+    </button>
+  </div>
+
+  <!--Results-->
+  <div class="go-full">
+    <div class="go-card-title" style="padding: 0.1rem 0px 0.5rem;"><span class="go-dot"></span>Kết Quả Prompt</div>
+    <div class="go-results" id="go-results">
+      <div class="go-empty">
+        <div class="go-empty-icon">✨</div>
+        <div>Các prompt được tạo ra sẽ hiển thị ở đây.<br /><small>Nhập ý tưởng và nhấn tạo để bắt đầu.</small></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Được thiết kế bởi <span>Học Liệu Số</span></footer>
+<div id="go-toast"></div>
+
+<script>
+(function(){
+  var saved=localStorage.getItem('go_gemini_key');
+  if(saved)document.getElementById('go-apikey').value=saved;
+
+  window.goToggleEye=function(){
+    var el=document.getElementById('go-apikey');
+    var btn=el.parentNode.querySelector('.go-eye');
+    if(el.type==='password'){el.type='text';btn.textContent='🙈';}
+    else{el.type='password';btn.textContent='👁';}
+  };
+  window.goToggleCustom=function(){
+    var s=document.getElementById('go-style').value;
+    document.getElementById('go-custom-wrap').style.display=s==='custom'?'block':'none';
+  };
+
+  function showToast(msg,type){
+    var t=document.getElementById('go-toast');
+    t.textContent=msg;t.className=type==='ok'?'ok':'err';
+    t.style.display='block';
+    clearTimeout(t._tid);t._tid=setTimeout(function(){t.style.display='none';},3000);
+  }
+
+  function getFeatures(){
+    var map={studentName:'Nhập tên người chơi',leaderboard:'Bảng xếp hạng điểm cao',soundEffects:'Hiệu ứng âm thanh (tone.js hoặc Web Audio API, không dùng link ngoài)',backgroundMusic:'Nhạc nền phù hợp với chủ đề',musicToggle:'Nút bật/tắt nhạc nền',localStorage:'Lưu dữ liệu Local Storage (điểm cao, tên người chơi)',disableRightClick:'Khóa chuột phải',disableF12:'Khóa F12 và Developer Tools',obfuscateCode:'Mã hóa và rút gọn code JavaScript'};
+    var result=[];
+    document.querySelectorAll('#go-wrap .go-cb-grid input[type=checkbox]').forEach(function(cb){
+      if(cb.checked&&map[cb.name])result.push(map[cb.name]);
+    });
+    return result;
+  }
+
+  function renderMd(text){
+    // Normalize literal \n (from JSON) to real newlines
+    var t=text.replace(/\\n/g,'\n').replace(/\\t/g,'  ');
+    // Process markdown
+    t=t.replace(/### (.*?)(\n|$)/g,'<h3>$1</h3>\n');
+    t=t.replace(/## (.*?)(\n|$)/g,'<h3>$1</h3>\n');
+    t=t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+    // Lists
+    var lines=t.split('\n');
+    var out=[];var inList=false;
+    for(var i=0;i<lines.length;i++){
+      var l=lines[i];
+      var liMatch=l.match(/^[\s]*[-*]\s+(.*)/);
+      if(liMatch){
+        if(!inList){out.push('<ul>');inList=true;}
+        out.push('<li>'+liMatch[1]+'</li>');
+      } else {
+        if(inList){out.push('</ul>');inList=false;}
+        if(l.trim()===''){ out.push('<br/>'); }
+        else if(l.match(/^<h3>/)){out.push(l);}
+        else{out.push('<p>'+l+'</p>');}
+      }
+    }
+    if(inList)out.push('</ul>');
+    return out.join('');
+  }
+
+  window.goGenerate=async function(){
+    var apiKey=document.getElementById('go-apikey').value.trim();
+    var idea=document.getElementById('go-idea').value.trim();
+    var count=parseInt(document.getElementById('go-count').value)||3;
+    var creator=document.getElementById('go-creator').value.trim();
+    var styleEl=document.getElementById('go-style');
+    var uiStyle=styleEl.value==='custom'?document.getElementById('go-custom').value:styleEl.value;
+    var features=getFeatures();
+
+    if(!apiKey){showToast('Vui lòng nhập API Key!','err');return;}
+    if(!idea){showToast('Vui lòng nhập ý tưởng trò chơi!','err');return;}
+
+    localStorage.setItem('go_gemini_key',apiKey);
+
+    var btn=document.getElementById('go-btn');
+    btn.disabled=true;
+    document.getElementById('go-btn-inner').innerHTML='<div class="go-spinner"></div> Đang tạo...';
+
+    var results=document.getElementById('go-results');
+    results.innerHTML='<div class="go-empty"><div class="go-spinner" style="width:2rem;height:2rem;border-width:3px;border-color:var(--go-accent-bg);border-top-color:var(--go-accent)"></div><p style="color:var(--go-muted);margin-top:.85rem;font-weight:600">AI đang phân tích ý tưởng của bạn...</p></div>';
+
+    var featText=features.length?features.join('\n- '):'Các tính năng cơ bản';
+    var metaPrompt='Với vai trò là chuyên gia thiết kế game giáo dục và kỹ sư frontend, hãy tạo ra '+count+' câu lệnh (prompt) chuyên sâu và vô cùng chi tiết để yêu cầu Gemini tạo một trò chơi tương tác bằng HTML, CSS, và JavaScript trong một file duy nhất.\n\n**Ý tưởng gốc của người dùng:** "'+idea+'"\n\nMỗi prompt phải là một kịch bản hoàn chỉnh, tích hợp đầy đủ và logic các yếu tố sau:\n\n1. **Mục tiêu giáo dục:** Trò chơi phải có tính giáo dục cao, giúp người chơi học hỏi và rèn luyện kỹ năng một cách tự nhiên.\n2. **Luật chơi & Gameplay:** Mô tả rõ ràng, chi tiết cách chơi, các vòng chơi, cách tính điểm, và điều kiện thắng/thua. Phải đảm bảo logic game chặt chẽ.\n3. **Phong cách giao diện:** "'+uiStyle+'". Mô tả chi tiết các yếu tố hình ảnh, màu sắc, nhân vật, và hiệu ứng theo phong cách này.\n4. **Yếu tố đồ họa (Rất quan trọng):** Tuyệt đối không sử dụng URL hình ảnh. Thay vào đó hãy dùng Font Awesome, Lucide, SVG inline hoặc EMOJI.\n5. **Các tính năng bắt buộc:**\n- '+featText+'\n6. **Bản quyền:** Hiển thị thông tin người sáng tạo: "'+( creator||'Không rõ')+'"\n7. **Yêu cầu đầu ra:**\n- Đánh số thứ tự rõ ràng cho mỗi prompt.\n- Dùng định dạng Markdown. Cấu trúc mỗi prompt gồm: ### 🎮 Tên Trò Chơi Gợi Ý, ### 🎯 Mục Tiêu Giáo Dục, ### 📋 Luật Chơi & Gameplay, ### 🎨 Phong Cách Giao Diện & UX, ### ✨ Tính Năng Đặc Biệt, ### 🔧 Yêu Cầu Kỹ Thuật.\n- Ngôn ngữ chuyên nghiệp, chi tiết và đầy đủ.\n- Phân tách mỗi prompt bằng chuỗi ký tự "---PROMPT-SEPARATOR---".';
+
+    try{
+      var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:metaPrompt}]}]})});
+      var raw=await resp.text();
+      if(!raw)throw new Error('Phản hồi trống từ API (Status: '+resp.status+').');
+      var result=JSON.parse(raw);
+      if(!resp.ok)throw new Error(result&&result.error&&result.error.message?result.error.message:'Lỗi API: '+resp.status);
+      if(!result.candidates||!result.candidates[0]||!result.candidates[0].content)throw new Error('Phản hồi từ AI không chứa nội dung. Có thể đã bị bộ lọc an toàn chặn.');
+      var textResp=result.candidates[0].content.parts[0].text;
+      var prompts=textResp.split('---PROMPT-SEPARATOR---').filter(function(p){return p.trim()!=='';});
+      if(prompts.length===0)throw new Error('AI không trả về prompt đúng định dạng. Hãy thử lại.');
+
+      results.innerHTML='';
+      // Loading state replaced — show count summary
+      var summary=document.createElement('p');
+      summary.style.cssText='font-size:.78rem;color:var(--go-muted);margin-bottom:.85rem;font-weight:600';
+      summary.textContent='✅ Đã tạo '+prompts.length+' prompt thành công';
+      results.appendChild(summary);
+
+      prompts.forEach(function(prompt,i){
+        var card=document.createElement('div');
+        card.className='go-pcard';
+        card.style.animationDelay=(i*.12)+'s';
+        var trimmed=prompt.trim();
+        var copyId='go-copy-'+i;
+        // Header row: badge left, copy button right
+        var header=document.createElement('div');
+        header.className='go-pcard-header';
+        header.innerHTML='<span class="go-pnum">✦ Prompt '+(i+1)+' / '+prompts.length+'</span>'
+          +'<button class="go-copy" id="'+copyId+'">📋 Sao chép</button>';
+        // Body
+        var body=document.createElement('div');
+        body.className='go-ptext';
+        body.innerHTML=renderMd(trimmed);
+        card.appendChild(header);
+        card.appendChild(body);
+        results.appendChild(card);
+        // Copy handler
+        document.getElementById(copyId).addEventListener('click',function(){
+          var btn=this;
+          var doCopy=function(){
+            btn.textContent='✓ Đã sao chép!';btn.classList.add('copied');
+            showToast('✓ Đã sao chép prompt '+(i+1)+'!','ok');
+            setTimeout(function(){btn.textContent='📋 Sao chép';btn.classList.remove('copied');},2200);
+          };
+          if(navigator.clipboard){
+            navigator.clipboard.writeText(trimmed).then(doCopy).catch(function(){
+              var ta=document.createElement('textarea');ta.value=trimmed;
+              ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);
+              ta.select();document.execCommand('copy');document.body.removeChild(ta);doCopy();
+            });
+          } else {
+            var ta=document.createElement('textarea');ta.value=trimmed;
+            ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);
+            ta.select();document.execCommand('copy');document.body.removeChild(ta);doCopy();
+          }
+        });
+      });
+    }catch(err){
+      results.innerHTML='<div class="go-err">⚠️ <strong>Lỗi:</strong> '+err.message+'</div>';
+      showToast('Có lỗi xảy ra!','err');
+    }finally{
+      btn.disabled=false;
+      document.getElementById('go-btn-inner').textContent='🪄 Tạo Prompt Chuyên Sâu';
+    }
+  };
+})();
+</script>
+</div>

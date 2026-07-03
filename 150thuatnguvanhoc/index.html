@@ -1,0 +1,454 @@
+<div id="tu-dien-thuat-ngu-app">
+    <style>
+        /* --- CODE CHỐNG BÔI ĐEN VĂN BẢN --- */
+        #tu-dien-thuat-ngu-app {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+            font-family: Arial, sans-serif; /* Font chữ cơ bản, dễ nhìn */
+        }
+        /* Cho phép người dùng vẫn gõ được vào ô tìm kiếm */
+        #tu-dien-thuat-ngu-app .search-box {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        #tu-dien-thuat-ngu-app * {
+            box-sizing: border-box;
+        }
+        
+        /* CSS cho Wrapper chính */
+        #tu-dien-thuat-ngu-app {
+            background-color: #faf6f0; /* Màu nền vàng sáng nhạt */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); 
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            transition: all 0.3s ease;
+            color: #333333; /* Chữ mặc định màu tối */
+        }
+
+        /* CSS khi ứng dụng ở chế độ toàn màn hình */
+        #tu-dien-thuat-ngu-app:fullscreen {
+            max-width: none;
+            border-radius: 0;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: #f4f6f9;
+        }
+        #tu-dien-thuat-ngu-app:-webkit-full-screen { max-width: none; border-radius: 0; padding: 30px; overflow-y: auto; background-color: #f4f6f9; }
+        #tu-dien-thuat-ngu-app:-moz-full-screen { max-width: none; border-radius: 0; padding: 30px; overflow-y: auto; background-color: #f4f6f9; }
+        
+        #tu-dien-thuat-ngu-app:fullscreen .widget-container {
+            height: calc(100vh - 250px);
+        }
+
+        /* CSS cho Header và Footer */
+        #tu-dien-thuat-ngu-app .app-header,
+        #tu-dien-thuat-ngu-app .app-footer {
+            background-color: #4f39f6; /* Màu nền tím dương chủ đạo */
+            color: #ffffff;            
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            position: relative;
+            border-bottom: 4px solid #ffc107; /* Viền dưới màu Vàng */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+        }
+        #tu-dien-thuat-ngu-app .app-header {
+            margin-bottom: 20px;
+        }
+        #tu-dien-thuat-ngu-app .app-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.8em;
+            text-transform: uppercase;
+            padding-right: 120px; /* Nhường chỗ cho nút Fullscreen */
+            padding-left: 120px;
+            color: #ffc107 !important; /* Màu chữ Vàng */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+        #tu-dien-thuat-ngu-app .app-header p {
+            margin: 0;
+            font-size: 1.2em;
+            font-style: italic;
+            font-weight: 600;
+        }
+        
+        /* Nút Bật toàn màn hình */
+        #tu-dien-thuat-ngu-app .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.1); /* Nền trong suốt hơi mờ */
+            color: #ffc107; /* Chữ màu Vàng */
+            border: 1px solid #ffc107; /* Viền màu Vàng */
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #tu-dien-thuat-ngu-app .fullscreen-btn:hover {
+            transform: scale(1.05);
+            background-color: #ffc107; /* Hover chuyển nền vàng */
+            color: #0056b3; /* Chữ xanh dương */
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        }
+
+        #tu-dien-thuat-ngu-app .app-footer {
+            margin-top: 20px;
+            font-size: 1.05em;
+            font-weight: 600;
+        }
+
+        #tu-dien-thuat-ngu-app .widget-container {
+            display: flex;
+            gap: 20px;
+            height: 65vh;
+            min-height: 500px;
+            width: 100%;
+        }
+        #tu-dien-thuat-ngu-app .panel {
+            background-color: #ffffff; /* Nền trắng cho nội dung dễ đọc */
+            border: 1px solid #e0e0e0; 
+            border-top: 4px solid #0056b3; /* Nhấn viền trên màu Xanh dương */
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        #tu-dien-thuat-ngu-app .panel-left {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+        }
+        #tu-dien-thuat-ngu-app .panel-right {
+            flex: 2;
+            overflow-y: auto;
+        }
+        
+        /* Box tìm kiếm */
+        #tu-dien-thuat-ngu-app .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid #0056b3; /* Viền ô search Xanh dương */
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #333333; 
+            background-color: #ffffff; 
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        #tu-dien-thuat-ngu-app .search-box:focus {
+            border-color: #ffc107; /* Khi click vào sẽ đổi sang viền Vàng */
+            box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+        }
+        #tu-dien-thuat-ngu-app .search-box::placeholder {
+            color: #999999; 
+        }
+
+        /* Danh sách thuật ngữ */
+        #tu-dien-thuat-ngu-app .term-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto; /* Bật thanh cuộn dọc */
+            flex-grow: 1;
+            padding-right: 5px; /* Thêm padding để không bị thanh cuộn đè lên chữ */
+            border-top: 1px solid #eeeeee;
+            padding-top: 10px;
+        }
+        #tu-dien-thuat-ngu-app .term-item {
+            padding: 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            background-color: #f8f9fa; /* Nền item xám rất nhạt */
+            border: 1px solid #e9ecef; 
+            color: #0056b3; /* Chữ mục lục màu xanh */
+            font-weight: 500;
+            font-size: 16px;
+        }
+        #tu-dien-thuat-ngu-app .term-item:hover, 
+        #tu-dien-thuat-ngu-app .term-item.active {
+            background-color: #0056b3; /* Click vào chuyển nền Xanh dương */
+            border: 1px solid #0056b3;
+            color: #ffc107; /* Chữ chuyển màu Vàng */
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 86, 179, 0.2);
+            font-weight: bold;
+        }
+
+        /* Hiển thị nội dung bên phải */
+        #tu-dien-thuat-ngu-app .content-title {
+            font-size: 2.2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #ffc107; /* Gạch chân tiêu đề màu Vàng */
+            color: #0056b3; /* Tựa đề Xanh dương */
+            padding-bottom: 10px;
+            word-wrap: break-word;
+        }
+        #tu-dien-thuat-ngu-app .content-body {
+            line-height: 1.8;
+            font-size: 1.15em;
+            white-space: pre-wrap; 
+            text-align: justify; 
+            color: #333333;
+        }
+
+        #tu-dien-thuat-ngu-app .loading-state {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 50px;
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        /* Tùy chỉnh thanh cuộn cho toàn bộ app và mục lục */
+        #tu-dien-thuat-ngu-app .panel::-webkit-scrollbar,
+        #tu-dien-thuat-ngu-app .term-list::-webkit-scrollbar {
+            width: 8px; /* Tăng chiều rộng để dễ thao tác */
+        }
+        #tu-dien-thuat-ngu-app .panel::-webkit-scrollbar-track,
+        #tu-dien-thuat-ngu-app .term-list::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Nền thanh cuộn */
+            border-radius: 10px;
+        }
+        #tu-dien-thuat-ngu-app .panel::-webkit-scrollbar-thumb,
+        #tu-dien-thuat-ngu-app .term-list::-webkit-scrollbar-thumb {
+            background: #0056b3; /* Nút cuộn màu Xanh dương */
+            border-radius: 10px;
+        }
+        #tu-dien-thuat-ngu-app .panel::-webkit-scrollbar-thumb:hover,
+        #tu-dien-thuat-ngu-app .term-list::-webkit-scrollbar-thumb:hover {
+            background: #ffc107; /* Khi hover nút cuộn đổi màu Vàng */
+        }
+
+        /* Responsive cho điện thoại */
+        @media (max-width: 768px) {
+            #tu-dien-thuat-ngu-app .widget-container {
+                flex-direction: column;
+                height: auto;
+            }
+            #tu-dien-thuat-ngu-app .panel-left {
+                max-width: 100%;
+                height: 40vh;
+            }
+            #tu-dien-thuat-ngu-app .app-header h1 {
+                font-size: 1.6em;
+                padding-right: 0;
+                padding-left: 0;
+                margin-top: 40px; 
+            }
+            #tu-dien-thuat-ngu-app .fullscreen-btn {
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+
+    <!--Phần Header-->
+    <div class="app-header">
+        <button class="fullscreen-btn" id="td-btn-fullscreen" title="Bật/Tắt toàn màn hình">
+            ⛶ Mở rộng
+        </button>
+        <h1>TRA CỨU THUẬT NGỮ VĂN HỌC</h1>
+        <p>Tiện ích được tạo bởi "Học liệu số"</p>
+    </div>
+
+    <!--Phần Bố cục 2 thẻ chính-->
+    <div class="widget-container">
+        <!--Thẻ bên trái: Tìm kiếm và Mục lục-->
+        <div class="panel panel-left">
+            <input class="search-box" id="td-search-input" placeholder="Tìm kiếm thuật ngữ..." type="text" />
+            <div class="loading-state" id="td-loading">Đang tải dữ liệu từ Google Sheets...</div>
+            <ul class="term-list" id="td-term-list">
+                <!--Danh sách thuật ngữ sẽ được chèn vào đây-->
+            </ul>
+        </div>
+
+        <!--Thẻ bên phải: Hiển thị nội dung-->
+        <div class="panel panel-right">
+            <div id="td-content-container" style="display: none;">
+                <h2 class="content-title" id="td-content-title"></h2>
+                <div class="content-body" id="td-content-body"></div>
+            </div>
+            <div class="loading-state" id="td-empty-state" style="margin-top: 40%;">
+                👈 Hãy chọn một thuật ngữ ở danh sách bên trái để xem nội dung chi tiết.
+            </div>
+        </div>
+    </div>
+
+    <!--Phần Footer-->
+    <div class="app-footer">
+        <p>Tiện ích sử dụng dữ liệu của "150 thuật ngữ Văn học" do nhà nghiên cứu văn học Lại Nguyên Ân biên soạn, Nhà xuất bản Văn học ấn hành năm 2017.</p>
+    </div>
+
+    <!--JS Logic xử lý dữ liệu và Fullscreen-->
+    <script>
+        (function() {
+        // --- CODE CHỐNG COPY, CHUỘT PHẢI, PHÍM TẮT ---
+            // Chặn click chuột phải
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
+            // Chặn hành động copy
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+            });
+
+            // Chặn các phím tắt (F12, Ctrl+Shift+I, Ctrl+U, Ctrl+C, Ctrl+A)
+            document.addEventListener('keydown', function(e) {
+                if (e.keyCode === 123) { // F12
+                    e.preventDefault();
+                }
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { // Ctrl+Shift+I
+                    e.preventDefault();
+                }
+                if (e.ctrlKey && e.keyCode === 85) { // Ctrl+U
+                    e.preventDefault();
+                }
+                if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 65)) { // Ctrl+C, Ctrl+A
+                    e.preventDefault();
+                }
+            });
+            
+            // Link API Apps Script
+            const apiUrl = 'https://script.google.com/macros/s/AKfycbzlWJPoCDiAsfhkT1avWRtmg92lprbnEQ6mzJSYDcrDwHYOJxRKzUW3Sd5llZqvg9s/exec';
+            
+            let glossaryData = [];
+            
+            // Lấy DOM
+            const listEl = document.getElementById('td-term-list');
+            const searchInput = document.getElementById('td-search-input');
+            const contentTitle = document.getElementById('td-content-title');
+            const contentBody = document.getElementById('td-content-body');
+            const loadingEl = document.getElementById('td-loading');
+            const contentContainer = document.getElementById('td-content-container');
+            const emptyState = document.getElementById('td-empty-state');
+            
+            // DOM cho chế độ toàn màn hình
+            const appContainer = document.getElementById('tu-dien-thuat-ngu-app');
+            const btnFullscreen = document.getElementById('td-btn-fullscreen');
+
+            // Xử lý sự kiện Fullscreen
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement) {
+                    // Yêu cầu bật toàn màn hình
+                    if (appContainer.requestFullscreen) {
+                        appContainer.requestFullscreen();
+                    } else if (appContainer.webkitRequestFullscreen) { /* Safari */
+                        appContainer.webkitRequestFullscreen();
+                    } else if (appContainer.mozRequestFullScreen) { /* Firefox */
+                        appContainer.mozRequestFullScreen();
+                    }
+                } else {
+                    // Thoát toàn màn hình
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) { /* Safari */
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) { /* Firefox */
+                        document.mozCancelFullScreen();
+                    }
+                }
+            });
+
+            // Lắng nghe thay đổi trạng thái fullscreen để cập nhật nút
+            const updateFullscreenButton = () => {
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+                    btnFullscreen.innerHTML = '🗗 Thu nhỏ';
+                } else {
+                    btnFullscreen.innerHTML = '⛶ Mở rộng';
+                }
+            };
+            document.addEventListener('fullscreenchange', updateFullscreenButton);
+            document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+            document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+
+            // Tải dữ liệu từ API Apps Script (Đã xóa hàm parseCSV cũ)
+            async function loadData() {
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    
+                    const data = await response.json();
+                    
+                    glossaryData = data.map((item, index) => {
+                        return {
+                            id: index,
+                            term: item.term,
+                            definition: item.definition
+                        };
+                    });
+
+                    // Sắp xếp theo bảng chữ cái
+                    glossaryData.sort((a, b) => a.term.localeCompare(b.term, 'vi'));
+
+                    loadingEl.style.display = 'none';
+                    renderList(glossaryData);
+                    
+                } catch (error) {
+                    loadingEl.innerHTML = '❌ Có lỗi xảy ra khi tải dữ liệu từ hệ thống. Bạn hãy thử tải lại trang nhé.';
+                    console.error("Lỗi:", error);
+                }
+            }
+
+            // Render danh sách
+            function renderList(data) {
+                listEl.innerHTML = '';
+                if (data.length === 0) {
+                    listEl.innerHTML = '<li style="padding: 10px; text-align: center; color: #333;">Không tìm thấy thuật ngữ.</li>';
+                    return;
+                }
+                
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'term-item';
+                    li.textContent = item.term;
+                    li.onclick = () => showContent(item, li);
+                    listEl.appendChild(li);
+                });
+            }
+
+            // Hiển thị nội dung
+            function showContent(item, element) {
+                document.querySelectorAll('#tu-dien-thuat-ngu-app .term-item').forEach(el => el.classList.remove('active'));
+                if (element) element.classList.add('active');
+
+                emptyState.style.display = 'none';
+                contentContainer.style.display = 'block';
+
+                contentTitle.textContent = item.term;
+                // Đổi textContent thành innerHTML để có thể đọc được các thẻ <b>, <i> từ Google Sheets
+                contentBody.innerHTML = item.definition; 
+            }
+
+            // Chức năng tìm kiếm
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filtered = glossaryData.filter(item => 
+                    item.term.toLowerCase().includes(searchTerm) || 
+                    item.definition.toLowerCase().includes(searchTerm)
+                );
+                renderList(filtered);
+            });
+
+            // Chạy ngay khi mở file
+            loadData();
+        })();
+    </script>
+</div>
