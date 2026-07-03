@@ -9,6 +9,7 @@
 
   <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
   <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
@@ -641,7 +642,7 @@
         </div>
 
         <div class="top-actions">
-          <button id="installAppBtn" class="btn btn-soft btn-small hidden" type="button">📲 <span class="optional">Cài app</span></button>
+          <button id="installAppBtn" class="btn btn-soft btn-small" type="button">📲 <span class="optional">Cài APP</span></button>
           <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
           <button id="changePassBtn" class="btn btn-soft btn-small" type="button">🔐 <span class="optional">Đổi mật khẩu</span></button>
           <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
@@ -663,7 +664,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V9 - Lưu chat AI + Cài app</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10 - Nhập dữ liệu từ tiện ích</b>
       </p>
     </div>
   </main>
@@ -688,6 +689,7 @@ const state = {
   user: readJSON(localStorage.getItem(LS_USER), null),
   dashboard: null,
   students: [],
+  classes: [],
   messages: [],
   activities: [],
   setup: null,
@@ -1043,60 +1045,131 @@ async function loadStudents(){
   if(normalizeRole(state.user.Role) !== 'GVCN') return;
 
   await withLoading(async () => {
-    const data = await api('getStudentList', { token: state.token });
-    state.students = data.students || [];
+    const [studentData, classData] = await Promise.all([
+      api('getStudentList', { token: state.token }),
+      api('getClasses', { token: state.token }).catch(() => ({ classes: [] }))
+    ]);
+    state.students = studentData.students || [];
+    state.classes = classData.classes || [];
     renderStudents();
   }, 'Đang tải danh sách học sinh...');
 }
 
 function renderStudents(){
-  const rows = state.students || [];
+  const rows = getFilteredStudents();
+  const allRows = state.students || [];
+  const classNames = getClassNamesForUI();
+  const selectedClass = localStorage.getItem('scn_student_class_filter') || '';
 
   $('#studentsPage').innerHTML = `
-    <div class="card">
-      <div class="card-title">
-        <div>
-          <h2>Danh sách học sinh</h2>
-          <p class="muted" style="margin:.25rem 0 0">Chọn một học sinh để xem và cập nhật hồ sơ.</p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn btn-primary btn-small" onclick="openCreateStudentModal()">+ Thêm học sinh</button>
-            <button class="btn btn-soft btn-small" onclick="loadStudents()">Làm mới</button>
+    <div class="grid">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Quản lí học sinh</h2>
+              <p class="muted" style="margin:.25rem 0 0">GVCN có thể thêm lớp, thêm từng học sinh, nhập học sinh từ file Excel/CSV và tạo tài khoản HS/PHHS ngay trong tiện ích.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="btn btn-soft btn-small" onclick="openClassModal()">+ Thêm lớp</button>
+              <button class="btn btn-primary btn-small" onclick="openCreateStudentModal()">+ Thêm học sinh</button>
+              <button class="btn btn-success btn-small" onclick="openImportStudentsModal()">Nhập từ file</button>
+              <button class="btn btn-ghost btn-small" onclick="downloadStudentTemplateCSV()">Tải mẫu CSV</button>
+              <button class="btn btn-soft btn-small" onclick="loadStudents()">Làm mới</button>
+            </div>
           </div>
-      </div>
 
-      ${rows.length ? `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Mã HS</th>
-                <th>Họ tên</th>
-                <th>Lớp</th>
-                <th>PHHS</th>
-                <th>SĐT PHHS</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map(s => `
-                <tr>
-                  <td><b>${escapeHTML(s.StudentID || '')}</b></td>
-                  <td>${escapeHTML(s.FullName || '')}</td>
-                  <td>${escapeHTML(s.ClassName || '')}</td>
-                  <td>${escapeHTML(s.ParentName || '')}</td>
-                  <td>${escapeHTML(s.ParentPhone || '')}</td>
-                  <td>
-                    <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeJS(s.StudentID)}')">Xem hồ sơ</button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+          <div class="grid" style="margin-bottom:12px">
+            <div class="col-4">
+              <div class="item">
+                <div class="item-meta">Tổng số học sinh</div>
+                <div class="stat-value" style="font-size:1.35rem">${allRows.length}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="item">
+                <div class="item-meta">Số lớp/nhóm lớp</div>
+                <div class="stat-value" style="font-size:1.35rem">${classNames.length}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="item">
+                <div class="item-meta">Đang lọc</div>
+                <div class="stat-value" style="font-size:1.05rem">${escapeHTML(selectedClass || 'Tất cả')}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <select id="studentClassFilter" class="select" style="max-width:260px">
+              <option value="">Tất cả lớp</option>
+              ${classNames.map(c => `<option value="${escapeHTML(c)}" ${selectedClass === c ? 'selected' : ''}>${escapeHTML(c)}</option>`).join('')}
+            </select>
+            <button class="btn btn-soft btn-small" onclick="copyVisibleStudents()">Sao chép danh sách đang hiển thị</button>
+            <button class="btn btn-ghost btn-small" onclick="openClassListModal()">Danh sách lớp</button>
+          </div>
+
+          ${rows.length ? `
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã HS</th>
+                    <th>Họ tên</th>
+                    <th>Lớp</th>
+                    <th>Giới tính</th>
+                    <th>PHHS</th>
+                    <th>SĐT PHHS</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map(s => `
+                    <tr>
+                      <td><b>${escapeHTML(s.StudentID || '')}</b></td>
+                      <td>${escapeHTML(s.FullName || '')}</td>
+                      <td>${escapeHTML(s.ClassName || '')}</td>
+                      <td>${escapeHTML(s.Gender || '')}</td>
+                      <td>${escapeHTML(s.ParentName || '')}</td>
+                      <td>${escapeHTML(s.ParentPhone || '')}</td>
+                      <td>
+                        <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeJS(s.StudentID)}')">Xem hồ sơ</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : `<div class="empty">Chưa có học sinh hoặc không có học sinh trong lớp đang lọc.</div>`}
         </div>
-      ` : `<div class="empty">Chưa có học sinh.</div>`}
+      </div>
     </div>
   `;
+
+  $('#studentClassFilter').addEventListener('change', e => {
+    localStorage.setItem('scn_student_class_filter', e.target.value);
+    renderStudents();
+  });
+}
+
+function getClassNamesForUI(){
+  const names = [];
+  (state.classes || []).forEach(c => {
+    const n = String(c.ClassName || '').trim();
+    if(n && !names.includes(n)) names.push(n);
+  });
+  (state.students || []).forEach(s => {
+    const n = String(s.ClassName || '').trim();
+    if(n && !names.includes(n)) names.push(n);
+  });
+  return names.sort((a,b) => a.localeCompare(b, 'vi'));
+}
+
+function getFilteredStudents(){
+  const selected = localStorage.getItem('scn_student_class_filter') || '';
+  const rows = state.students || [];
+  if(!selected) return rows;
+  return rows.filter(s => String(s.ClassName || '') === selected);
 }
 
 async function viewStudent(studentID){
@@ -1105,6 +1178,289 @@ async function viewStudent(studentID){
   localStorage.setItem(LS_LAST_PAGE, 'profile');
   await goPage('profile', false);
 }
+
+
+function openClassListModal(){
+  const rows = state.classes || [];
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(760px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>Danh sách lớp</h2>
+            <p class="muted" style="margin:.25rem 0 0">Lớp dùng để lọc và quản lí học sinh. Xóa lớp không xóa học sinh.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+        ${rows.length ? `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Lớp</th><th>Năm học</th><th>Sĩ số</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
+              <tbody>
+                ${rows.map(c => `<tr>
+                  <td><b>${escapeHTML(c.ClassName || '')}</b></td>
+                  <td>${escapeHTML(c.SchoolYear || '')}</td>
+                  <td>${escapeHTML(c.StudentCount || 0)}</td>
+                  <td>${escapeHTML(c.Note || '')}</td>
+                  <td>
+                    <button class="btn btn-soft btn-small" onclick="openClassModal('${escapeJS(c.ClassID || '')}', '${escapeJS(c.ClassName || '')}')">Sửa</button>
+                    ${c.ClassID ? `<button class="btn btn-danger btn-small" onclick="deleteClass('${escapeJS(c.ClassID)}')">Xóa</button>` : ''}
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `<div class="empty">Chưa có lớp.</div>`}
+      </div>
+    </div>
+  `;
+  openModal(html);
+}
+
+function openClassModal(classID='', classNameFromDerived=''){
+  const c = (state.classes || []).find(x => String(x.ClassID) === String(classID)) || {};
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>${classID ? 'Cập nhật lớp' : 'Thêm lớp'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Tạo lớp/nhóm lớp để quản lí và nhập học sinh thuận tiện hơn.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+        <form id="classForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Tên lớp</label>
+              <input id="className" class="input" value="${escapeHTML(c.ClassName || classNameFromDerived || '')}" placeholder="Ví dụ: 8A" />
+            </div>
+            <div class="field">
+              <label>Năm học</label>
+              <input id="classSchoolYear" class="input" value="${escapeHTML(c.SchoolYear || '')}" placeholder="Ví dụ: 2026-2027" />
+            </div>
+          </div>
+          <div class="split">
+            <div class="field">
+              <label>GVCN</label>
+              <input id="classTeacher" class="input" value="${escapeHTML(c.TeacherName || state.user.FullName || '')}" />
+            </div>
+            <div class="field">
+              <label>Sĩ số dự kiến</label>
+              <input id="classExpectedSize" class="input" value="${escapeHTML(c.ExpectedSize || '')}" inputmode="numeric" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Ghi chú</label>
+            <textarea id="classNote" class="textarea" style="min-height:82px" placeholder="Ví dụ: Lớp chủ nhiệm năm học 2026-2027">${escapeHTML(c.Note || '')}</textarea>
+          </div>
+          <button class="btn btn-primary full" type="submit">Lưu lớp</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#classForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const className = $('#className').value.trim();
+    if(!className){
+      showToast('Vui lòng nhập tên lớp.', 'warn');
+      return;
+    }
+    await withLoading(async () => {
+      await api('saveClass', {
+        token: state.token,
+        classID,
+        className,
+        schoolYear: $('#classSchoolYear').value.trim(),
+        teacherName: $('#classTeacher').value.trim(),
+        expectedSize: $('#classExpectedSize').value.trim(),
+        note: $('#classNote').value.trim(),
+        status: 'active'
+      });
+      closeModal();
+      showToast('Đã lưu lớp.', 'success');
+      await loadStudents();
+    }, 'Đang lưu lớp...');
+  });
+}
+
+async function deleteClass(classID){
+  if(!confirm('Xóa lớp khỏi danh sách lớp? Học sinh trong lớp không bị xóa.')) return;
+  await withLoading(async () => {
+    await api('deleteClass', { token: state.token, classID });
+    closeModal();
+    showToast('Đã xóa lớp khỏi danh sách.', 'success');
+    await loadStudents();
+  }, 'Đang xóa lớp...');
+}
+
+function openImportStudentsModal(){
+  const classNames = getClassNamesForUI();
+  const selected = localStorage.getItem('scn_student_class_filter') || '';
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(860px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>Nhập học sinh từ file</h2>
+            <p class="muted" style="margin:.25rem 0 0">Hỗ trợ file Excel .xlsx/.xls, CSV, TSV hoặc copy trực tiếp từ Excel.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="notice">
+          Cột khuyến nghị: <b>MaHocSinh, Lop, HoTenHocSinh, GioiTinh, NgaySinh, SoDienThoaiHocSinh, HoTenCMHS, SoDienThoaiCMHS, DiaChi</b>.
+          Hệ thống sẽ tự tạo tài khoản HS là <b>MaHocSinh</b> và tài khoản PHHS là <b>ph_MaHocSinh</b>.
+        </div>
+
+        <form id="studentFileImportForm" class="form-grid">
+          <div class="field">
+            <label>Chọn file Excel/CSV</label>
+            <input id="studentImportFile" class="input" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Lớp mặc định nếu dòng không có lớp</label>
+              <select id="importDefaultClass" class="select">
+                <option value="">Không đặt mặc định</option>
+                ${classNames.map(c => `<option value="${escapeHTML(c)}" ${selected === c ? 'selected' : ''}>${escapeHTML(c)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Mật khẩu mặc định</label>
+              <input id="importDefaultPassword" class="input" value="123456" />
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn btn-ghost btn-small" type="button" onclick="downloadStudentTemplateCSV()">Tải mẫu CSV</button>
+            <button class="btn btn-ghost btn-small" type="button" onclick="fillSampleImportData()">Điền dữ liệu mẫu</button>
+          </div>
+
+          <div class="field">
+            <label>Dữ liệu đọc được từ file / hoặc dán trực tiếp từ Excel</label>
+            <textarea id="studentImportRaw" class="textarea" style="min-height:220px" placeholder="Dán dữ liệu tại đây nếu không chọn file..."></textarea>
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Nhập học sinh và tạo tài khoản</button>
+        </form>
+        <div id="studentImportResult" style="margin-top:14px"></div>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#studentImportFile').addEventListener('change', handleStudentImportFile);
+  $('#studentFileImportForm').addEventListener('submit', submitStudentImportFromStudentsTab);
+}
+
+function fillSampleImportData(){
+  $('#studentImportRaw').value = [
+    'MaHocSinh\tLop\tHoTenHocSinh\tGioiTinh\tNgaySinh\tSoDienThoaiHocSinh\tHoTenCMHS\tSoDienThoaiCMHS\tDiaChi',
+    'HS001\t8A\tNguyễn Văn A\tNam\t2012-01-01\t0911111111\tPhụ huynh A\t0922222222\t',
+    'HS002\t8A\tTrần Thị B\tNữ\t2012-02-02\t\tPhụ huynh B\t0933333333\t'
+  ].join('\\n');
+}
+
+async function handleStudentImportFile(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const name = file.name.toLowerCase();
+
+  try{
+    if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+      if(typeof XLSX === 'undefined'){
+        showToast('Chưa tải được thư viện đọc Excel. Thầy có thể lưu file thành CSV rồi nhập lại.', 'error', 6500);
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+      $('#studentImportRaw').value = rows.map(r => r.map(cell => String(cell || '').trim()).join('\\t')).join('\\n');
+    }else{
+      const text = await file.text();
+      $('#studentImportRaw').value = text;
+    }
+    showToast('Đã đọc file. Thầy kiểm tra nhanh dữ liệu rồi bấm nhập.', 'success');
+  }catch(err){
+    showToast('Không đọc được file: ' + (err.message || err), 'error', 6500);
+  }
+}
+
+async function submitStudentImportFromStudentsTab(e){
+  e.preventDefault();
+  const raw = $('#studentImportRaw').value.trim();
+  if(!raw){
+    showToast('Vui lòng chọn file hoặc dán dữ liệu học sinh.', 'warn');
+    return;
+  }
+
+  await withLoading(async () => {
+    const data = await api('bulkImportStudents', {
+      token: state.token,
+      raw,
+      defaultClassName: $('#importDefaultClass').value.trim(),
+      defaultPassword: $('#importDefaultPassword').value.trim(),
+      createAccounts: 'TRUE'
+    });
+    state.lastImportedAccounts = data.accounts || [];
+    renderStudentImportResult(data);
+    await loadStudents();
+    showToast(data.message || 'Đã nhập danh sách.', 'success', 5600);
+  }, 'Đang nhập học sinh từ file...');
+}
+
+function renderStudentImportResult(data){
+  const accounts = data.accounts || [];
+  const errors = data.errors || [];
+  $('#studentImportResult').innerHTML = `
+    <div class="notice ${errors.length ? 'warn' : ''}">
+      ${escapeHTML(data.message || '')}
+      ${accounts.length ? '<br><b>Lưu ý:</b> Nên sao chép danh sách tài khoản mới tạo ngay vì mật khẩu sẽ được mã hóa, sau này không xem lại được.' : ''}
+    </div>
+    ${accounts.length ? accountTable(accounts, true) : ''}
+    ${errors.length ? `
+      <h3 style="margin:14px 0 8px">Dòng lỗi/bỏ qua</h3>
+      <div class="table-wrap"><table><thead><tr><th>Dòng</th><th>Nội dung</th><th>Lỗi</th></tr></thead><tbody>
+        ${errors.map(e => `<tr><td>${escapeHTML(e.line)}</td><td>${escapeHTML(e.content)}</td><td>${escapeHTML(e.error)}</td></tr>`).join('')}
+      </tbody></table></div>
+    ` : ''}
+    ${accounts.length ? `<button class="btn btn-soft" style="margin-top:10px" onclick="copyAccountsFromImport()">Sao chép danh sách tài khoản mới</button>` : ''}
+  `;
+}
+
+function downloadStudentTemplateCSV(){
+  const text = [
+    'MaHocSinh,Lop,HoTenHocSinh,GioiTinh,NgaySinh,SoDienThoaiHocSinh,HoTenCMHS,SoDienThoaiCMHS,DiaChi',
+    'HS001,8A,Nguyễn Văn A,Nam,2012-01-01,0911111111,Phụ huynh A,0922222222,',
+    'HS002,8A,Trần Thị B,Nữ,2012-02-02,,Phụ huynh B,0933333333,'
+  ].join('\\n');
+  const blob = new Blob(['\\ufeff' + text], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mau_nhap_hoc_sinh_so_chu_nhiem.csv';
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(a.href);
+  a.remove();
+}
+
+function copyVisibleStudents(){
+  const rows = getFilteredStudents();
+  if(!rows.length){
+    showToast('Không có học sinh để sao chép.', 'warn');
+    return;
+  }
+  const text = ['MaHocSinh\\tLop\\tHoTenHocSinh\\tGioiTinh\\tNgaySinh\\tSoDienThoaiHocSinh\\tHoTenCMHS\\tSoDienThoaiCMHS\\tDiaChi']
+    .concat(rows.map(s => [s.StudentID,s.ClassName,s.FullName,s.Gender,formatDate(s.Birthday),s.Phone,s.ParentName,s.ParentPhone,s.Address].map(v => String(v || '')).join('\\t')))
+    .join('\\n');
+  copyText(text);
+}
+
 
 function openCreateStudentModal(){
   const html = `
@@ -3189,8 +3545,6 @@ function setupInstallPrompt(){
 
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
-    const btn = $('#installAppBtn');
-    if(btn) btn.classList.add('hidden');
     showToast('Đã cài tiện ích vào thiết bị.', 'success');
   });
 }
@@ -3200,8 +3554,6 @@ async function installApp(){
     deferredInstallPrompt.prompt();
     await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
-    const btn = $('#installAppBtn');
-    if(btn) btn.classList.add('hidden');
     return;
   }
 
@@ -3210,21 +3562,39 @@ async function installApp(){
       <div class="modal">
         <div class="modal-head">
           <div>
-            <h2>Cài Sổ chủ nhiệm số</h2>
-            <p class="muted" style="margin:.25rem 0 0">Trình duyệt chưa hiện nút cài tự động. Thầy/cô có thể cài thủ công.</p>
+            <h2>Cài APP Sổ chủ nhiệm số</h2>
+            <p class="muted" style="margin:.25rem 0 0">Cài tiện ích ra màn hình chính để mở nhanh như một ứng dụng.</p>
           </div>
           <button class="close" onclick="closeModal()">×</button>
         </div>
+
         <div class="notice">
-          <b>Trên điện thoại Android/Chrome:</b><br>
-          Bấm nút ba chấm ⋮ của trình duyệt → chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.
+          <b>Cách 1 - Nếu trình duyệt hỗ trợ:</b><br>
+          Khi bấm nút <b>Cài APP</b>, nếu có hộp thoại cài đặt hiện ra, hãy chọn <b>Cài đặt</b>.
         </div>
+
         <div class="notice">
-          <b>Trên máy tính Chrome/Edge:</b><br>
-          Bấm biểu tượng cài đặt ở thanh địa chỉ nếu có, hoặc mở menu ⋮ → <b>Lưu và chia sẻ</b> → <b>Cài đặt trang này làm ứng dụng</b>.
+          <b>Điện thoại Android dùng Chrome/Cốc Cốc/Edge:</b><br>
+          1. Bấm nút ba chấm <b>⋮</b> ở góc trên trình duyệt.<br>
+          2. Chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.<br>
+          3. Bấm <b>Thêm</b> hoặc <b>Cài đặt</b>.
         </div>
+
+        <div class="notice">
+          <b>iPhone/iPad dùng Safari:</b><br>
+          1. Bấm nút <b>Chia sẻ</b>.<br>
+          2. Chọn <b>Thêm vào Màn hình chính</b>.<br>
+          3. Bấm <b>Thêm</b>.
+        </div>
+
+        <div class="notice">
+          <b>Máy tính Chrome/Edge:</b><br>
+          1. Nhìn bên phải thanh địa chỉ, nếu có biểu tượng cài đặt thì bấm vào.<br>
+          2. Hoặc bấm menu <b>⋮</b> → <b>Lưu và chia sẻ</b> → <b>Cài đặt trang này làm ứng dụng</b>.
+        </div>
+
         <div class="notice warn">
-          Nên dùng link HTTPS để trình duyệt cho phép cài ứng dụng.
+          Nên dùng link <b>https</b> để trình duyệt cho phép cài app và lưu đăng nhập ổn định hơn.
         </div>
       </div>
     </div>
