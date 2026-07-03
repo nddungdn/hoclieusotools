@@ -655,13 +655,14 @@
       <section id="studentsPage" class="page hidden"></section>
       <section id="profilePage" class="page hidden"></section>
       <section id="messagesPage" class="page hidden"></section>
+      <section id="activitiesPage" class="page hidden"></section>
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
       <section id="setupPage" class="page hidden"></section>
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V7.2 - có AI HS/PHHS</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V8 - Chat AI + Hoạt động chính</b>
       </p>
     </div>
   </main>
@@ -687,6 +688,7 @@ const state = {
   dashboard: null,
   students: [],
   messages: [],
+  activities: [],
   setup: null,
   lastImportedAccounts: [],
   currentPage: localStorage.getItem(LS_LAST_PAGE) || 'dashboard',
@@ -891,6 +893,7 @@ function renderNav(){
     { id:'students', label:'Học sinh', show:role === 'GVCN' },
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
+    { id:'activities', label:'Các hoạt động chính', show:true },
     { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
     { id:'setup', label:'Thiết lập', show:role === 'GVCN' },
@@ -911,7 +914,7 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','students','profile','messages','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
+  if(!['dashboard','students','profile','messages','activities','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
@@ -931,6 +934,7 @@ async function goPage(page, save=true){
   if(page === 'students') await loadStudents();
   if(page === 'profile') await openDefaultProfile();
   if(page === 'messages') await loadMessages();
+  if(page === 'activities') await loadActivities();
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
   if(page === 'setup') await loadSetup();
@@ -1607,6 +1611,21 @@ function openAIModal(studentID){
             <div id="aiResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
           </div>
         </div>
+
+        <div id="teacherAIChatWrap" class="hidden" style="margin-top:14px">
+          <div class="card" style="box-shadow:none">
+            <h2>Trao đổi tiếp với AI</h2>
+            <p class="muted">AI tiếp tục dựa trên tình huống, phản hồi trước đó và hồ sơ học sinh hiện có.</p>
+            <div id="teacherAIChatHistory" class="list" style="margin:12px 0"></div>
+            <form id="teacherAIChatForm" class="form-grid">
+              <div class="field">
+                <label>Câu hỏi tiếp theo của GVCN</label>
+                <textarea id="teacherAIChatInput" class="textarea" style="min-height:82px" placeholder="Ví dụ: Nếu học sinh im lặng không trả lời thì tôi nên hỏi tiếp thế nào?"></textarea>
+              </div>
+              <button id="teacherAIChatBtn" class="btn btn-soft full" type="submit">Gửi tiếp cho AI</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -1633,15 +1652,83 @@ function openAIModal(studentID){
       });
 
       $('#aiResultWrap').classList.remove('hidden');
+      $('#teacherAIChatWrap').classList.remove('hidden');
+      $('#teacherAIChatWrap').dataset.caseId = data.caseID || '';
+      $('#teacherAIChatWrap').dataset.supportType = $('#aiLoai').value;
+      $('#teacherAIChatWrap').dataset.mucDo = $('#aiMucDo').value;
       $('#aiMeta').textContent = `${data.model || 'AI'} · Hồ sơ động: ${data.timelineCount || 0} bản ghi · Nhật ký: ${data.logCount || 0} bản ghi · Đã lưu vào AI_TuVan`;
       $('#aiResult').textContent = data.response || '';
       $('#copyAIResultBtn').onclick = () => copyText(data.response || '');
+      clearChatHistory('teacherAIChatHistory');
+      appendChatMessage('teacherAIChatHistory', 'user', situation);
+      appendChatMessage('teacherAIChatHistory', 'ai', data.response || '');
       showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích hồ sơ và tình huống...');
 
     const btn = $('#aiSubmitBtn');
     if(btn) btn.disabled = false;
   });
+
+  $('#teacherAIChatForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const question = $('#teacherAIChatInput').value.trim();
+    if(!question){
+      showToast('Vui lòng nhập câu hỏi trao đổi tiếp.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      $('#teacherAIChatBtn').disabled = true;
+      appendChatMessage('teacherAIChatHistory', 'user', question);
+      const previous = collectChatText('teacherAIChatHistory');
+      const data = await api('aiChatContinue', {
+        token: state.token,
+        mode: 'GVCN',
+        studentID,
+        caseID: $('#teacherAIChatWrap').dataset.caseId || '',
+        supportType: $('#teacherAIChatWrap').dataset.supportType || $('#aiLoai').value,
+        mucDo: $('#teacherAIChatWrap').dataset.mucDo || $('#aiMucDo').value,
+        question,
+        previous
+      });
+      appendChatMessage('teacherAIChatHistory', 'ai', data.response || '');
+      $('#teacherAIChatInput').value = '';
+      showToast(data.message || 'AI đã trả lời.', 'success');
+    }, 'AI đang trả lời tiếp...').finally(() => {
+      const btn = $('#teacherAIChatBtn');
+      if(btn) btn.disabled = false;
+    });
+  });
+}
+
+
+function clearChatHistory(id){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = '';
+}
+
+function appendChatMessage(id, who, text){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const isAI = who === 'ai';
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.style.background = isAI ? '#f8fafc' : '#eff6ff';
+  div.innerHTML = `
+    <div class="item-row">
+      <p class="item-title">${isAI ? 'AI' : 'Bạn'}</p>
+      <span class="badge ${isAI ? 'badge-purple' : 'badge-blue'}">${isAI ? 'Phản hồi' : 'Câu hỏi'}</span>
+    </div>
+    <div class="item-content">${escapeHTML(text || '')}</div>
+  `;
+  el.appendChild(div);
+  div.scrollIntoView({behavior:'smooth', block:'end'});
+}
+
+function collectChatText(id){
+  const el = document.getElementById(id);
+  if(!el) return '';
+  return Array.from(el.querySelectorAll('.item')).map(item => item.innerText.trim()).join('\n\n').slice(-6500);
 }
 
 function copyText(text){
@@ -2186,12 +2273,232 @@ function copyAccountListVisible(){
 }
 
 
+
+/* =========================================================
+   CÁC HOẠT ĐỘNG CHÍNH
+========================================================= */
+
+async function loadActivities(){
+  await withLoading(async () => {
+    const data = await api('getActivities', { token: state.token });
+    state.activities = data.activities || [];
+    renderActivities();
+  }, 'Đang tải hoạt động chính...');
+}
+
+function renderActivities(){
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
+  const rows = state.activities || [];
+
+  const grouped = {};
+  rows.forEach(a => {
+    const key = `${a.SchoolYear || 'Chưa ghi năm học'} · Tháng ${a.Month || 'không ghi'}`;
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(a);
+  });
+
+  $('#activitiesPage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <h2>Các hoạt động chính</h2>
+          <p class="muted">Ghi chú hoạt động theo tháng và hoạt động lớn trong năm của lớp. HS/PHHS có thể xem thông tin được công khai.</p>
+          ${isTeacher ? `<button class="btn btn-primary full" onclick="openActivityModal()">+ Thêm hoạt động</button>` : ''}
+          <div class="notice" style="margin-top:12px">
+            GVCN có thể cập nhật kế hoạch, kết quả, trạng thái từng hoạt động để làm minh chứng công tác chủ nhiệm.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="card">
+          <div class="card-title">
+            <div>
+              <h2>Danh sách hoạt động</h2>
+              <p class="muted" style="margin:.25rem 0 0">${rows.length} hoạt động đang hiển thị.</p>
+            </div>
+            <button class="btn btn-soft btn-small" onclick="loadActivities()">Làm mới</button>
+          </div>
+
+          ${rows.length ? Object.keys(grouped).map(key => `
+            <h3 style="margin:18px 0 10px">${escapeHTML(key)}</h3>
+            <div class="list">
+              ${grouped[key].map(a => renderActivityItem(a, isTeacher)).join('')}
+            </div>
+          `).join('') : `<div class="empty">Chưa có hoạt động nào.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderActivityItem(a, isTeacher){
+  return `
+    <div class="item">
+      <div class="item-row">
+        <div>
+          <p class="item-title">${escapeHTML(a.Title || 'Hoạt động')}</p>
+          <div class="item-meta">
+            ${escapeHTML(a.Type || 'Hoạt động lớp')} · ${escapeHTML(a.Audience || 'Tất cả')} · ${escapeHTML(formatDateTime(a.UpdatedAt || a.CreatedAt))}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          ${activityStatusBadge(a.Status)}
+          ${isTeacher ? `<button class="btn btn-soft btn-small" onclick="openActivityModal('${escapeJS(a.ActivityID)}')">Sửa</button>
+          <button class="btn btn-danger btn-small" onclick="deleteActivity('${escapeJS(a.ActivityID)}')">Xóa</button>` : ''}
+        </div>
+      </div>
+      ${a.Description ? `<div class="item-content"><b>Mô tả:</b> ${escapeHTML(a.Description)}</div>` : ''}
+      ${a.Plan ? `<div class="item-content"><b>Kế hoạch/Ghi chú:</b> ${escapeHTML(a.Plan)}</div>` : ''}
+      ${a.Result ? `<div class="item-content"><b>Kết quả:</b> ${escapeHTML(a.Result)}</div>` : ''}
+    </div>
+  `;
+}
+
+function activityStatusBadge(status){
+  const s = String(status || 'Đang thực hiện');
+  if(s.includes('Hoàn')) return `<span class="badge badge-green">${escapeHTML(s)}</span>`;
+  if(s.includes('Chưa')) return `<span class="badge badge-yellow">${escapeHTML(s)}</span>`;
+  if(s.includes('Hủy') || s.includes('xóa')) return `<span class="badge badge-red">${escapeHTML(s)}</span>`;
+  return `<span class="badge badge-blue">${escapeHTML(s)}</span>`;
+}
+
+function openActivityModal(activityID=''){
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
+  if(!isTeacher){
+    showToast('Chỉ GVCN được thêm/cập nhật hoạt động.', 'warn');
+    return;
+  }
+
+  const a = (state.activities || []).find(x => String(x.ActivityID) === String(activityID)) || {};
+  const currentYear = new Date().getFullYear();
+  const defaultSchoolYear = `${currentYear}-${currentYear+1}`;
+
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(760px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${activityID ? 'Cập nhật hoạt động' : 'Thêm hoạt động chính'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Ghi chú hoạt động của tháng hoặc hoạt động lớn trong năm.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="activityForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Năm học</label>
+              <input id="actSchoolYear" class="input" value="${escapeHTML(a.SchoolYear || defaultSchoolYear)}" placeholder="Ví dụ: 2026-2027" />
+            </div>
+            <div class="field">
+              <label>Tháng</label>
+              <select id="actMonth" class="select">
+                ${['','8','9','10','11','12','1','2','3','4','5','6','7'].map(m => `<option value="${m}" ${String(a.Month||'')===String(m)?'selected':''}>${m ? 'Tháng ' + m : 'Cả năm/không theo tháng'}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tiêu đề hoạt động</label>
+            <input id="actTitle" class="input" value="${escapeHTML(a.Title || '')}" placeholder="Ví dụ: Đại hội chi đội, sinh hoạt chuyên đề, hoạt động trải nghiệm..." />
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Loại hoạt động</label>
+              <select id="actType" class="select">
+                ${['Hoạt động lớp','Sinh hoạt chủ nhiệm','Phong trào','Trải nghiệm - hướng nghiệp','Phối hợp PHHS','Tư vấn/hỗ trợ học sinh','Khác'].map(x => `<option ${String(a.Type||'')===x?'selected':''}>${x}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Đối tượng hiển thị</label>
+              <select id="actAudience" class="select">
+                ${['Tất cả','Học sinh','PHHS','Nội bộ GVCN'].map(x => `<option ${String(a.Audience||'Tất cả')===x?'selected':''}>${x}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Trạng thái</label>
+              <select id="actStatus" class="select">
+                ${['Chưa thực hiện','Đang thực hiện','Hoàn thành','Tạm hoãn','Hủy'].map(x => `<option ${String(a.Status||'Đang thực hiện')===x?'selected':''}>${x}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Mã hoạt động</label>
+              <input class="input" value="${escapeHTML(activityID || 'Tự tạo khi lưu')}" disabled />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Mô tả ngắn</label>
+            <textarea id="actDescription" class="textarea" style="min-height:80px">${escapeHTML(a.Description || '')}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Kế hoạch / ghi chú hoạt động</label>
+            <textarea id="actPlan" class="textarea" placeholder="Nội dung chuẩn bị, phân công, lưu ý...">${escapeHTML(a.Plan || '')}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Kết quả / minh chứng / nhận xét sau hoạt động</label>
+            <textarea id="actResult" class="textarea" placeholder="Kết quả đạt được, số học sinh tham gia, biểu hiện nổi bật, hạn chế cần rút kinh nghiệm...">${escapeHTML(a.Result || '')}</textarea>
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Lưu hoạt động</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = $('#actTitle').value.trim();
+    if(!title){
+      showToast('Vui lòng nhập tiêu đề hoạt động.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      await api('saveActivity', {
+        token: state.token,
+        activityID,
+        schoolYear: $('#actSchoolYear').value.trim(),
+        month: $('#actMonth').value,
+        title,
+        type: $('#actType').value,
+        audience: $('#actAudience').value,
+        status: $('#actStatus').value,
+        description: $('#actDescription').value.trim(),
+        plan: $('#actPlan').value.trim(),
+        result: $('#actResult').value.trim()
+      });
+      closeModal();
+      showToast('Đã lưu hoạt động.', 'success');
+      await loadActivities();
+    }, 'Đang lưu hoạt động...');
+  });
+}
+
+async function deleteActivity(activityID){
+  if(!confirm('Xóa hoạt động này khỏi danh sách hiển thị?')) return;
+  await withLoading(async () => {
+    await api('deleteActivity', { token: state.token, activityID });
+    showToast('Đã xóa hoạt động.', 'success');
+    await loadActivities();
+  }, 'Đang xóa hoạt động...');
+}
+
+
 /* =========================================================
    AI HỖ TRỢ HỌC SINH / PHHS
 ========================================================= */
 
 function renderAISupportPage(){
-  const role = state.user.Role;
+  const role = normalizeRole(state.user.Role);
   const isStudent = role === 'HS';
   const title = isStudent ? 'AI hỗ trợ em' : 'AI hỗ trợ phụ huynh';
   const desc = isStudent
@@ -2262,6 +2569,21 @@ function renderAISupportPage(){
               <div id="personalAIResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
             </div>
           </div>
+
+          <div id="personalAIChatWrap" class="hidden" style="margin-top:14px">
+            <div class="card" style="box-shadow:none">
+              <h2>Trao đổi tiếp với AI</h2>
+              <p class="muted">Khung chat này chỉ lưu tạm trên màn hình. Hệ thống chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp của HS/PHHS.</p>
+              <div id="personalAIChatHistory" class="list" style="margin:12px 0"></div>
+              <form id="personalAIChatForm" class="form-grid">
+                <div class="field">
+                  <label>Nhập câu hỏi tiếp theo</label>
+                  <textarea id="personalAIChatInput" class="textarea" style="min-height:82px" placeholder="Ví dụ: Em nên nói với cô giáo chủ nhiệm như thế nào?"></textarea>
+                </div>
+                <button id="personalAIChatBtn" class="btn btn-soft full" type="submit">Gửi tiếp cho AI</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2284,9 +2606,13 @@ function renderAISupportPage(){
         mongMuon: $('#personalMongMuon').value.trim()
       });
       $('#personalAIResultWrap').classList.remove('hidden');
+      $('#personalAIChatWrap').classList.remove('hidden');
       $('#personalAIMeta').textContent = `${data.model || 'AI'} · Chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp`;
       $('#personalAIResult').textContent = data.response || '';
       $('#copyPersonalAIResultBtn').onclick = () => copyText(data.response || '');
+      clearChatHistory('personalAIChatHistory');
+      appendChatMessage('personalAIChatHistory', 'user', situation);
+      appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
       showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích tình huống...').finally(() => {
       const btn = $('#personalAISubmit');
@@ -2572,6 +2898,35 @@ function openChangePasswordModal(force=false){
       closeModal();
       showToast('Đã đổi mật khẩu.', 'success');
     }, 'Đang đổi mật khẩu...');
+  });
+
+  $('#personalAIChatForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const question = $('#personalAIChatInput').value.trim();
+    if(!question){
+      showToast('Vui lòng nhập câu hỏi trao đổi tiếp.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      $('#personalAIChatBtn').disabled = true;
+      appendChatMessage('personalAIChatHistory', 'user', question);
+      const previous = collectChatText('personalAIChatHistory');
+      const data = await api('aiChatContinue', {
+        token: state.token,
+        mode: 'PERSONAL',
+        supportType: $('#personalSupportType').value,
+        mucDo: $('#personalLevel').value,
+        question,
+        previous
+      });
+      appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
+      $('#personalAIChatInput').value = '';
+      showToast(data.message || 'AI đã trả lời.', 'success');
+    }, 'AI đang trả lời tiếp...').finally(() => {
+      const btn = $('#personalAIChatBtn');
+      if(btn) btn.disabled = false;
+    });
   });
 }
 
