@@ -641,6 +641,7 @@
         </div>
 
         <div class="top-actions">
+          <button id="installAppBtn" class="btn btn-soft btn-small hidden" type="button">📲 <span class="optional">Cài app</span></button>
           <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
           <button id="changePassBtn" class="btn btn-soft btn-small" type="button">🔐 <span class="optional">Đổi mật khẩu</span></button>
           <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
@@ -662,7 +663,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V8 - Chat AI + Hoạt động chính</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V9 - Lưu chat AI + Cài app</b>
       </p>
     </div>
   </main>
@@ -713,6 +714,7 @@ function init(){
     showLogin();
   }
 
+  setupInstallPrompt();
   registerServiceWorkerIfAny();
 }
 
@@ -722,6 +724,8 @@ function bindBaseEvents(){
   $('#logoutBtn').addEventListener('click', logout);
   $('#changePassBtn').addEventListener('click', () => openChangePasswordModal(false));
   $('#refreshBtn').addEventListener('click', refreshCurrent);
+  const installBtn = $('#installAppBtn');
+  if(installBtn) installBtn.addEventListener('click', installApp);
 }
 
 function validApiUrl(){
@@ -829,8 +833,16 @@ async function bootSession(){
       await loadDashboard();
     }, 'Đang mở phiên đăng nhập...');
   }catch(err){
-    clearSession();
-    showLogin();
+    const msg = String(err && err.message ? err.message : err);
+    if(msg.includes('hết hạn') || msg.includes('không hợp lệ') || msg.includes('không còn hoạt động')){
+      clearSession();
+      showLogin();
+    }else if(state.user){
+      showApp();
+      showToast('Tạm thời chưa kiểm tra được phiên đăng nhập, hệ thống vẫn giữ đăng nhập trên thiết bị này. Hãy bấm Làm mới sau.', 'warn', 6500);
+    }else{
+      showLogin();
+    }
   }
 }
 
@@ -1614,8 +1626,13 @@ function openAIModal(studentID){
 
         <div id="teacherAIChatWrap" class="hidden" style="margin-top:14px">
           <div class="card" style="box-shadow:none">
-            <h2>Trao đổi tiếp với AI</h2>
-            <p class="muted">AI tiếp tục dựa trên tình huống, phản hồi trước đó và hồ sơ học sinh hiện có.</p>
+            <div class="card-title">
+              <div>
+                <h2>Trao đổi tiếp với AI</h2>
+                <p class="muted" style="margin:.25rem 0 0">AI tiếp tục dựa trên tình huống, phản hồi trước đó và hồ sơ học sinh hiện có.</p>
+              </div>
+              <button class="btn btn-danger btn-small" type="button" onclick="clearSavedTeacherAIChat('${studentID}')">Xóa lịch sử</button>
+            </div>
             <div id="teacherAIChatHistory" class="list" style="margin:12px 0"></div>
             <form id="teacherAIChatForm" class="form-grid">
               <div class="field">
@@ -1631,6 +1648,8 @@ function openAIModal(studentID){
   `;
 
   openModal(html);
+
+  restoreTeacherAIChat(studentID);
 
   $('#aiForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -1662,6 +1681,7 @@ function openAIModal(studentID){
       clearChatHistory('teacherAIChatHistory');
       appendChatMessage('teacherAIChatHistory', 'user', situation);
       appendChatMessage('teacherAIChatHistory', 'ai', data.response || '');
+      saveAIChatHistory(getTeacherChatKey(studentID), readChatMessages('teacherAIChatHistory'));
       showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích hồ sơ và tình huống...');
 
@@ -1692,6 +1712,7 @@ function openAIModal(studentID){
         previous
       });
       appendChatMessage('teacherAIChatHistory', 'ai', data.response || '');
+      saveAIChatHistory(getTeacherChatKey(studentID), readChatMessages('teacherAIChatHistory'));
       $('#teacherAIChatInput').value = '';
       showToast(data.message || 'AI đã trả lời.', 'success');
     }, 'AI đang trả lời tiếp...').finally(() => {
@@ -1729,6 +1750,90 @@ function collectChatText(id){
   const el = document.getElementById(id);
   if(!el) return '';
   return Array.from(el.querySelectorAll('.item')).map(item => item.innerText.trim()).join('\n\n').slice(-6500);
+}
+
+
+function getAIChatStorageKey(suffix){
+  const userID = state.user && state.user.UserID ? state.user.UserID : 'guest';
+  return `${LS_AI_CHAT_PREFIX}_${userID}_${suffix}`;
+}
+
+function getTeacherChatKey(studentID){
+  return getAIChatStorageKey(`GVCN_${studentID || 'none'}`);
+}
+
+function getPersonalChatKey(){
+  const role = normalizeRole(state.user?.Role || '');
+  const sid = state.user?.StudentID || 'none';
+  return getAIChatStorageKey(`${role}_${sid}`);
+}
+
+function readChatMessages(id){
+  const el = document.getElementById(id);
+  if(!el) return [];
+  return Array.from(el.querySelectorAll('.item')).map(item => {
+    const title = item.querySelector('.item-title')?.textContent || '';
+    const content = item.querySelector('.item-content')?.textContent || '';
+    return {
+      who: title.trim() === 'AI' ? 'ai' : 'user',
+      text: content,
+      time: new Date().toISOString()
+    };
+  }).filter(m => m.text);
+}
+
+function saveAIChatHistory(key, messages){
+  try{
+    localStorage.setItem(key, JSON.stringify((messages || []).slice(-30)));
+  }catch(e){}
+}
+
+function loadAIChatHistory(key){
+  try{
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function restoreChatHistory(targetId, key){
+  const messages = loadAIChatHistory(key);
+  if(!messages.length) return false;
+  clearChatHistory(targetId);
+  messages.forEach(m => appendChatMessage(targetId, m.who, m.text));
+  return true;
+}
+
+function restoreTeacherAIChat(studentID){
+  const key = getTeacherChatKey(studentID);
+  if(restoreChatHistory('teacherAIChatHistory', key)){
+    const wrap = $('#teacherAIChatWrap');
+    if(wrap){
+      wrap.classList.remove('hidden');
+      wrap.dataset.caseId = 'CHAT_TIEP';
+    }
+  }
+}
+
+function restorePersonalAIChat(){
+  const key = getPersonalChatKey();
+  if(restoreChatHistory('personalAIChatHistory', key)){
+    const wrap = $('#personalAIChatWrap');
+    if(wrap) wrap.classList.remove('hidden');
+  }
+}
+
+function clearSavedTeacherAIChat(studentID){
+  localStorage.removeItem(getTeacherChatKey(studentID));
+  clearChatHistory('teacherAIChatHistory');
+  showToast('Đã xóa lịch sử chat AI trên thiết bị này.', 'success');
+}
+
+function clearSavedPersonalAIChat(){
+  localStorage.removeItem(getPersonalChatKey());
+  clearChatHistory('personalAIChatHistory');
+  showToast('Đã xóa lịch sử chat AI trên thiết bị này.', 'success');
 }
 
 function copyText(text){
@@ -2572,8 +2677,13 @@ function renderAISupportPage(){
 
           <div id="personalAIChatWrap" class="hidden" style="margin-top:14px">
             <div class="card" style="box-shadow:none">
-              <h2>Trao đổi tiếp với AI</h2>
-              <p class="muted">Khung chat này chỉ lưu tạm trên màn hình. Hệ thống chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp của HS/PHHS.</p>
+              <div class="card-title">
+                <div>
+                  <h2>Trao đổi tiếp với AI</h2>
+                  <p class="muted" style="margin:.25rem 0 0">Lịch sử chat được lưu trên thiết bị này để không mất khi tải lại trang. Hệ thống chỉ thống kê lượt sử dụng của HS/PHHS.</p>
+                </div>
+                <button class="btn btn-danger btn-small" type="button" onclick="clearSavedPersonalAIChat()">Xóa lịch sử</button>
+              </div>
               <div id="personalAIChatHistory" class="list" style="margin:12px 0"></div>
               <form id="personalAIChatForm" class="form-grid">
                 <div class="field">
@@ -2588,6 +2698,8 @@ function renderAISupportPage(){
       </div>
     </div>
   `;
+
+  restorePersonalAIChat();
 
   $('#personalAIForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -2613,6 +2725,7 @@ function renderAISupportPage(){
       clearChatHistory('personalAIChatHistory');
       appendChatMessage('personalAIChatHistory', 'user', situation);
       appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
+      saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
       showToast(data.message || 'AI đã gợi ý xong.', 'success');
     }, 'AI đang phân tích tình huống...').finally(() => {
       const btn = $('#personalAISubmit');
@@ -2921,6 +3034,7 @@ function openChangePasswordModal(force=false){
         previous
       });
       appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
+      saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
       $('#personalAIChatInput').value = '';
       showToast(data.message || 'AI đã trả lời.', 'success');
     }, 'AI đang trả lời tiếp...').finally(() => {
@@ -3062,6 +3176,59 @@ function priorityBadge(priority){
   if(p === 'Khẩn') return `<span class="badge badge-red">Khẩn</span>`;
   if(p === 'Quan trọng') return `<span class="badge badge-yellow">Quan trọng</span>`;
   return `<span class="badge badge-green">Bình thường</span>`;
+}
+
+
+function setupInstallPrompt(){
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const btn = $('#installAppBtn');
+    if(btn) btn.classList.remove('hidden');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const btn = $('#installAppBtn');
+    if(btn) btn.classList.add('hidden');
+    showToast('Đã cài tiện ích vào thiết bị.', 'success');
+  });
+}
+
+async function installApp(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    const btn = $('#installAppBtn');
+    if(btn) btn.classList.add('hidden');
+    return;
+  }
+
+  openModal(`
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Cài Sổ chủ nhiệm số</h2>
+            <p class="muted" style="margin:.25rem 0 0">Trình duyệt chưa hiện nút cài tự động. Thầy/cô có thể cài thủ công.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+        <div class="notice">
+          <b>Trên điện thoại Android/Chrome:</b><br>
+          Bấm nút ba chấm ⋮ của trình duyệt → chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.
+        </div>
+        <div class="notice">
+          <b>Trên máy tính Chrome/Edge:</b><br>
+          Bấm biểu tượng cài đặt ở thanh địa chỉ nếu có, hoặc mở menu ⋮ → <b>Lưu và chia sẻ</b> → <b>Cài đặt trang này làm ứng dụng</b>.
+        </div>
+        <div class="notice warn">
+          Nên dùng link HTTPS để trình duyệt cho phép cài ứng dụng.
+        </div>
+      </div>
+    </div>
+  `);
 }
 
 function registerServiceWorkerIfAny(){
