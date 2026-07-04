@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="Sổ chủ nhiệm số kết nối GVCN, học sinh và cha mẹ học sinh." />
-  <title>Sổ chủ nhiệm số</title>
+  <meta name="description" content="Tiện ích kết nối GVCN - HS - CMHS." />
+  <title>KẾT NỐI GVCN - HS - CMHS</title>
 
   <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
   <link rel="manifest" href="manifest.json" />
@@ -601,7 +601,7 @@
       <div class="brand">
         <div class="brand-mark">CN</div>
         <div>
-          <h1>Sổ chủ nhiệm số</h1>
+          <h1>KẾT NỐI GVCN - HS - CMHS</h1>
           <p>Kết nối GVCN, học sinh và cha mẹ học sinh</p>
         </div>
       </div>
@@ -2501,7 +2501,7 @@ function renderSetup(){
           <form id="setupConfigForm" class="form-grid">
             <div class="field">
               <label>Tên tiện ích</label>
-              <input id="cfgAppName" class="input" value="${escapeHTML(cfg.APP_NAME || 'Sổ chủ nhiệm số')}" />
+              <input id="cfgAppName" class="input" value="${escapeHTML(cfg.APP_NAME || 'KẾT NỐI GVCN - HS - CMHS')}" />
             </div>
             <div class="split">
               <div class="field">
@@ -3645,7 +3645,7 @@ function setupInstallPrompt(){
 
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
-    showToast('Đã cài Sổ chủ nhiệm số vào thiết bị.', 'success');
+    showToast('Đã cài TIỆN ÍCH vào thiết bị.', 'success');
   });
 }
 
@@ -3662,7 +3662,7 @@ function openInstallGuide(){
       <div class="modal">
         <div class="modal-head">
           <div>
-            <h2>Cài APP Sổ chủ nhiệm số</h2>
+            <h2>Cài APP Tiện ích</h2>
             <p class="muted" style="margin:.25rem 0 0">
               ${installed
                 ? 'Tiện ích đang được mở ở chế độ ứng dụng trên thiết bị này.'
