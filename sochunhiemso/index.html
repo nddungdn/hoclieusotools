@@ -642,7 +642,7 @@
         </div>
 
         <div class="top-actions">
-          <button id="installAppBtn" class="btn btn-soft btn-small" type="button">📲 <span class="optional">Cài APP</span></button>
+          <button id="installAppBtn" class="btn btn-soft btn-small" type="button" onclick="openInstallGuide()">📲 <span class="optional">Cài APP</span></button>
           <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
           <button id="changePassBtn" class="btn btn-soft btn-small" type="button">🔐 <span class="optional">Đổi mật khẩu</span></button>
           <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
@@ -664,7 +664,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10 - Nhập dữ liệu từ tiện ích</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.2 - Sửa nút Cài APP</b>
       </p>
     </div>
   </main>
@@ -701,6 +701,7 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
+console.log('So chu nhiem so build', BUILD_VERSION);
 document.addEventListener('DOMContentLoaded', init);
 
 function init(){
@@ -726,8 +727,7 @@ function bindBaseEvents(){
   $('#logoutBtn').addEventListener('click', logout);
   $('#changePassBtn').addEventListener('click', () => openChangePasswordModal(false));
   $('#refreshBtn').addEventListener('click', refreshCurrent);
-  const installBtn = $('#installAppBtn');
-  if(installBtn) installBtn.addEventListener('click', installApp);
+
 }
 
 function validApiUrl(){
@@ -3539,23 +3539,21 @@ function setupInstallPrompt(){
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstallPrompt = e;
-    const btn = $('#installAppBtn');
-    if(btn) btn.classList.remove('hidden');
   });
 
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
-    showToast('Đã cài tiện ích vào thiết bị.', 'success');
+    showToast('Đã cài Sổ chủ nhiệm số vào thiết bị.', 'success');
   });
 }
 
-async function installApp(){
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    return;
-  }
+function isAppInstalled(){
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function openInstallGuide(){
+  const installed = isAppInstalled();
 
   openModal(`
     <div class="modal-backdrop">
@@ -3563,19 +3561,40 @@ async function installApp(){
         <div class="modal-head">
           <div>
             <h2>Cài APP Sổ chủ nhiệm số</h2>
-            <p class="muted" style="margin:.25rem 0 0">Cài tiện ích ra màn hình chính để mở nhanh như một ứng dụng.</p>
+            <p class="muted" style="margin:.25rem 0 0">
+              ${installed
+                ? 'Tiện ích đang được mở ở chế độ ứng dụng trên thiết bị này.'
+                : 'Cài tiện ích ra màn hình chính để mở nhanh như một ứng dụng.'}
+            </p>
           </div>
-          <button class="close" onclick="closeModal()">×</button>
+          <button class="close" type="button" onclick="closeModal()">×</button>
         </div>
 
-        <div class="notice">
-          <b>Cách 1 - Nếu trình duyệt hỗ trợ:</b><br>
-          Khi bấm nút <b>Cài APP</b>, nếu có hộp thoại cài đặt hiện ra, hãy chọn <b>Cài đặt</b>.
-        </div>
+        ${installed ? `
+          <div class="notice">
+            <b>APP đã được cài hoặc đang chạy ở chế độ độc lập.</b><br>
+            Thầy/cô có thể đóng cửa sổ này và tiếp tục sử dụng.
+          </div>
+        ` : ''}
+
+        ${!installed && deferredInstallPrompt ? `
+          <button id="installNowBtn" class="btn btn-primary full" type="button" onclick="installAppNow()">
+            📲 Cài ngay trên thiết bị này
+          </button>
+          <div class="notice" style="margin-top:12px">
+            Trình duyệt đã nhận diện đây là ứng dụng có thể cài. Bấm <b>Cài ngay</b> rồi xác nhận trong hộp thoại của trình duyệt.
+          </div>
+        ` : ''}
+
+        ${!installed && !deferredInstallPrompt ? `
+          <div class="notice warn">
+            Trình duyệt chưa cung cấp hộp thoại cài tự động. Thầy/cô hãy làm theo hướng dẫn thủ công bên dưới.
+          </div>
+        ` : ''}
 
         <div class="notice">
           <b>Điện thoại Android dùng Chrome/Cốc Cốc/Edge:</b><br>
-          1. Bấm nút ba chấm <b>⋮</b> ở góc trên trình duyệt.<br>
+          1. Bấm nút ba chấm <b>⋮</b> của trình duyệt.<br>
           2. Chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.<br>
           3. Bấm <b>Thêm</b> hoặc <b>Cài đặt</b>.
         </div>
@@ -3589,16 +3608,57 @@ async function installApp(){
 
         <div class="notice">
           <b>Máy tính Chrome/Edge:</b><br>
-          1. Nhìn bên phải thanh địa chỉ, nếu có biểu tượng cài đặt thì bấm vào.<br>
-          2. Hoặc bấm menu <b>⋮</b> → <b>Lưu và chia sẻ</b> → <b>Cài đặt trang này làm ứng dụng</b>.
+          1. Nhìn bên phải thanh địa chỉ, bấm biểu tượng cài đặt nếu có.<br>
+          2. Hoặc mở menu <b>⋮</b> → <b>Lưu và chia sẻ</b> → <b>Cài đặt trang này làm ứng dụng</b>.
         </div>
 
-        <div class="notice warn">
-          Nên dùng link <b>https</b> để trình duyệt cho phép cài app và lưu đăng nhập ổn định hơn.
+        <div class="notice">
+          <b>Địa chỉ nên dùng:</b><br>
+          https://nddungdn.github.io/hoclieusotools/sochunhiemso/
         </div>
       </div>
     </div>
   `);
+}
+
+async function installAppNow(){
+  if(!deferredInstallPrompt){
+    showToast('Trình duyệt chưa cho phép cài tự động. Hãy làm theo hướng dẫn thủ công.', 'warn', 5200);
+    return;
+  }
+
+  const btn = document.getElementById('installNowBtn');
+
+  try{
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = 'Đang mở hộp thoại cài đặt...';
+    }
+
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+
+    if(choice && choice.outcome === 'accepted'){
+      showToast('Đã chấp nhận cài APP.', 'success');
+      closeModal();
+    }else{
+      showToast('Chưa cài APP. Thầy/cô có thể thử lại hoặc cài thủ công.', 'warn', 5200);
+      if(btn){
+        btn.disabled = false;
+        btn.textContent = '📲 Cài ngay trên thiết bị này';
+      }
+    }
+
+    deferredInstallPrompt = null;
+  }catch(err){
+    console.error('Lỗi cài PWA:', err);
+    showToast('Không mở được hộp thoại cài tự động. Hãy dùng hướng dẫn cài thủ công.', 'warn', 6500);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = '📲 Cài ngay trên thiết bị này';
+    }
+    deferredInstallPrompt = null;
+  }
 }
 
 function registerServiceWorkerIfAny(){
