@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="Tiện ích kết nối GVCN - HS - CMHS." />
-  <title>KẾT NỐI GVCN - HS - CMHS</title>
+  <meta name="description" content="Sổ chủ nhiệm số kết nối GVCN, học sinh và cha mẹ học sinh." />
+  <title>Sổ chủ nhiệm số</title>
 
   <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
   <link rel="manifest" href="manifest.json" />
@@ -34,6 +34,11 @@
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
+    html,body{
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
     body{
       margin:0;
       min-height:100vh;
@@ -567,6 +572,186 @@
       line-height:1.55;
     }
 
+
+    .page,
+    .grid,
+    .card,
+    .card-title > *,
+    .table-wrap{
+      min-width:0;
+      max-width:100%;
+    }
+
+    .compact-table{
+      min-width:0;
+      table-layout:fixed;
+    }
+
+    .ai-stat-summary{
+      display:grid;
+      grid-template-columns:repeat(12,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .ai-stat-summary > .col-3{
+      grid-column:span 3;
+    }
+
+    .compact-table th,
+    .compact-table td{
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+
+    @media (max-width:700px){
+      .student-header-actions{
+        width:100%;
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:8px !important;
+      }
+
+      .student-header-actions .btn{
+        width:100%;
+        min-width:0;
+        white-space:normal;
+        line-height:1.25;
+      }
+
+      .student-toolbar{
+        display:grid;
+        grid-template-columns:1fr;
+        width:100%;
+      }
+
+      .student-toolbar .select,
+      .student-toolbar .btn{
+        width:100%;
+        max-width:none !important;
+      }
+
+      .mobile-stack-title{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .mobile-stack-title > .btn{
+        width:100%;
+      }
+
+      .responsive-card-wrap{
+        overflow:visible;
+        border:0;
+        background:transparent;
+      }
+
+      .responsive-card-table{
+        display:block;
+        min-width:0;
+        width:100%;
+        border-collapse:separate;
+      }
+
+      .responsive-card-table thead{
+        display:none;
+      }
+
+      .responsive-card-table tbody{
+        display:grid;
+        gap:10px;
+        width:100%;
+      }
+
+      .responsive-card-table tr{
+        display:block;
+        width:100%;
+        border:1px solid var(--line);
+        border-radius:16px;
+        background:#fff;
+        padding:6px 11px;
+        box-shadow:0 5px 14px rgba(15,23,42,.04);
+      }
+
+      .responsive-card-table td{
+        display:grid;
+        grid-template-columns:minmax(92px,36%) minmax(0,1fr);
+        align-items:start;
+        gap:10px;
+        width:100%;
+        padding:9px 0;
+        border-bottom:1px solid var(--line);
+        font-size:.9rem;
+        overflow-wrap:anywhere;
+        word-break:break-word;
+      }
+
+      .responsive-card-table td::before{
+        content:attr(data-label);
+        color:var(--muted);
+        font-size:.76rem;
+        font-weight:900;
+        text-transform:uppercase;
+        letter-spacing:.035em;
+        line-height:1.35;
+      }
+
+      .responsive-card-table td:last-child{
+        border-bottom:0;
+      }
+
+      .responsive-card-table td[data-label="Thao tác"]{
+        display:block;
+        padding-top:11px;
+      }
+
+      .responsive-card-table td[data-label="Thao tác"]::before{
+        display:none;
+      }
+
+      .responsive-card-table td[data-label="Thao tác"] .btn{
+        width:100%;
+      }
+
+      .ai-stat-summary{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:10px;
+      }
+
+      .ai-stat-summary > [class^="col-"],
+      .ai-stat-summary > [class*=" col-"]{
+        grid-column:span 1 !important;
+      }
+
+      .ai-stat-summary .card.stat{
+        height:100%;
+        align-items:flex-start;
+      }
+
+      .ai-stat-summary .stat-value{
+        font-size:1.3rem;
+      }
+
+      .ai-stat-summary .stat-label{
+        font-size:.82rem;
+      }
+    }
+
+    @media (max-width:390px){
+      .student-header-actions{
+        grid-template-columns:1fr;
+      }
+
+      .ai-stat-summary{
+        grid-template-columns:1fr !important;
+      }
+
+      .responsive-card-table td{
+        grid-template-columns:minmax(82px,34%) minmax(0,1fr);
+        gap:8px;
+      }
+    }
+
     @media (max-width:900px){
       .grid{grid-template-columns:1fr}
       .col-12,.col-8,.col-6,.col-4,.col-3{grid-column:span 1}
@@ -588,6 +773,9 @@
       .top-actions{gap:6px}
       .user-pill{padding:6px 8px}
       .avatar{width:32px;height:32px}
+      .card-title{flex-direction:column;align-items:stretch}
+      .card-title > div:last-child:not(:first-child){width:100%}
+      .table-wrap{border-radius:14px}
     }
   </style>
 </head>
@@ -601,7 +789,7 @@
       <div class="brand">
         <div class="brand-mark">CN</div>
         <div>
-          <h1>KẾT NỐI GVCN - HS - CMHS</h1>
+          <h1>Sổ chủ nhiệm số</h1>
           <p>Kết nối GVCN, học sinh và cha mẹ học sinh</p>
         </div>
       </div>
@@ -664,7 +852,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        <b></b>Tiện ích được xây dựng bởi "Học liệu số".</b> <br><b>Đây là phiên bản thử nghiệm</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.7 - Tối ưu giao diện di động</b>
       </p>
     </div>
   </main>
@@ -702,7 +890,7 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-const BUILD_VERSION = 'V10.6_AI_SCOPE_UI';
+const BUILD_VERSION = 'V10.7_MOBILE_RESPONSIVE';
 let deferredInstallPrompt = null;
 
 console.log('So chu nhiem so build', BUILD_VERSION);
@@ -1095,7 +1283,7 @@ function renderStudents(){
               <h2>Quản lí học sinh</h2>
               <p class="muted" style="margin:.25rem 0 0">GVCN có thể thêm lớp, thêm từng học sinh, nhập học sinh từ file Excel/CSV và tạo tài khoản HS/PHHS ngay trong tiện ích.</p>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <div class="student-header-actions" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
               <button class="btn btn-soft btn-small" onclick="openClassModal()">+ Thêm lớp</button>
               <button class="btn btn-primary btn-small" onclick="openCreateStudentModal()">+ Thêm học sinh</button>
               <button class="btn btn-success btn-small" onclick="openImportStudentsModal()">Nhập từ file</button>
@@ -1125,7 +1313,7 @@ function renderStudents(){
             </div>
           </div>
 
-          <div class="toolbar">
+          <div class="toolbar student-toolbar">
             <select id="studentClassFilter" class="select" style="max-width:260px">
               <option value="">Tất cả lớp</option>
               ${classNames.map(c => `<option value="${escapeHTML(c)}" ${selectedClass === c ? 'selected' : ''}>${escapeHTML(c)}</option>`).join('')}
@@ -1135,8 +1323,8 @@ function renderStudents(){
           </div>
 
           ${rows.length ? `
-            <div class="table-wrap">
-              <table>
+            <div class="table-wrap responsive-card-wrap">
+              <table class="responsive-card-table">
                 <thead>
                   <tr>
                     <th>Mã HS</th>
@@ -1151,13 +1339,13 @@ function renderStudents(){
                 <tbody>
                   ${rows.map(s => `
                     <tr>
-                      <td><b>${escapeHTML(s.StudentID || '')}</b></td>
-                      <td>${escapeHTML(s.FullName || '')}</td>
-                      <td>${escapeHTML(s.ClassName || '')}</td>
-                      <td>${escapeHTML(s.Gender || '')}</td>
-                      <td>${escapeHTML(s.ParentName || '')}</td>
-                      <td>${escapeHTML(s.ParentPhone || '')}</td>
-                      <td>
+                      <td data-label="Mã HS"><b>${escapeHTML(s.StudentID || '')}</b></td>
+                      <td data-label="Họ tên">${escapeHTML(s.FullName || '')}</td>
+                      <td data-label="Lớp">${escapeHTML(s.ClassName || '')}</td>
+                      <td data-label="Giới tính">${escapeHTML(s.Gender || '')}</td>
+                      <td data-label="PHHS">${escapeHTML(s.ParentName || '')}</td>
+                      <td data-label="SĐT PHHS">${escapeHTML(s.ParentPhone || '')}</td>
+                      <td data-label="Thao tác">
                         <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeJS(s.StudentID)}')">Xem hồ sơ</button>
                       </td>
                     </tr>
@@ -2501,7 +2689,7 @@ function renderSetup(){
           <form id="setupConfigForm" class="form-grid">
             <div class="field">
               <label>Tên tiện ích</label>
-              <input id="cfgAppName" class="input" value="${escapeHTML(cfg.APP_NAME || 'KẾT NỐI GVCN - HS - CMHS')}" />
+              <input id="cfgAppName" class="input" value="${escapeHTML(cfg.APP_NAME || 'Sổ chủ nhiệm số')}" />
             </div>
             <div class="split">
               <div class="field">
@@ -3221,32 +3409,34 @@ function renderAIStats(data){
         </div>
       </div>
 
+      <div class="ai-stat-summary col-12">
       <div class="col-3"><div class="card stat"><div class="stat-icon">🤖</div><div><div class="stat-value">${escapeHTML(String(data.total || 0))}</div><div class="stat-label">Tổng lượt AI HS/PHHS</div></div></div></div>
       <div class="col-3"><div class="card stat"><div class="stat-icon">🎒</div><div><div class="stat-value">${escapeHTML(String(byRole.HS || 0))}</div><div class="stat-label">Lượt học sinh</div></div></div></div>
       <div class="col-3"><div class="card stat"><div class="stat-icon">👪</div><div><div class="stat-value">${escapeHTML(String(byRole.PHHS || 0))}</div><div class="stat-label">Lượt phụ huynh</div></div></div></div>
       <div class="col-3"><div class="card stat"><div class="stat-icon">✅</div><div><div class="stat-value">${escapeHTML(String(data.successCount || 0))}</div><div class="stat-label">Lượt thành công</div></div></div></div>
+      </div>
 
       <div class="col-6">
         <div class="card">
           <div class="card-title"><div><h2>Thống kê theo ngày</h2><p class="muted" style="margin:.25rem 0 0">14 ngày gần nhất có dữ liệu.</p></div></div>
-          ${dateRows.length ? `<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Lượt</th></tr></thead><tbody>${dateRows.map(d => `<tr><td>${escapeHTML(d)}</td><td><b>${escapeHTML(String(byDate[d]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
+          ${dateRows.length ? `<div class="table-wrap"><table class="compact-table"><thead><tr><th>Ngày</th><th>Lượt</th></tr></thead><tbody>${dateRows.map(d => `<tr><td>${escapeHTML(d)}</td><td><b>${escapeHTML(String(byDate[d]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
         </div>
       </div>
 
       <div class="col-6">
         <div class="card">
           <div class="card-title"><div><h2>Thống kê theo dạng hỗ trợ</h2><p class="muted" style="margin:.25rem 0 0">Chỉ lưu loại hỗ trợ, không lưu nội dung.</p></div></div>
-          ${typeRows.length ? `<div class="table-wrap"><table><thead><tr><th>Dạng hỗ trợ</th><th>Lượt</th></tr></thead><tbody>${typeRows.map(t => `<tr><td>${escapeHTML(t)}</td><td><b>${escapeHTML(String(bySupportType[t]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
+          ${typeRows.length ? `<div class="table-wrap"><table class="compact-table"><thead><tr><th>Dạng hỗ trợ</th><th>Lượt</th></tr></thead><tbody>${typeRows.map(t => `<tr><td>${escapeHTML(t)}</td><td><b>${escapeHTML(String(bySupportType[t]))}</b></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có dữ liệu.</div>`}
         </div>
       </div>
 
       <div class="col-12">
         <div class="card">
-          <div class="card-title">
+          <div class="card-title mobile-stack-title">
             <div><h2>Lịch sử lượt sử dụng gần đây</h2><p class="muted" style="margin:.25rem 0 0">Bảng này không có nội dung hỏi/đáp, chỉ có dữ liệu thống kê.</p></div>
             <button class="btn btn-soft btn-small" onclick="copyAIStatsVisible()">Sao chép bảng</button>
           </div>
-          ${recent.length ? `<div id="aiStatsTable" class="table-wrap"><table><thead><tr><th>Thời điểm</th><th>Vai trò</th><th>Mã HS</th><th>Dạng hỗ trợ</th><th>Mức độ</th><th>Model</th><th>Kết quả</th></tr></thead><tbody>${recent.map(r => `<tr><td>${escapeHTML(formatDateTime(r.CreatedAt))}</td><td>${escapeHTML(r.Role || '')}</td><td>${escapeHTML(r.StudentID || '')}</td><td>${escapeHTML(r.SupportType || '')}</td><td>${escapeHTML(r.Level || '')}</td><td>${escapeHTML(r.Model || '')}</td><td>${escapeHTML(String(r.Success || ''))}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có lượt sử dụng AI của HS/PHHS.</div>`}
+          ${recent.length ? `<div id="aiStatsTable" class="table-wrap responsive-card-wrap"><table class="responsive-card-table"><thead><tr><th>Thời điểm</th><th>Vai trò</th><th>Mã HS</th><th>Dạng hỗ trợ</th><th>Mức độ</th><th>Model</th><th>Kết quả</th></tr></thead><tbody>${recent.map(r => `<tr><td data-label="Thời điểm">${escapeHTML(formatDateTime(r.CreatedAt))}</td><td data-label="Vai trò">${escapeHTML(r.Role || '')}</td><td data-label="Mã HS">${escapeHTML(r.StudentID || '')}</td><td data-label="Dạng hỗ trợ">${escapeHTML(r.SupportType || '')}</td><td data-label="Mức độ">${escapeHTML(r.Level || '')}</td><td data-label="Model">${escapeHTML(r.Model || '')}</td><td data-label="Kết quả">${escapeHTML(String(r.Success || ''))}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty">Chưa có lượt sử dụng AI của HS/PHHS.</div>`}
         </div>
       </div>
     </div>
@@ -3645,7 +3835,7 @@ function setupInstallPrompt(){
 
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
-    showToast('Đã cài TIỆN ÍCH vào thiết bị.', 'success');
+    showToast('Đã cài Sổ chủ nhiệm số vào thiết bị.', 'success');
   });
 }
 
@@ -3662,7 +3852,7 @@ function openInstallGuide(){
       <div class="modal">
         <div class="modal-head">
           <div>
-            <h2>Cài APP Tiện ích</h2>
+            <h2>Cài APP Sổ chủ nhiệm số</h2>
             <p class="muted" style="margin:.25rem 0 0">
               ${installed
                 ? 'Tiện ích đang được mở ở chế độ ứng dụng trên thiết bị này.'
