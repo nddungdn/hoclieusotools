@@ -664,7 +664,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.4 - Sửa AI làm tải lại trang</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.5 - Sửa hỏi tiếp AI cho HS/PHHS</b>
       </p>
     </div>
   </main>
@@ -702,7 +702,7 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-const BUILD_VERSION = 'V10.4_AI_SESSION_FIX';
+const BUILD_VERSION = 'V10.5_PERSONAL_AI_CHAT_FIX';
 let deferredInstallPrompt = null;
 
 console.log('So chu nhiem so build', BUILD_VERSION);
@@ -3081,7 +3081,7 @@ function renderAISupportPage(){
                   <label>Nhập câu hỏi tiếp theo</label>
                   <textarea id="personalAIChatInput" class="textarea" style="min-height:82px" placeholder="Ví dụ: Em nên nói với cô giáo chủ nhiệm như thế nào?"></textarea>
                 </div>
-                <button id="personalAIChatBtn" class="btn btn-soft full" type="submit">Gửi tiếp cho AI</button>
+                <button id="personalAIChatBtn" class="btn btn-soft full" type="button" onclick="sendPersonalAIChat()">Gửi tiếp cho AI</button>
               </form>
             </div>
           </div>
@@ -3127,6 +3127,69 @@ function renderAISupportPage(){
       if(btn) btn.disabled = false;
     });
   });
+}
+
+
+async function sendPersonalAIChat(){
+  const input = $('#personalAIChatInput');
+  const btn = $('#personalAIChatBtn');
+
+  if(!input){
+    showToast('Không tìm thấy ô nhập câu hỏi tiếp theo.', 'error');
+    return;
+  }
+
+  const question = input.value.trim();
+  if(!question){
+    showToast('Vui lòng nhập câu hỏi trao đổi tiếp.', 'warn');
+    return;
+  }
+
+  const previous = collectChatText('personalAIChatHistory');
+
+  if(btn) btn.disabled = true;
+  appendChatMessage('personalAIChatHistory', 'user', question);
+  saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
+  input.value = '';
+
+  try{
+    await withLoading(async () => {
+      const data = await api('aiChatContinue', {
+        token: state.token,
+        mode: 'PERSONAL',
+        supportType: $('#personalSupportType') ? $('#personalSupportType').value : 'Trao đổi tiếp',
+        mucDo: $('#personalLevel') ? $('#personalLevel').value : 'Cần tư vấn',
+        mongMuon: $('#personalMongMuon') ? $('#personalMongMuon').value.trim() : '',
+        question,
+        previous
+      });
+
+      appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
+      saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
+
+      const resultWrap = $('#personalAIResultWrap');
+      const chatWrap = $('#personalAIChatWrap');
+      if(resultWrap) resultWrap.classList.remove('hidden');
+      if(chatWrap) chatWrap.classList.remove('hidden');
+
+      const meta = $('#personalAIMeta');
+      if(meta){
+        meta.textContent = `${data.model || 'AI'} · Chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp`;
+      }
+
+      showToast(data.message || 'AI đã trả lời.', 'success');
+    }, 'AI đang trả lời tiếp...');
+  }catch(err){
+    console.error('Lỗi hỏi tiếp AI HS/PHHS:', err);
+    appendChatMessage(
+      'personalAIChatHistory',
+      'ai',
+      'AI chưa thể trả lời lúc này. Vui lòng thử lại sau ít phút.'
+    );
+    saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
+  }finally{
+    if(btn) btn.disabled = false;
+  }
 }
 
 

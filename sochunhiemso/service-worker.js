@@ -1,4 +1,4 @@
-const CACHE_NAME = 'so-chu-nhiem-so-v10-4';
+const CACHE_NAME = 'so-chu-nhiem-so-v10-5';
 const STATIC_FILES = [
   './manifest.json',
   './icon-192.png',
