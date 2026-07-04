@@ -664,7 +664,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.2 - Sửa nút Cài APP</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.3 - Sửa đăng nhập và Cài APP</b>
       </p>
     </div>
   </main>
@@ -701,8 +701,23 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
+const BUILD_VERSION = 'V10.3_LOGIN_INSTALL_FIX';
+let deferredInstallPrompt = null;
+
 console.log('So chu nhiem so build', BUILD_VERSION);
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  try{
+    init();
+  }catch(err){
+    console.error('Lỗi khởi tạo ứng dụng:', err);
+    const box = document.getElementById('loginNotice');
+    if(box){
+      box.className = 'notice warn';
+      box.innerHTML = 'Ứng dụng gặp lỗi khi khởi tạo. Vui lòng tải lại trang hoặc xóa bộ nhớ đệm trình duyệt.';
+      box.classList.remove('hidden');
+    }
+  }
+});
 
 function init(){
   bindBaseEvents();
@@ -811,8 +826,10 @@ async function onLogin(e){
     state.token = data.token;
     state.user = data.user;
     normalizeCurrentUserRole();
+    state.currentPage = 'dashboard';
     localStorage.setItem(LS_TOKEN, state.token);
     localStorage.setItem(LS_USER, JSON.stringify(state.user));
+    localStorage.setItem(LS_LAST_PAGE, 'dashboard');
 
     showApp();
 
