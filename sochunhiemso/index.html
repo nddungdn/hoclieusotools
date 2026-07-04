@@ -664,7 +664,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Đây là tiện ích kết nối GVCN - CMHS - HS</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.6 - AI đa chủ đề, đúng yêu cầu</b>
       </p>
     </div>
   </main>
@@ -702,7 +702,7 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-const BUILD_VERSION = 'V10.5_PERSONAL_AI_CHAT_FIX';
+const BUILD_VERSION = 'V10.6_AI_SCOPE_UI';
 let deferredInstallPrompt = null;
 
 console.log('So chu nhiem so build', BUILD_VERSION);
@@ -1953,14 +1953,14 @@ function openAIModal(studentID){
       <div class="modal" style="width:min(760px,100%)">
         <div class="modal-head">
           <div>
-            <h2>Nhờ AI hỗ trợ xử lí tình huống</h2>
+            <h2>AI hỗ trợ GVCN</h2>
             <p class="muted" style="margin:.25rem 0 0">Học sinh: <b>${escapeHTML(studentName || studentID)}</b>. AI sẽ dùng dữ liệu trong <b>Dòng thời gian hồ sơ</b> và <b>Nhật ký chủ nhiệm</b> của học sinh này.</p>
           </div>
           <button class="close" onclick="closeModal()">×</button>
         </div>
 
         <div class="notice warn">
-          AI chỉ gợi ý để GVCN tham khảo, không chẩn đoán tâm lí và không thay thế quyết định của giáo viên/nhà trường. Không nhập số điện thoại, địa chỉ hoặc thông tin quá riêng tư nếu không cần thiết.
+          AI có thể phân tích, trả lời, lập kế hoạch, soạn nội dung và hỗ trợ xử lí công tác chủ nhiệm. Không nhập số điện thoại, địa chỉ hoặc thông tin quá riêng tư nếu không cần thiết.
         </div>
 
         <form id="aiForm" class="form-grid" onsubmit="return false;">
@@ -1968,7 +1968,7 @@ function openAIModal(studentID){
             <div class="field">
               <label>Loại tình huống</label>
               <select id="aiLoai" class="select">
-                ${['Học tập','Nề nếp','Mâu thuẫn bạn bè','Gia đình','Tâm lí','Bạo lực học đường','An toàn học sinh','Khác'].map(x => `<option>${x}</option>`).join('')}
+                ${['Phân tích tình huống','Lập kế hoạch xử lí','Soạn tin nhắn/văn bản','Học tập và nề nếp','Mâu thuẫn/bắt nạt','Tâm lí/cảm xúc','Phối hợp PHHS','An toàn học sinh','Quy định/pháp luật','Hỏi đáp khác'].map(x => `<option>${x}</option>`).join('')}
               </select>
             </div>
             <div class="field">
@@ -1980,13 +1980,13 @@ function openAIModal(studentID){
           </div>
 
           <div class="field">
-            <label>Mô tả tình huống</label>
-            <textarea id="aiSituation" class="textarea" placeholder="Ví dụ: Em gần đây ít nói, 2 lần không làm bài, CMHS phản hồi em hay thức khuya. Trước đây em học khá, tính hiền..."></textarea>
+            <label>Câu hỏi hoặc yêu cầu của GVCN</label>
+            <textarea id="aiSituation" class="textarea" placeholder="Ví dụ: Phân tích tình huống này; soạn tin nhắn trao đổi với PHHS; lập kế hoạch theo dõi 2 tuần; hoặc giải thích quy định liên quan..."></textarea>
           </div>
 
           <div class="field">
-            <label>Mong muốn của GVCN</label>
-            <textarea id="aiMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Tôi muốn gặp riêng em, trao đổi với PHHS nhẹ nhàng và có kế hoạch theo dõi trong 2 tuần."></textarea>
+            <label>Kết quả GVCN muốn nhận</label>
+            <textarea id="aiMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Trả lời ngắn; cho tôi mẫu tin nhắn dùng ngay; lập bảng kế hoạch; nêu việc cần làm trước..."></textarea>
           </div>
 
           <button id="aiSubmitBtn" class="btn btn-primary full" type="submit">🤖 Nhờ AI gợi ý</button>
@@ -2998,12 +2998,12 @@ function renderAISupportPage(){
   const isStudent = role === 'HS';
   const title = isStudent ? 'AI hỗ trợ em' : 'AI hỗ trợ phụ huynh';
   const desc = isStudent
-    ? 'Em có thể chia sẻ khó khăn học tập, bạn bè, cảm xúc hoặc tình huống cần xử lí. AI chỉ gợi ý bước an toàn; em vẫn nên nói với GVCN, cha mẹ hoặc người lớn tin cậy khi cần.'
-    : 'Phụ huynh có thể mô tả tình huống của con để nhận gợi ý cách lắng nghe, trao đổi với con và phối hợp GVCN.';
+    ? 'Em có thể hỏi về học tập, kĩ năng, bạn bè, cảm xúc, an toàn mạng, định hướng hoặc những vấn đề phù hợp lứa tuổi. AI sẽ trả lời đúng câu hỏi và chỉ giới hạn các yêu cầu gây hại hoặc trái pháp luật.'
+    : 'Phụ huynh có thể hỏi về học tập, thói quen, cảm xúc, quan hệ, an toàn mạng, phối hợp nhà trường, soạn nội dung hoặc các vấn đề nuôi dạy con phù hợp.';
 
   const options = isStudent
-    ? ['Áp lực học tập','Mâu thuẫn bạn bè','Bị trêu chọc/bắt nạt','Khó nói với cha mẹ','Buồn/lo lắng/căng thẳng','Ứng xử trên mạng','Khác']
-    : ['Con áp lực học tập','Con mâu thuẫn bạn bè','Con ít nói/khép kín','Con dùng điện thoại/mạng xã hội','Con chống đối/khó hợp tác','Phối hợp với GVCN','Khác'];
+    ? ['Hỏi đáp học tập','Phương pháp học/thói quen','Bạn bè/mâu thuẫn/bắt nạt','Cảm xúc/tâm lí','Gia đình và giao tiếp','An toàn trên mạng','Định hướng nghề nghiệp','Quy định/quyền lợi','Soạn nội dung','Câu hỏi khác']
+    : ['Cách trò chuyện với con','Học tập/thói quen','Cảm xúc/tâm lí','Bạn bè/bắt nạt','Điện thoại/mạng xã hội','Phối hợp với GVCN','Quy định/quyền lợi','Soạn tin nhắn/kế hoạch','Câu hỏi khác'];
 
   $('#aiSupportPage').innerHTML = `
     <div class="grid">
@@ -3015,7 +3015,7 @@ function renderAISupportPage(){
             AI không thay thế GVCN, cha mẹ, bác sĩ hay chuyên gia tâm lí. Nếu có nguy cơ tự làm hại, bị bạo lực, bị xâm hại hoặc mất an toàn, hãy báo ngay cho người lớn có trách nhiệm.
           </div>
           <div class="notice">
-            Thông tin bạn trao đổi với AI hoàn toàn được <b>bảo mật</b>, không ai có thể thấy được, kể cả GVCN.
+            Phần này <b>không sử dụng Dòng thời gian hồ sơ nội bộ</b> của GVCN. Hồ sơ nội bộ vẫn chỉ GVCN biết.
           </div>
         </div>
       </div>
@@ -3024,7 +3024,7 @@ function renderAISupportPage(){
           <div class="card-title">
             <div>
               <h2>${escapeHTML(title)}</h2>
-              <p class="muted" style="margin:.25rem 0 0">Nhập tình huống cụ thể để AI gợi ý cách xử lí an toàn, tôn trọng và phù hợp lứa tuổi THCS.</p>
+              <p class="muted" style="margin:.25rem 0 0">Nhập câu hỏi hoặc yêu cầu cụ thể. AI sẽ chọn cách trả lời phù hợp thay vì dùng một mẫu chung.</p>
             </div>
           </div>
           <form id="personalAIForm" class="form-grid" onsubmit="return false;">
@@ -3036,19 +3036,19 @@ function renderAISupportPage(){
                 </select>
               </div>
               <div class="field">
-                <label>Mức độ tự đánh giá</label>
+                <label>Mức độ/độ khẩn</label>
                 <select id="personalLevel" class="select">
-                  ${['Bình thường','Cần tư vấn','Cần trao đổi với GVCN','Quan trọng','Khẩn'].map(x => `<option>${x}</option>`).join('')}
+                  ${['Bình thường','Cần hướng dẫn','Cần trao đổi với GVCN','Quan trọng','Khẩn'].map(x => `<option>${x}</option>`).join('')}
                 </select>
               </div>
             </div>
             <div class="field">
-              <label>${isStudent ? 'Điều em muốn chia sẻ' : 'Tình huống của con'}</label>
-              <textarea id="personalSituation" class="textarea" placeholder="${isStudent ? 'Ví dụ: Em bị một nhóm bạn xa lánh, em thấy buồn và không biết nên nói với ai...' : 'Ví dụ: Con gần đây ít nói, hay căng thẳng, không muốn đi học. Gia đình muốn biết nên trò chuyện với con thế nào...'}"></textarea>
+              <label>${isStudent ? 'Câu hỏi hoặc điều em muốn chia sẻ' : 'Câu hỏi hoặc tình huống cần hỗ trợ'}</label>
+              <textarea id="personalSituation" class="textarea" placeholder="${isStudent ? 'Ví dụ: Giải thích giúp em cách học thuộc từ vựng; em nên nói gì khi bị bạn trêu; hoặc quyền riêng tư của em trên mạng là gì?' : 'Ví dụ: Soạn giúp tin nhắn trao đổi với GVCN; con không chịu học thì nên bắt đầu từ đâu; hoặc cách nói chuyện với con về mạng xã hội...'}"></textarea>
             </div>
             <div class="field">
               <label>Mong muốn nhận được hỗ trợ</label>
-              <textarea id="personalMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Gợi ý cách nói chuyện với GVCN/cha mẹ/con và việc nên làm trong vài ngày tới."></textarea>
+              <textarea id="personalMongMuon" class="textarea" style="min-height:82px" placeholder="Ví dụ: Trả lời ngắn gọn; đưa 3 bước cụ thể; soạn mẫu tin nhắn; giải thích dễ hiểu..."></textarea>
             </div>
             <button id="personalAISubmit" class="btn btn-primary full" type="submit">🤖 Nhờ AI gợi ý</button>
           </form>
@@ -3217,7 +3217,7 @@ function renderAIStats(data){
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Thống kê số lượt sử dụng AI, không xem được nội dung CMHS và HS nhờ AI tư vấn để bảo mật thông tin.</b>
+          <b>Nguyên tắc V7:</b> HS/PHHS hỏi AI thì hệ thống <b>chỉ thống kê lượt sử dụng</b> để phục vụ quản lí và viết sáng kiến; <b>không lưu nội dung câu hỏi, không lưu câu trả lời</b> của HS/PHHS.
         </div>
       </div>
 
