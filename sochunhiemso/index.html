@@ -715,30 +715,43 @@
 
     .timetable-weekly thead th:first-child{
       border-top-left-radius:16px;
-      width:56px;
+      width:88px;
+      min-width:88px;
     }
 
-    .timetable-weekly thead th:nth-child(2){width:54px}
-    .timetable-weekly thead th:nth-child(3){width:118px}
+    .timetable-weekly thead th:nth-child(2){
+      width:58px;
+      min-width:58px;
+    }
+
+    .timetable-weekly thead th:nth-child(3){
+      width:118px;
+      min-width:118px;
+    }
 
     .timetable-weekly thead th:last-child{
       border-top-right-radius:16px;
     }
 
     .timetable-weekly .session-cell{
-      width:56px;
+      width:88px;
+      min-width:88px;
       background:#fff;
       color:#ec2581;
       font-weight:900;
-      padding:8px 4px;
+      padding:8px 10px;
+      text-align:center;
+      vertical-align:middle;
+      white-space:nowrap;
     }
 
     .timetable-weekly .session-cell span{
       display:inline-block;
-      writing-mode:vertical-rl;
-      text-orientation:upright;
-      letter-spacing:.14em;
-      line-height:1.15;
+      writing-mode:horizontal-tb;
+      text-orientation:mixed;
+      letter-spacing:0;
+      line-height:1.2;
+      white-space:nowrap;
     }
 
     .timetable-weekly .period-column{
@@ -1255,7 +1268,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.10 - TKB theo mẫu màu</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.11 - Sửa giờ và cột Buổi</b>
       </p>
     </div>
   </main>
@@ -1848,15 +1861,54 @@ function getVietnamClock(){
   };
 }
 
+function normalizeClockDisplay(value){
+  const raw = String(value ?? '').trim();
+  if(!raw) return '';
+
+  const plain = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(plain){
+    const h = Number(plain[1]);
+    const m = Number(plain[2]);
+    if(h >= 0 && h <= 23 && m >= 0 && m <= 59){
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+  }
+
+  // Google Sheets có thể trả ô giờ dưới dạng ngày 30/12/1899.
+  // Định dạng lại theo múi giờ Việt Nam để chỉ lấy HH:mm.
+  const date = new Date(raw);
+  if(!Number.isNaN(date.getTime())){
+    try{
+      const parts = new Intl.DateTimeFormat('vi-VN',{
+        timeZone:'Asia/Ho_Chi_Minh',
+        hour:'2-digit',
+        minute:'2-digit',
+        hourCycle:'h23',
+        hour12:false
+      }).formatToParts(date);
+      const map = {};
+      parts.forEach(p => { if(p.type !== 'literal') map[p.type] = p.value; });
+      if(map.hour !== undefined && map.minute !== undefined){
+        return `${String(map.hour).padStart(2,'0')}:${String(map.minute).padStart(2,'0')}`;
+      }
+    }catch(err){
+      console.warn('Không định dạng được giờ TKB:', raw, err);
+    }
+  }
+
+  return raw;
+}
+
 function timeToMinutes(value){
-  const m = String(value || '').match(/^(\d{1,2}):(\d{2})$/);
+  const normalized = normalizeClockDisplay(value);
+  const m = normalized.match(/^(\d{2}):(\d{2})$/);
   if(!m) return null;
   return Number(m[1]) * 60 + Number(m[2]);
 }
 
 function formatTimetableTimeRange(row){
-  const start = String(row && row.StartTime || '').trim();
-  const end = String(row && row.EndTime || '').trim();
+  const start = normalizeClockDisplay(row && row.StartTime);
+  const end = normalizeClockDisplay(row && row.EndTime);
   if(start && end) return `${start}–${end}`;
   if(start) return `Từ ${start}`;
   if(end) return `Đến ${end}`;
@@ -2290,8 +2342,8 @@ function renderTimetableTimeEditor(){
     <div class="timetable-time-row">
       <b>${escapeHTML(r.Session || '')}</b>
       <span>Tiết ${escapeHTML(r.Period || '')}</span>
-      <input class="input tkb-start-input" data-index="${index}" type="time" value="${escapeHTML(r.StartTime || '')}" aria-label="Giờ bắt đầu" />
-      <input class="input tkb-end-input" data-index="${index}" type="time" value="${escapeHTML(r.EndTime || '')}" aria-label="Giờ kết thúc" />
+      <input class="input tkb-start-input" data-index="${index}" type="time" value="${escapeHTML(normalizeClockDisplay(r.StartTime))}" aria-label="Giờ bắt đầu" />
+      <input class="input tkb-end-input" data-index="${index}" type="time" value="${escapeHTML(normalizeClockDisplay(r.EndTime))}" aria-label="Giờ kết thúc" />
     </div>
   `).join('');
 }

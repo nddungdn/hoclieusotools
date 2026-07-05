@@ -1,4 +1,4 @@
-const CACHE_NAME = 'so-chu-nhiem-so-v10-10';
+const CACHE_NAME = 'so-chu-nhiem-so-v10-11';
 const STATIC_FILES = [
   './',
   './index.html',
