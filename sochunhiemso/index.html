@@ -10,6 +10,7 @@
   <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root{
@@ -635,37 +636,208 @@
       font-size:.9rem;
     }
 
+    .timetable-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin:14px 0;
+    }
+
+    .timetable-toolbar .btn-download{
+      background:#ec2581;
+      color:#fff;
+      box-shadow:0 8px 18px rgba(236,37,129,.18);
+    }
+
+    .timetable-toolbar .btn-save-schedule{
+      background:#40c556;
+      color:#fff;
+      box-shadow:0 8px 18px rgba(64,197,86,.18);
+    }
+
+    .timetable-capture-card{
+      background:#fff;
+      border:1px solid #e2e8f0;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+    }
+
+    .timetable-capture-title{
+      display:none;
+      padding:14px 18px 0;
+      text-align:center;
+      font-weight:900;
+      color:#581c87;
+      font-size:1.15rem;
+    }
+
     .timetable-weekly{
       overflow:auto;
-      border:1px solid var(--line);
-      border-radius:16px;
       background:#fff;
     }
 
     .timetable-weekly table{
-      min-width:1040px;
+      min-width:1120px;
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      table-layout:fixed;
+    }
+
+    .timetable-weekly th,
+    .timetable-weekly td{
+      border-right:1px solid #dce3ed;
+      border-bottom:1px solid #dce3ed;
+      padding:9px 10px;
+      text-align:center;
+      vertical-align:middle;
+      background:#fff;
+      height:48px;
+    }
+
+    .timetable-weekly th:last-child,
+    .timetable-weekly td:last-child{
+      border-right:0;
+    }
+
+    .timetable-weekly thead th{
+      background:linear-gradient(180deg,#7e22ce,#6d18b5);
+      color:#fff;
+      font-weight:900;
+      text-transform:none;
+      letter-spacing:0;
+      font-size:.92rem;
+      border-color:rgba(255,255,255,.18);
+    }
+
+    .timetable-weekly thead th:first-child{
+      border-top-left-radius:16px;
+      width:56px;
+    }
+
+    .timetable-weekly thead th:nth-child(2){width:54px}
+    .timetable-weekly thead th:nth-child(3){width:118px}
+
+    .timetable-weekly thead th:last-child{
+      border-top-right-radius:16px;
+    }
+
+    .timetable-weekly .session-cell{
+      width:56px;
+      background:#fff;
+      color:#ec2581;
+      font-weight:900;
+      padding:8px 4px;
+    }
+
+    .timetable-weekly .session-cell span{
+      display:inline-block;
+      writing-mode:vertical-rl;
+      text-orientation:upright;
+      letter-spacing:.14em;
+      line-height:1.15;
+    }
+
+    .timetable-weekly .period-column{
+      color:#ec2581;
+      font-weight:900;
+      font-size:1rem;
     }
 
     .timetable-weekly .time-column{
-      min-width:112px;
       white-space:nowrap;
       color:#475569;
-      font-weight:800;
+      font-weight:750;
+      font-size:.82rem;
+      background:#fbfcfe;
     }
+
+    .timetable-weekly .subject-cell{
+      padding:8px 12px;
+      background:#fff;
+    }
+
+    .subject-chip{
+      display:block;
+      width:100%;
+      min-height:28px;
+      border-radius:7px;
+      padding:4px 8px;
+      font-weight:850;
+      line-height:1.25;
+      border:1px solid transparent;
+      box-shadow:0 2px 4px rgba(15,23,42,.08);
+      overflow-wrap:anywhere;
+    }
+
+    .subject-blue{background:#dbeafe;border-color:#b7d4ff;color:#1d4ed8}
+    .subject-orange{background:#fff1d8;border-color:#f7ca88;color:#9a3d00}
+    .subject-purple{background:#f1e7ff;border-color:#dfc8ff;color:#6b21a8}
+    .subject-green{background:#ddfbe4;border-color:#b4ecc0;color:#166534}
+    .subject-gray{background:#f3f4f6;border-color:#d9dde4;color:#111827}
+    .subject-pink{background:#ffe4f1;border-color:#ffc0de;color:#be185d}
+    .subject-teal{background:#dff8f5;border-color:#b6e9e3;color:#0f766e}
 
     .timetable-weekly td.current-cell{
-      background:#eff6ff;
-      color:#1d4ed8;
-      font-weight:900;
+      background:#fff7cc;
+      box-shadow:inset 0 0 0 3px #f59e0b;
     }
 
-    .timetable-weekly td.break-after{
-      border-bottom:3px solid #fbbf24;
+    .timetable-weekly tr.break-after-row td{
+      border-bottom:3px solid #f4c244;
+    }
+
+    .timetable-note-row td{
+      background:#f7fbff;
+      height:auto;
+      min-height:50px;
+      text-align:left;
+    }
+
+    .timetable-note-label{
+      color:#2563eb;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .timetable-note-content{
+      color:#3730a3;
+      font-style:italic;
+      font-weight:650;
+      line-height:1.5;
     }
 
     .timetable-mobile{
-      display:block;
+      display:none;
       margin-top:14px;
+    }
+
+    .export-clone{
+      position:fixed;
+      left:-10000px;
+      top:0;
+      width:1400px;
+      max-width:none;
+      z-index:-1;
+      background:#fff;
+      padding:24px;
+    }
+
+    .export-clone .timetable-capture-title{
+      display:block;
+    }
+
+    .export-clone .timetable-weekly{
+      display:block !important;
+      overflow:visible !important;
+    }
+
+    .export-clone .timetable-weekly table{
+      min-width:0;
+      width:100%;
     }
 
     .timetable-day-nav{
@@ -816,6 +988,9 @@
 
     @media (max-width:700px){
       .timetable-weekly{display:none}
+      .timetable-toolbar{display:grid;grid-template-columns:1fr 1fr}
+      .timetable-toolbar .btn{width:100%}
+      .timetable-capture-card{border:0;box-shadow:none;overflow:visible}
       .timetable-mobile{display:block}
       .timetable-status{flex-direction:column}
       .timetable-status > .btn{width:100%}
@@ -1080,7 +1255,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.9 - Thêm cột Thời gian cho TKB</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.10 - TKB theo mẫu màu</b>
       </p>
     </div>
   </main>
@@ -1109,13 +1284,15 @@ const TIMETABLE_CACHE_MS = 15 * 60 * 1000;
 
 const initialDashboardCache = readCacheEnvelope(LS_DASHBOARD_CACHE);
 const initialTimetableCache = readCacheEnvelope(LS_TIMETABLE_CACHE);
+const initialTimetableData = initialTimetableCache ? initialTimetableCache.data : null;
 
 const state = {
   token: getPersistentValue(LS_TOKEN, COOKIE_TOKEN) || '',
   user: readJSON(getPersistentValue(LS_USER, COOKIE_USER), null),
   dashboard: initialDashboardCache ? initialDashboardCache.data : null,
   dashboardLoadedAt: initialDashboardCache ? initialDashboardCache.savedAt : 0,
-  timetable: initialTimetableCache ? (initialTimetableCache.data || []) : [],
+  timetable: Array.isArray(initialTimetableData) ? initialTimetableData : (initialTimetableData && initialTimetableData.rows || []),
+  timetableNote: Array.isArray(initialTimetableData) ? '' : (initialTimetableData && initialTimetableData.note || ''),
   timetableLoadedAt: initialTimetableCache ? initialTimetableCache.savedAt : 0,
   selectedTimetableDay: '',
   timetableDraft: [],
@@ -1354,6 +1531,7 @@ function clearSession(){
   state.dashboard = null;
   state.dashboardLoadedAt = 0;
   state.timetable = [];
+  state.timetableNote = '';
   state.timetableLoadedAt = 0;
   state.students = [];
   state.messages = [];
@@ -1588,12 +1766,12 @@ function statCard(icon, value, label, textValue=false){
 ========================================================= */
 
 const TIMETABLE_DAYS = [
-  { key:'Monday', label:'Thứ 2', short:'T2', jsDay:1 },
-  { key:'Tuesday', label:'Thứ 3', short:'T3', jsDay:2 },
-  { key:'Wednesday', label:'Thứ 4', short:'T4', jsDay:3 },
-  { key:'Thursday', label:'Thứ 5', short:'T5', jsDay:4 },
-  { key:'Friday', label:'Thứ 6', short:'T6', jsDay:5 },
-  { key:'Saturday', label:'Thứ 7', short:'T7', jsDay:6 }
+  { key:'Monday', label:'Thứ Hai', short:'T2', jsDay:1 },
+  { key:'Tuesday', label:'Thứ Ba', short:'T3', jsDay:2 },
+  { key:'Wednesday', label:'Thứ Tư', short:'T4', jsDay:3 },
+  { key:'Thursday', label:'Thứ Năm', short:'T5', jsDay:4 },
+  { key:'Friday', label:'Thứ Sáu', short:'T6', jsDay:5 },
+  { key:'Saturday', label:'Thứ Bảy', short:'T7', jsDay:6 }
 ];
 
 async function loadTimetable(force=false){
@@ -1607,8 +1785,9 @@ async function loadTimetable(force=false){
   const load = async () => {
     const data = await api('getTimetable', { token: state.token });
     state.timetable = (data.rows || []).sort(compareTimetableRowsClient);
+    state.timetableNote = data.note || '';
     state.timetableLoadedAt = Date.now();
-    writeCacheEnvelope(LS_TIMETABLE_CACHE, state.timetable);
+    writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, note: state.timetableNote });
     renderTimetable();
   };
 
@@ -1768,10 +1947,107 @@ function getCurrentTimetableStatus(rows){
   return { type:'transition', icon:'🔔', title:'Đang chuyển tiết hoặc ngoài khung giờ đã thiết lập', note:`${day.label}, ${clock.displayDate} · ${clock.displayTime}`, dayKey:day.key, activeKey:'' };
 }
 
+function normalizeSubjectName(value){
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/đ/g,'d')
+    .trim();
+}
+
+function getSubjectChipClass(subject){
+  const s = normalizeSubjectName(subject);
+  if(!s) return '';
+  if(/ngu van|lich su|dia li/.test(s)) return 'subject-orange';
+  if(/ngoai ngu|tieng anh/.test(s)) return 'subject-purple';
+  if(/am nhac|chao co|sinh hoat|shl|hdtn|hoat dong trai nghiem/.test(s)) return 'subject-green';
+  if(/gdtc|the duc|gddp|mi thuat|my thuat/.test(s)) return 'subject-gray';
+  if(/gdcd|giao duc cong dan/.test(s)) return 'subject-pink';
+  if(/tin|cong nghe|khtn|toan/.test(s)) return 'subject-blue';
+  return 'subject-teal';
+}
+
+function renderSubjectChip(subject, isCurrent){
+  const value = String(subject || '').trim();
+  if(!value) return '';
+  return `<span class="subject-chip ${getSubjectChipClass(value)}${isCurrent ? ' current-subject' : ''}">${escapeHTML(value)}</span>`;
+}
+
+function buildWeeklyTimetableRows(rows, status){
+  const sessions = ['Sáng','Chiều'];
+  let html = '';
+
+  sessions.forEach(session => {
+    const group = rows.filter(r => String(r.Session) === session);
+    group.forEach((r,index) => {
+      const breakAfter = (r.Session === 'Sáng' && Number(r.Period) === 2) ||
+                         (r.Session === 'Chiều' && Number(r.Period) === 3);
+      html += `<tr class="${breakAfter ? 'break-after-row' : ''}">`;
+      if(index === 0){
+        html += `<td class="session-cell" rowspan="${group.length}"><span>${escapeHTML(session)}</span></td>`;
+      }
+      html += `<td class="period-column">${escapeHTML(r.Period || '')}</td>`;
+      html += `<td class="time-column">${escapeHTML(formatTimetableTimeRange(r))}</td>`;
+      html += TIMETABLE_DAYS.map(d => {
+        const isCurrent = status.type === 'lesson' &&
+          status.dayKey === d.key &&
+          status.activeKey === `${r.Session}_${r.Period}`;
+        return `<td class="subject-cell ${isCurrent ? 'current-cell' : ''}">${renderSubjectChip(r[d.key], isCurrent)}</td>`;
+      }).join('');
+      html += `</tr>`;
+    });
+  });
+
+  return html;
+}
+
+async function downloadTimetableImage(){
+  if(typeof html2canvas !== 'function'){
+    showToast('Chưa tải được thư viện tạo ảnh. Vui lòng thử lại sau.', 'error', 6000);
+    return;
+  }
+
+  const source = document.getElementById('timetableCapture');
+  if(!source){
+    showToast('Không tìm thấy thời khóa biểu để tải ảnh.', 'warn');
+    return;
+  }
+
+  const clone = source.cloneNode(true);
+  clone.id = 'timetableExportClone';
+  clone.classList.add('export-clone');
+  const mobile = clone.querySelector('.timetable-mobile');
+  if(mobile) mobile.remove();
+  document.body.appendChild(clone);
+
+  try{
+    showToast('Đang tạo ảnh thời khóa biểu...', 'loading', 30000);
+    const canvas = await html2canvas(clone, {
+      scale:2,
+      backgroundColor:'#ffffff',
+      useCORS:true,
+      logging:false,
+      windowWidth:1400
+    });
+    const link = document.createElement('a');
+    const className = String((state.dashboard && state.dashboard.className) || 'lop').replace(/[^a-zA-Z0-9_-]+/g,'_');
+    link.download = `thoi-khoa-bieu-${className}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('Đã tạo ảnh thời khóa biểu.', 'success');
+  }catch(err){
+    console.error('Lỗi tạo ảnh TKB:', err);
+    showToast('Không tạo được ảnh thời khóa biểu.', 'error', 6000);
+  }finally{
+    clone.remove();
+  }
+}
+
 function renderTimetable(){
   const rows = [...(state.timetable || [])].sort(compareTimetableRowsClient);
   if(!rows.length){
-    $('#timetablePage').innerHTML = `<div class="empty">Chưa có thời khóa biểu. GVCN bấm “Chỉnh sửa TKB” để thiết lập.</div>`;
+    $('#timetablePage').innerHTML = `<div class="empty">Chưa có thời khóa biểu. GVCN bấm “Lưu lịch” để thiết lập.</div>`;
     return;
   }
 
@@ -1782,32 +2058,17 @@ function renderTimetable(){
     state.selectedTimetableDay = todayDay ? todayDay.key : 'Monday';
   }
 
-  const weeklyRows = rows.map(r => {
-    const breakAfter = (r.Session === 'Sáng' && Number(r.Period) === 2) ||
-                       (r.Session === 'Chiều' && Number(r.Period) === 3);
-    return `
-      <tr>
-        <td class="${breakAfter ? 'break-after' : ''}"><b>${escapeHTML(r.Session || '')}</b></td>
-        <td class="${breakAfter ? 'break-after' : ''}">${escapeHTML(r.Period || '')}</td>
-        <td class="time-column ${breakAfter ? 'break-after' : ''}">${escapeHTML(formatTimetableTimeRange(r))}</td>
-        ${TIMETABLE_DAYS.map(d => {
-          const isCurrent = status.type === 'lesson' &&
-            status.dayKey === d.key &&
-            status.activeKey === `${r.Session}_${r.Period}`;
-          return `<td class="${isCurrent ? 'current-cell ' : ''}${breakAfter ? 'break-after' : ''}">${escapeHTML(r[d.key] || '—')}</td>`;
-        }).join('')}
-      </tr>
-    `;
-  }).join('');
+  const weeklyRows = buildWeeklyTimetableRows(rows, status);
+  const note = String(state.timetableNote || '').trim();
+  const totalCols = 3 + TIMETABLE_DAYS.length;
 
   $('#timetablePage').innerHTML = `
     <div class="card">
       <div class="card-title">
         <div>
           <h2>Thời khóa biểu của lớp</h2>
-          <p class="muted" style="margin:.25rem 0 0">Trạng thái “đang học/ra chơi” được xác định theo cột Thời gian. Sáng ra chơi sau tiết 2; chiều ra chơi sau tiết 3.</p>
+          <p class="muted" style="margin:.25rem 0 0">Trạng thái “đang học/ra chơi” được xác định theo cột Thời gian.</p>
         </div>
-        ${role === 'GVCN' ? `<button class="btn btn-primary btn-small" onclick="openTimetableEditor()">Chỉnh sửa TKB</button>` : ''}
       </div>
 
       <div class="timetable-status">
@@ -1821,31 +2082,46 @@ function renderTimetable(){
         <button class="btn btn-soft btn-small" onclick="showTodayTimetable()">Hôm nay</button>
       </div>
 
-      <div class="timetable-weekly">
-        <table>
-          <thead>
-            <tr>
-              <th>Buổi</th>
-              <th>Tiết</th>
-              <th>Thời gian</th>
-              ${TIMETABLE_DAYS.map(d => `<th>${d.label}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>${weeklyRows}</tbody>
-        </table>
+      <div class="timetable-toolbar">
+        <button class="btn btn-download" type="button" onclick="downloadTimetableImage()">⇩ Tải ảnh</button>
+        ${role === 'GVCN' ? `<button class="btn btn-save-schedule" type="button" onclick="openTimetableEditor()">▣ Lưu lịch</button>` : ''}
       </div>
 
-      <div class="timetable-mobile">
-        <div class="timetable-day-nav">
-          <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableDay(-1)" aria-label="Ngày trước">←</button>
-          <div>
-            <div id="timetableDayTitle" class="timetable-day-title"></div>
-            <div id="timetableDaySubtitle" class="timetable-day-subtitle"></div>
-          </div>
-          <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableDay(1)" aria-label="Ngày sau">→</button>
+      <div id="timetableCapture" class="timetable-capture-card">
+        <div class="timetable-capture-title">Thời khóa biểu của lớp</div>
+        <div class="timetable-weekly">
+          <table>
+            <thead>
+              <tr>
+                <th>Buổi</th>
+                <th>Tiết</th>
+                <th>Thời gian</th>
+                ${TIMETABLE_DAYS.map(d => `<th>${d.label}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>${weeklyRows}</tbody>
+            <tfoot>
+              <tr class="timetable-note-row">
+                <td class="timetable-note-label" colspan="2">📎 Ghi chú</td>
+                <td class="timetable-note-content" colspan="${totalCols - 2}">${escapeHTML(note || 'Chưa có ghi chú')}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
-        <div id="timetableSwipe" class="timetable-swipe"></div>
-        <div class="swipe-hint">Vuốt sang trái hoặc phải để chuyển ngày</div>
+
+        <div class="timetable-mobile">
+          <div class="timetable-day-nav">
+            <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableDay(-1)" aria-label="Ngày trước">←</button>
+            <div>
+              <div id="timetableDayTitle" class="timetable-day-title"></div>
+              <div id="timetableDaySubtitle" class="timetable-day-subtitle"></div>
+            </div>
+            <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableDay(1)" aria-label="Ngày sau">→</button>
+          </div>
+          <div id="timetableSwipe" class="timetable-swipe"></div>
+          ${note ? `<div class="notice" style="margin-top:12px"><b>📎 Ghi chú:</b> ${escapeHTML(note)}</div>` : ''}
+          <div class="swipe-hint">Vuốt sang trái hoặc phải để chuyển ngày</div>
+        </div>
       </div>
     </div>
   `;
@@ -1893,7 +2169,7 @@ function renderSelectedTimetableDay(){
     return `
       <div class="timetable-period ${active ? 'active' : ''} ${breakAfter ? 'break-marker' : ''}">
         <div class="period-label">${escapeHTML(r.Session)} ${escapeHTML(r.Period)}</div>
-        <div class="period-subject">${escapeHTML(r[day.key] || 'Chưa xếp môn')}</div>
+        <div class="period-subject">${renderSubjectChip(r[day.key], active) || '<span class="muted">Chưa xếp môn</span>'}</div>
         <div class="period-time">${escapeHTML(formatTimetableTimeRange(r))}</div>
       </div>
     `;
@@ -1963,6 +2239,11 @@ function openTimetableEditor(){
 
         <h3 style="margin:18px 0 8px">Giờ bắt đầu và kết thúc</h3>
         <div id="timetableTimeEditor"></div>
+
+        <div class="field" style="margin-top:16px">
+          <label>Ghi chú dưới thời khóa biểu</label>
+          <textarea id="timetableNoteInput" class="textarea" style="min-height:78px" placeholder="Ví dụ: Tin học tuần chẵn; HĐTN tuần lẻ...">${escapeHTML(state.timetableNote || '')}</textarea>
+        </div>
 
         <button id="saveTimetableBtn" class="btn btn-primary full" style="margin-top:16px" type="button" onclick="saveTimetableFromEditor()">Lưu thời khóa biểu</button>
       </div>
@@ -2077,12 +2358,14 @@ async function saveTimetableFromEditor(){
     await withLoading(async () => {
       const data = await api('saveTimetable', {
         token: state.token,
-        rows: state.timetableDraft
+        rows: state.timetableDraft,
+        note: $('#timetableNoteInput') ? $('#timetableNoteInput').value.trim() : state.timetableNote
       });
 
       state.timetable = (data.rows || state.timetableDraft).sort(compareTimetableRowsClient);
+      state.timetableNote = data.note || ($('#timetableNoteInput') ? $('#timetableNoteInput').value.trim() : state.timetableNote);
       state.timetableLoadedAt = Date.now();
-      writeCacheEnvelope(LS_TIMETABLE_CACHE, state.timetable);
+      writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, note: state.timetableNote });
       closeModal();
       renderTimetable();
       showToast(data.message || 'Đã lưu thời khóa biểu.', 'success');
