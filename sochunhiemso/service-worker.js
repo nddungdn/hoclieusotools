@@ -1,5 +1,7 @@
-const CACHE_NAME = 'so-chu-nhiem-so-v10-7';
+const CACHE_NAME = 'so-chu-nhiem-so-v10-9';
 const STATIC_FILES = [
+  './',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
