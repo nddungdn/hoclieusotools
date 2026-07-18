@@ -638,6 +638,128 @@
       font-size:.9rem;
     }
 
+    .weekly-change-panel{
+      border:1px solid #fed7aa;
+      background:linear-gradient(135deg,#fff7ed,#fffdf8);
+      border-radius:18px;
+      padding:15px;
+      margin:14px 0;
+    }
+
+    .weekly-change-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .weekly-change-head h3{
+      margin:0;
+      color:#9a3412;
+    }
+
+    .timetable-week-nav{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      flex-wrap:wrap;
+    }
+
+    .weekly-change-list{
+      display:grid;
+      gap:9px;
+      margin-top:12px;
+    }
+
+    .weekly-change-item{
+      display:grid;
+      grid-template-columns:minmax(110px,.75fr) minmax(0,2fr) auto;
+      gap:12px;
+      align-items:center;
+      padding:11px 12px;
+      border:1px solid #fed7aa;
+      border-radius:14px;
+      background:#fff;
+    }
+
+    .weekly-change-item.important{
+      border-color:#fb7185;
+      background:#fff5f6;
+    }
+
+    .weekly-change-date{
+      color:#9a3412;
+      font-weight:900;
+      line-height:1.35;
+    }
+
+    .weekly-change-content{
+      min-width:0;
+      line-height:1.45;
+      overflow-wrap:anywhere;
+    }
+
+    .weekly-change-type{
+      display:inline-block;
+      margin-right:6px;
+      color:#c2410c;
+      font-weight:900;
+    }
+
+    .weekly-change-actions{
+      display:flex;
+      gap:6px;
+    }
+
+    .weekly-change-empty{
+      margin-top:12px;
+      padding:12px;
+      border-radius:13px;
+      background:rgba(255,255,255,.75);
+      color:#78716c;
+      text-align:center;
+    }
+
+    .day-header-date{
+      display:block;
+      margin-top:3px;
+      font-size:.72rem;
+      font-weight:700;
+      opacity:.82;
+    }
+
+    .slot-change-badge{
+      display:block;
+      margin-top:5px;
+      border-radius:7px;
+      padding:4px 6px;
+      background:#ffedd5;
+      border:1px solid #fdba74;
+      color:#9a3412;
+      font-size:.72rem;
+      font-weight:850;
+      line-height:1.3;
+      overflow-wrap:anywhere;
+    }
+
+    .slot-change-badge.important{
+      background:#ffe4e6;
+      border-color:#fda4af;
+      color:#9f1239;
+    }
+
+    .timetable-weekly td.has-change{
+      background:#fffaf0;
+      box-shadow:inset 0 0 0 2px #fdba74;
+    }
+
+    .mobile-day-changes{
+      display:grid;
+      gap:8px;
+      margin-bottom:12px;
+    }
+
     .timetable-toolbar{
       display:flex;
       align-items:center;
@@ -903,6 +1025,11 @@
       box-shadow:0 8px 18px rgba(37,99,235,.09);
     }
 
+    .timetable-period.has-change{
+      border-color:#fdba74;
+      background:#fffaf0;
+    }
+
     .timetable-period.break-marker{
       margin-bottom:18px;
       position:relative;
@@ -1020,6 +1147,21 @@
       }
       .timetable-time-row{
         grid-template-columns:72px 44px minmax(0,1fr) minmax(0,1fr);
+      }
+      .weekly-change-item{
+        grid-template-columns:1fr;
+        gap:7px;
+      }
+      .weekly-change-actions{
+        width:100%;
+      }
+      .weekly-change-actions .btn{
+        flex:1;
+      }
+      .timetable-week-nav{
+        width:100%;
+        display:grid;
+        grid-template-columns:40px minmax(0,1fr) 40px;
       }
       .student-header-actions{
         width:100%;
@@ -1270,7 +1412,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.2.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.3.0</b>
       </p>
     </div>
   </main>
@@ -1286,7 +1428,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '14.2.0';
+const APP_VERSION = '14.3.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -1294,11 +1436,11 @@ const LS_LAST_PAGE = 'scn_last_page_v7';
 const LS_AI_CHAT_PREFIX = 'scn_ai_chat_v10';
 const LS_SAVE_AI_HISTORY = 'scn_save_ai_history_v14';
 const LS_DASHBOARD_CACHE = 'scn_dashboard_cache_v13';
-const LS_TIMETABLE_CACHE = 'scn_timetable_cache_v13';
+const LS_TIMETABLE_CACHE = 'scn_timetable_cache_v14';
 const COOKIE_TOKEN = 'scn_token_cookie_v13';
 const COOKIE_USER = 'scn_user_cookie_v13';
 const DASHBOARD_CACHE_MS = 2 * 60 * 1000;
-const TIMETABLE_CACHE_MS = 15 * 60 * 1000;
+const TIMETABLE_CACHE_MS = 2 * 60 * 1000;
 
 const initialDashboardCache = readCacheEnvelope(LS_DASHBOARD_CACHE);
 const initialTimetableCache = readCacheEnvelope(LS_TIMETABLE_CACHE);
@@ -1310,9 +1452,11 @@ const state = {
   dashboard: initialDashboardCache ? initialDashboardCache.data : null,
   dashboardLoadedAt: initialDashboardCache ? initialDashboardCache.savedAt : 0,
   timetable: Array.isArray(initialTimetableData) ? initialTimetableData : (initialTimetableData && initialTimetableData.rows || []),
+  timetableChanges: Array.isArray(initialTimetableData) ? [] : (initialTimetableData && initialTimetableData.changes || []),
   timetableNote: Array.isArray(initialTimetableData) ? '' : (initialTimetableData && initialTimetableData.note || ''),
   timetableLoadedAt: initialTimetableCache ? initialTimetableCache.savedAt : 0,
   selectedTimetableDay: '',
+  timetableWeekOffset: 0,
   timetableDraft: [],
   timetableEditorDay: 'Monday',
   students: [],
@@ -1561,7 +1705,9 @@ function clearSession(){
   state.dashboard = null;
   state.dashboardLoadedAt = 0;
   state.timetable = [];
+  state.timetableChanges = [];
   state.timetableNote = '';
+  state.timetableWeekOffset = 0;
   state.timetableLoadedAt = 0;
   state.students = [];
   state.messages = [];
@@ -1804,6 +1950,97 @@ const TIMETABLE_DAYS = [
   { key:'Saturday', label:'Thứ Bảy', short:'T7', jsDay:6 }
 ];
 
+function compareWeeklyChangesClient(a,b){
+  const dateCompare = String(a.ChangeDate || '').localeCompare(String(b.ChangeDate || ''));
+  if(dateCompare !== 0) return dateCompare;
+  if(String(a.Priority) !== String(b.Priority)) return String(a.Priority) === 'Quan trọng' ? -1 : 1;
+  const order = { 'Sáng':0, 'Chiều':1, 'Cả ngày':2 };
+  const sessionCompare = (order[String(a.Session)] ?? 9) - (order[String(b.Session)] ?? 9);
+  if(sessionCompare !== 0) return sessionCompare;
+  return Number(a.Period || 0) - Number(b.Period || 0);
+}
+
+function parseISODateUTC(value){
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  if(date.getUTCFullYear() !== Number(match[1]) || date.getUTCMonth() !== Number(match[2]) - 1 || date.getUTCDate() !== Number(match[3])) return null;
+  return date;
+}
+
+function dateToISOUTC(date){
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2,'0')}-${String(date.getUTCDate()).padStart(2,'0')}`;
+}
+
+function addDaysISO(value, days){
+  const date = parseISODateUTC(value);
+  if(!date) return '';
+  date.setUTCDate(date.getUTCDate() + Number(days || 0));
+  return dateToISOUTC(date);
+}
+
+function formatISODateVi(value, includeWeekday=false){
+  const date = parseISODateUTC(value);
+  if(!date) return String(value || '');
+  const weekdays = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  const dateText = `${String(date.getUTCDate()).padStart(2,'0')}/${String(date.getUTCMonth() + 1).padStart(2,'0')}/${date.getUTCFullYear()}`;
+  return includeWeekday ? `${weekdays[date.getUTCDay()]}, ${dateText}` : dateText;
+}
+
+function getTimetableWeekContext(offset=state.timetableWeekOffset || 0){
+  const clock = getVietnamClock();
+  const today = parseISODateUTC(clock.isoDate) || new Date();
+  const jsDay = today.getUTCDay();
+  // Chủ nhật được xem như thời điểm chuẩn bị cho tuần học kế tiếp.
+  const mondayShift = jsDay === 0 ? 1 : 1 - jsDay;
+  today.setUTCDate(today.getUTCDate() + mondayShift + Number(offset || 0) * 7);
+
+  const dates = {};
+  TIMETABLE_DAYS.forEach((day,index) => {
+    const current = new Date(today.getTime());
+    current.setUTCDate(current.getUTCDate() + index);
+    dates[day.key] = dateToISOUTC(current);
+  });
+
+  const start = dates.Monday;
+  const end = dates.Saturday;
+  const startDate = parseISODateUTC(start);
+  const endDate = parseISODateUTC(end);
+  const label = `${String(startDate.getUTCDate()).padStart(2,'0')}/${String(startDate.getUTCMonth() + 1).padStart(2,'0')} – ${String(endDate.getUTCDate()).padStart(2,'0')}/${String(endDate.getUTCMonth() + 1).padStart(2,'0')}/${endDate.getUTCFullYear()}`;
+  return { offset:Number(offset || 0), start, end, dates, label };
+}
+
+function getChangesForWeek(context){
+  return [...(state.timetableChanges || [])]
+    .filter(change => String(change.ChangeDate || '') >= context.start && String(change.ChangeDate || '') <= context.end)
+    .sort(compareWeeklyChangesClient);
+}
+
+function getChangesForDate(date){
+  return [...(state.timetableChanges || [])]
+    .filter(change => String(change.ChangeDate || '') === String(date || ''))
+    .sort(compareWeeklyChangesClient);
+}
+
+function getExactSlotChanges(date, session, period){
+  return getChangesForDate(date).filter(change =>
+    String(change.Session || '') === String(session || '') &&
+    Number(change.Period || 0) === Number(period || 0) &&
+    Number(change.Period || 0) > 0
+  );
+}
+
+function renderSlotChangeBadges(changes){
+  if(!changes.length) return '';
+  const visible = changes.slice(0,2).map(change => `
+    <span class="slot-change-badge ${String(change.Priority) === 'Quan trọng' ? 'important' : ''}">
+      ${escapeHTML(change.ChangeType || 'Thay đổi')}: ${escapeHTML(change.NewContent || '')}
+    </span>
+  `).join('');
+  const more = changes.length > 2 ? `<span class="slot-change-badge">+${changes.length - 2} thay đổi khác</span>` : '';
+  return visible + more;
+}
+
 async function loadTimetable(force=false){
   const isFresh = state.timetable.length && (Date.now() - state.timetableLoadedAt < TIMETABLE_CACHE_MS);
 
@@ -1815,9 +2052,10 @@ async function loadTimetable(force=false){
   const load = async () => {
     const data = await api('getTimetable', { token: state.token });
     state.timetable = (data.rows || []).sort(compareTimetableRowsClient);
+    state.timetableChanges = (data.changes || []).sort(compareWeeklyChangesClient);
     state.timetableNote = data.note || '';
     state.timetableLoadedAt = Date.now();
-    writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, note: state.timetableNote });
+    writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, changes: state.timetableChanges, note: state.timetableNote });
     renderTimetable();
   };
 
@@ -1873,6 +2111,7 @@ function getVietnamClock(){
   return {
     jsDay: dayMap[map.weekday] ?? new Date().getDay(),
     minutes: Number(map.hour || 0) * 60 + Number(map.minute || 0),
+    isoDate: `${map.year}-${map.month}-${map.day}`,
     displayDate: `${map.day}/${map.month}/${map.year}`,
     displayTime: `${map.hour}:${map.minute}`
   };
@@ -1932,7 +2171,7 @@ function formatTimetableTimeRange(row){
   return 'Chưa đặt giờ';
 }
 
-function getCurrentTimetableStatus(rows){
+function getCurrentTimetableStatus(rows, changes=[]){
   const clock = getVietnamClock();
   const day = TIMETABLE_DAYS.find(d => d.jsDay === clock.jsDay);
 
@@ -1955,12 +2194,18 @@ function getCurrentTimetableStatus(rows){
     const start = timeToMinutes(row.StartTime);
     const end = timeToMinutes(row.EndTime);
     if(now >= start && now < end){
-      const subject = String(row[day.key] || '').trim();
+      const slotChanges = [...changes]
+        .filter(change => String(change.ChangeDate || '') === clock.isoDate && String(change.Session || '') === String(row.Session || '') && Number(change.Period || 0) === Number(row.Period || 0))
+        .sort(compareWeeklyChangesClient);
+      const mainChange = slotChanges[0];
+      const subject = mainChange && String(mainChange.ChangeType) === 'Đổi môn'
+        ? String(mainChange.NewContent || '').trim()
+        : String(row[day.key] || '').trim();
       return {
         type:'lesson',
         icon:'📚',
         title:`Đang học ${String(row.Session || '').toLowerCase()} tiết ${row.Period}${subject ? ': ' + subject : ''}`,
-        note:`${day.label}, ${clock.displayDate} · ${row.StartTime}–${row.EndTime}`,
+        note:`${day.label}, ${clock.displayDate} · ${row.StartTime}–${row.EndTime}${mainChange ? ' · ' + mainChange.ChangeType + ': ' + mainChange.NewContent : ''}`,
         dayKey:day.key,
         activeKey:`${row.Session}_${row.Period}`
       };
@@ -2043,7 +2288,7 @@ function renderSubjectChip(subject, isCurrent){
   return `<span class="subject-chip ${getSubjectChipClass(value)}${isCurrent ? ' current-subject' : ''}">${escapeHTML(value)}</span>`;
 }
 
-function buildWeeklyTimetableRows(rows, status){
+function buildWeeklyTimetableRows(rows, status, weekContext){
   const sessions = ['Sáng','Chiều'];
   let html = '';
 
@@ -2059,10 +2304,12 @@ function buildWeeklyTimetableRows(rows, status){
       html += `<td class="period-column">${escapeHTML(r.Period || '')}</td>`;
       html += `<td class="time-column">${escapeHTML(formatTimetableTimeRange(r))}</td>`;
       html += TIMETABLE_DAYS.map(d => {
-        const isCurrent = status.type === 'lesson' &&
+        const date = weekContext.dates[d.key];
+        const slotChanges = getExactSlotChanges(date, r.Session, r.Period);
+        const isCurrent = weekContext.offset === 0 && status.type === 'lesson' &&
           status.dayKey === d.key &&
           status.activeKey === `${r.Session}_${r.Period}`;
-        return `<td class="subject-cell ${isCurrent ? 'current-cell' : ''}">${renderSubjectChip(r[d.key], isCurrent)}</td>`;
+        return `<td class="subject-cell ${isCurrent ? 'current-cell' : ''} ${slotChanges.length ? 'has-change' : ''}">${renderSubjectChip(r[d.key], isCurrent)}${renderSlotChangeBadges(slotChanges)}</td>`;
       }).join('');
       html += `</tr>`;
     });
@@ -2088,6 +2335,7 @@ async function downloadTimetableImage(){
   clone.classList.add('export-clone');
   const mobile = clone.querySelector('.timetable-mobile');
   if(mobile) mobile.remove();
+  clone.querySelectorAll('.weekly-change-actions,.weekly-change-head .btn,.timetable-week-nav').forEach(el => el.remove());
   document.body.appendChild(clone);
 
   try{
@@ -2113,6 +2361,58 @@ async function downloadTimetableImage(){
   }
 }
 
+function weeklyChangeLocation(change){
+  const parts = [];
+  if(change.Session) parts.push(change.Session);
+  if(Number(change.Period || 0) > 0) parts.push(`tiết ${Number(change.Period)}`);
+  return parts.join(' · ') || 'Cả ngày';
+}
+
+function renderWeeklyChangePanel(context, role){
+  const changes = getChangesForWeek(context);
+  const rows = changes.map(change => {
+    const changeID = escapeHTML(escapeJS(String(change.ChangeID || '')));
+    const important = String(change.Priority) === 'Quan trọng';
+    return `
+      <div class="weekly-change-item ${important ? 'important' : ''}">
+        <div class="weekly-change-date">
+          ${escapeHTML(formatISODateVi(change.ChangeDate, true))}
+          <div class="muted" style="font-size:.78rem;margin-top:3px">${escapeHTML(weeklyChangeLocation(change))}</div>
+        </div>
+        <div class="weekly-change-content">
+          <span class="weekly-change-type">${important ? '❗ ' : ''}${escapeHTML(change.ChangeType || 'Thay đổi')}</span>
+          <b>${escapeHTML(change.NewContent || '')}</b>
+          ${change.Note ? `<div class="muted" style="margin-top:4px">${escapeHTML(change.Note)}</div>` : ''}
+        </div>
+        ${role === 'GVCN' ? `
+          <div class="weekly-change-actions">
+            <button class="btn btn-soft btn-small" type="button" onclick="openWeeklyChangeEditor('${changeID}')">Sửa</button>
+            <button class="btn btn-danger btn-small" type="button" onclick="deleteWeeklyChange('${changeID}')">Xóa</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="weekly-change-panel">
+      <div class="weekly-change-head">
+        <div>
+          <h3>📌 Thay đổi trong tuần</h3>
+          <p class="muted" style="margin:.3rem 0 0">${escapeHTML(context.label)} · Hiển thị chung cho GVCN, học sinh và PHHS.</p>
+        </div>
+        ${role === 'GVCN' ? `<button class="btn btn-primary btn-small" type="button" onclick="openWeeklyChangeEditor()">+ Thêm thay đổi</button>` : ''}
+      </div>
+      <div class="timetable-week-nav" style="margin-top:12px">
+        <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableWeek(-1)" aria-label="Tuần trước">←</button>
+        <button class="btn btn-soft btn-small" type="button" onclick="showCurrentTimetableWeek()">${context.offset === 0 ? 'Tuần này' : 'Về tuần này'}</button>
+        <button class="btn btn-ghost btn-small" type="button" onclick="changeTimetableWeek(1)" aria-label="Tuần sau">→</button>
+      </div>
+      ${rows ? `<div class="weekly-change-list">${rows}</div>` : `<div class="weekly-change-empty">Tuần này chưa có thay đổi. Thời khóa biểu học theo lịch chính.</div>`}
+    </div>
+  `;
+}
+
 function renderTimetable(){
   const rows = [...(state.timetable || [])].sort(compareTimetableRowsClient);
   if(!rows.length){
@@ -2121,13 +2421,14 @@ function renderTimetable(){
   }
 
   const role = normalizeRole(state.user?.Role);
-  const status = getCurrentTimetableStatus(rows);
+  const weekContext = getTimetableWeekContext();
+  const status = getCurrentTimetableStatus(rows, state.timetableChanges || []);
   const todayDay = TIMETABLE_DAYS.find(d => d.key === status.dayKey);
   if(!state.selectedTimetableDay){
     state.selectedTimetableDay = todayDay ? todayDay.key : 'Monday';
   }
 
-  const weeklyRows = buildWeeklyTimetableRows(rows, status);
+  const weeklyRows = buildWeeklyTimetableRows(rows, status, weekContext);
   const note = String(state.timetableNote || '').trim();
   const totalCols = 3 + TIMETABLE_DAYS.length;
 
@@ -2158,6 +2459,7 @@ function renderTimetable(){
 
       <div id="timetableCapture" class="timetable-capture-card">
         <div class="timetable-capture-title">Thời khóa biểu của lớp</div>
+        ${renderWeeklyChangePanel(weekContext, role)}
         <div class="timetable-weekly">
           <table>
             <thead>
@@ -2165,7 +2467,7 @@ function renderTimetable(){
                 <th>Buổi</th>
                 <th>Tiết</th>
                 <th>Thời gian</th>
-                ${TIMETABLE_DAYS.map(d => `<th>${d.label}</th>`).join('')}
+                ${TIMETABLE_DAYS.map(d => `<th>${d.label}<span class="day-header-date">${escapeHTML(formatISODateVi(weekContext.dates[d.key]))}</span></th>`).join('')}
               </tr>
             </thead>
             <tbody>${weeklyRows}</tbody>
@@ -2203,8 +2505,19 @@ function renderTimetable(){
 function showTodayTimetable(){
   const clock = getVietnamClock();
   const day = TIMETABLE_DAYS.find(d => d.jsDay === clock.jsDay);
+  state.timetableWeekOffset = 0;
   state.selectedTimetableDay = day ? day.key : 'Monday';
-  renderSelectedTimetableDay();
+  renderTimetable();
+}
+
+function changeTimetableWeek(delta){
+  state.timetableWeekOffset = Math.max(-12, Math.min(24, Number(state.timetableWeekOffset || 0) + Number(delta || 0)));
+  renderTimetable();
+}
+
+function showCurrentTimetableWeek(){
+  state.timetableWeekOffset = 0;
+  renderTimetable();
 }
 
 function changeTimetableDay(delta){
@@ -2221,30 +2534,45 @@ function renderSelectedTimetableDay(){
 
   const day = TIMETABLE_DAYS.find(d => d.key === state.selectedTimetableDay) || TIMETABLE_DAYS[0];
   const clock = getVietnamClock();
-  const today = day.jsDay === clock.jsDay;
-  const status = getCurrentTimetableStatus(state.timetable || []);
+  const weekContext = getTimetableWeekContext();
+  const selectedDate = weekContext.dates[day.key];
+  const today = selectedDate === clock.isoDate;
+  const status = getCurrentTimetableStatus(state.timetable || [], state.timetableChanges || []);
 
   const title = $('#timetableDayTitle');
   const subtitle = $('#timetableDaySubtitle');
   if(title) title.textContent = day.label + (today ? ' · Hôm nay' : '');
-  if(subtitle) subtitle.textContent = today ? clock.displayDate : 'Vuốt để xem ngày khác';
+  if(subtitle) subtitle.textContent = formatISODateVi(selectedDate);
+
+  const generalChanges = getChangesForDate(selectedDate).filter(change => Number(change.Period || 0) === 0);
+  const generalHtml = generalChanges.length ? `
+    <div class="mobile-day-changes">
+      ${generalChanges.map(change => `
+        <div class="notice ${String(change.Priority) === 'Quan trọng' ? 'warn' : ''}">
+          <b>${escapeHTML(change.ChangeType || 'Thay đổi')}:</b> ${escapeHTML(change.NewContent || '')}
+          ${change.Note ? `<div class="muted" style="margin-top:4px">${escapeHTML(change.Note)}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
 
   const html = [...(state.timetable || [])].sort(compareTimetableRowsClient).map(r => {
     const key = `${r.Session}_${r.Period}`;
     const active = today && status.type === 'lesson' && status.activeKey === key;
+    const slotChanges = getExactSlotChanges(selectedDate, r.Session, r.Period);
     const breakAfter = (r.Session === 'Sáng' && Number(r.Period) === 2) ||
                        (r.Session === 'Chiều' && Number(r.Period) === 3);
 
     return `
-      <div class="timetable-period ${active ? 'active' : ''} ${breakAfter ? 'break-marker' : ''}">
+      <div class="timetable-period ${active ? 'active' : ''} ${breakAfter ? 'break-marker' : ''} ${slotChanges.length ? 'has-change' : ''}">
         <div class="period-label">${escapeHTML(r.Session)} ${escapeHTML(r.Period)}</div>
-        <div class="period-subject">${renderSubjectChip(r[day.key], active) || '<span class="muted">Chưa xếp môn</span>'}</div>
+        <div class="period-subject">${renderSubjectChip(r[day.key], active) || '<span class="muted">Chưa xếp môn</span>'}${renderSlotChangeBadges(slotChanges)}</div>
         <div class="period-time">${escapeHTML(formatTimetableTimeRange(r))}</div>
       </div>
     `;
   }).join('');
 
-  root.innerHTML = `<div class="timetable-period-list">${html}</div>`;
+  root.innerHTML = `${generalHtml}<div class="timetable-period-list">${html}</div>`;
 }
 
 function bindTimetableSwipe(){
@@ -2434,7 +2762,7 @@ async function saveTimetableFromEditor(){
       state.timetable = (data.rows || state.timetableDraft).sort(compareTimetableRowsClient);
       state.timetableNote = data.note || ($('#timetableNoteInput') ? $('#timetableNoteInput').value.trim() : state.timetableNote);
       state.timetableLoadedAt = Date.now();
-      writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, note: state.timetableNote });
+      writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows: state.timetable, changes: state.timetableChanges, note: state.timetableNote });
       closeModal();
       renderTimetable();
       showToast(data.message || 'Đã lưu thời khóa biểu.', 'success');
@@ -2442,6 +2770,134 @@ async function saveTimetableFromEditor(){
   }finally{
     if(btn) btn.disabled = false;
   }
+}
+
+function weeklyChangeOption(value, selected){
+  return `<option value="${escapeHTML(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${escapeHTML(value)}</option>`;
+}
+
+function openWeeklyChangeEditor(changeID=''){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+
+  const existing = (state.timetableChanges || []).find(change => String(change.ChangeID) === String(changeID)) || null;
+  const weekContext = getTimetableWeekContext();
+  const defaultDate = weekContext.dates[state.selectedTimetableDay || 'Monday'] || getVietnamClock().isoDate;
+  const change = existing || {
+    ChangeID:'',
+    ChangeDate:defaultDate,
+    Session:'Sáng',
+    Period:1,
+    ChangeType:'Đổi môn',
+    NewContent:'',
+    Note:'',
+    Priority:'Thường'
+  };
+
+  openModal(`
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(720px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${existing ? 'Sửa thay đổi trong tuần' : 'Thêm thay đổi trong tuần'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Thông tin này sẽ hiển thị chung cho học sinh và PHHS.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <input id="weeklyChangeID" type="hidden" value="${escapeHTML(change.ChangeID || '')}" />
+
+        <div class="grid">
+          <div class="col-6 field">
+            <label>Ngày áp dụng</label>
+            <input id="weeklyChangeDate" class="input" type="date" value="${escapeHTML(change.ChangeDate || defaultDate)}" />
+          </div>
+          <div class="col-6 field">
+            <label>Loại thay đổi</label>
+            <select id="weeklyChangeType" class="select">
+              ${['Đổi môn','Nghỉ tiết','Đổi phòng','Hoạt động','Nhắc chung'].map(value => weeklyChangeOption(value, change.ChangeType)).join('')}
+            </select>
+          </div>
+          <div class="col-6 field">
+            <label>Buổi</label>
+            <select id="weeklyChangeSession" class="select">
+              ${['Sáng','Chiều','Cả ngày'].map(value => weeklyChangeOption(value, change.Session)).join('')}
+            </select>
+          </div>
+          <div class="col-6 field">
+            <label>Tiết</label>
+            <select id="weeklyChangePeriod" class="select">
+              <option value="" ${change.Period === '' || Number(change.Period || 0) === 0 ? 'selected' : ''}>Cả buổi/ngày</option>
+              ${[1,2,3,4,5].map(value => weeklyChangeOption(String(value), String(change.Period || ''))).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Nội dung thay đổi</label>
+          <input id="weeklyChangeContent" class="input" maxlength="160" value="${escapeHTML(change.NewContent || '')}" placeholder="Ví dụ: Đổi sang Ngữ văn; nghỉ tiết 3; học tại phòng Tin học..." />
+        </div>
+
+        <div class="field">
+          <label>Ghi chú thêm</label>
+          <textarea id="weeklyChangeNote" class="textarea" maxlength="400" style="min-height:86px" placeholder="Thông tin cần HS và PHHS lưu ý">${escapeHTML(change.Note || '')}</textarea>
+        </div>
+
+        <div class="field">
+          <label>Mức độ</label>
+          <select id="weeklyChangePriority" class="select">
+            ${['Thường','Quan trọng'].map(value => weeklyChangeOption(value, change.Priority)).join('')}
+          </select>
+        </div>
+
+        <div class="notice" style="margin-top:12px">“Đổi môn” và “Nghỉ tiết” cần chọn đúng buổi và tiết. “Nhắc chung” có thể chọn cả ngày.</div>
+        <button id="saveWeeklyChangeBtn" class="btn btn-primary full" style="margin-top:16px" type="button" onclick="saveWeeklyChangeFromEditor()">${existing ? 'Lưu thay đổi' : 'Thêm vào tuần'}</button>
+      </div>
+    </div>
+  `);
+}
+
+async function saveWeeklyChangeFromEditor(){
+  const btn = $('#saveWeeklyChangeBtn');
+  if(btn) btn.disabled = true;
+
+  try{
+    await withLoading(async () => {
+      const data = await api('saveWeeklyChange', {
+        token:state.token,
+        changeID:$('#weeklyChangeID')?.value || '',
+        changeDate:$('#weeklyChangeDate')?.value || '',
+        session:$('#weeklyChangeSession')?.value || '',
+        period:$('#weeklyChangePeriod')?.value || '',
+        changeType:$('#weeklyChangeType')?.value || '',
+        newContent:$('#weeklyChangeContent')?.value.trim() || '',
+        note:$('#weeklyChangeNote')?.value.trim() || '',
+        priority:$('#weeklyChangePriority')?.value || 'Thường'
+      });
+
+      state.timetableChanges = (data.changes || []).sort(compareWeeklyChangesClient);
+      state.timetableLoadedAt = Date.now();
+      writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows:state.timetable, changes:state.timetableChanges, note:state.timetableNote });
+      closeModal();
+      renderTimetable();
+      showToast(data.message || 'Đã lưu thay đổi trong tuần.', 'success');
+    }, 'Đang lưu thay đổi...');
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+async function deleteWeeklyChange(changeID){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+  if(!confirm('Xóa thay đổi này khỏi lịch tuần?')) return;
+
+  await withLoading(async () => {
+    const data = await api('deleteWeeklyChange', { token:state.token, changeID });
+    state.timetableChanges = (data.changes || []).sort(compareWeeklyChangesClient);
+    state.timetableLoadedAt = Date.now();
+    writeCacheEnvelope(LS_TIMETABLE_CACHE, { rows:state.timetable, changes:state.timetableChanges, note:state.timetableNote });
+    renderTimetable();
+    showToast(data.message || 'Đã xóa thay đổi.', 'success');
+  }, 'Đang xóa thay đổi...');
 }
 
 
