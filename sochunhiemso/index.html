@@ -7,8 +7,10 @@
   <meta name="description" content="Sổ chủ nhiệm số kết nối GVCN, học sinh và cha mẹ học sinh." />
   <title>Sổ chủ nhiệm số</title>
 
-  <!-- Bước PWA sẽ bổ sung manifest.json, icon và service-worker.js -->
+  <!-- Tệp cài ứng dụng PWA -->
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -1204,7 +1206,7 @@
       <div class="brand">
         <div class="brand-mark">CN</div>
         <div>
-          <h1>Sổ chủ nhiệm số</h1>
+          <h1 id="loginAppName">Sổ chủ nhiệm số</h1>
           <p>Kết nối GVCN, học sinh và cha mẹ học sinh</p>
         </div>
       </div>
@@ -1268,7 +1270,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b>Phiên bản giao diện: V10.11 - Sửa giờ và cột Buổi</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.2.0</b>
       </p>
     </div>
   </main>
@@ -1284,10 +1286,13 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
+const APP_VERSION = '14.2.0';
+
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
 const LS_LAST_PAGE = 'scn_last_page_v7';
 const LS_AI_CHAT_PREFIX = 'scn_ai_chat_v10';
+const LS_SAVE_AI_HISTORY = 'scn_save_ai_history_v14';
 const LS_DASHBOARD_CACHE = 'scn_dashboard_cache_v13';
 const LS_TIMETABLE_CACHE = 'scn_timetable_cache_v13';
 const COOKIE_TOKEN = 'scn_token_cookie_v13';
@@ -1323,7 +1328,7 @@ const state = {
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-const BUILD_VERSION = 'V10.8_SESSION_SPEED_TIMETABLE';
+const BUILD_VERSION = APP_VERSION;
 let deferredInstallPrompt = null;
 let timetableStatusTimer = null;
 
@@ -1534,8 +1539,20 @@ function showLogin(){
 function showApp(){
   $('#loginView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
+  applyAppBranding();
   renderUser();
   renderNav();
+}
+
+function applyAppBranding(){
+  const app = state.dashboard && state.dashboard.app ? state.dashboard.app : {};
+  const appName = app.appName || 'Sổ chủ nhiệm số';
+  const version = app.version || APP_VERSION;
+  document.title = appName;
+  const loginName = $('#loginAppName');
+  const versionText = $('#appVersionText');
+  if(loginName) loginName.textContent = appName;
+  if(versionText) versionText.textContent = 'Phiên bản ' + version;
 }
 
 function clearSession(){
@@ -2083,7 +2100,7 @@ async function downloadTimetableImage(){
       windowWidth:1400
     });
     const link = document.createElement('a');
-    const className = String((state.dashboard && state.dashboard.className) || 'lop').replace(/[^a-zA-Z0-9_-]+/g,'_');
+    const className = String((state.dashboard && state.dashboard.app && state.dashboard.app.className) || 'lop').replace(/[^a-zA-Z0-9_-]+/g,'_');
     link.download = `thoi-khoa-bieu-${className}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
@@ -2524,7 +2541,7 @@ function renderStudents(){
                       <td data-label="PHHS">${escapeHTML(s.ParentName || '')}</td>
                       <td data-label="SĐT PHHS">${escapeHTML(s.ParentPhone || '')}</td>
                       <td data-label="Thao tác">
-                        <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeJS(s.StudentID)}')">Xem hồ sơ</button>
+                        <button class="btn btn-primary btn-small" onclick="viewStudent('${escapeHTML(escapeJS(s.StudentID))}')">Xem hồ sơ</button>
                       </td>
                     </tr>
                   `).join('')}
@@ -2594,8 +2611,8 @@ function openClassListModal(){
                   <td>${escapeHTML(c.StudentCount || 0)}</td>
                   <td>${escapeHTML(c.Note || '')}</td>
                   <td>
-                    <button class="btn btn-soft btn-small" onclick="openClassModal('${escapeJS(c.ClassID || '')}', '${escapeJS(c.ClassName || '')}')">Sửa</button>
-                    ${c.ClassID ? `<button class="btn btn-danger btn-small" onclick="deleteClass('${escapeJS(c.ClassID)}')">Xóa</button>` : ''}
+                    <button class="btn btn-soft btn-small" onclick="openClassModal('${escapeHTML(escapeJS(c.ClassID || ''))}', '${escapeHTML(escapeJS(c.ClassName || ''))}')">Sửa</button>
+                    ${c.ClassID ? `<button class="btn btn-danger btn-small" onclick="deleteClass('${escapeHTML(escapeJS(c.ClassID))}')">Xóa</button>` : ''}
                   </td>
                 </tr>`).join('')}
               </tbody>
@@ -2722,7 +2739,7 @@ function openImportStudentsModal(){
             </div>
             <div class="field">
               <label>Mật khẩu mặc định</label>
-              <input id="importDefaultPassword" class="input" value="123456" />
+              <input id="importDefaultPassword" class="input" value="CN@12345" />
             </div>
           </div>
 
@@ -2932,7 +2949,7 @@ function openCreateStudentModal(){
 
           <div class="field">
             <label>Mật khẩu ban đầu</label>
-            <input id="newDefaultPassword" class="input" value="123456" />
+            <input id="newDefaultPassword" class="input" value="CN@12345" />
           </div>
 
           <div class="notice warn">
@@ -2971,7 +2988,7 @@ function openCreateStudentModal(){
         address: $('#newAddress').value.trim(),
         studentUsername: $('#newStudentUsername').value.trim(),
         parentUsername: $('#newParentUsername').value.trim(),
-        defaultPassword: $('#newDefaultPassword').value.trim() || '123456',
+        defaultPassword: $('#newDefaultPassword').value.trim() || 'CN@12345',
         createAccounts: true
       });
 
@@ -3209,10 +3226,10 @@ function renderProfile(data){
 
           ${isTeacher ? `
             <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-            <button class="btn btn-ghost full" onclick="openEditStudentModal('${escapeJS(s.StudentID)}')">Sửa thông tin cơ bản</button>
-            <button class="btn btn-primary full" style="margin-top:8px" onclick="openAddRecordModal('${escapeJS(s.StudentID)}')">+ Cập nhật hồ sơ nội bộ</button>
-            <button class="btn btn-soft full" style="margin-top:8px" onclick="openAIModal('${escapeJS(s.StudentID)}')">🤖 Nhờ AI hỗ trợ</button>
-            <button class="btn btn-soft full" style="margin-top:8px" onclick="openSendMessageModal('${escapeJS(s.StudentID)}')">✉️ Nhắn HS/PHHS</button>
+            <button class="btn btn-ghost full" onclick="openEditStudentModal('${escapeHTML(escapeJS(s.StudentID))}')">Sửa thông tin cơ bản</button>
+            <button class="btn btn-primary full" style="margin-top:8px" onclick="openAddRecordModal('${escapeHTML(escapeJS(s.StudentID))}')">+ Cập nhật hồ sơ nội bộ</button>
+            <button class="btn btn-soft full" style="margin-top:8px" onclick="openAIModal('${escapeHTML(escapeJS(s.StudentID))}')">🤖 Nhờ AI hỗ trợ</button>
+            <button class="btn btn-soft full" style="margin-top:8px" onclick="openSendMessageModal('${escapeHTML(escapeJS(s.StudentID))}')">✉️ Nhắn HS/PHHS</button>
           ` : `
             <div class="notice" style="margin-top:14px">Thông tin riêng tư chỉ hiển thị theo phân quyền của GVCN.</div>
           `}
@@ -3378,7 +3395,7 @@ function openAIModal(studentID){
                 <h2>Trao đổi tiếp với AI</h2>
                 <p class="muted" style="margin:.25rem 0 0">AI tiếp tục dựa trên tình huống, phản hồi trước đó và hồ sơ học sinh hiện có.</p>
               </div>
-              <button class="btn btn-danger btn-small" type="button" onclick="clearSavedTeacherAIChat('${studentID}')">Xóa lịch sử</button>
+              <button class="btn btn-danger btn-small" type="button" onclick="clearSavedTeacherAIChat('${escapeHTML(escapeJS(studentID))}')">Xóa lịch sử</button>
             </div>
             <div id="teacherAIChatHistory" class="list" style="margin:12px 0"></div>
             <form id="teacherAIChatForm" class="form-grid" onsubmit="return false;">
@@ -3456,8 +3473,8 @@ function openAIModal(studentID){
 
     await withLoading(async () => {
       $('#teacherAIChatBtn').disabled = true;
-      appendChatMessage('teacherAIChatHistory', 'user', question);
       const previous = collectChatText('teacherAIChatHistory');
+      appendChatMessage('teacherAIChatHistory', 'user', question);
       const data = await api('aiChatContinue', {
         token: state.token,
         mode: 'GVCN',
@@ -3539,13 +3556,27 @@ function readChatMessages(id){
   }).filter(m => m.text);
 }
 
+function getAIHistoryPreference(){
+  const saved = localStorage.getItem(LS_SAVE_AI_HISTORY);
+  return saved === null ? true : saved === 'TRUE';
+}
+
+function setAIHistoryPreference(enabled){
+  localStorage.setItem(LS_SAVE_AI_HISTORY, enabled ? 'TRUE' : 'FALSE');
+}
+
 function saveAIChatHistory(key, messages){
+  if(normalizeRole(state.user?.Role) !== 'GVCN' && !getAIHistoryPreference()){
+    localStorage.removeItem(key);
+    return;
+  }
   try{
     localStorage.setItem(key, JSON.stringify((messages || []).slice(-30)));
   }catch(e){}
 }
 
 function loadAIChatHistory(key){
+  if(normalizeRole(state.user?.Role) !== 'GVCN' && !getAIHistoryPreference()) return [];
   try{
     const arr = JSON.parse(localStorage.getItem(key) || '[]');
     return Array.isArray(arr) ? arr : [];
@@ -3672,12 +3703,12 @@ function renderMessageItem(m){
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           ${priorityBadge(m.Priority)}
-          ${!sentByMe && unread ? `<button class="btn btn-small btn-success" onclick="markMessageRead('${escapeJS(m.MessageID)}')">Đã đọc</button>` : ''}
+          ${!sentByMe && unread ? `<button class="btn btn-small btn-success" onclick="markMessageRead('${escapeHTML(escapeJS(m.MessageID))}')">Đã đọc</button>` : ''}
         </div>
       </div>
       <div class="item-content">${escapeHTML(m.Content || '')}</div>
       <div class="item-meta" style="margin-top:8px">
-        From: ${escapeHTML(m.FromUserID || '')} · To: ${escapeHTML(m.ToUserID || '')} · ${escapeHTML(m.MessageType || '')}
+        Từ: ${escapeHTML(m.FromName || m.FromUserID || '')} · Đến: ${escapeHTML(m.ToName || m.ToUserID || '')}
       </div>
     </div>
   `;
@@ -3823,7 +3854,7 @@ function renderSetup(){
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Bản V7 ưu tiên chuyển giao dễ dùng:</b> GVCN khác chỉ cần copy Google Sheet mẫu, chạy <b>setupAll()</b>, deploy Web App, rồi cấu hình lớp/AI trong màn hình này. Không cần sửa code nếu dùng file mẫu.
+          <b>Bản ${APP_VERSION}:</b> chạy <b>setupAll()</b> một lần trong Apps Script, triển khai Web App rồi cấu hình lớp và AI trong màn hình này.
         </div>
       </div>
 
@@ -3892,7 +3923,7 @@ function renderSetup(){
             <div class="split">
               <div class="field">
                 <label>Mật khẩu mặc định khi tạo tài khoản</label>
-                <input id="cfgDefaultPass" class="input" value="${escapeHTML(cfg.DEFAULT_PASSWORD || '123456')}" />
+                <input id="cfgDefaultPass" class="input" value="${escapeHTML((cfg.DEFAULT_PASSWORD && String(cfg.DEFAULT_PASSWORD).length >= 8) ? cfg.DEFAULT_PASSWORD : 'CN@12345')}" />
               </div>
               <div class="field">
                 <label>Số ngày lưu đăng nhập</label>
@@ -3941,8 +3972,18 @@ function renderSetup(){
                 <input id="aiModel" class="input" value="${escapeHTML(ai.model || 'gemini-2.5-flash-lite')}" />
               </div>
               <div class="field">
-                <label>Giới hạn lượt/ngày</label>
+                <label>Giới hạn GVCN/ngày</label>
                 <input id="aiLimit" class="input" value="${escapeHTML(ai.dailyLimit || '30')}" />
+              </div>
+            </div>
+            <div class="split">
+              <div class="field">
+                <label>Giới hạn mỗi học sinh/ngày</label>
+                <input id="aiLimitHS" class="input" value="${escapeHTML(ai.dailyLimitHS || '3')}" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label>Giới hạn mỗi PHHS/ngày</label>
+                <input id="aiLimitPHHS" class="input" value="${escapeHTML(ai.dailyLimitPHHS || '3')}" inputmode="numeric" />
               </div>
             </div>
             <div class="field">
@@ -3979,7 +4020,7 @@ HS001&#9;8A&#9;Nguyễn Văn A&#9;Nam&#9;2012-01-01&#9;0911111111&#9;Phụ huynh
               </div>
               <div class="field">
                 <label>Mật khẩu mặc định</label>
-                <input id="bulkPassword" class="input" value="${escapeHTML(cfg.DEFAULT_PASSWORD || '123456')}" />
+                <input id="bulkPassword" class="input" value="${escapeHTML((cfg.DEFAULT_PASSWORD && String(cfg.DEFAULT_PASSWORD).length >= 8) ? cfg.DEFAULT_PASSWORD : 'CN@12345')}" />
               </div>
             </div>
             <button class="btn btn-primary full" type="submit">Nhập học sinh và tạo tài khoản</button>
@@ -3995,7 +4036,10 @@ HS001&#9;8A&#9;Nguyễn Văn A&#9;Nam&#9;2012-01-01&#9;0911111111&#9;Phụ huynh
               <h2>Danh sách tài khoản</h2>
               <p class="muted" style="margin:.25rem 0 0">Dùng để rà soát tài khoản. Mật khẩu cũ không thể xem lại vì đã mã hóa.</p>
             </div>
-            <button class="btn btn-soft btn-small" onclick="loadAccountList()">Tải danh sách</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-soft btn-small" onclick="openUsernameModal('${escapeHTML(escapeJS(state.user.Username || ''))}', 'GVCN')">Đổi tài khoản GVCN</button>
+              <button class="btn btn-soft btn-small" onclick="loadAccountList()">Tải danh sách</button>
+            </div>
           </div>
           <div id="accountListBox" class="empty">Bấm “Tải danh sách” để xem tài khoản HS/PHHS.</div>
         </div>
@@ -4037,6 +4081,8 @@ function bindSetupForms(){
         provider: $('#aiProvider').value,
         model: $('#aiModel').value.trim(),
         dailyLimit: $('#aiLimit').value.trim(),
+        dailyLimitHS: $('#aiLimitHS').value.trim(),
+        dailyLimitPHHS: $('#aiLimitPHHS').value.trim(),
         apiKey: $('#aiApiKey').value.trim()
       });
       showToast('Đã lưu cấu hình AI.', 'success');
@@ -4102,7 +4148,7 @@ function accountTable(rows, includePassword){
   return `
     <div class="table-wrap"><table>
       <thead><tr>
-        <th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Tài khoản HS</th><th>Tài khoản PHHS</th>${includePassword ? '<th>Mật khẩu</th>' : ''}
+        <th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Tài khoản HS</th><th>Tài khoản PHHS</th>${includePassword ? '<th>Mật khẩu</th>' : '<th>Thao tác</th>'}
       </tr></thead>
       <tbody>
         ${rows.map(r => `<tr>
@@ -4112,6 +4158,10 @@ function accountTable(rows, includePassword){
           <td>${escapeHTML(r.StudentUsername || '')}</td>
           <td>${escapeHTML(r.ParentUsername || '')}</td>
           ${includePassword ? `<td><b>${escapeHTML(r.DefaultPassword || '')}</b></td>` : ''}
+          ${!includePassword ? `<td>
+            ${r.StudentUsername ? `<button class="btn btn-soft btn-small" onclick="openUsernameModal('${escapeHTML(escapeJS(r.StudentUsername))}', 'HS')">Đổi TK HS</button>` : ''}
+            ${r.ParentUsername ? `<button class="btn btn-soft btn-small" onclick="openUsernameModal('${escapeHTML(escapeJS(r.ParentUsername))}', 'PHHS')">Đổi TK PHHS</button>` : ''}
+          </td>` : ''}
         </tr>`).join('')}
       </tbody>
     </table></div>
@@ -4132,6 +4182,59 @@ function copyAccountListVisible(){
   if(!trs.length){ showToast('Chưa có bảng tài khoản để sao chép.', 'warn'); return; }
   const text = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('\t')).join('\n');
   copyText(text);
+}
+
+function openUsernameModal(currentUsername, role){
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <h2>Đổi tài khoản ${escapeHTML(role || '')}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Tài khoản hiện tại: <b>${escapeHTML(currentUsername)}</b></p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+        <form id="usernameForm" class="form-grid">
+          <div class="field">
+            <label>Tài khoản mới</label>
+            <input id="newUsernameValue" class="input" value="${escapeHTML(currentUsername)}" autocomplete="off" />
+          </div>
+          <div class="notice">Dùng chữ không dấu, số, dấu chấm, gạch ngang hoặc gạch dưới; từ 3 đến 40 kí tự.</div>
+          <button class="btn btn-primary full" type="submit">Lưu tài khoản mới</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#usernameForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const newUsername = $('#newUsernameValue').value.trim();
+    if(!/^[A-Za-z0-9._-]{3,40}$/.test(newUsername)){
+      showToast('Tài khoản mới chưa đúng định dạng.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      const data = await api('updateUsername', {
+        token: state.token,
+        currentUsername,
+        newUsername
+      });
+      closeModal();
+
+      if(data.mustRelogin){
+        clearSession();
+        showLogin();
+        showToast('Đã đổi tài khoản GVCN. Vui lòng đăng nhập lại bằng tài khoản mới.', 'success', 7000);
+        return;
+      }
+
+      showToast(data.message || 'Đã đổi tài khoản.', 'success');
+      await loadAccountList();
+    }, 'Đang đổi tài khoản...');
+  });
 }
 
 
@@ -4164,10 +4267,10 @@ function renderActivities(){
       <div class="col-4">
         <div class="card">
           <h2>Các hoạt động chính</h2>
-          <p class="muted">Các hoạt động theo tháng và hoạt động lớn trong năm của lớp. HS/CMHS có thể xem thông tin được công khai.</p>
+          <p class="muted">Ghi chú hoạt động theo tháng và hoạt động lớn trong năm của lớp. HS/PHHS có thể xem thông tin được công khai.</p>
           ${isTeacher ? `<button class="btn btn-primary full" onclick="openActivityModal()">+ Thêm hoạt động</button>` : ''}
           <div class="notice" style="margin-top:12px">
-            GVCN có thể cập nhật kế hoạch, kết quả, trạng thái từng hoạt động.
+            GVCN có thể cập nhật kế hoạch, kết quả, trạng thái từng hoạt động để làm minh chứng công tác chủ nhiệm.
           </div>
         </div>
       </div>
@@ -4206,8 +4309,8 @@ function renderActivityItem(a, isTeacher){
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           ${activityStatusBadge(a.Status)}
-          ${isTeacher ? `<button class="btn btn-soft btn-small" onclick="openActivityModal('${escapeJS(a.ActivityID)}')">Sửa</button>
-          <button class="btn btn-danger btn-small" onclick="deleteActivity('${escapeJS(a.ActivityID)}')">Xóa</button>` : ''}
+          ${isTeacher ? `<button class="btn btn-soft btn-small" onclick="openActivityModal('${escapeHTML(escapeJS(a.ActivityID))}')">Sửa</button>
+          <button class="btn btn-danger btn-small" onclick="deleteActivity('${escapeHTML(escapeJS(a.ActivityID))}')">Xóa</button>` : ''}
         </div>
       </div>
       ${a.Description ? `<div class="item-content"><b>Mô tả:</b> ${escapeHTML(a.Description)}</div>` : ''}
@@ -4383,6 +4486,13 @@ function renderAISupportPage(){
           <div class="notice">
             Phần này <b>không sử dụng Dòng thời gian hồ sơ nội bộ</b> của GVCN. Hồ sơ nội bộ vẫn chỉ GVCN biết.
           </div>
+          <div class="notice">
+            Google Sheet chỉ lưu số lượt sử dụng, không lưu câu hỏi và câu trả lời. Nếu bật lựa chọn dưới đây, lịch sử gần nhất chỉ được lưu trên thiết bị đang dùng.
+          </div>
+          <label class="item" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+            <input id="savePersonalAIHistory" type="checkbox" ${getAIHistoryPreference() ? 'checked' : ''} style="margin-top:4px" />
+            <span><b>Lưu lịch sử AI trên thiết bị này</b><br><span class="muted">Bỏ chọn nếu đang dùng thiết bị chung.</span></span>
+          </label>
         </div>
       </div>
       <div class="col-8">
@@ -4460,6 +4570,14 @@ function renderAISupportPage(){
     restorePersonalAIChat();
   }catch(err){
     console.error('Không khôi phục được lịch sử AI cá nhân:', err);
+  }
+
+  const historyOption = $('#savePersonalAIHistory');
+  if(historyOption){
+    historyOption.addEventListener('change', e => {
+      setAIHistoryPreference(Boolean(e.target.checked));
+      if(!e.target.checked) clearSavedPersonalAIChat();
+    });
   }
 
   $('#personalAIForm').addEventListener('submit', async e => {
@@ -4583,7 +4701,7 @@ function renderAIStats(data){
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Nguyên tắc V7:</b> HS/PHHS hỏi AI thì hệ thống <b>chỉ thống kê lượt sử dụng</b> để phục vụ quản lí và viết sáng kiến; <b>không lưu nội dung câu hỏi, không lưu câu trả lời</b> của HS/PHHS.
+          <b>Nguyên tắc riêng tư:</b> Google Sheet chỉ lưu thống kê lượt sử dụng của HS/PHHS, không lưu nội dung hỏi–đáp. Lịch sử gần đây chỉ được lưu trên thiết bị nếu người dùng bật lựa chọn lưu lịch sử.
         </div>
       </div>
 
@@ -4717,7 +4835,7 @@ function renderResetRequests(requests){
                     ${escapeHTML(r.Role || '')} · ${escapeHTML(r.StudentID || '')} · ${escapeHTML(formatDateTime(r.CreatedAt))}
                   </div>
                 </div>
-                <button class="btn btn-primary btn-small" onclick="openTeacherResetModal('${escapeJS(r.Username)}')">Đặt lại</button>
+                <button class="btn btn-primary btn-small" onclick="openTeacherResetModal('${escapeHTML(escapeJS(r.Username))}')">Đặt lại</button>
               </div>
               <div class="item-content">SĐT: ${escapeHTML(r.Phone || '')}\n${escapeHTML(r.Reason || '')}</div>
             </div>
@@ -4743,7 +4861,7 @@ function openTeacherResetModal(username){
         <form id="teacherResetForm" class="form-grid">
           <div class="field">
             <label>Mật khẩu mới</label>
-            <input id="teacherNewPassword" class="input" placeholder="Bỏ trống để hệ thống tự tạo 6 số" />
+            <input id="teacherNewPassword" class="input" placeholder="Bỏ trống để hệ thống tự tạo mật khẩu tạm" />
           </div>
           <button class="btn btn-primary full" type="submit">Đặt lại mật khẩu</button>
         </form>
@@ -4779,7 +4897,7 @@ function openChangePasswordModal(force=false){
         <div class="modal-head">
           <div>
             <h2>${force ? 'Cần đổi mật khẩu lần đầu' : 'Đổi mật khẩu'}</h2>
-            <p class="muted" style="margin:.25rem 0 0">Mật khẩu mới nên có ít nhất 6 kí tự.</p>
+            <p class="muted" style="margin:.25rem 0 0">Mật khẩu mới cần có ít nhất 8 kí tự.</p>
           </div>
           ${force ? '' : '<button class="close" onclick="closeModal()">×</button>'}
         </div>
@@ -4817,8 +4935,8 @@ function openChangePasswordModal(force=false){
       showToast('Vui lòng nhập đủ mật khẩu cũ và mật khẩu mới.', 'warn');
       return;
     }
-    if(newPassword.length < 6){
-      showToast('Mật khẩu mới cần có ít nhất 6 kí tự.', 'warn');
+    if(newPassword.length < 8){
+      showToast('Mật khẩu mới cần có ít nhất 8 kí tự.', 'warn');
       return;
     }
     if(newPassword !== newPassword2){
@@ -4832,41 +4950,11 @@ function openChangePasswordModal(force=false){
         oldPassword,
         newPassword
       });
-      state.user.MustChangePassword = 'FALSE';
-      persistSession(state.token, state.user);
       closeModal();
-      showToast('Đã đổi mật khẩu.', 'success');
+      clearSession();
+      showLogin();
+      showToast('Đã đổi mật khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới.', 'success', 6500);
     }, 'Đang đổi mật khẩu...');
-  });
-
-  $('#personalAIChatForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const question = $('#personalAIChatInput').value.trim();
-    if(!question){
-      showToast('Vui lòng nhập câu hỏi trao đổi tiếp.', 'warn');
-      return;
-    }
-
-    await withLoading(async () => {
-      $('#personalAIChatBtn').disabled = true;
-      appendChatMessage('personalAIChatHistory', 'user', question);
-      const previous = collectChatText('personalAIChatHistory');
-      const data = await api('aiChatContinue', {
-        token: state.token,
-        mode: 'PERSONAL',
-        supportType: $('#personalSupportType').value,
-        mucDo: $('#personalLevel').value,
-        question,
-        previous
-      });
-      appendChatMessage('personalAIChatHistory', 'ai', data.response || '');
-      saveAIChatHistory(getPersonalChatKey(), readChatMessages('personalAIChatHistory'));
-      $('#personalAIChatInput').value = '';
-      showToast(data.message || 'AI đã trả lời.', 'success');
-    }, 'AI đang trả lời tiếp...').finally(() => {
-      const btn = $('#personalAIChatBtn');
-      if(btn) btn.disabled = false;
-    });
   });
 }
 
@@ -4877,6 +4965,15 @@ function openChangePasswordModal(force=false){
 function openModal(html){
   $('#modalRoot').innerHTML = html;
   $('#modalRoot').classList.remove('hidden');
+  const modal = $('#modalRoot .modal');
+  if(modal){
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('tabindex', '-1');
+    const firstField = modal.querySelector('input,select,textarea,button');
+    if(firstField) firstField.focus();
+    else modal.focus();
+  }
 }
 
 function closeModal(){
@@ -4890,7 +4987,16 @@ function showToast(message, type='info', timeout=3600){
   const div = document.createElement('div');
   div.id = id;
   div.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warn' ? 'warn' : '');
-  div.innerHTML = `${type === 'loading' ? '<span class="loader"></span>' : ''}<div>${message}</div>`;
+
+  if(type === 'loading'){
+    const loader = document.createElement('span');
+    loader.className = 'loader';
+    div.appendChild(loader);
+  }
+
+  const content = document.createElement('div');
+  content.textContent = String(message || '');
+  div.appendChild(content);
   root.appendChild(div);
 
   if(timeout){
@@ -5102,6 +5208,7 @@ function isAppInstalled(){
 
 function openInstallGuide(){
   const installed = isAppInstalled();
+  const currentAppUrl = window.location.origin + window.location.pathname;
 
   openModal(`
     <div class="modal-backdrop">
@@ -5162,7 +5269,7 @@ function openInstallGuide(){
 
         <div class="notice">
           <b>Địa chỉ nên dùng:</b><br>
-          https://nddungdn.github.io/hoclieusotools/sochunhiemso/
+          ${escapeHTML(currentAppUrl)}
         </div>
       </div>
     </div>

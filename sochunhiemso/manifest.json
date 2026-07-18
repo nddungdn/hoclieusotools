@@ -1,13 +1,14 @@
 {
   "name": "Sổ chủ nhiệm số",
-  "short_name": "Sổ CN",
-  "description": "Tiện ích quản lí lớp chủ nhiệm, kết nối GVCN, học sinh và phụ huynh.",
+  "short_name": "Sổ CN số",
+  "description": "Tiện ích kết nối giáo viên chủ nhiệm, học sinh và cha mẹ học sinh.",
+  "lang": "vi",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f4f7fb",
   "theme_color": "#2563eb",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192.png",

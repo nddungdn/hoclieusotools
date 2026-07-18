@@ -1,5 +1,5 @@
-const CACHE_NAME = 'so-chu-nhiem-so-v10-11';
-const STATIC_FILES = [
+const CACHE_NAME = 'so-chu-nhiem-so-v14.2.0';
+const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
@@ -8,57 +8,53 @@ const STATIC_FILES = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_FILES))
-      .catch(err => console.warn('Không cache được toàn bộ file tĩnh:', err))
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
   const request = event.request;
+  if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
-
-  const isNavigation =
-    request.mode === 'navigate' ||
-    url.pathname.endsWith('/') ||
-    url.pathname.endsWith('/index.html');
-
-  if (isNavigation) {
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request, { cache: 'no-store' })
+      fetch(request)
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
           return response;
         })
-        .catch(() =>
-          caches.match(request).then(cached => cached || caches.match('./index.html'))
-        )
+        .catch(() => caches.match('./index.html'))
     );
     return;
   }
 
   event.respondWith(
     caches.match(request).then(cached => {
-      const network = fetch(request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+      if (cached) return cached;
+      return fetch(request).then(response => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        }
         return response;
       });
-      return cached || network;
     })
   );
 });
