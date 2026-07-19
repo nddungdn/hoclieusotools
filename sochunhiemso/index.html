@@ -1809,6 +1809,45 @@
     .item-title{color:var(--heading)}
     .item-content{color:#334155}
 
+    .ai-rendered{
+      white-space:normal;
+      line-height:1.72;
+    }
+    .ai-rendered p{margin:0 0 .78rem}
+    .ai-rendered p:last-child{margin-bottom:0}
+    .ai-rendered h3,
+    .ai-rendered h4{
+      margin:1rem 0 .5rem;
+      color:var(--heading);
+      line-height:1.35;
+    }
+    .ai-rendered h3:first-child,
+    .ai-rendered h4:first-child{margin-top:0}
+    .ai-rendered strong{color:var(--heading);font-weight:850}
+    .ai-rendered ul,
+    .ai-rendered ol{
+      margin:.35rem 0 .9rem;
+      padding-left:1.55rem;
+    }
+    .ai-rendered li{padding-left:.15rem;margin:.28rem 0}
+    .ai-rendered li::marker{color:var(--primary);font-weight:800}
+    .ai-rendered blockquote{
+      margin:.65rem 0;
+      padding:.65rem .85rem;
+      color:#475569;
+      background:var(--primary-soft);
+      border-left:4px solid var(--primary);
+      border-radius:0 12px 12px 0;
+    }
+    .ai-rendered code{
+      padding:.12rem .35rem;
+      color:#5b21b6;
+      background:#f3e8ff;
+      border-radius:6px;
+      font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+      font-size:.92em;
+    }
+
     .btn{background:#e2e8f0;color:#334155}
     .btn-primary{
       color:#fff;
@@ -2037,7 +2076,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu được sử dụng để hỗ trợ học tập của học sinh. Vui lòng không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.1.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.1.1</b>
       </p>
     </div>
   </main>
@@ -2053,7 +2092,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '16.1.0';
+const APP_VERSION = '16.1.1';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -4489,7 +4528,7 @@ function openAIModal(studentID){
               </div>
               <button id="copyAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
             </div>
-            <div id="aiResult" class="item-content" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+            <div id="aiResult" class="item-content ai-rendered" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
           </div>
         </div>
 
@@ -4552,7 +4591,7 @@ function openAIModal(studentID){
       $('#teacherAIChatWrap').dataset.supportType = $('#aiLoai').value;
       $('#teacherAIChatWrap').dataset.mucDo = $('#aiMucDo').value;
       $('#aiMeta').textContent = `${data.model || 'AI'} · Hồ sơ động: ${data.timelineCount || 0} bản ghi · Nhật ký: ${data.logCount || 0} bản ghi · Đã lưu vào AI_TuVan`;
-      $('#aiResult').textContent = data.response || '';
+      $('#aiResult').innerHTML = formatAIResponse(data.response || '');
       $('#copyAIResultBtn').onclick = () => copyText(data.response || '');
       clearChatHistory('teacherAIChatHistory');
       appendChatMessage('teacherAIChatHistory', 'user', situation);
@@ -4619,8 +4658,10 @@ function appendChatMessage(id, who, text){
       <p class="item-title">${isAI ? 'AI' : 'Bạn'}</p>
       <span class="badge ${isAI ? 'badge-purple' : 'badge-blue'}">${isAI ? 'Phản hồi' : 'Câu hỏi'}</span>
     </div>
-    <div class="item-content">${escapeHTML(text || '')}</div>
+    <div class="item-content${isAI ? ' ai-rendered' : ''}">${isAI ? formatAIResponse(text || '') : escapeHTML(text || '')}</div>
   `;
+  const contentEl = div.querySelector('.item-content');
+  if(contentEl) contentEl.dataset.rawText = String(text || '');
   el.appendChild(div);
   div.scrollIntoView({behavior:'smooth', block:'end'});
 }
@@ -4652,7 +4693,8 @@ function readChatMessages(id){
   if(!el) return [];
   return Array.from(el.querySelectorAll('.item')).map(item => {
     const title = item.querySelector('.item-title')?.textContent || '';
-    const content = item.querySelector('.item-content')?.textContent || '';
+    const contentEl = item.querySelector('.item-content');
+    const content = contentEl?.dataset.rawText ?? contentEl?.textContent ?? '';
     return {
       who: title.trim() === 'AI' ? 'ai' : 'user',
       text: content,
@@ -5970,7 +6012,7 @@ function renderAISupportPage(){
             Phần này <b>không sử dụng Dòng thời gian hồ sơ nội bộ</b> của GVCN. Hồ sơ nội bộ vẫn chỉ GVCN biết.
           </div>
           <div class="notice">
-            Câu hỏi và câu trả lời không được lưu lại ở bất cứ đâu nên câu hỏi/ yêu cầu trả lời được bảo mật. Nếu bật lựa chọn dưới đây, lịch sử gần nhất chỉ được lưu trên thiết bị đang dùng.
+            Google Sheet chỉ lưu số lượt sử dụng, không lưu câu hỏi và câu trả lời. Nếu bật lựa chọn dưới đây, lịch sử gần nhất chỉ được lưu trên thiết bị đang dùng.
           </div>
           <label class="item" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
             <input id="savePersonalAIHistory" type="checkbox" ${getAIHistoryPreference() ? 'checked' : ''} style="margin-top:4px" />
@@ -6021,7 +6063,7 @@ function renderAISupportPage(){
                 </div>
                 <button id="copyPersonalAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
               </div>
-              <div id="personalAIResult" class="item-content" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+              <div id="personalAIResult" class="item-content ai-rendered" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
             </div>
           </div>
 
@@ -6082,7 +6124,7 @@ function renderAISupportPage(){
       $('#personalAIResultWrap').classList.remove('hidden');
       $('#personalAIChatWrap').classList.remove('hidden');
       $('#personalAIMeta').textContent = `${data.model || 'AI'} · Chỉ thống kê lượt sử dụng, không lưu nội dung hỏi-đáp`;
-      $('#personalAIResult').textContent = data.response || '';
+      $('#personalAIResult').innerHTML = formatAIResponse(data.response || '');
       $('#copyPersonalAIResultBtn').onclick = () => copyText(data.response || '');
       clearChatHistory('personalAIChatHistory');
       appendChatMessage('personalAIChatHistory', 'user', situation);
@@ -7073,6 +7115,88 @@ function escapeHTML(str){
     .replaceAll('>','&gt;')
     .replaceAll('"','&quot;')
     .replaceAll("'",'&#039;');
+}
+
+/**
+ * Chuyển phần Markdown cơ bản do AI trả về thành HTML an toàn.
+ * Nội dung luôn được escape trước khi thêm thẻ định dạng để ngăn chèn mã HTML.
+ */
+function formatAIInline(value){
+  return escapeHTML(value)
+    .replace(/\*\*\*([^*\n]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/___([^_\n]+?)___/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*([^*\n]+?)\*(?=$|[\s.,;:!?…\)])/g, '$1<em>$2</em>')
+    .replace(/(^|[\s(])_([^_\n]+?)_(?=$|[\s.,;:!?…\)])/g, '$1<em>$2</em>')
+    .replace(/`([^`\n]+?)`/g, '<code>$1</code>');
+}
+
+function formatAIResponse(value){
+  const lines = String(value ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const html = [];
+  let paragraph = [];
+  let listType = '';
+  let listItems = [];
+
+  const flushParagraph = () => {
+    if(!paragraph.length) return;
+    html.push(`<p>${paragraph.join('<br>')}</p>`);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if(!listType || !listItems.length) return;
+    html.push(`<${listType}>${listItems.map(item => `<li>${item}</li>`).join('')}</${listType}>`);
+    listType = '';
+    listItems = [];
+  };
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+
+    if(!line){
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const heading = line.match(/^(#{1,4})\s+(.+)$/);
+    const unordered = line.match(/^(?:[-*•])\s+(.+)$/);
+    const ordered = line.match(/^\d+[.)]\s+(.+)$/);
+    const quote = line.match(/^>\s*(.+)$/);
+
+    if(heading){
+      flushParagraph();
+      flushList();
+      const tag = heading[1].length <= 2 ? 'h3' : 'h4';
+      html.push(`<${tag}>${formatAIInline(heading[2])}</${tag}>`);
+      return;
+    }
+
+    if(unordered || ordered){
+      flushParagraph();
+      const nextType = unordered ? 'ul' : 'ol';
+      if(listType && listType !== nextType) flushList();
+      listType = nextType;
+      listItems.push(formatAIInline((unordered || ordered)[1]));
+      return;
+    }
+
+    if(quote){
+      flushParagraph();
+      flushList();
+      html.push(`<blockquote>${formatAIInline(quote[1])}</blockquote>`);
+      return;
+    }
+
+    flushList();
+    paragraph.push(formatAIInline(line));
+  });
+
+  flushParagraph();
+  flushList();
+  return html.join('');
 }
 
 function escapeJS(str){
