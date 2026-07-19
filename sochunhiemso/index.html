@@ -505,6 +505,59 @@
       border-color:#fed7aa;
     }
 
+    .operations-grid{
+      display:grid;
+      grid-template-columns:repeat(12,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .operations-grid > .ops-half{grid-column:span 6}
+    .operations-grid > .ops-full{grid-column:span 12}
+
+    .health-summary{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin:14px 0;
+    }
+
+    .health-metric{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#f8fafc;
+      text-align:center;
+    }
+
+    .health-metric b{display:block;font-size:1.25rem;margin-bottom:3px}
+
+    .health-issue{
+      border-left:4px solid #f59e0b;
+      background:#fffbeb;
+      border-radius:10px;
+      padding:10px 12px;
+      margin-top:8px;
+      line-height:1.5;
+    }
+
+    .health-issue.error{border-color:#ef4444;background:#fff1f2}
+
+    .backup-row{
+      display:grid;
+      grid-template-columns:minmax(0,1.5fr) minmax(120px,.6fr) auto;
+      gap:10px;
+      align-items:center;
+      padding:11px 0;
+      border-bottom:1px solid var(--line);
+    }
+
+    .backup-row:last-child{border-bottom:0}
+
+    .danger-zone{
+      border:1px solid #fecaca;
+      background:#fff7f7;
+    }
+
     @media (max-width:700px){
       .class-notice-head,
       .class-notice-footer{
@@ -523,6 +576,9 @@
         grid-template-columns:1fr;
         gap:5px;
       }
+      .operations-grid > .ops-half,.operations-grid > .ops-full{grid-column:span 12}
+      .health-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .backup-row{grid-template-columns:1fr}
     }
 
     .split{
@@ -1525,10 +1581,11 @@
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
       <section id="setupPage" class="page hidden"></section>
+      <section id="operationsPage" class="page hidden"></section>
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.4.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 15.0.0</b>
       </p>
     </div>
   </main>
@@ -1544,7 +1601,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '14.4.0';
+const APP_VERSION = '15.0.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -1582,6 +1639,7 @@ const state = {
   noticePendingCount: 0,
   activities: [],
   setup: null,
+  operations: null,
   lastImportedAccounts: [],
   currentPage: localStorage.getItem(LS_LAST_PAGE) || 'dashboard',
   currentStudentID: ''
@@ -1834,6 +1892,7 @@ function clearSession(){
   state.messages = [];
   state.notices = [];
   state.noticePendingCount = 0;
+  state.operations = null;
   clearPersistentSession();
   localStorage.removeItem(LS_DASHBOARD_CACHE);
   localStorage.removeItem(LS_TIMETABLE_CACHE);
@@ -1882,6 +1941,7 @@ function renderNav(){
     { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
     { id:'setup', label:'Thiết lập', show:role === 'GVCN' },
+    { id:'operations', label:'Sao lưu & năm học', show:role === 'GVCN' },
     { id:'aiStats', label:'Thống kê AI', show:role === 'GVCN' }
   ].filter(i => i.show);
 
@@ -1897,12 +1957,13 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','timetable','students','profile','messages','notices','activities','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
+  if(!['dashboard','timetable','students','profile','messages','notices','activities','aiSupport','reset','setup','operations','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
   if(page === 'reset' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'setup' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
+  if(page === 'operations' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiStats' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
 
   state.currentPage = page;
@@ -1920,6 +1981,7 @@ async function goPage(page, save=true){
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
   if(page === 'setup') await loadSetup();
+  if(page === 'operations') await loadOperations();
   if(page === 'aiStats') await loadAIStats();
 }
 
@@ -4670,6 +4732,121 @@ async function openNoticeConfirmations(noticeID){
 
 
 /* =========================================================
+   SAO LƯU, CHUYỂN NĂM HỌC, SỨC KHỎE HỆ THỐNG
+========================================================= */
+
+async function loadOperations(){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+  await withLoading(async () => {
+    state.operations = await api('getOperationsData', { token:state.token, frontendVersion:APP_VERSION });
+    renderOperations();
+  }, 'Đang kiểm tra dữ liệu vận hành...');
+}
+
+function healthStatusBadge(health){
+  if(health.status === 'Tốt') return '<span class="badge badge-green">Tốt</span>';
+  if(health.errors > 0) return '<span class="badge badge-red">Cần xử lí</span>';
+  return '<span class="badge badge-yellow">Cần kiểm tra</span>';
+}
+
+function backupTypeLabel(type){
+  const map={MANUAL:'Sao lưu thủ công',BEFORE_RESTORE:'Trước khôi phục',SCHOOL_YEAR_ARCHIVE:'Lưu trữ năm học'};
+  return map[String(type||'')] || String(type||'Sao lưu');
+}
+
+function renderOperations(){
+  const operations=state.operations||{};
+  const health=operations.health||{issues:[],counts:{}};
+  const counts=health.counts||{};
+  const backups=operations.backups||[];
+  const archives=operations.archives||[];
+  const config=operations.config||{};
+
+  $('#operationsPage').innerHTML=`
+    <div class="operations-grid">
+      <div class="ops-full card">
+        <div class="card-title">
+          <div><h2>Sức khỏe hệ thống</h2><p class="muted" style="margin:.25rem 0 0">Kiểm tra cấu trúc, tài khoản liên kết và phiên bản đang chạy.</p></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${healthStatusBadge(health)}<button class="btn btn-soft btn-small" onclick="loadOperations()">Kiểm tra lại</button><button class="btn btn-primary btn-small" onclick="repairSystem()">Tự sửa cấu trúc</button></div>
+        </div>
+        <div class="health-summary">
+          <div class="health-metric"><b>${Number(counts.students||0)}</b><span>Học sinh</span></div>
+          <div class="health-metric"><b>${Number(counts.activeUsers||0)}</b><span>Tài khoản hoạt động</span></div>
+          <div class="health-metric"><b>${Number(counts.backups||0)}</b><span>Bản sao lưu</span></div>
+          <div class="health-metric"><b>${Number(health.errors||0)+Number(health.warnings||0)}</b><span>Mục cần xem</span></div>
+        </div>
+        <div class="notice"><b>Phiên bản:</b> Giao diện ${escapeHTML(health.frontendVersion||APP_VERSION)} · Apps Script ${escapeHTML(health.backendVersion||'—')}</div>
+        ${(health.issues||[]).length ? `<div>${health.issues.map(issue=>`<div class="health-issue ${issue.level==='error'?'error':''}"><b>${escapeHTML(issue.title||'Cần kiểm tra')}</b><div>${escapeHTML(issue.detail||'')}</div></div>`).join('')}</div>` : '<div class="notice" style="margin-top:10px"><b>Không phát hiện lỗi cấu trúc hoặc liên kết tài khoản.</b></div>'}
+      </div>
+
+      <div class="ops-half card">
+        <div class="card-title"><div><h2>Sao lưu dữ liệu</h2><p class="muted" style="margin:.25rem 0 0">Tạo một Google Sheet độc lập chứa toàn bộ dữ liệu.</p></div><button class="btn btn-primary btn-small" onclick="openCreateBackupModal()">+ Tạo sao lưu</button></div>
+        ${backups.length ? backups.slice(0,10).map(backup=>`
+          <div class="backup-row">
+            <div><b>${escapeHTML(backup.BackupName||'Bản sao lưu')}</b><div class="muted" style="font-size:.8rem;margin-top:3px">${escapeHTML(formatDateTime(backup.CreatedAt))} · ${escapeHTML(backupTypeLabel(backup.BackupType))}</div></div>
+            <a class="btn btn-soft btn-small" href="${escapeHTML(backup.BackupUrl||'#')}" target="_blank" rel="noopener">Mở bản sao</a>
+            <button class="btn btn-danger btn-small" onclick="openRestoreBackupModal('${escapeHTML(escapeJS(backup.BackupFileID||''))}')">Khôi phục</button>
+          </div>`).join('') : '<div class="empty">Chưa có bản sao lưu.</div>'}
+      </div>
+
+      <div class="ops-half card danger-zone">
+        <div class="card-title"><div><h2>Kết thúc/chuyển năm học</h2><p class="muted" style="margin:.25rem 0 0">Hiện tại: ${escapeHTML(config.className||'—')} · ${escapeHTML(config.schoolYear||'—')}</p></div></div>
+        <div class="notice warn">Hệ thống luôn tạo bản sao lưu trước khi chuyển. Dữ liệu năm cũ được giữ trong bản sao; tin nhắn, thông báo, hồ sơ theo dõi và hoạt động sẽ được làm mới.</div>
+        <button class="btn btn-danger full" style="margin-top:12px" onclick="openCloseSchoolYearModal()">Bắt đầu chuyển năm học</button>
+      </div>
+
+      <div class="ops-full card">
+        <h2>Lịch sử chuyển năm học</h2>
+        ${archives.length ? archives.map(item=>`<div class="backup-row"><div><b>${escapeHTML(item.OldClassName||'—')} · ${escapeHTML(item.OldSchoolYear||'—')}</b><div class="muted">→ ${escapeHTML(item.NewClassName||'—')} · ${escapeHTML(item.NewSchoolYear||'—')}</div></div><div>${escapeHTML(item.TransitionMode==='PROMOTE'?'Giữ học sinh':'Lớp mới')}</div><div>${escapeHTML(formatDateTime(item.CreatedAt))}</div></div>`).join('') : '<div class="empty">Chưa chuyển năm học lần nào.</div>'}
+      </div>
+    </div>`;
+}
+
+function openCreateBackupModal(){
+  openModal(`<div class="modal-backdrop"><div class="modal"><div class="modal-head"><div><h2>Tạo bản sao lưu</h2><p class="muted" style="margin:.25rem 0 0">Bản sao là một Google Sheet riêng trong Drive của tài khoản triển khai.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="field"><label>Ghi chú</label><textarea id="backupNote" class="textarea" placeholder="Ví dụ: Trước khi nhập danh sách học sinh mới"></textarea></div><button class="btn btn-primary full" onclick="createBackup()">Tạo bản sao lưu ngay</button></div></div>`);
+}
+
+async function createBackup(){
+  await withLoading(async()=>{
+    const data=await api('createBackup',{token:state.token,note:$('#backupNote')?.value.trim()||'',frontendVersion:APP_VERSION});
+    state.operations=data.operations||state.operations; closeModal(); renderOperations();
+    showToast(data.message||'Đã tạo bản sao lưu.','success');
+  },'Đang sao lưu toàn bộ Google Sheet...');
+}
+
+function openRestoreBackupModal(backupFileID){
+  const backup=(state.operations?.backups||[]).find(item=>String(item.BackupFileID)===String(backupFileID));
+  openModal(`<div class="modal-backdrop"><div class="modal"><div class="modal-head"><div><h2>Khôi phục dữ liệu</h2><p class="muted" style="margin:.25rem 0 0">${escapeHTML(backup?.BackupName||'Bản sao đã chọn')}</p></div><button class="close" onclick="closeModal()">×</button></div><div class="notice warn"><b>Lưu ý:</b> dữ liệu hiện tại sẽ được thay bằng bản sao. Hệ thống tự tạo thêm một bản an toàn trước khi khôi phục và đăng xuất tất cả tài khoản.</div><input id="restoreBackupID" type="hidden" value="${escapeHTML(backupFileID)}"><div class="field" style="margin-top:14px"><label>Nhập KHOI PHUC để xác nhận</label><input id="restoreConfirmation" class="input" autocomplete="off"></div><button class="btn btn-danger full" onclick="restoreBackup()">Khôi phục bản sao này</button></div></div>`);
+}
+
+async function restoreBackup(){
+  await withLoading(async()=>{
+    const data=await api('restoreBackup',{token:state.token,backupFileID:$('#restoreBackupID').value,confirmation:$('#restoreConfirmation').value});
+    clearSession(); closeModal(); showLogin(); showToast(data.message||'Đã khôi phục. Vui lòng đăng nhập lại.','success',8000);
+  },'Đang tạo bản an toàn và khôi phục dữ liệu...');
+}
+
+function openCloseSchoolYearModal(){
+  const config=state.operations?.config||{};
+  openModal(`<div class="modal-backdrop"><div class="modal" style="width:min(760px,100%)"><div class="modal-head"><div><h2>Chuyển sang năm học mới</h2><p class="muted" style="margin:.25rem 0 0">Dữ liệu hiện tại sẽ được lưu trữ trước khi làm mới.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="split"><div class="field"><label>Năm học mới</label><input id="newSchoolYear" class="input" placeholder="2027-2028"></div><div class="field"><label>Tên lớp mới</label><input id="newClassName" class="input" value="${escapeHTML(config.className||'')}"></div></div><div class="field"><label>Cách chuyển</label><select id="transitionMode" class="select"><option value="NEW_CLASS">Lớp mới hoàn toàn – khóa tài khoản HS/PHHS cũ</option><option value="PROMOTE">Tiếp tục cùng học sinh – giữ tài khoản và chuyển lớp</option></select></div><div class="field"><label>Ghi chú lưu trữ</label><textarea id="transitionNote" class="textarea" placeholder="Ví dụ: Kết thúc năm học ${escapeHTML(config.schoolYear||'')}"></textarea></div><div class="notice warn">Thao tác sẽ làm mới dữ liệu theo năm học và đăng xuất tất cả tài khoản. Bản sao lưu đầy đủ được tạo tự động.</div><div class="field" style="margin-top:14px"><label>Nhập KET THUC NAM HOC để xác nhận</label><input id="closeYearConfirmation" class="input" autocomplete="off"></div><button class="btn btn-danger full" onclick="closeSchoolYear()">Sao lưu và chuyển năm học</button></div></div>`);
+}
+
+async function closeSchoolYear(){
+  await withLoading(async()=>{
+    const data=await api('closeSchoolYear',{token:state.token,newSchoolYear:$('#newSchoolYear').value.trim(),newClassName:$('#newClassName').value.trim(),transitionMode:$('#transitionMode').value,note:$('#transitionNote').value.trim(),confirmation:$('#closeYearConfirmation').value});
+    clearSession(); closeModal(); showLogin(); showToast(data.message||'Đã chuyển năm học. Vui lòng đăng nhập lại.','success',9000);
+  },'Đang sao lưu và chuyển năm học...');
+}
+
+async function repairSystem(){
+  await withLoading(async()=>{
+    const data=await api('repairSystem',{token:state.token,frontendVersion:APP_VERSION});
+    state.operations=data.operations||state.operations; renderOperations(); showToast(data.message||'Đã kiểm tra và sửa cấu trúc.','success',7000);
+  },'Đang kiểm tra và sửa cấu trúc...');
+}
+
+
+/* =========================================================
    THIẾT LẬP / CHUYỂN GIAO
 ========================================================= */
 
@@ -4748,6 +4925,10 @@ function renderSetup(){
                 <label>Tên lớp</label>
                 <input id="cfgClass" class="input" value="${escapeHTML(cfg.TEN_LOP || '')}" placeholder="Ví dụ: 8A" />
               </div>
+            </div>
+            <div class="field">
+              <label>Năm học</label>
+              <input id="cfgSchoolYear" class="input" value="${escapeHTML(cfg.NAM_HOC || '')}" placeholder="Ví dụ: 2026-2027" />
             </div>
             <div class="split">
               <div class="field">
@@ -4899,6 +5080,7 @@ function bindSetupForms(){
           APP_NAME: $('#cfgAppName').value.trim(),
           TEN_TRUONG: $('#cfgSchool').value.trim(),
           TEN_LOP: $('#cfgClass').value.trim(),
+          NAM_HOC: $('#cfgSchoolYear').value.trim(),
           TEN_GVCN: $('#cfgTeacher').value.trim(),
           SO_DIEN_THOAI_GVCN: $('#cfgTeacherPhone').value.trim(),
           DEFAULT_PASSWORD: $('#cfgDefaultPass').value.trim(),
