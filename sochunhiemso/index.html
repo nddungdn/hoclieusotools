@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="theme-color" content="#312e81" />
   <meta name="description" content="Sổ chủ nhiệm số kết nối GVCN, học sinh và cha mẹ học sinh." />
   <title>Sổ chủ nhiệm số</title>
 
@@ -1612,6 +1612,352 @@
       .card-title > div:last-child:not(:first-child){width:100%}
       .table-wrap{border-radius:14px}
     }
+
+    /* ======================================================
+       HỆ MÀU V16.1 – HIỆN ĐẠI, NĂNG ĐỘNG, PHÙ HỢP HỌC SINH THCS
+       Xanh chàm tạo sự tin cậy; xanh ngọc tạo cảm giác tươi mới;
+       vàng cam chỉ dùng làm điểm nhấn và cảnh báo.
+    ====================================================== */
+    :root{
+      --bg:#eef2ff;
+      --card:#ffffff;
+      --surface-soft:#f8faff;
+      --text:#172554;
+      --muted:#64748b;
+      --line:#c7d2fe;
+      --primary:#4f46e5;
+      --primary-dark:#3730a3;
+      --primary-soft:#e0e7ff;
+      --secondary:#0891b2;
+      --secondary-dark:#0e7490;
+      --secondary-soft:#cffafe;
+      --accent:#f59e0b;
+      --accent-soft:#fef3c7;
+      --coral:#f97316;
+      --success:#059669;
+      --warning:#d97706;
+      --danger:#e11d48;
+      --heading:#312e81;
+      --header-gradient:linear-gradient(118deg,#312e81 0%,#4f46e5 52%,#0891b2 100%);
+      --footer-gradient:linear-gradient(118deg,#1e1b4b 0%,#312e81 50%,#0e7490 100%);
+      --shadow:0 18px 42px rgba(49,46,129,.13);
+      --shadow-soft:0 9px 24px rgba(49,46,129,.09);
+      --focus:0 0 0 4px rgba(79,70,229,.18);
+    }
+
+    body[data-role="GVCN"]{
+      --primary:#4338ca;
+      --primary-dark:#312e81;
+      --primary-soft:#e0e7ff;
+      --header-gradient:linear-gradient(118deg,#1e1b4b 0%,#4338ca 56%,#0e7490 100%);
+    }
+
+    body[data-role="HS"]{
+      --primary:#6d28d9;
+      --primary-dark:#5b21b6;
+      --primary-soft:#ede9fe;
+      --heading:#4c1d95;
+      --header-gradient:linear-gradient(118deg,#4c1d95 0%,#6d28d9 52%,#0891b2 100%);
+    }
+
+    body[data-role="PHHS"]{
+      --primary:#0f766e;
+      --primary-dark:#115e59;
+      --primary-soft:#ccfbf1;
+      --heading:#134e4a;
+      --header-gradient:linear-gradient(118deg,#164e63 0%,#0f766e 52%,#4338ca 100%);
+    }
+
+    html{background:#eef2ff}
+
+    body{
+      background-color:var(--bg);
+      background-image:
+        radial-gradient(circle at 8% 4%,rgba(56,189,248,.24),transparent 28rem),
+        radial-gradient(circle at 92% 14%,rgba(167,139,250,.20),transparent 30rem),
+        linear-gradient(145deg,#eff6ff 0%,#eef2ff 42%,#f5f3ff 100%);
+      background-attachment:fixed;
+    }
+
+    *{scrollbar-color:rgba(79,70,229,.55) rgba(224,231,255,.65)}
+    ::selection{background:#c4b5fd;color:#312e81}
+
+    .login-wrap{
+      background:
+        radial-gradient(circle at 18% 20%,rgba(34,211,238,.28),transparent 19rem),
+        radial-gradient(circle at 84% 72%,rgba(168,85,247,.24),transparent 22rem),
+        linear-gradient(135deg,#312e81,#4f46e5 52%,#0e7490);
+    }
+
+    .login-card{
+      background:linear-gradient(160deg,rgba(255,255,255,.98),rgba(238,242,255,.96));
+      border:1px solid rgba(255,255,255,.72);
+      box-shadow:0 28px 70px rgba(15,23,42,.30);
+    }
+
+    .brand-mark{
+      background:linear-gradient(135deg,#6d28d9,#0891b2);
+      box-shadow:0 12px 26px rgba(79,70,229,.30);
+    }
+
+    .brand h1{color:#312e81}
+
+    .topbar{
+      margin:0 0 18px;
+      padding:12px 18px;
+      background:var(--header-gradient);
+      border:0;
+      border-radius:0 0 24px 24px;
+      box-shadow:0 12px 30px rgba(30,27,75,.22);
+      backdrop-filter:blur(18px);
+    }
+
+    .user-pill{
+      color:#fff;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.28);
+      box-shadow:0 8px 22px rgba(15,23,42,.16);
+    }
+
+    .user-pill strong{color:#fff}
+    .user-pill span{color:#dbeafe}
+
+    .avatar{
+      color:#fff;
+      background:linear-gradient(135deg,#f59e0b,#f97316);
+      box-shadow:0 7px 16px rgba(249,115,22,.30);
+    }
+
+    .top-actions .btn{
+      color:#fff;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.24);
+      box-shadow:none;
+    }
+
+    .top-actions .btn:hover{background:rgba(255,255,255,.24)}
+    .top-actions .btn-danger{background:#fb7185;border-color:#fb7185;color:#4c0519}
+    .top-actions .btn-danger:hover{background:#fda4af}
+
+    .nav{
+      gap:9px;
+      padding:10px;
+      margin:0 0 14px;
+      background:rgba(255,255,255,.68);
+      border:1px solid rgba(165,180,252,.48);
+      border-radius:20px;
+      box-shadow:0 8px 22px rgba(49,46,129,.07);
+      backdrop-filter:blur(12px);
+    }
+
+    .nav button{
+      border-color:transparent;
+      background:#fff;
+      color:#334155;
+      box-shadow:0 4px 12px rgba(49,46,129,.06);
+    }
+
+    .nav-icon{font-size:1rem;line-height:1;filter:saturate(1.08)}
+
+    .nav button:hover{transform:translateY(-1px);border-color:#a5b4fc}
+    .nav button[data-page="dashboard"]{background:#eef2ff;color:#3730a3}
+    .nav button[data-page="timetable"]{background:#ecfeff;color:#0e7490}
+    .nav button[data-page="students"],.nav button[data-page="profile"]{background:#f5f3ff;color:#6d28d9}
+    .nav button[data-page="messages"]{background:#ecfdf5;color:#047857}
+    .nav button[data-page="notices"]{background:#fffbeb;color:#b45309}
+    .nav button[data-page="progress"]{background:#fdf2f8;color:#be185d}
+    .nav button[data-page="activities"]{background:#fff7ed;color:#c2410c}
+    .nav button[data-page="aiSupport"],.nav button[data-page="aiStats"]{background:#eff6ff;color:#1d4ed8}
+    .nav button[data-page="reset"]{background:#fff1f2;color:#be123c}
+    .nav button[data-page="setup"],.nav button[data-page="operations"]{background:#f1f5f9;color:#475569}
+
+    .nav button.active{
+      color:#fff;
+      border-color:transparent;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      box-shadow:0 10px 22px rgba(79,70,229,.25);
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,250,255,.96));
+      border:1px solid rgba(165,180,252,.34);
+      box-shadow:var(--shadow-soft);
+    }
+
+    .card:hover{border-color:rgba(129,140,248,.48)}
+    .card h2,.card h3{color:var(--heading)}
+
+    .card-title{
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(199,210,254,.62);
+    }
+
+    .item,
+    .class-notice-card,
+    .progress-person,
+    .timetable-period,
+    .timetable-editor-row{
+      background:linear-gradient(160deg,#fff,#f8faff);
+      border-color:rgba(165,180,252,.46);
+    }
+
+    .item:hover{
+      border-color:#818cf8;
+      box-shadow:0 10px 24px rgba(79,70,229,.11);
+    }
+
+    .item-title{color:var(--heading)}
+    .item-content{color:#334155}
+
+    .btn{background:#e2e8f0;color:#334155}
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      box-shadow:0 8px 18px rgba(79,70,229,.20);
+    }
+    .btn-primary:hover{background:linear-gradient(135deg,var(--primary-dark),var(--secondary-dark))}
+    .btn-soft{background:var(--primary-soft);color:var(--primary-dark)}
+    .btn-success{background:#d1fae5;color:#065f46}
+    .btn-danger{background:#ffe4e6;color:#9f1239}
+    .btn-ghost{background:rgba(255,255,255,.76);color:#475569;border-color:#c7d2fe}
+
+    .input,.select,.textarea{
+      background:#f8faff;
+      border-color:#c7d2fe;
+      color:#1e293b;
+    }
+    .input:hover,.select:hover,.textarea:hover{border-color:#a5b4fc}
+    .input:focus,.select:focus,.textarea:focus{background:#fff;border-color:var(--primary)}
+    .field label{color:#3730a3}
+    body[data-role="PHHS"] .field label{color:#115e59}
+
+    .stat{
+      position:relative;
+      overflow:hidden;
+      border-top:4px solid var(--primary);
+    }
+    .stat::after{
+      content:'';
+      position:absolute;
+      right:-24px;
+      bottom:-30px;
+      width:90px;
+      height:90px;
+      border-radius:50%;
+      background:rgba(129,140,248,.09);
+    }
+    .stat-icon{background:var(--primary-soft);color:var(--primary)}
+    #dashboardPage .grid > .col-3:nth-child(2) .stat{border-top-color:#0891b2}
+    #dashboardPage .grid > .col-3:nth-child(2) .stat-icon{background:#cffafe;color:#0e7490}
+    #dashboardPage .grid > .col-3:nth-child(3) .stat{border-top-color:#d97706}
+    #dashboardPage .grid > .col-3:nth-child(3) .stat-icon{background:#fef3c7;color:#b45309}
+    #dashboardPage .grid > .col-3:nth-child(4) .stat{border-top-color:#db2777}
+    #dashboardPage .grid > .col-3:nth-child(4) .stat-icon{background:#fce7f3;color:#be185d}
+    #dashboardPage .grid > .col-3:nth-child(5) .stat{border-top-color:#059669}
+    #dashboardPage .grid > .col-3:nth-child(5) .stat-icon{background:#d1fae5;color:#047857}
+
+    .badge-blue{background:#e0e7ff;color:#3730a3}
+    .badge-green{background:#d1fae5;color:#065f46}
+    .badge-yellow{background:#fef3c7;color:#92400e}
+    .badge-red{background:#ffe4e6;color:#9f1239}
+    .badge-purple{background:#ede9fe;color:#5b21b6}
+
+    .notice{border-color:#a5b4fc;background:#eef2ff;color:#3730a3}
+    .notice.warn{border-color:#fcd34d;background:#fffbeb;color:#92400e}
+    .notice.danger{border-color:#fda4af;background:#fff1f2;color:#9f1239}
+    .empty{background:#f8faff;border-color:#a5b4fc}
+
+    .table-wrap{border-color:#a5b4fc;background:#fff}
+    th{
+      color:#fff;
+      background:linear-gradient(135deg,#4338ca,#0e7490);
+      border-bottom-color:rgba(255,255,255,.18);
+    }
+    tbody tr:nth-child(even) td{background:rgba(238,242,255,.46)}
+    tbody tr:hover td{background:#ecfeff}
+
+    .modal-backdrop{background:rgba(30,27,75,.58);backdrop-filter:blur(5px)}
+    .modal{
+      border:1px solid rgba(165,180,252,.72);
+      background:linear-gradient(180deg,#fff,#f8faff);
+      box-shadow:0 30px 80px rgba(30,27,75,.34);
+    }
+    .modal-head{
+      margin:-18px -18px 16px;
+      padding:16px 18px;
+      color:#fff;
+      background:var(--header-gradient);
+      border-radius:23px 23px 16px 16px;
+    }
+    .modal-head h2{color:#fff}
+    .modal-head .muted{color:#dbeafe}
+    .close{color:#fff;background:rgba(255,255,255,.18)}
+    .close:hover{background:rgba(255,255,255,.30)}
+
+    .toast{background:linear-gradient(135deg,#312e81,#0e7490)}
+    .toast.success{background:linear-gradient(135deg,#065f46,#0f766e)}
+    .toast.warn{background:linear-gradient(135deg,#92400e,#d97706)}
+    .toast.error{background:linear-gradient(135deg,#881337,#be123c)}
+
+    .progress-hero{
+      border-color:#a5b4fc;
+      background:linear-gradient(135deg,#ede9fe 0%,#ecfeff 56%,#f0fdf4 100%);
+    }
+    .progress-level-ring{
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      box-shadow:0 14px 28px rgba(79,70,229,.27);
+    }
+    .progress-track{background:#ddd6fe}
+    .progress-track > span{background:linear-gradient(90deg,var(--primary),#06b6d4,#10b981)}
+    .progress-category{border-color:#c7d2fe;box-shadow:0 5px 14px rgba(79,70,229,.06)}
+    .progress-category:nth-child(1){background:#f5f3ff;border-color:#c4b5fd}
+    .progress-category:nth-child(2){background:#ecfeff;border-color:#a5f3fc}
+    .progress-category:nth-child(3){background:#eff6ff;border-color:#bfdbfe}
+    .progress-category:nth-child(4){background:#fffbeb;border-color:#fde68a}
+    .progress-category:nth-child(5){background:#ecfdf5;border-color:#a7f3d0}
+    .progress-goal-card{background:linear-gradient(135deg,#eef2ff,#ecfeff);border-color:#a5b4fc}
+    .progress-entry{background:#f8faff;border-left-color:#6366f1}
+    .progress-entry.parent{background:#ecfdf5;border-left-color:#10b981}
+    .progress-entry.reflection{background:#faf5ff;border-left-color:#a855f7}
+
+    .class-notice-card.important{border-color:#fb7185;background:linear-gradient(135deg,#fff1f2,#fff7ed)}
+    .confirmation-row.pending{background:#fffbeb;border-color:#fcd34d}
+    .health-metric{background:linear-gradient(160deg,#eef2ff,#ecfeff);border-color:#c7d2fe}
+
+    .timetable-status{border-color:#a5b4fc;background:linear-gradient(135deg,#eef2ff,#ecfeff)}
+    .timetable-status-icon{background:#e0e7ff;color:#4338ca}
+    .timetable-weekly thead th{background:linear-gradient(180deg,#4338ca,#312e81)}
+    .timetable-weekly .session-cell,.timetable-weekly .period-column{color:#6d28d9}
+    .timetable-note-label{color:#4338ca}
+    .timetable-period.active{border-color:#6366f1;background:#eef2ff;box-shadow:0 8px 18px rgba(79,70,229,.12)}
+    .timetable-capture-card{border-color:#c7d2fe;box-shadow:var(--shadow-soft)}
+
+    .responsive-card-table tr{border-color:#c7d2fe;background:linear-gradient(160deg,#fff,#f8faff)}
+
+    .footer-note{
+      margin:26px 0 0;
+      padding:17px 20px;
+      color:#dbeafe;
+      background:var(--footer-gradient);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:20px;
+      box-shadow:0 12px 28px rgba(30,27,75,.18);
+    }
+    .footer-note b{color:#fff}
+
+    @media (max-width:700px){
+      .nav{border-radius:17px;padding:8px}
+      .nav button{min-height:40px;padding:9px 12px}
+      .responsive-card-table tr{border-color:#c7d2fe;background:linear-gradient(160deg,#fff,#f8faff)}
+    }
+
+    @media (max-width:560px){
+      .topbar{margin:0 0 12px;padding:10px;border-radius:0 0 20px 20px}
+      .topbar-inner{align-items:center}
+      .top-actions .btn{background:rgba(255,255,255,.16)}
+      .app-shell{padding-top:8px}
+      .footer-note{border-radius:17px;padding:14px}
+    }
   </style>
 </head>
 
@@ -1691,7 +2037,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.0.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.1.0</b>
       </p>
     </div>
   </main>
@@ -1707,7 +2053,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '16.0.0';
+const APP_VERSION = '16.1.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -1960,11 +2306,13 @@ async function bootSession(){
 }
 
 function showLogin(){
+  document.body.removeAttribute('data-role');
   $('#loginView').classList.remove('hidden');
   $('#appView').classList.add('hidden');
 }
 
 function showApp(){
+  document.body.dataset.role = normalizeRole(state.user?.Role || '');
   $('#loginView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
   if(state.dashboard && state.dashboard.noticePendingCount !== undefined){
@@ -2041,24 +2389,25 @@ function renderUser(){
 function renderNav(){
   const role = normalizeRole(state.user?.Role);
   const items = [
-    { id:'dashboard', label:'Tổng quan', show:true },
-    { id:'timetable', label:'Thời khóa biểu', show:true },
-    { id:'students', label:'Học sinh', show:role === 'GVCN' },
-    { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
-    { id:'messages', label:'Tin nhắn', show:true },
-    { id:'notices', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
-    { id:'progress', label:'Hành trình tiến bộ', show:true },
-    { id:'activities', label:'Các hoạt động chính', show:true },
-    { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
-    { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
-    { id:'setup', label:'Thiết lập', show:role === 'GVCN' },
-    { id:'operations', label:'Sao lưu & năm học', show:role === 'GVCN' },
-    { id:'aiStats', label:'Thống kê AI', show:role === 'GVCN' }
+    { id:'dashboard', icon:'🏠', label:'Tổng quan', show:true },
+    { id:'timetable', icon:'📅', label:'Thời khóa biểu', show:true },
+    { id:'students', icon:'👥', label:'Học sinh', show:role === 'GVCN' },
+    { id:'profile', icon:'🪪', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
+    { id:'messages', icon:'💬', label:'Tin nhắn', show:true },
+    { id:'notices', icon:'🔔', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
+    { id:'progress', icon:'🌱', label:'Hành trình tiến bộ', show:true },
+    { id:'activities', icon:'🎯', label:'Các hoạt động chính', show:true },
+    { id:'aiSupport', icon:'✨', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
+    { id:'reset', icon:'🔐', label:'Quên mật khẩu', show:role === 'GVCN' },
+    { id:'setup', icon:'⚙️', label:'Thiết lập', show:role === 'GVCN' },
+    { id:'operations', icon:'🗄️', label:'Sao lưu & năm học', show:role === 'GVCN' },
+    { id:'aiStats', icon:'📊', label:'Thống kê AI', show:role === 'GVCN' }
   ].filter(i => i.show);
 
   $('#nav').innerHTML = items.map(i => `
     <button type="button" data-page="${i.id}" class="${state.currentPage === i.id ? 'active' : ''}">
-      ${escapeHTML(i.label)}
+      <span class="nav-icon" aria-hidden="true">${i.icon}</span>
+      <span>${escapeHTML(i.label)}</span>
     </button>
   `).join('');
 
@@ -4132,7 +4481,7 @@ function openAIModal(studentID){
         </form>
 
         <div id="aiResultWrap" class="hidden" style="margin-top:14px">
-          <div class="card" style="box-shadow:none;background:#f8fafc">
+          <div class="card" style="box-shadow:none;background:var(--surface-soft)">
             <div class="card-title">
               <div>
                 <h2>Gợi ý của AI</h2>
@@ -4140,7 +4489,7 @@ function openAIModal(studentID){
               </div>
               <button id="copyAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
             </div>
-            <div id="aiResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+            <div id="aiResult" class="item-content" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
           </div>
         </div>
 
@@ -5664,7 +6013,7 @@ function renderAISupportPage(){
           </form>
 
           <div id="personalAIResultWrap" class="hidden" style="margin-top:14px">
-            <div class="card" style="box-shadow:none;background:#f8fafc">
+            <div class="card" style="box-shadow:none;background:var(--surface-soft)">
               <div class="card-title">
                 <div>
                   <h2>Gợi ý của AI</h2>
@@ -5672,7 +6021,7 @@ function renderAISupportPage(){
                 </div>
                 <button id="copyPersonalAIResultBtn" class="btn btn-soft btn-small" type="button">Sao chép</button>
               </div>
-              <div id="personalAIResult" class="item-content" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px"></div>
+              <div id="personalAIResult" class="item-content" style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px"></div>
             </div>
           </div>
 
