@@ -2076,7 +2076,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.1.1</b>
+        Sản phẩm tạo sự kết nối thuận lợi giữa GVCN với HS và CMHS. <br><b id="appVersionText">Phiên bản 16.1.1</b>
       </p>
     </div>
   </main>
@@ -5369,12 +5369,11 @@ function renderSetup(){
   const stats = setup.stats || {};
   const sheetStatus = setup.sheetStatus || [];
   const missingSheets = sheetStatus.filter(s => !s.exists || !s.headerOk).length;
-
   $('#setupPage').innerHTML = `
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Bản ${APP_VERSION}:</b> chạy <b>setupAll()</b> một lần trong Apps Script, triển khai Web App rồi cấu hình lớp và AI trong màn hình này.
+          <b>Bản ${APP_VERSION}:Đây là bản thử nghiệm nên có thể có sai sót. Chúng tôi đang tiếp tục hoàn chỉnh và bổ sung các chức năng hữu ích cho GVCN.</b>
         </div>
       </div>
 
@@ -5468,7 +5467,7 @@ function renderSetup(){
           <div class="card-title">
             <div>
               <h2>Cấu hình AI</h2>
-              <p class="muted" style="margin:.25rem 0 0">API key lưu trong Apps Script Properties, không lưu trong GitHub.</p>
+              <p class="muted" style="margin:.25rem 0 0">API key được bảo mật!</p>
             </div>
             ${ai.currentProviderHasKey ? '<span class="badge badge-green">Đã có key</span>' : '<span class="badge badge-yellow">Chưa có key</span>'}
           </div>
