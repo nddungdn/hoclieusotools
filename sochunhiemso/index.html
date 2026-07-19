@@ -62,6 +62,111 @@
     .success-text{color:var(--success)}
     .warning-text{color:#b45309}
 
+    .progress-hero{
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:18px;
+      align-items:center;
+      background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);
+      border:1px solid #bfdbfe;
+      border-radius:22px;
+      padding:20px;
+    }
+
+    .progress-level-ring{
+      width:104px;
+      height:104px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      background:linear-gradient(135deg,#2563eb,#14b8a6);
+      color:#fff;
+      box-shadow:0 14px 28px rgba(37,99,235,.22);
+      flex:0 0 auto;
+    }
+
+    .progress-level-ring strong{font-size:1.7rem;line-height:1}
+    .progress-level-ring span{font-size:.72rem;font-weight:800;margin-top:3px}
+    .progress-level-name{font-size:1.35rem;font-weight:900;margin:0 0 5px}
+    .progress-track{height:12px;border-radius:999px;background:#dbeafe;overflow:hidden;margin:10px 0 6px}
+    .progress-track > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#14b8a6)}
+
+    .progress-category-grid{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .progress-category{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:13px 10px;
+      background:#fff;
+      text-align:center;
+    }
+
+    .progress-category .icon{font-size:1.35rem}
+    .progress-category strong{display:block;font-size:1.15rem;margin:3px 0}
+    .progress-category span{font-size:.78rem;color:var(--muted);font-weight:750}
+
+    .progress-student-picker{
+      display:grid;
+      grid-template-columns:minmax(220px,1fr) auto;
+      gap:10px;
+      align-items:end;
+    }
+
+    .progress-overview-list{display:grid;gap:8px;max-height:480px;overflow:auto;padding-right:2px}
+    .progress-person{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      padding:11px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+    .progress-person.needs{border-color:#fde68a;background:#fffbeb}
+    .progress-person button{white-space:nowrap}
+
+    .progress-goal-card{
+      border:1px solid #c7d2fe;
+      background:#eef2ff;
+      border-radius:17px;
+      padding:15px;
+      line-height:1.55;
+    }
+
+    .progress-timeline{display:grid;gap:10px}
+    .progress-entry{
+      border-left:4px solid #60a5fa;
+      background:#f8fafc;
+      border-radius:0 15px 15px 0;
+      padding:12px 14px;
+    }
+    .progress-entry.parent{border-left-color:#34d399;background:#f0fdf4}
+    .progress-entry.reflection{border-left-color:#a78bfa;background:#faf5ff}
+    .progress-entry-head{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}
+    .progress-entry p{white-space:pre-wrap;margin:8px 0 0;line-height:1.55}
+    .progress-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .progress-privacy{font-size:.8rem;color:var(--muted);margin-top:8px}
+
+    @media (max-width:900px){
+      .progress-category-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+
+    @media (max-width:560px){
+      .progress-hero{grid-template-columns:1fr;text-align:center;padding:16px}
+      .progress-level-ring{margin:0 auto;width:92px;height:92px}
+      .progress-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .progress-student-picker{grid-template-columns:1fr}
+      .progress-person{grid-template-columns:1fr}
+      .progress-entry-head{display:block}
+    }
+
     .app-shell{
       width:min(var(--max),calc(100% - 28px));
       margin:0 auto;
@@ -1577,6 +1682,7 @@
       <section id="profilePage" class="page hidden"></section>
       <section id="messagesPage" class="page hidden"></section>
       <section id="noticesPage" class="page hidden"></section>
+      <section id="progressPage" class="page hidden"></section>
       <section id="activitiesPage" class="page hidden"></section>
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
@@ -1585,7 +1691,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 15.0.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.0.0</b>
       </p>
     </div>
   </main>
@@ -1601,7 +1707,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '15.0.0';
+const APP_VERSION = '16.0.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -1637,6 +1743,8 @@ const state = {
   messages: [],
   notices: [],
   noticePendingCount: 0,
+  progress: null,
+  progressStudentID: '',
   activities: [],
   setup: null,
   operations: null,
@@ -1892,6 +2000,8 @@ function clearSession(){
   state.messages = [];
   state.notices = [];
   state.noticePendingCount = 0;
+  state.progress = null;
+  state.progressStudentID = '';
   state.operations = null;
   clearPersistentSession();
   localStorage.removeItem(LS_DASHBOARD_CACHE);
@@ -1937,6 +2047,7 @@ function renderNav(){
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
     { id:'notices', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
+    { id:'progress', label:'Hành trình tiến bộ', show:true },
     { id:'activities', label:'Các hoạt động chính', show:true },
     { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
@@ -1957,7 +2068,7 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','timetable','students','profile','messages','notices','activities','aiSupport','reset','setup','operations','aiStats'].includes(page)) page = 'dashboard';
+  if(!['dashboard','timetable','students','profile','messages','notices','progress','activities','aiSupport','reset','setup','operations','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
@@ -1977,6 +2088,7 @@ async function goPage(page, save=true){
   if(page === 'profile') await openDefaultProfile();
   if(page === 'messages') await loadMessages();
   if(page === 'notices') await loadNotices();
+  if(page === 'progress') await loadProgressJourney();
   if(page === 'activities') await loadActivities();
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
@@ -2067,9 +2179,11 @@ function renderDashboard(){
     cards += statCard('✉️', d.unreadCount || 0, 'Tin nhắn chưa đọc');
     cards += statCard('🟡', d.needAttentionCount || 0, 'Ghi nhận cần quan tâm');
     cards += statCard('🔐', d.pendingResetCount || 0, 'Yêu cầu quên mật khẩu');
+    cards += statCard('🌱', d.progressEncouragementNeeded || 0, 'HS cần được khích lệ');
   }else{
     cards += statCard('✉️', d.unreadCount || 0, 'Tin nhắn chưa đọc');
     cards += statCard(role === 'PHHS' ? '👪' : '🎒', d.student?.FullName || '—', role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em', true);
+    cards += statCard('🌟', d.progress?.level?.name || 'Khởi động', role === 'PHHS' ? 'Hành trình của con' : 'Cấp tiến bộ của em', true);
   }
 
   const recent = (d.recentMessages || []).slice(0,5);
@@ -2096,13 +2210,12 @@ function renderDashboard(){
 
       <div class="col-4">
         <div class="card">
-          <h2>Gợi ý sử dụng</h2>
-          <p class="muted">
-            GVCN nên cập nhật hồ sơ học sinh theo dòng thời gian: sự việc, biểu hiện, hoàn cảnh, biện pháp đã làm và kết quả theo dõi.
-          </p>
-          <div class="notice warn">
-            Không công khai thông tin riêng tư, không dùng tiện ích để dán nhãn học sinh.
-          </div>
+          <h2>${role === 'GVCN' ? 'Ghi nhận đúng lúc' : 'Bước tiến nhỏ mỗi tuần'}</h2>
+          <p class="muted">${role === 'GVCN'
+            ? 'Một lời ghi nhận cụ thể giúp học sinh hiểu mình đã tiến bộ ở đâu. Không cộng hàng loạt và không so sánh giữa các em.'
+            : (role === 'PHHS' ? 'Hãy xem mục tiêu của con và gửi một lời động viên ngắn, cụ thể.' : 'Em có thể đặt một mục tiêu nhỏ và viết điều mình đã cố gắng trong tuần.')}</p>
+          <button class="btn btn-soft full" onclick="goPage('progress')">Mở Hành trình tiến bộ</button>
+          <div class="notice warn" style="margin-top:12px">Không công khai thông tin riêng tư, không dùng tiện ích để dán nhãn học sinh.</div>
         </div>
       </div>
     </div>
@@ -5765,6 +5878,443 @@ function copyAIStatsVisible(){
   if(!trs.length){ showToast('Chưa có bảng thống kê để sao chép.', 'warn'); return; }
   const text = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('\t')).join('\n');
   copyText(text);
+}
+
+/* =========================================================
+   HÀNH TRÌNH TIẾN BỘ
+========================================================= */
+
+async function loadProgressJourney(studentID=''){
+  const role = normalizeRole(state.user?.Role);
+  const requested = role === 'GVCN' ? (studentID || state.progressStudentID || '') : '';
+  await withLoading(async () => {
+    const data = await api('getProgressJourney', { token:state.token, studentID:requested });
+    state.progress = data;
+    state.progressStudentID = data.student?.StudentID || '';
+    renderProgressPage();
+  }, 'Đang tải hành trình tiến bộ...');
+}
+
+function applyProgressJourney(journey){
+  state.progress = journey;
+  state.progressStudentID = journey?.student?.StudentID || state.progressStudentID || '';
+  renderProgressPage();
+}
+
+function progressBool(value){
+  return value === true || String(value || '').toUpperCase() === 'TRUE';
+}
+
+function progressLevelPercent(summary, levels){
+  const info = summary?.level || {};
+  if(info.maxLevel) return 100;
+  const current = (levels || []).find(item => Number(item.level) === Number(info.number)) || { min:0 };
+  const span = Math.max(1, Number(info.nextAt || 0) - Number(current.min || 0));
+  return Math.max(0, Math.min(100, Math.round((Number(info.total || 0) - Number(current.min || 0)) / span * 100)));
+}
+
+function renderProgressHero(data){
+  const summary = data.summary || { level:{ number:1, name:'Khởi động', total:0, remaining:3 } };
+  const level = summary.level || {};
+  const percent = progressLevelPercent(summary, data.meta?.levels || []);
+  const categories = data.meta?.categories || [];
+  return `
+    <div class="progress-hero">
+      <div class="progress-level-ring"><div><strong>${escapeHTML(level.number || 1)}</strong><br><span>CẤP ĐỘ</span></div></div>
+      <div>
+        <p class="progress-level-name">${escapeHTML(level.name || 'Khởi động')}</p>
+        <div class="muted">${escapeHTML(data.student?.FullName || '')} · Học kỳ ${escapeHTML(data.meta?.semester || '')} · ${escapeHTML(data.meta?.schoolYear || '')}</div>
+        <div class="progress-track" aria-label="Tiến độ cấp độ"><span style="width:${percent}%"></span></div>
+        <div class="muted" style="font-size:.86rem">
+          ${level.maxLevel
+            ? `Đã đạt cấp cao nhất của chặng này · ${Number(summary.countedTotal || 0)} dấu tiến bộ`
+            : `Còn ${Number(level.remaining || 0)} dấu để lên cấp tiếp theo · ${Number(summary.countedThisWeek || 0)}/${Number(data.meta?.maxCountedPerWeek || 2)} dấu được tính trong tuần`}
+        </div>
+      </div>
+    </div>
+    <div class="progress-category-grid">
+      ${categories.map(item => `
+        <div class="progress-category" title="${escapeHTML(item.description || '')}">
+          <div class="icon">${escapeHTML(item.icon || '🌟')}</div>
+          <strong>${Number(summary.categoryCounts?.[item.key] || 0)}</strong>
+          <span>${escapeHTML(item.key)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function progressStudentOptions(data){
+  return (data.overview || []).map(item => `
+    <option value="${escapeHTML(item.StudentID || '')}" ${String(item.StudentID) === String(data.student?.StudentID) ? 'selected' : ''}>
+      ${escapeHTML(item.FullName || item.StudentID)} · ${escapeHTML(item.StudentID || '')}
+    </option>
+  `).join('');
+}
+
+function renderCurrentProgressGoal(data, teacher=false){
+  const goal = data.currentGoal;
+  if(!goal){
+    return `<div class="empty">${teacher ? 'Học sinh chưa đặt mục tiêu cho tuần này.' : 'Chưa có mục tiêu tuần. Em hãy chọn một việc nhỏ và vừa sức.'}</div>`;
+  }
+  return `
+    <div class="progress-goal-card">
+      <div class="progress-entry-head">
+        <b>🎯 ${escapeHTML(goal.GoalText || '')}</b>
+        <span class="badge ${progressBool(goal.TeacherConfirmed) ? 'badge-green' : 'badge-yellow'}">
+          ${progressBool(goal.TeacherConfirmed) ? 'GVCN đã xác nhận' : escapeHTML(goal.StudentStatus || 'Đang thực hiện')}
+        </span>
+      </div>
+      ${goal.TeacherFeedback ? `<p style="margin:10px 0 0"><b>Phản hồi của GVCN:</b> ${escapeHTML(goal.TeacherFeedback)}</p>` : ''}
+      ${teacher ? `<div class="progress-actions"><button class="btn btn-soft btn-small" onclick="openProgressGoalReview('${escapeHTML(escapeJS(goal.GoalID || ''))}')">Phản hồi mục tiêu</button></div>` : ''}
+    </div>
+  `;
+}
+
+function renderProgressRecognitions(data, teacher=false){
+  const rows = data.recognitions || [];
+  if(!rows.length) return `<div class="empty">Chưa có ghi nhận trong học kỳ này.</div>`;
+  return `<div class="progress-timeline">${rows.map(row => `
+    <div class="progress-entry">
+      <div class="progress-entry-head">
+        <div><b>${escapeHTML(row.Category || 'Tiến bộ')}</b> · <span class="muted">${escapeHTML(row.CreatedByName || 'GVCN')}</span></div>
+        <span class="muted" style="font-size:.8rem">${escapeHTML(formatDateTime(row.CreatedAt))}</span>
+      </div>
+      <p>${escapeHTML(row.Note || '')}</p>
+      <div class="progress-privacy">
+        ${progressBool(row.CountsTowardLevel) ? '🌟 Có tính vào cấp độ' : '💬 Lời ghi nhận thêm — tuần này đã đủ hai dấu'}
+        ${progressBool(row.ShareWithParent) ? ' · PHHS được xem' : ' · Riêng HS–GVCN'}
+      </div>
+      ${teacher ? `<div class="progress-actions"><button class="btn btn-danger btn-small" onclick="deleteProgressRecognition('${escapeHTML(escapeJS(row.RecognitionID || ''))}')">Xóa ghi nhận</button></div>` : ''}
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderProgressReflections(data, teacher=false){
+  const rows = data.reflections || [];
+  if(!rows.length) return `<div class="empty">Chưa có chia sẻ “Điều em đã cố gắng”.</div>`;
+  return `<div class="progress-timeline">${rows.map(row => `
+    <div class="progress-entry reflection">
+      <div class="progress-entry-head">
+        <b>📝 ${escapeHTML(row.ReviewStatus || 'Chờ phản hồi')}</b>
+        <span class="muted" style="font-size:.8rem">${escapeHTML(formatDateTime(row.CreatedAt))}</span>
+      </div>
+      <p>${escapeHTML(row.Content || '')}</p>
+      ${row.TeacherResponse ? `<p><b>GVCN:</b> ${escapeHTML(row.TeacherResponse)}</p>` : ''}
+      <div class="progress-privacy">${progressBool(row.ShareWithParent) ? 'PHHS được xem' : 'Riêng HS–GVCN'}</div>
+      ${teacher ? `<div class="progress-actions"><button class="btn btn-soft btn-small" onclick="openProgressReflectionReview('${escapeHTML(escapeJS(row.ReflectionID || ''))}')">${String(row.ReviewStatus) === 'Chờ phản hồi' ? 'Phản hồi' : 'Xem / cập nhật phản hồi'}</button></div>` : ''}
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderProgressEncouragements(data){
+  const rows = data.encouragements || [];
+  if(!rows.length) return `<div class="empty">Chưa có lời động viên từ gia đình.</div>`;
+  return `<div class="progress-timeline">${rows.map(row => `
+    <div class="progress-entry parent">
+      <div class="progress-entry-head">
+        <b>💚 ${escapeHTML(row.ParentName || 'PHHS')}</b>
+        <span class="muted" style="font-size:.8rem">${escapeHTML(formatDateTime(row.CreatedAt))}</span>
+      </div>
+      <p>${escapeHTML(row.Content || '')}</p>
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderTeacherProgressPage(data){
+  const selected = data.student;
+  const needs = (data.overview || []).filter(item => item.NeedsEncouragement);
+  const pending = data.pendingReflections || [];
+  return `
+    <div class="grid">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-title">
+            <div><h2>Hành trình tiến bộ</h2><p class="muted" style="margin:.25rem 0 0">Ghi nhận cụ thể, tích cực và riêng tư. Không trừ điểm, không xếp hạng, không dùng làm hạnh kiểm.</p></div>
+            <span class="badge badge-blue">Học kỳ ${escapeHTML(data.meta?.semester || '')} · ${escapeHTML(data.meta?.schoolYear || '')}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card">
+          <h2>Chọn học sinh</h2>
+          <div class="progress-student-picker">
+            <div class="field"><label>Học sinh cần xem</label><select id="progressStudentSelect" class="select" onchange="selectProgressStudent(this.value)">${progressStudentOptions(data)}</select></div>
+            <button class="btn btn-soft" onclick="loadProgressJourney(state.progressStudentID)">Làm mới</button>
+          </div>
+        </div>
+
+        ${selected ? `<div class="card" style="margin-top:14px">
+          <h2>Ghi nhận tích cực</h2>
+          <form id="progressRecognitionForm" class="form-grid">
+            <div class="field"><label>Nhóm tiến bộ</label><select id="progressRecognitionCategory" class="select">${(data.meta?.categories || []).map(item => `<option>${escapeHTML(item.key)}</option>`).join('')}</select></div>
+            <div class="field"><label>Lý do cụ thể</label><textarea id="progressRecognitionNote" class="textarea" maxlength="300" placeholder="Ví dụ: Em đã chủ động làm lại bài sau khi được góp ý."></textarea></div>
+            <label style="display:flex;gap:9px;align-items:flex-start"><input id="progressShareParent" type="checkbox" checked> <span>Chia sẻ lời ghi nhận này với PHHS</span></label>
+            <button class="btn btn-primary full" type="submit">🌟 Ghi nhận tiến bộ</button>
+          </form>
+          <p class="progress-privacy">Tối đa hai dấu mỗi tuần được tính cấp độ. Lời ghi nhận thêm vẫn được lưu đầy đủ.</p>
+        </div>` : ''}
+
+        <div class="card" style="margin-top:14px">
+          <div class="card-title"><div><h2>Cần được khích lệ</h2><p class="muted" style="margin:.25rem 0 0">Chưa có ghi nhận mới trong 14 ngày; danh sách xếp theo tên, không xếp hạng.</p></div><span class="badge badge-yellow">${needs.length}</span></div>
+          ${needs.length ? `<div class="progress-overview-list">${needs.map(item => `
+            <div class="progress-person needs"><div><b>${escapeHTML(item.FullName || item.StudentID)}</b><div class="muted">${escapeHTML(item.StudentID || '')} · Cấp ${Number(item.LevelNumber || 1)} ${escapeHTML(item.LevelName || '')}</div></div><button class="btn btn-soft btn-small" onclick="selectProgressStudent('${escapeHTML(escapeJS(item.StudentID || ''))}')">Mở</button></div>
+          `).join('')}</div>` : '<div class="empty">Mọi học sinh đều đã có ghi nhận gần đây.</div>'}
+        </div>
+      </div>
+
+      <div class="col-8">
+        ${selected ? `<div class="card">${renderProgressHero(data)}</div>` : '<div class="card empty">Chưa có học sinh để hiển thị.</div>'}
+
+        ${selected ? `<div class="card" style="margin-top:14px"><div class="card-title"><div><h2>Mục tiêu tuần</h2><p class="muted" style="margin:.25rem 0 0">Học sinh tự chọn một mục tiêu nhỏ và vừa sức.</p></div></div>${renderCurrentProgressGoal(data, true)}</div>` : ''}
+
+        ${pending.length ? `<div class="card" style="margin-top:14px">
+          <div class="card-title"><div><h2>Chờ GVCN phản hồi</h2><p class="muted" style="margin:.25rem 0 0">Nhật ký do học sinh chủ động gửi.</p></div><span class="badge badge-purple">${pending.length}</span></div>
+          <div class="progress-timeline">${pending.slice(0,8).map(row => `
+            <div class="progress-entry reflection"><div class="progress-entry-head"><b>${escapeHTML(row.StudentName || row.StudentID)}</b><span class="muted">${escapeHTML(formatDateTime(row.CreatedAt))}</span></div><p>${escapeHTML(row.Content || '')}</p><div class="progress-actions"><button class="btn btn-soft btn-small" onclick="openProgressReflectionReview('${escapeHTML(escapeJS(row.ReflectionID || ''))}')">Phản hồi</button><button class="btn btn-ghost btn-small" onclick="selectProgressStudent('${escapeHTML(escapeJS(row.StudentID || ''))}')">Mở học sinh</button></div></div>
+          `).join('')}</div>
+        </div>` : ''}
+
+        ${selected ? `<div class="card" style="margin-top:14px"><h2>Ghi nhận gần đây</h2>${renderProgressRecognitions(data, true)}</div>
+        <div class="card" style="margin-top:14px"><h2>Điều em đã cố gắng</h2>${renderProgressReflections(data, true)}</div>
+        <div class="card" style="margin-top:14px"><h2>Lời động viên của PHHS</h2>${renderProgressEncouragements(data)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderStudentProgressForms(data){
+  const goal = data.currentGoal || {};
+  return `
+    <div class="card">
+      <h2>Mục tiêu tuần của em</h2>
+      <p class="muted">Chọn một việc nhỏ, rõ ràng và em có thể tự thực hiện.</p>
+      <form id="progressGoalForm" class="form-grid">
+        <div class="field"><label>Mục tiêu tuần này</label><input id="progressGoalText" class="input" maxlength="180" value="${escapeHTML(goal.GoalText || '')}" placeholder="Ví dụ: Em sẽ chủ động hỏi khi chưa hiểu bài." /></div>
+        <div class="field"><label>Em tự đánh giá</label><select id="progressGoalStatus" class="select">
+          ${['Đang thực hiện','Em đã làm được','Em đang tiếp tục','Em muốn điều chỉnh'].map(status => `<option ${String(goal.StudentStatus || 'Đang thực hiện') === status ? 'selected' : ''}>${escapeHTML(status)}</option>`).join('')}
+        </select></div>
+        <button class="btn btn-primary full" type="submit">Lưu mục tiêu tuần</button>
+      </form>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>Điều em đã cố gắng</h2>
+      <p class="muted">Không cần là thành tích lớn. Em hãy viết một điều mình đã thử, đã kiên trì hoặc làm tốt hơn trước.</p>
+      <form id="progressReflectionForm" class="form-grid">
+        <div class="field"><label>Chia sẻ của em</label><textarea id="progressReflectionContent" class="textarea" maxlength="300" placeholder="Tuần này em đã..."></textarea></div>
+        <label style="display:flex;gap:9px;align-items:flex-start"><input id="progressReflectionShare" type="checkbox"> <span>Cho PHHS xem chia sẻ này và phản hồi của GVCN</span></label>
+        <button class="btn btn-soft full" type="submit">Gửi đến GVCN</button>
+      </form>
+    </div>
+  `;
+}
+
+function renderParentProgressForm(data){
+  const goalID = data.currentGoal?.GoalID || '';
+  const recognitionID = data.recognitions?.[0]?.RecognitionID || '';
+  return `
+    <div class="card">
+      <h2>Gửi lời động viên</h2>
+      <p class="muted">Một câu ngắn, cụ thể thường có ý nghĩa hơn phần thưởng vật chất.</p>
+      <form id="progressEncouragementForm" class="form-grid">
+        <div class="field"><label>Chọn lời gợi ý</label><select id="progressEncouragementPreset" class="select" onchange="fillProgressEncouragement(this.value)">
+          <option value="">Tự viết lời động viên</option>
+          <option>Ba/mẹ ghi nhận sự cố gắng của con.</option>
+          <option>Con cứ tiến từng bước nhỏ, gia đình luôn đồng hành.</option>
+          <option>Ba/mẹ rất vui vì con đã chủ động và không bỏ cuộc.</option>
+          <option>Cảm ơn con vì đã giữ đúng điều mình cam kết.</option>
+        </select></div>
+        <div class="field"><label>Lời nhắn</label><textarea id="progressEncouragementContent" class="textarea" maxlength="250" placeholder="Viết lời động viên cho con..."></textarea></div>
+        <input id="progressEncouragementGoalID" type="hidden" value="${escapeHTML(goalID)}">
+        <input id="progressEncouragementRecognitionID" type="hidden" value="${escapeHTML(recognitionID)}">
+        <button class="btn btn-success full" type="submit">💚 Gửi đến con</button>
+      </form>
+      <p class="progress-privacy">Lời động viên không làm tăng cấp độ và không thay đổi ghi nhận của GVCN.</p>
+    </div>
+  `;
+}
+
+function renderLearnerProgressPage(data, role){
+  return `
+    <div class="grid">
+      <div class="col-12"><div class="card"><div class="card-title"><div><h2>${role === 'PHHS' ? 'Hành trình tiến bộ của con' : 'Bước tiến của em'}</h2><p class="muted" style="margin:.25rem 0 0">Mỗi dấu là một lời ghi nhận tích cực. Không xếp hạng và không so sánh với bạn khác.</p></div><span class="badge badge-blue">Học kỳ ${escapeHTML(data.meta?.semester || '')}</span></div>${renderProgressHero(data)}</div></div>
+      <div class="col-6">
+        <div class="card"><h2>Mục tiêu tuần</h2>${renderCurrentProgressGoal(data, false)}</div>
+        ${role === 'HS' ? renderStudentProgressForms(data) : renderParentProgressForm(data)}
+      </div>
+      <div class="col-6">
+        <div class="card"><h2>Ghi nhận từ GVCN</h2>${renderProgressRecognitions(data, false)}</div>
+        <div class="card" style="margin-top:14px"><h2>Điều em đã cố gắng</h2>${renderProgressReflections(data, false)}</div>
+        <div class="card" style="margin-top:14px"><h2>Lời động viên của gia đình</h2>${renderProgressEncouragements(data)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProgressPage(){
+  const page = $('#progressPage');
+  if(!page) return;
+  const data = state.progress;
+  if(!data){ page.innerHTML = '<div class="card empty">Chưa tải được dữ liệu hành trình tiến bộ.</div>'; return; }
+  const role = normalizeRole(state.user?.Role);
+  page.innerHTML = role === 'GVCN' ? renderTeacherProgressPage(data) : renderLearnerProgressPage(data, role);
+  bindProgressForms(role);
+}
+
+function bindProgressForms(role){
+  const recognitionForm = $('#progressRecognitionForm');
+  if(recognitionForm) recognitionForm.addEventListener('submit', addProgressRecognition);
+  const goalForm = $('#progressGoalForm');
+  if(goalForm) goalForm.addEventListener('submit', saveProgressGoal);
+  const reflectionForm = $('#progressReflectionForm');
+  if(reflectionForm) reflectionForm.addEventListener('submit', addProgressReflection);
+  const encouragementForm = $('#progressEncouragementForm');
+  if(encouragementForm) encouragementForm.addEventListener('submit', sendProgressEncouragement);
+}
+
+async function selectProgressStudent(studentID){
+  state.progressStudentID = studentID || '';
+  await loadProgressJourney(state.progressStudentID);
+}
+
+async function addProgressRecognition(e){
+  e.preventDefault();
+  const note = $('#progressRecognitionNote')?.value.trim() || '';
+  if(!note){ showToast('Vui lòng viết lý do ghi nhận cụ thể.', 'warn'); return; }
+  await withLoading(async () => {
+    const result = await api('addProgressRecognition', {
+      token:state.token,
+      studentID:state.progressStudentID,
+      category:$('#progressRecognitionCategory').value,
+      note,
+      shareWithParent:$('#progressShareParent').checked
+    });
+    applyProgressJourney(result.journey);
+    showToast(result.message || 'Đã ghi nhận tiến bộ.', 'success', 5200);
+  }, 'Đang lưu ghi nhận...');
+}
+
+async function deleteProgressRecognition(recognitionID){
+  if(!confirm('Xóa lời ghi nhận này? Cấp độ của học sinh sẽ được tính lại.')) return;
+  await withLoading(async () => {
+    const result = await api('deleteProgressRecognition', { token:state.token, recognitionID });
+    applyProgressJourney(result.journey);
+    showToast(result.message || 'Đã xóa ghi nhận.', 'success');
+  }, 'Đang xóa ghi nhận...');
+}
+
+async function saveProgressGoal(e){
+  e.preventDefault();
+  const goalText = $('#progressGoalText')?.value.trim() || '';
+  if(!goalText){ showToast('Em hãy nhập mục tiêu tuần.', 'warn'); return; }
+  await withLoading(async () => {
+    const result = await api('saveWeeklyGoal', { token:state.token, goalText, studentStatus:$('#progressGoalStatus').value });
+    applyProgressJourney(result.journey);
+    showToast(result.message || 'Đã lưu mục tiêu.', 'success');
+  }, 'Đang lưu mục tiêu...');
+}
+
+async function addProgressReflection(e){
+  e.preventDefault();
+  const content = $('#progressReflectionContent')?.value.trim() || '';
+  if(!content){ showToast('Em hãy viết điều mình đã cố gắng.', 'warn'); return; }
+  await withLoading(async () => {
+    const result = await api('addProgressReflection', { token:state.token, content, shareWithParent:$('#progressReflectionShare').checked });
+    applyProgressJourney(result.journey);
+    showToast(result.message || 'Đã gửi đến GVCN.', 'success');
+  }, 'Đang gửi chia sẻ...');
+}
+
+function fillProgressEncouragement(value){
+  const field = $('#progressEncouragementContent');
+  if(field && value) field.value = value;
+}
+
+async function sendProgressEncouragement(e){
+  e.preventDefault();
+  const content = $('#progressEncouragementContent')?.value.trim() || '';
+  if(!content){ showToast('Vui lòng viết lời động viên.', 'warn'); return; }
+  await withLoading(async () => {
+    const result = await api('sendProgressEncouragement', {
+      token:state.token,
+      content,
+      goalID:$('#progressEncouragementGoalID')?.value || '',
+      recognitionID:$('#progressEncouragementRecognitionID')?.value || ''
+    });
+    applyProgressJourney(result.journey);
+    showToast(result.message || 'Đã gửi lời động viên.', 'success');
+  }, 'Đang gửi lời động viên...');
+}
+
+function openProgressGoalReview(goalID){
+  const goal = (state.progress?.goals || []).find(item => String(item.GoalID) === String(goalID));
+  if(!goal){ showToast('Không tìm thấy mục tiêu tuần.', 'warn'); return; }
+  openModal(`
+    <div class="modal-backdrop"><div class="modal">
+      <div class="modal-head"><div><h2>Phản hồi mục tiêu tuần</h2><p class="muted" style="margin:.25rem 0 0">${escapeHTML(goal.GoalText || '')}</p></div><button class="close" onclick="closeModal()">×</button></div>
+      <form id="progressGoalReviewForm" class="form-grid">
+        <div class="field"><label>Phản hồi cho học sinh</label><textarea id="progressGoalFeedback" class="textarea" maxlength="300" placeholder="Gợi ý ngắn, cụ thể...">${escapeHTML(goal.TeacherFeedback || '')}</textarea></div>
+        <label style="display:flex;gap:9px;align-items:flex-start"><input id="progressGoalConfirmed" type="checkbox" ${progressBool(goal.TeacherConfirmed) ? 'checked' : ''}> <span>Xác nhận đã xem mục tiêu và phần tự đánh giá</span></label>
+        <button class="btn btn-primary full" type="submit">Gửi phản hồi</button>
+      </form>
+    </div></div>
+  `);
+  $('#progressGoalReviewForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    await withLoading(async () => {
+      const result = await api('reviewWeeklyGoal', { token:state.token, goalID, feedback:$('#progressGoalFeedback').value.trim(), confirmed:$('#progressGoalConfirmed').checked });
+      closeModal(); applyProgressJourney(result.journey); showToast(result.message || 'Đã phản hồi.', 'success');
+    }, 'Đang gửi phản hồi...');
+  });
+}
+
+function findProgressReflection(reflectionID){
+  return [...(state.progress?.reflections || []), ...(state.progress?.pendingReflections || [])]
+    .find(item => String(item.ReflectionID) === String(reflectionID));
+}
+
+function openProgressReflectionReview(reflectionID){
+  const row = findProgressReflection(reflectionID);
+  if(!row){ showToast('Không tìm thấy nhật ký tiến bộ.', 'warn'); return; }
+  const categories = state.progress?.meta?.categories || [];
+  const alreadyRecognized = !!row.RecognitionID;
+  openModal(`
+    <div class="modal-backdrop"><div class="modal">
+      <div class="modal-head"><div><h2>Phản hồi học sinh</h2><p class="muted" style="margin:.25rem 0 0">${escapeHTML(row.StudentName || state.progress?.student?.FullName || row.StudentID || '')}</p></div><button class="close" onclick="closeModal()">×</button></div>
+      <div class="progress-entry reflection"><p>${escapeHTML(row.Content || '')}</p></div>
+      <form id="progressReflectionReviewForm" class="form-grid" style="margin-top:14px">
+        <div class="field"><label>Lời phản hồi</label><textarea id="progressTeacherResponse" class="textarea" maxlength="300" placeholder="Thầy/cô đã đọc và ghi nhận...">${escapeHTML(row.TeacherResponse || '')}</textarea></div>
+        ${alreadyRecognized ? '<div class="notice">Nhật ký này đã được chuyển thành một ghi nhận tiến bộ.</div>' : `
+          <label style="display:flex;gap:9px;align-items:flex-start"><input id="progressGiveRecognition" type="checkbox" onchange="toggleProgressRecognitionFields(this.checked)"> <span>Đồng thời ghi nhận một dấu tiến bộ</span></label>
+          <div id="progressRecognitionReviewFields" class="hidden form-grid">
+            <div class="field"><label>Nhóm tiến bộ</label><select id="progressReviewCategory" class="select">${categories.map(item => `<option>${escapeHTML(item.key)}</option>`).join('')}</select></div>
+            <div class="field"><label>Lý do hiển thị trong ghi nhận</label><textarea id="progressReviewRecognitionNote" class="textarea" maxlength="300" placeholder="Viết lý do cụ thể..."></textarea></div>
+          </div>
+        `}
+        <button class="btn btn-primary full" type="submit">Gửi phản hồi</button>
+      </form>
+    </div></div>
+  `);
+  $('#progressReflectionReviewForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const giveRecognition = !alreadyRecognized && ($('#progressGiveRecognition')?.checked || false);
+    const response = $('#progressTeacherResponse').value.trim();
+    if(!response){ showToast('Vui lòng viết lời phản hồi.', 'warn'); return; }
+    const recognitionNote = $('#progressReviewRecognitionNote')?.value.trim() || response;
+    await withLoading(async () => {
+      const result = await api('reviewProgressReflection', {
+        token:state.token, reflectionID, response, giveRecognition,
+        category:$('#progressReviewCategory')?.value || '', recognitionNote
+      });
+      closeModal(); applyProgressJourney(result.journey); showToast(result.message || 'Đã phản hồi.', 'success');
+    }, 'Đang lưu phản hồi...');
+  });
+}
+
+function toggleProgressRecognitionFields(show){
+  const box = $('#progressRecognitionReviewFields');
+  if(box) box.classList.toggle('hidden', !show);
 }
 
 /* =========================================================

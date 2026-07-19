@@ -1,7 +1,7 @@
 {
   "name": "Sổ chủ nhiệm số",
   "short_name": "Sổ CN số",
-  "description": "Tiện ích kết nối giáo viên chủ nhiệm, học sinh và cha mẹ học sinh.",
+  "description": "Tiện ích kết nối GVCN, học sinh và cha mẹ học sinh, có hành trình ghi nhận tiến bộ riêng tư.",
   "lang": "vi",
   "start_url": "./",
   "scope": "./",
