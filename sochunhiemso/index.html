@@ -410,6 +410,121 @@
     .badge-red{background:#fee2e2;color:#991b1b}
     .badge-purple{background:#ede9fe;color:#5b21b6}
 
+    .notice-page-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .class-notice-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+      padding:16px;
+      box-shadow:0 7px 20px rgba(15,23,42,.05);
+    }
+
+    .class-notice-card.important{
+      border-color:#fb7185;
+      background:linear-gradient(135deg,#fff5f6,#fff);
+    }
+
+    .class-notice-card.expired{
+      opacity:.72;
+      background:#f8fafc;
+    }
+
+    .class-notice-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .class-notice-head h3{
+      margin:7px 0 0;
+      font-size:1.08rem;
+      line-height:1.4;
+    }
+
+    .class-notice-content{
+      margin-top:13px;
+      white-space:pre-wrap;
+      line-height:1.65;
+      overflow-wrap:anywhere;
+    }
+
+    .class-notice-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px 12px;
+      color:var(--muted);
+      font-size:.82rem;
+      margin-top:12px;
+    }
+
+    .class-notice-footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      padding-top:12px;
+      border-top:1px solid var(--line);
+    }
+
+    .notice-confirm-summary{
+      font-weight:850;
+      color:#334155;
+    }
+
+    .notice-actions{
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+    }
+
+    .confirmation-list{
+      display:grid;
+      gap:8px;
+      margin-top:14px;
+    }
+
+    .confirmation-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(120px,.5fr) auto;
+      align-items:center;
+      gap:10px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      padding:10px 12px;
+    }
+
+    .confirmation-row.pending{
+      background:#fffaf0;
+      border-color:#fed7aa;
+    }
+
+    @media (max-width:700px){
+      .class-notice-head,
+      .class-notice-footer{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+      .notice-actions{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        width:100%;
+      }
+      .notice-actions .btn{
+        width:100%;
+      }
+      .confirmation-row{
+        grid-template-columns:1fr;
+        gap:5px;
+      }
+    }
+
     .split{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -1405,6 +1520,7 @@
       <section id="studentsPage" class="page hidden"></section>
       <section id="profilePage" class="page hidden"></section>
       <section id="messagesPage" class="page hidden"></section>
+      <section id="noticesPage" class="page hidden"></section>
       <section id="activitiesPage" class="page hidden"></section>
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
@@ -1412,7 +1528,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.3.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 14.4.0</b>
       </p>
     </div>
   </main>
@@ -1428,7 +1544,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '14.3.0';
+const APP_VERSION = '14.4.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -1462,6 +1578,8 @@ const state = {
   students: [],
   classes: [],
   messages: [],
+  notices: [],
+  noticePendingCount: 0,
   activities: [],
   setup: null,
   lastImportedAccounts: [],
@@ -1683,6 +1801,9 @@ function showLogin(){
 function showApp(){
   $('#loginView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
+  if(state.dashboard && state.dashboard.noticePendingCount !== undefined){
+    state.noticePendingCount = Number(state.dashboard.noticePendingCount || 0);
+  }
   applyAppBranding();
   renderUser();
   renderNav();
@@ -1711,6 +1832,8 @@ function clearSession(){
   state.timetableLoadedAt = 0;
   state.students = [];
   state.messages = [];
+  state.notices = [];
+  state.noticePendingCount = 0;
   clearPersistentSession();
   localStorage.removeItem(LS_DASHBOARD_CACHE);
   localStorage.removeItem(LS_TIMETABLE_CACHE);
@@ -1754,6 +1877,7 @@ function renderNav(){
     { id:'students', label:'Học sinh', show:role === 'GVCN' },
     { id:'profile', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
     { id:'messages', label:'Tin nhắn', show:true },
+    { id:'notices', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
     { id:'activities', label:'Các hoạt động chính', show:true },
     { id:'aiSupport', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', label:'Quên mật khẩu', show:role === 'GVCN' },
@@ -1773,7 +1897,7 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','timetable','students','profile','messages','activities','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
+  if(!['dashboard','timetable','students','profile','messages','notices','activities','aiSupport','reset','setup','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
@@ -1791,6 +1915,7 @@ async function goPage(page, save=true){
   if(page === 'students') await loadStudents();
   if(page === 'profile') await openDefaultProfile();
   if(page === 'messages') await loadMessages();
+  if(page === 'notices') await loadNotices();
   if(page === 'activities') await loadActivities();
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
@@ -4283,6 +4408,264 @@ async function openSendMessageModal(studentID=''){
       else await loadDashboard();
     }, 'Đang gửi tin nhắn...');
   });
+}
+
+
+/* =========================================================
+   THÔNG BÁO LỚP
+========================================================= */
+
+function noticeAudienceLabel(value){
+  const audience = String(value || '').toUpperCase();
+  if(audience === 'HS') return 'Học sinh';
+  if(audience === 'PHHS') return 'PHHS';
+  return 'Học sinh và PHHS';
+}
+
+async function loadNotices(){
+  await withLoading(async () => {
+    const data = await api('getNotices', { token:state.token });
+    state.notices = data.notices || [];
+    state.noticePendingCount = Number(data.pendingCount || 0);
+    renderNav();
+    renderNotices();
+  }, 'Đang tải thông báo...');
+}
+
+function renderNotices(){
+  const role = normalizeRole(state.user?.Role);
+  const isTeacher = role === 'GVCN';
+  const notices = state.notices || [];
+
+  $('#noticesPage').innerHTML = `
+    <div class="card">
+      <div class="card-title">
+        <div>
+          <h2>Thông báo lớp</h2>
+          <p class="muted" style="margin:.25rem 0 0">${isTeacher ? 'Gửi thông tin chung và theo dõi xác nhận đã đọc.' : (state.noticePendingCount > 0 ? `Bạn có ${state.noticePendingCount} thông báo cần xác nhận.` : 'Bạn đã xem hết các thông báo cần xác nhận.')}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-soft btn-small" type="button" onclick="loadNotices()">Làm mới</button>
+          ${isTeacher ? `<button class="btn btn-primary btn-small" type="button" onclick="openNoticeEditor()">+ Soạn thông báo</button>` : ''}
+        </div>
+      </div>
+
+      ${notices.length ? `<div class="notice-page-list">${notices.map(renderNoticeCard).join('')}</div>` : `<div class="empty">Chưa có thông báo nào.</div>`}
+    </div>
+  `;
+}
+
+function renderNoticeCard(notice){
+  const role = normalizeRole(state.user?.Role);
+  const isTeacher = role === 'GVCN';
+  const important = String(notice.Priority) === 'Quan trọng';
+  const expired = notice.IsExpired === true || String(notice.IsExpired) === 'true';
+  const requireConfirm = String(notice.RequireConfirm).toUpperCase() === 'TRUE';
+  const confirmed = notice.CurrentUserConfirmed === true || String(notice.CurrentUserConfirmed) === 'true';
+  const noticeID = escapeHTML(escapeJS(String(notice.NoticeID || '')));
+  const expiryText = notice.ExpiredAt ? formatISODateVi(notice.ExpiredAt) : 'Không giới hạn';
+
+  let summary = '';
+  if(isTeacher && requireConfirm){
+    summary = `Đã xác nhận: ${Number(notice.ConfirmedCount || 0)}/${Number(notice.RecipientCount || 0)}`;
+  }else if(!isTeacher && requireConfirm){
+    summary = confirmed ? '✓ Bạn đã xác nhận' : 'Chưa xác nhận';
+  }else{
+    summary = 'Không yêu cầu xác nhận';
+  }
+
+  return `
+    <article class="class-notice-card ${important ? 'important' : ''} ${expired ? 'expired' : ''}">
+      <div class="class-notice-head">
+        <div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${important ? '<span class="badge badge-red">Quan trọng</span>' : '<span class="badge badge-blue">Thông báo</span>'}
+            <span class="badge badge-purple">${escapeHTML(noticeAudienceLabel(notice.TargetType))}</span>
+            ${expired ? '<span class="badge badge-yellow">Đã hết hạn</span>' : ''}
+          </div>
+          <h3>${escapeHTML(notice.Title || 'Thông báo')}</h3>
+        </div>
+      </div>
+
+      <div class="class-notice-content">${escapeHTML(notice.Content || '')}</div>
+      <div class="class-notice-meta">
+        <span>Đăng: ${escapeHTML(formatDateTime(notice.CreatedAt))}</span>
+        <span>Hiển thị đến: ${escapeHTML(expiryText)}</span>
+        ${Number(notice.NoticeVersion || 1) > 1 ? `<span>Đã cập nhật lần ${Number(notice.NoticeVersion)}</span>` : ''}
+      </div>
+
+      <div class="class-notice-footer">
+        <div class="notice-confirm-summary">${escapeHTML(summary)}</div>
+        <div class="notice-actions">
+          ${isTeacher && requireConfirm ? `<button class="btn btn-soft btn-small" type="button" onclick="openNoticeConfirmations('${noticeID}')">Xem xác nhận</button>` : ''}
+          ${isTeacher ? `<button class="btn btn-soft btn-small" type="button" onclick="openNoticeEditor('${noticeID}')">Sửa</button>` : ''}
+          ${isTeacher ? `<button class="btn btn-danger btn-small" type="button" onclick="deleteNotice('${noticeID}')">Xóa</button>` : ''}
+          ${!isTeacher && requireConfirm && !confirmed && !expired ? `<button class="btn btn-success btn-small" type="button" onclick="confirmNotice('${noticeID}')">Xác nhận đã đọc</button>` : ''}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function noticeSelectOption(value, selected, label=value){
+  return `<option value="${escapeHTML(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${escapeHTML(label)}</option>`;
+}
+
+function openNoticeEditor(noticeID=''){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+  const existing = (state.notices || []).find(notice => String(notice.NoticeID) === String(noticeID)) || null;
+  const notice = existing || {
+    NoticeID:'', TargetType:'ALL', Title:'', Content:'', RequireConfirm:'TRUE', Priority:'Thường', ExpiredAt:''
+  };
+
+  openModal(`
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(760px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${existing ? 'Sửa thông báo' : 'Soạn thông báo lớp'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Nội dung dùng chung cho lớp, không ghi thông tin riêng tư của một học sinh.</p>
+          </div>
+          <button class="close" type="button" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="noticeEditorForm" class="form-grid">
+          <input id="noticeID" type="hidden" value="${escapeHTML(notice.NoticeID || '')}" />
+          <div class="split">
+            <div class="field">
+              <label>Đối tượng nhận</label>
+              <select id="noticeTargetType" class="select">
+                ${noticeSelectOption('ALL', notice.TargetType, 'Học sinh và PHHS')}
+                ${noticeSelectOption('HS', notice.TargetType, 'Chỉ học sinh')}
+                ${noticeSelectOption('PHHS', notice.TargetType, 'Chỉ PHHS')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Mức độ</label>
+              <select id="noticePriority" class="select">
+                ${noticeSelectOption('Thường', notice.Priority)}
+                ${noticeSelectOption('Quan trọng', notice.Priority)}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tiêu đề</label>
+            <input id="noticeTitle" class="input" maxlength="160" value="${escapeHTML(notice.Title || '')}" placeholder="Ví dụ: Họp PHHS đầu năm" />
+          </div>
+
+          <div class="field">
+            <label>Nội dung</label>
+            <textarea id="noticeContent" class="textarea" maxlength="4000" style="min-height:150px" placeholder="Nhập nội dung cần thông báo...">${escapeHTML(notice.Content || '')}</textarea>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Hiển thị đến ngày</label>
+              <input id="noticeExpiredAt" class="input" type="date" value="${escapeHTML(notice.ExpiredAt || '')}" />
+              <div class="hint">Để trống nếu không giới hạn.</div>
+            </div>
+            <div class="field">
+              <label>Xác nhận</label>
+              <label style="display:flex;align-items:center;gap:9px;min-height:44px">
+                <input id="noticeRequireConfirm" type="checkbox" ${String(notice.RequireConfirm).toUpperCase() === 'TRUE' ? 'checked' : ''} />
+                Yêu cầu người nhận bấm “Đã đọc”
+              </label>
+            </div>
+          </div>
+
+          ${existing ? `<div class="notice warn">Khi sửa nội dung, hệ thống tạo phiên bản mới và người nhận cần xác nhận lại.</div>` : ''}
+          <button id="saveNoticeBtn" class="btn btn-primary full" type="submit">${existing ? 'Lưu bản cập nhật' : 'Gửi thông báo'}</button>
+        </form>
+      </div>
+    </div>
+  `);
+
+  $('#noticeEditorForm').addEventListener('submit', saveNoticeFromEditor);
+}
+
+async function saveNoticeFromEditor(event){
+  event.preventDefault();
+  const btn = $('#saveNoticeBtn');
+  if(btn) btn.disabled = true;
+  try{
+    await withLoading(async () => {
+      const data = await api('saveNotice', {
+        token:state.token,
+        noticeID:$('#noticeID').value,
+        targetType:$('#noticeTargetType').value,
+        priority:$('#noticePriority').value,
+        title:$('#noticeTitle').value.trim(),
+        content:$('#noticeContent').value.trim(),
+        expiredAt:$('#noticeExpiredAt').value,
+        requireConfirm:$('#noticeRequireConfirm').checked ? 'TRUE' : 'FALSE'
+      });
+      state.notices = data.notices || [];
+      closeModal();
+      renderNotices();
+      showToast(data.message || 'Đã gửi thông báo.', 'success');
+    }, 'Đang lưu thông báo...');
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+async function deleteNotice(noticeID){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+  if(!confirm('Xóa thông báo này? HS và PHHS sẽ không còn nhìn thấy.')) return;
+  await withLoading(async () => {
+    const data = await api('deleteNotice', { token:state.token, noticeID });
+    state.notices = data.notices || [];
+    renderNotices();
+    showToast(data.message || 'Đã xóa thông báo.', 'success');
+  }, 'Đang xóa thông báo...');
+}
+
+async function confirmNotice(noticeID){
+  await withLoading(async () => {
+    const data = await api('confirmNotice', { token:state.token, noticeID });
+    state.notices = data.notices || [];
+    state.noticePendingCount = state.notices.filter(notice => String(notice.RequireConfirm).toUpperCase() === 'TRUE' && !notice.CurrentUserConfirmed && !notice.IsExpired).length;
+    renderNav();
+    renderNotices();
+    showToast(data.message || 'Đã xác nhận thông báo.', 'success');
+  }, 'Đang xác nhận...');
+}
+
+async function openNoticeConfirmations(noticeID){
+  if(normalizeRole(state.user?.Role) !== 'GVCN') return;
+  await withLoading(async () => {
+    const data = await api('getNoticeConfirmations', { token:state.token, noticeID });
+    const recipients = data.recipients || [];
+    openModal(`
+      <div class="modal-backdrop">
+        <div class="modal" style="width:min(820px,100%)">
+          <div class="modal-head">
+            <div>
+              <h2>Danh sách xác nhận</h2>
+              <p class="muted" style="margin:.25rem 0 0">${escapeHTML(data.notice?.Title || '')} · Đã xác nhận ${Number(data.confirmedCount || 0)}/${Number(data.recipientCount || 0)}</p>
+            </div>
+            <button class="close" type="button" onclick="closeModal()">×</button>
+          </div>
+
+          ${recipients.length ? `
+            <div class="confirmation-list">
+              ${recipients.map(recipient => `
+                <div class="confirmation-row ${recipient.Confirmed ? '' : 'pending'}">
+                  <div>
+                    <b>${escapeHTML(recipient.FullName || recipient.Username || recipient.UserID)}</b>
+                    <div class="muted" style="font-size:.8rem;margin-top:3px">${escapeHTML(recipient.StudentID || '')} · ${escapeHTML(recipient.Username || '')}</div>
+                  </div>
+                  <div>${escapeHTML(roleLabel(recipient.Role))}</div>
+                  <div>${recipient.Confirmed ? `<span class="badge badge-green">Đã xác nhận</span><div class="muted" style="font-size:.75rem;margin-top:4px">${escapeHTML(formatDateTime(recipient.ConfirmedAt))}</div>` : '<span class="badge badge-yellow">Chưa xác nhận</span>'}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<div class="empty">Chưa có tài khoản phù hợp với đối tượng nhận.</div>`}
+        </div>
+      </div>
+    `);
+  }, 'Đang tải danh sách xác nhận...');
 }
 
 
