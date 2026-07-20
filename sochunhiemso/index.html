@@ -1767,6 +1767,8 @@
     .nav button[data-page="notices"]{background:#fffbeb;color:#b45309}
     .nav button[data-page="progress"]{background:#fdf2f8;color:#be185d}
     .nav button[data-page="activities"]{background:#fff7ed;color:#c2410c}
+    .nav button[data-page="gallery"]{background:#f0fdfa;color:#0f766e}
+    .nav button[data-page="dailyTips"]{background:#fefce8;color:#a16207}
     .nav button[data-page="aiSupport"],.nav button[data-page="aiStats"]{background:#eff6ff;color:#1d4ed8}
     .nav button[data-page="reset"]{background:#fff1f2;color:#be123c}
     .nav button[data-page="setup"],.nav button[data-page="operations"]{background:#f1f5f9;color:#475569}
@@ -1973,6 +1975,207 @@
 
     .responsive-card-table tr{border-color:#c7d2fe;background:linear-gradient(160deg,#fff,#f8faff)}
 
+    .gallery-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .album-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      gap:16px;
+    }
+
+    .photo-album-card{
+      overflow:hidden;
+      background:linear-gradient(165deg,#fff,#f8faff);
+      border:1px solid rgba(94,234,212,.62);
+      border-radius:20px;
+      box-shadow:0 10px 24px rgba(15,118,110,.10);
+      transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    }
+
+    .photo-album-card:hover{
+      transform:translateY(-2px);
+      border-color:#2dd4bf;
+      box-shadow:0 16px 32px rgba(15,118,110,.16);
+    }
+
+    .photo-album-card.is-hidden{opacity:.72;filter:saturate(.72)}
+
+    .photo-album-cover{
+      position:relative;
+      display:grid;
+      place-items:center;
+      aspect-ratio:16/9;
+      overflow:hidden;
+      color:#fff;
+      background:
+        radial-gradient(circle at 20% 24%,rgba(255,255,255,.25),transparent 8rem),
+        linear-gradient(135deg,#0f766e,#0891b2 52%,#6366f1);
+    }
+
+    .photo-album-cover img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .album-placeholder{
+      display:grid;
+      place-items:center;
+      width:74px;
+      height:74px;
+      font-size:2.15rem;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.34);
+      border-radius:24px;
+      backdrop-filter:blur(8px);
+    }
+
+    .album-scope{
+      position:absolute;
+      z-index:2;
+      top:10px;
+      left:10px;
+      padding:5px 9px;
+      color:#fff;
+      background:rgba(15,23,42,.72);
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+      backdrop-filter:blur(8px);
+    }
+
+    .photo-album-body{padding:15px}
+    .photo-album-body h3{margin:0 0 6px;color:var(--heading);line-height:1.35}
+    .photo-album-description{
+      display:-webkit-box;
+      overflow:hidden;
+      margin:10px 0 14px;
+      color:#475569;
+      line-height:1.55;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+    }
+
+    .album-meta{
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+      color:#64748b;
+      font-size:.84rem;
+    }
+
+    .album-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .album-actions .btn{flex:1 1 auto}
+
+    .privacy-check{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:12px;
+      color:#854d0e;
+      background:#fffbeb;
+      border:1px solid #fcd34d;
+      border-radius:14px;
+      line-height:1.5;
+    }
+    .privacy-check input{margin-top:4px;accent-color:var(--primary)}
+
+    .daily-tip-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+      gap:18px;
+    }
+
+    .daily-tip-card{
+      overflow:hidden;
+      background:linear-gradient(165deg,#fff,#fffdf3);
+      border:1px solid #fde68a;
+      border-radius:20px;
+      box-shadow:0 10px 24px rgba(161,98,7,.09);
+      transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    }
+
+    .daily-tip-card:hover{
+      transform:translateY(-2px);
+      border-color:#f59e0b;
+      box-shadow:0 16px 32px rgba(161,98,7,.15);
+    }
+
+    .daily-tip-card.is-hidden{opacity:.70;filter:saturate(.72)}
+    .daily-tip-card.is-future{border-style:dashed}
+
+    .daily-tip-image{
+      position:relative;
+      display:grid;
+      place-items:center;
+      aspect-ratio:4/5;
+      overflow:hidden;
+      padding:10px;
+      color:#854d0e;
+      background:
+        radial-gradient(circle at 75% 15%,rgba(251,191,36,.28),transparent 11rem),
+        linear-gradient(145deg,#fefce8,#fff7ed 52%,#eff6ff);
+      cursor:zoom-in;
+      width:100%;
+      border:0;
+      font:inherit;
+      text-align:inherit;
+    }
+
+    .daily-tip-image img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      background:#fffef8;
+    }
+
+    .daily-tip-placeholder{font-size:3rem;filter:drop-shadow(0 8px 18px rgba(161,98,7,.18))}
+    .daily-tip-body{padding:15px}
+    .daily-tip-body h3{margin:0 0 7px;color:#78350f;line-height:1.35}
+    .daily-tip-summary{margin:10px 0;color:#475569;line-height:1.55;white-space:pre-wrap}
+
+    .tip-topic{
+      position:absolute;
+      z-index:2;
+      top:10px;
+      left:10px;
+      max-width:calc(100% - 20px);
+      padding:5px 9px;
+      overflow:hidden;
+      color:#713f12;
+      background:rgba(254,243,199,.94);
+      border:1px solid rgba(245,158,11,.45);
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:850;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      backdrop-filter:blur(8px);
+    }
+
+    .daily-tip-modal-image{
+      display:block;
+      max-width:100%;
+      max-height:72vh;
+      margin:0 auto;
+      object-fit:contain;
+      background:#fff;
+      border:1px solid #fde68a;
+      border-radius:16px;
+    }
+
     .footer-note{
       margin:26px 0 0;
       padding:17px 20px;
@@ -1988,6 +2191,8 @@
       .nav{border-radius:17px;padding:8px}
       .nav button{min-height:40px;padding:9px 12px}
       .responsive-card-table tr{border-color:#c7d2fe;background:linear-gradient(160deg,#fff,#f8faff)}
+      .album-grid{grid-template-columns:1fr}
+      .daily-tip-grid{grid-template-columns:1fr}
     }
 
     @media (max-width:560px){
@@ -2069,6 +2274,8 @@
       <section id="noticesPage" class="page hidden"></section>
       <section id="progressPage" class="page hidden"></section>
       <section id="activitiesPage" class="page hidden"></section>
+      <section id="galleryPage" class="page hidden"></section>
+      <section id="dailyTipsPage" class="page hidden"></section>
       <section id="aiSupportPage" class="page hidden"></section>
       <section id="resetPage" class="page hidden"></section>
       <section id="setupPage" class="page hidden"></section>
@@ -2076,7 +2283,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Sản phẩm tạo sự kết nối thuận lợi giữa GVCN với HS và CMHS. <br><b id="appVersionText">Phiên bản 16.1.1</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.2.0</b>
       </p>
     </div>
   </main>
@@ -2092,7 +2299,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '16.1.1';
+const APP_VERSION = '16.2.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -2131,6 +2338,12 @@ const state = {
   progress: null,
   progressStudentID: '',
   activities: [],
+  photoAlbums: [],
+  photoAlbumStudents: [],
+  photoAlbumYear: 'ALL',
+  dailyTips: [],
+  dailyTipTopic: 'ALL',
+  dailyTipToday: '',
   setup: null,
   operations: null,
   lastImportedAccounts: [],
@@ -2436,6 +2649,8 @@ function renderNav(){
     { id:'notices', icon:'🔔', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
     { id:'progress', icon:'🌱', label:'Hành trình tiến bộ', show:true },
     { id:'activities', icon:'🎯', label:'Các hoạt động chính', show:true },
+    { id:'gallery', icon:'📸', label:'Khoảnh khắc lớp', show:true },
+    { id:'dailyTips', icon:'💡', label:'Điều hay mỗi ngày', show:true },
     { id:'aiSupport', icon:'✨', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
     { id:'reset', icon:'🔐', label:'Quên mật khẩu', show:role === 'GVCN' },
     { id:'setup', icon:'⚙️', label:'Thiết lập', show:role === 'GVCN' },
@@ -2456,7 +2671,7 @@ function renderNav(){
 }
 
 async function goPage(page, save=true){
-  if(!['dashboard','timetable','students','profile','messages','notices','progress','activities','aiSupport','reset','setup','operations','aiStats'].includes(page)) page = 'dashboard';
+  if(!['dashboard','timetable','students','profile','messages','notices','progress','activities','gallery','dailyTips','aiSupport','reset','setup','operations','aiStats'].includes(page)) page = 'dashboard';
 
   if(page === 'students' && normalizeRole(state.user.Role) !== 'GVCN') page = 'dashboard';
   if(page === 'aiSupport' && normalizeRole(state.user.Role) === 'GVCN') page = 'dashboard';
@@ -2478,6 +2693,8 @@ async function goPage(page, save=true){
   if(page === 'notices') await loadNotices();
   if(page === 'progress') await loadProgressJourney();
   if(page === 'activities') await loadActivities();
+  if(page === 'gallery') await loadPhotoAlbums();
+  if(page === 'dailyTips') await loadDailyTips();
   if(page === 'aiSupport') renderAISupportPage();
   if(page === 'reset') await loadResetRequests();
   if(page === 'setup') await loadSetup();
@@ -4809,6 +5026,7 @@ function renderMessages(){
           <p class="muted">Tin nhắn được lưu vào hồ sơ trao đổi, không thay thế trao đổi trực tiếp khi có tình huống nghiêm trọng.</p>
           <button class="btn btn-primary full" onclick="openSendMessageModal()">+ Soạn tin nhắn</button>
           ${isTeacher ? `<button class="btn btn-soft full" style="margin-top:8px" onclick="goPage('reset')">Xem yêu cầu quên mật khẩu</button>` : ''}
+          <div class="notice" style="margin-top:12px"><b>Xóa phía tôi</b> chỉ bỏ tin khỏi hộp thư của tài khoản hiện tại, không xóa ở tài khoản người còn lại.</div>
         </div>
       </div>
 
@@ -4851,6 +5069,7 @@ function renderMessageItem(m){
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           ${priorityBadge(m.Priority)}
           ${!sentByMe && unread ? `<button class="btn btn-small btn-success" onclick="markMessageRead('${escapeHTML(escapeJS(m.MessageID))}')">Đã đọc</button>` : ''}
+          <button class="btn btn-small btn-danger" onclick="deleteMessageForMe('${escapeHTML(escapeJS(m.MessageID))}')">Xóa phía tôi</button>
         </div>
       </div>
       <div class="item-content">${escapeHTML(m.Content || '')}</div>
@@ -4867,6 +5086,16 @@ async function markMessageRead(messageID){
     await loadMessages();
     await loadDashboard();
   }, 'Đang cập nhật...');
+}
+
+async function deleteMessageForMe(messageID){
+  if(!confirm('Xóa tin nhắn này khỏi giao diện của bạn? Tin nhắn ở tài khoản người còn lại vẫn được giữ nguyên.')) return;
+  await withLoading(async () => {
+    const data = await api('deleteMessageForMe', { token:state.token, messageID });
+    showToast(data.message || 'Đã xóa tin nhắn khỏi giao diện của bạn.', 'success', 6000);
+    await loadMessages();
+    await loadDashboard(false);
+  }, 'Đang xóa tin nhắn khỏi hộp thư...');
 }
 
 async function openSendMessageModal(studentID=''){
@@ -5369,11 +5598,12 @@ function renderSetup(){
   const stats = setup.stats || {};
   const sheetStatus = setup.sheetStatus || [];
   const missingSheets = sheetStatus.filter(s => !s.exists || !s.headerOk).length;
+
   $('#setupPage').innerHTML = `
     <div class="grid">
       <div class="col-12">
         <div class="notice">
-          <b>Bản ${APP_VERSION}:Đây là bản thử nghiệm nên có thể có sai sót. Chúng tôi đang tiếp tục hoàn chỉnh và bổ sung các chức năng hữu ích cho GVCN.</b>
+          <b>Bản ${APP_VERSION}:</b> chạy <b>setupAll()</b> một lần trong Apps Script, triển khai Web App rồi cấu hình lớp và AI trong màn hình này.
         </div>
       </div>
 
@@ -5467,7 +5697,7 @@ function renderSetup(){
           <div class="card-title">
             <div>
               <h2>Cấu hình AI</h2>
-              <p class="muted" style="margin:.25rem 0 0">API key được bảo mật!</p>
+              <p class="muted" style="margin:.25rem 0 0">API key lưu trong Apps Script Properties, không lưu trong GitHub.</p>
             </div>
             ${ai.currentProviderHasKey ? '<span class="badge badge-green">Đã có key</span>' : '<span class="badge badge-yellow">Chưa có key</span>'}
           </div>
@@ -5979,6 +6209,639 @@ async function deleteActivity(activityID){
     showToast('Đã xóa hoạt động.', 'success');
     await loadActivities();
   }, 'Đang xóa hoạt động...');
+}
+
+
+/* =========================================================
+   KHOẢNH KHẮC LỚP - ALBUM GOOGLE DRIVE
+========================================================= */
+
+async function loadPhotoAlbums(){
+  await withLoading(async () => {
+    const data = await api('getPhotoAlbums', { token:state.token });
+    state.photoAlbums = data.albums || [];
+    state.photoAlbumStudents = data.students || [];
+    renderPhotoAlbums();
+  }, 'Đang tải Khoảnh khắc lớp...');
+}
+
+function safeGoogleDriveUrl(value){
+  try{
+    const url = new URL(String(value || '').trim());
+    const host = url.hostname.toLowerCase();
+    if(url.protocol !== 'https:') return '';
+    if(host !== 'drive.google.com' && host !== 'docs.google.com') return '';
+    return url.href;
+  }catch(e){
+    return '';
+  }
+}
+
+function googleDriveImagePreview(value){
+  const safeUrl = safeGoogleDriveUrl(value);
+  if(!safeUrl) return '';
+  let fileID = '';
+  try{
+    const url = new URL(safeUrl);
+    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/i);
+    fileID = pathMatch ? pathMatch[1] : (url.searchParams.get('id') || '');
+  }catch(e){}
+  if(!/^[A-Za-z0-9_-]{10,}$/.test(fileID)) return '';
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileID)}&sz=w1000`;
+}
+
+function localDateInputValue(value){
+  const raw = String(value || '').trim();
+  const direct = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if(direct) return direct[1];
+  const date = value ? new Date(value) : new Date();
+  if(isNaN(date.getTime())) return '';
+  const pad = number => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
+function photoAlbumStudentName(studentID){
+  const student = (state.photoAlbumStudents || []).find(item => String(item.StudentID) === String(studentID));
+  if(student) return `${student.FullName || student.StudentID} · ${student.StudentID}`;
+  return studentID || 'Chưa chọn học sinh';
+}
+
+function renderPhotoAlbums(){
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
+  const rows = state.photoAlbums || [];
+  const years = [...new Set(rows.map(album => String(album.SchoolYear || '').trim()).filter(Boolean))]
+    .sort((a,b) => b.localeCompare(a, 'vi'));
+
+  if(state.photoAlbumYear !== 'ALL' && !years.includes(state.photoAlbumYear)){
+    state.photoAlbumYear = 'ALL';
+  }
+
+  const visibleRows = state.photoAlbumYear === 'ALL'
+    ? rows
+    : rows.filter(album => String(album.SchoolYear || '') === state.photoAlbumYear);
+
+  const personalCount = rows.filter(album => String(album.AlbumType || '') === 'Cá nhân').length;
+  const hiddenCount = rows.filter(album => String(album.Status || '') === 'Đã ẩn').length;
+
+  $('#galleryPage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <h2>📸 Khoảnh khắc lớp</h2>
+          <p class="muted">Lưu giữ hoạt động và sản phẩm đáng nhớ của lớp. Ảnh nằm trong Google Drive; ứng dụng chỉ quản lí album và quyền hiển thị.</p>
+          ${isTeacher ? `<button class="btn btn-primary full" onclick="openPhotoAlbumModal()">+ Thêm album</button>` : ''}
+
+          <div class="notice" style="margin-top:12px">
+            ${isTeacher
+              ? '<b>Lưu ý:</b> Chỉ chia sẻ album lớp có nội dung phù hợp. Với album cá nhân, hãy cấp quyền Drive đúng Gmail người nhận; không đặt “Bất kỳ ai có liên kết”.'
+              : 'Bạn chỉ nhìn thấy album được GVCN chia sẻ đúng với vai trò và mã học sinh của tài khoản.'}
+          </div>
+
+          ${isTeacher ? `
+            <div class="grid" style="margin-top:4px">
+              <div class="col-6"><div class="stat"><div class="stat-value">${rows.length}</div><div class="stat-label">Tổng album</div></div></div>
+              <div class="col-6"><div class="stat"><div class="stat-value">${personalCount}</div><div class="stat-label">Album cá nhân</div></div></div>
+            </div>
+            ${hiddenCount ? `<div class="notice warn" style="margin-top:12px">Có ${hiddenCount} album đang ẩn với HS/PHHS.</div>` : ''}
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="card">
+          <div class="gallery-toolbar">
+            <div>
+              <h2 style="margin:0">Album hình ảnh</h2>
+              <p class="muted" style="margin:.25rem 0 0">${visibleRows.length} album đang hiển thị trong bộ lọc.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="select" style="width:auto;min-width:155px" onchange="state.photoAlbumYear=this.value;renderPhotoAlbums()">
+                <option value="ALL" ${state.photoAlbumYear==='ALL'?'selected':''}>Tất cả năm học</option>
+                ${years.map(year => `<option value="${escapeHTML(year)}" ${state.photoAlbumYear===year?'selected':''}>${escapeHTML(year)}</option>`).join('')}
+              </select>
+              <button class="btn btn-soft btn-small" onclick="loadPhotoAlbums()">Làm mới</button>
+            </div>
+          </div>
+
+          ${visibleRows.length
+            ? `<div class="album-grid">${visibleRows.map(album => renderPhotoAlbumCard(album, isTeacher)).join('')}</div>`
+            : `<div class="empty">Chưa có album nào trong mục này.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPhotoAlbumCard(album, isTeacher){
+  const driveUrl = safeGoogleDriveUrl(album.DriveUrl);
+  const previewUrl = googleDriveImagePreview(album.CoverUrl);
+  const isPersonal = String(album.AlbumType || '') === 'Cá nhân';
+  const isHidden = String(album.Status || '') === 'Đã ẩn';
+  const dateText = album.ActivityDate ? formatDate(album.ActivityDate) : 'Chưa ghi ngày';
+  const scopeText = isPersonal ? '🔒 Cá nhân' : '👥 Lớp chung';
+  const studentText = isPersonal ? photoAlbumStudentName(album.StudentID) : '';
+
+  return `
+    <article class="photo-album-card ${isHidden ? 'is-hidden' : ''}">
+      <div class="photo-album-cover">
+        <div class="album-placeholder" aria-hidden="true">📷</div>
+        ${previewUrl ? `<img src="${escapeHTML(previewUrl)}" alt="Ảnh bìa album ${escapeHTML(album.Title || '')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+        <span class="album-scope">${scopeText}</span>
+      </div>
+      <div class="photo-album-body">
+        <h3>${escapeHTML(album.Title || 'Album lớp')}</h3>
+        <div class="album-meta">
+          <span>📅 ${escapeHTML(dateText)}</span>
+          ${album.SchoolYear ? `<span>🏫 ${escapeHTML(album.SchoolYear)}</span>` : ''}
+        </div>
+        ${isPersonal ? `<div class="notice" style="margin-top:10px;padding:8px 10px">👤 ${escapeHTML(studentText)}</div>` : ''}
+        ${album.Description ? `<div class="photo-album-description">${escapeHTML(album.Description)}</div>` : '<div class="photo-album-description">Những hình ảnh đáng nhớ của lớp.</div>'}
+        <div class="album-meta">
+          <span class="badge badge-blue">${escapeHTML(album.Audience || 'Học sinh và PHHS')}</span>
+          ${isHidden ? '<span class="badge badge-yellow">Đang ẩn</span>' : ''}
+        </div>
+        <div class="album-actions">
+          ${driveUrl
+            ? `<a class="btn btn-primary btn-small" href="${escapeHTML(driveUrl)}" target="_blank" rel="noopener noreferrer">Mở album Drive</a>`
+            : `<button class="btn btn-danger btn-small" type="button" disabled>Liên kết không hợp lệ</button>`}
+          ${isTeacher ? `
+            <button class="btn btn-soft btn-small" type="button" onclick="openPhotoAlbumModal('${escapeHTML(escapeJS(album.AlbumID))}')">Sửa</button>
+            <button class="btn btn-danger btn-small" type="button" onclick="deletePhotoAlbum('${escapeHTML(escapeJS(album.AlbumID))}')">Xóa</button>
+          ` : ''}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function openPhotoAlbumModal(albumID=''){
+  if(normalizeRole(state.user.Role) !== 'GVCN'){
+    showToast('Chỉ GVCN được quản lí album.', 'warn');
+    return;
+  }
+
+  const album = (state.photoAlbums || []).find(item => String(item.AlbumID) === String(albumID)) || {};
+  const currentYear = new Date().getFullYear();
+  const defaultSchoolYear = state.dashboard?.app?.schoolYear || `${currentYear}-${currentYear+1}`;
+  const students = state.photoAlbumStudents || [];
+  const selectedType = album.AlbumType || 'Lớp chung';
+
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(780px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${albumID ? 'Cập nhật album' : 'Thêm album hình ảnh'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Ứng dụng không tải ảnh lên; thầy/cô chỉ cần dán liên kết Google Drive.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="photoAlbumForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Năm học</label>
+              <input id="albumSchoolYear" class="input" value="${escapeHTML(album.SchoolYear || defaultSchoolYear)}" placeholder="Ví dụ: 2026-2027">
+            </div>
+            <div class="field">
+              <label>Ngày hoạt động</label>
+              <input id="albumActivityDate" class="input" type="date" value="${escapeHTML(localDateInputValue(album.ActivityDate))}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tên album</label>
+            <input id="albumTitle" class="input" value="${escapeHTML(album.Title || '')}" placeholder="Ví dụ: Hoạt động trải nghiệm tháng 10">
+          </div>
+
+          <div class="field">
+            <label>Mô tả ngắn</label>
+            <textarea id="albumDescription" class="textarea" style="min-height:82px" placeholder="Nội dung, ý nghĩa hoặc kỉ niệm nổi bật của hoạt động">${escapeHTML(album.Description || '')}</textarea>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Loại album</label>
+              <select id="albumType" class="select" onchange="togglePhotoAlbumPersonalFields()">
+                ${['Lớp chung','Cá nhân'].map(value => `<option ${selectedType===value?'selected':''}>${value}</option>`).join('')}
+              </select>
+            </div>
+            <div id="albumStudentField" class="field ${selectedType==='Cá nhân'?'':'hidden'}">
+              <label>Học sinh được liên kết</label>
+              <select id="albumStudentID" class="select">
+                <option value="">Chọn học sinh</option>
+                ${students.map(student => `<option value="${escapeHTML(student.StudentID)}" ${String(album.StudentID||'')===String(student.StudentID)?'selected':''}>${escapeHTML(student.FullName || student.StudentID)} · ${escapeHTML(student.StudentID)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Đối tượng được xem trong ứng dụng</label>
+              <select id="albumAudience" class="select">
+                ${['Học sinh và PHHS','Học sinh','PHHS','Nội bộ GVCN'].map(value => `<option ${String(album.Audience||'Học sinh và PHHS')===value?'selected':''}>${value}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Trạng thái</label>
+              <select id="albumStatus" class="select">
+                ${['Hiển thị','Đã ẩn'].map(value => `<option ${String(album.Status||'Hiển thị')===value?'selected':''}>${value}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Liên kết thư mục/album Google Drive</label>
+            <input id="albumDriveUrl" class="input" type="url" value="${escapeHTML(album.DriveUrl || '')}" placeholder="https://drive.google.com/drive/folders/...">
+            <p class="muted" style="margin:.35rem 0 0">Đây là liên kết người dùng sẽ mở để xem toàn bộ ảnh.</p>
+          </div>
+
+          <div class="field">
+            <label>Liên kết ảnh bìa trên Google Drive (không bắt buộc)</label>
+            <input id="albumCoverUrl" class="input" type="url" value="${escapeHTML(album.CoverUrl || '')}" placeholder="https://drive.google.com/file/d/.../view">
+            <p class="muted" style="margin:.35rem 0 0">Dán liên kết của một tệp ảnh, không phải liên kết thư mục. Ảnh phải có quyền xem phù hợp mới hiện được bìa.</p>
+          </div>
+
+          <div class="field">
+            <label>Thứ tự hiển thị</label>
+            <input id="albumSortOrder" class="input" type="number" min="0" max="9999" step="1" value="${escapeHTML(String(album.SortOrder ?? 100))}">
+            <p class="muted" style="margin:.35rem 0 0">Số nhỏ hiển thị trước; các album cùng số sẽ ưu tiên ngày mới hơn.</p>
+          </div>
+
+          <div id="albumPrivacyField" class="${selectedType==='Cá nhân'?'':'hidden'}">
+            <label class="privacy-check">
+              <input id="albumPrivacyConfirmed" type="checkbox">
+              <span><b>Tôi xác nhận</b> album cá nhân đã được cấp quyền Drive đúng người nhận và không đặt ở chế độ “Bất kỳ ai có liên kết”. Phân quyền trong ứng dụng không thay thế quyền chia sẻ của Google Drive.</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary full" type="submit">Lưu album</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  openModal(html);
+  togglePhotoAlbumPersonalFields();
+
+  $('#photoAlbumForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const title = $('#albumTitle').value.trim();
+    const driveUrl = $('#albumDriveUrl').value.trim();
+    const isPersonal = $('#albumType').value === 'Cá nhân';
+
+    if(!title){
+      showToast('Vui lòng nhập tên album.', 'warn');
+      return;
+    }
+    if(!driveUrl){
+      showToast('Vui lòng dán liên kết album Google Drive.', 'warn');
+      return;
+    }
+    if(isPersonal && !$('#albumStudentID').value){
+      showToast('Vui lòng chọn học sinh cho album cá nhân.', 'warn');
+      return;
+    }
+    if(isPersonal && !$('#albumPrivacyConfirmed').checked){
+      showToast('Vui lòng xác nhận quyền riêng tư của album cá nhân.', 'warn', 6000);
+      return;
+    }
+
+    await withLoading(async () => {
+      const data = await api('savePhotoAlbum', {
+        token:state.token,
+        albumID,
+        schoolYear:$('#albumSchoolYear').value.trim(),
+        activityDate:$('#albumActivityDate').value,
+        title,
+        description:$('#albumDescription').value.trim(),
+        albumType:$('#albumType').value,
+        studentID:isPersonal ? $('#albumStudentID').value : '',
+        audience:$('#albumAudience').value,
+        status:$('#albumStatus').value,
+        driveUrl,
+        coverUrl:$('#albumCoverUrl').value.trim(),
+        sortOrder:$('#albumSortOrder').value,
+        privacyConfirmed:isPersonal && $('#albumPrivacyConfirmed').checked ? 'TRUE' : 'FALSE'
+      });
+      closeModal();
+      showToast(data.message || 'Đã lưu album.', 'success');
+      await loadPhotoAlbums();
+    }, 'Đang lưu album...');
+  });
+}
+
+function togglePhotoAlbumPersonalFields(){
+  const type = $('#albumType');
+  const studentField = $('#albumStudentField');
+  const privacyField = $('#albumPrivacyField');
+  if(!type) return;
+  const personal = type.value === 'Cá nhân';
+  if(studentField) studentField.classList.toggle('hidden', !personal);
+  if(privacyField) privacyField.classList.toggle('hidden', !personal);
+}
+
+async function deletePhotoAlbum(albumID){
+  if(!confirm('Xóa album này khỏi ứng dụng? Ảnh trong Google Drive vẫn được giữ nguyên.')) return;
+  await withLoading(async () => {
+    const data = await api('deletePhotoAlbum', { token:state.token, albumID });
+    showToast(data.message || 'Đã xóa album.', 'success');
+    await loadPhotoAlbums();
+  }, 'Đang xóa album...');
+}
+
+
+/* =========================================================
+   ĐIỀU HAY MỖI NGÀY - KIẾN THỨC BẰNG HÌNH ẢNH
+========================================================= */
+
+async function loadDailyTips(){
+  await withLoading(async () => {
+    const data = await api('getDailyTips', { token:state.token });
+    state.dailyTips = data.tips || [];
+    state.dailyTipToday = data.today || localDateInputValue(new Date());
+    renderDailyTips();
+  }, 'Đang tải Điều hay mỗi ngày...');
+}
+
+function safeHttpsUrl(value){
+  try{
+    const url = new URL(String(value || '').trim());
+    return url.protocol === 'https:' ? url.href : '';
+  }catch(e){
+    return '';
+  }
+}
+
+function renderDailyTips(){
+  const isTeacher = normalizeRole(state.user.Role) === 'GVCN';
+  const rows = state.dailyTips || [];
+  const topics = [...new Set(rows.map(item => String(item.Topic || '').trim()).filter(Boolean))]
+    .sort((a,b) => a.localeCompare(b, 'vi'));
+
+  if(state.dailyTipTopic !== 'ALL' && !topics.includes(state.dailyTipTopic)){
+    state.dailyTipTopic = 'ALL';
+  }
+  const visibleRows = state.dailyTipTopic === 'ALL'
+    ? rows
+    : rows.filter(item => String(item.Topic || '') === state.dailyTipTopic);
+
+  const today = state.dailyTipToday || localDateInputValue(new Date());
+  const scheduledCount = rows.filter(item => String(item.PublishDate || '').substring(0,10) > today).length;
+  const hiddenCount = rows.filter(item => String(item.Status || '') === 'Đã ẩn').length;
+
+  $('#dailyTipsPage').innerHTML = `
+    <div class="grid">
+      <div class="col-4">
+        <div class="card">
+          <h2>💡 Điều hay mỗi ngày</h2>
+          <p class="muted">Những kiến thức ngắn, trực quan và hữu ích dành cho học sinh, PHHS: nhận biết tin giả, an toàn mạng, phương pháp học, sáng tạo nội dung...</p>
+          ${isTeacher ? `<button class="btn btn-primary full" onclick="openDailyTipModal()">+ Thêm điều hay</button>` : ''}
+          <div class="notice" style="margin-top:12px">
+            ${isTeacher
+              ? 'Dùng một ảnh chứa nội dung chính và mô tả thật ngắn. Có thể chọn ngày tương lai để nội dung tự xuất hiện đúng ngày.'
+              : 'Bấm vào hình ảnh để xem lớn. Chỉ những nội dung phù hợp với vai trò của tài khoản mới được hiển thị.'}
+          </div>
+          ${isTeacher && (scheduledCount || hiddenCount) ? `
+            <div class="notice warn" style="margin-top:12px">
+              ${scheduledCount ? `${scheduledCount} nội dung đã lên lịch. ` : ''}${hiddenCount ? `${hiddenCount} nội dung đang ẩn.` : ''}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="card">
+          <div class="gallery-toolbar">
+            <div>
+              <h2 style="margin:0">Góc kiến thức bằng hình ảnh</h2>
+              <p class="muted" style="margin:.25rem 0 0">${visibleRows.length} nội dung đang hiển thị trong bộ lọc.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="select" style="width:auto;min-width:170px" onchange="state.dailyTipTopic=this.value;renderDailyTips()">
+                <option value="ALL" ${state.dailyTipTopic==='ALL'?'selected':''}>Tất cả chủ đề</option>
+                ${topics.map(topic => `<option value="${escapeHTML(topic)}" ${state.dailyTipTopic===topic?'selected':''}>${escapeHTML(topic)}</option>`).join('')}
+              </select>
+              <button class="btn btn-soft btn-small" onclick="loadDailyTips()">Làm mới</button>
+            </div>
+          </div>
+
+          ${visibleRows.length
+            ? `<div class="daily-tip-grid">${visibleRows.map(item => renderDailyTipCard(item, isTeacher, today)).join('')}</div>`
+            : '<div class="empty">Chưa có nội dung nào trong mục này.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDailyTipCard(item, isTeacher, today){
+  const imageDriveUrl = safeGoogleDriveUrl(item.ImageUrl);
+  const previewUrl = googleDriveImagePreview(item.ImageUrl);
+  const sourceUrl = safeHttpsUrl(item.SourceUrl);
+  const publishDate = String(item.PublishDate || '').substring(0,10);
+  const isFuture = Boolean(publishDate && publishDate > today);
+  const isToday = Boolean(publishDate && publishDate === today);
+  const isHidden = String(item.Status || '') === 'Đã ẩn';
+
+  return `
+    <article class="daily-tip-card ${isHidden?'is-hidden':''} ${isFuture?'is-future':''}">
+      <button class="daily-tip-image" type="button" onclick="openDailyTipImage('${escapeHTML(escapeJS(item.TipID))}')" aria-label="Xem lớn: ${escapeHTML(item.Title || '')}">
+        <span class="daily-tip-placeholder" aria-hidden="true">💡</span>
+        ${previewUrl ? `<img src="${escapeHTML(previewUrl)}" alt="${escapeHTML(item.Title || 'Điều hay mỗi ngày')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+        <span class="tip-topic">${escapeHTML(item.Topic || 'Kĩ năng hữu ích')}</span>
+      </button>
+      <div class="daily-tip-body">
+        <h3>${escapeHTML(item.Title || 'Điều hay mỗi ngày')}</h3>
+        <div class="album-meta">
+          <span>📅 ${escapeHTML(publishDate ? formatDate(publishDate) : 'Chưa ghi ngày')}</span>
+          ${isToday ? '<span class="badge badge-yellow">Mới hôm nay</span>' : ''}
+          ${isFuture ? '<span class="badge badge-blue">Đã lên lịch</span>' : ''}
+          ${isHidden ? '<span class="badge badge-red">Đang ẩn</span>' : ''}
+        </div>
+        ${item.Summary ? `<div class="daily-tip-summary">${escapeHTML(item.Summary)}</div>` : ''}
+        <div class="album-meta">
+          <span class="badge badge-green">${escapeHTML(item.Audience || 'Học sinh và PHHS')}</span>
+          ${item.SourceName ? `<span>Nguồn: ${escapeHTML(item.SourceName)}</span>` : ''}
+        </div>
+        <div class="album-actions">
+          <button class="btn btn-primary btn-small" type="button" onclick="openDailyTipImage('${escapeHTML(escapeJS(item.TipID))}')">Xem ảnh lớn</button>
+          ${sourceUrl ? `<a class="btn btn-soft btn-small" href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">Tham khảo</a>` : ''}
+          ${!previewUrl && imageDriveUrl ? `<a class="btn btn-soft btn-small" href="${escapeHTML(imageDriveUrl)}" target="_blank" rel="noopener noreferrer">Mở ảnh Drive</a>` : ''}
+          ${isTeacher ? `
+            <button class="btn btn-soft btn-small" type="button" onclick="openDailyTipModal('${escapeHTML(escapeJS(item.TipID))}')">Sửa</button>
+            <button class="btn btn-danger btn-small" type="button" onclick="deleteDailyTip('${escapeHTML(escapeJS(item.TipID))}')">Xóa</button>
+          ` : ''}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function openDailyTipImage(tipID){
+  const item = (state.dailyTips || []).find(row => String(row.TipID) === String(tipID));
+  if(!item){
+    showToast('Không tìm thấy nội dung.', 'warn');
+    return;
+  }
+  const previewUrl = googleDriveImagePreview(item.ImageUrl);
+  const imageDriveUrl = safeGoogleDriveUrl(item.ImageUrl);
+  const sourceUrl = safeHttpsUrl(item.SourceUrl);
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(980px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${escapeHTML(item.Title || 'Điều hay mỗi ngày')}</h2>
+            <p class="muted" style="margin:.25rem 0 0">${escapeHTML(item.Topic || '')} · ${escapeHTML(formatDate(item.PublishDate))}</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+        ${previewUrl
+          ? `<img class="daily-tip-modal-image" src="${escapeHTML(previewUrl)}" alt="${escapeHTML(item.Title || '')}" referrerpolicy="no-referrer" onerror="this.classList.add('hidden');document.getElementById('dailyTipImageError').classList.remove('hidden')">`
+          : ''}
+        <div id="dailyTipImageError" class="notice warn ${previewUrl?'hidden':''}" style="margin-top:12px">Không thể xem ảnh trực tiếp. Hãy kiểm tra quyền chia sẻ tệp hoặc mở ảnh trong Google Drive.</div>
+        ${item.Summary ? `<div class="notice" style="margin-top:14px">${escapeHTML(item.Summary)}</div>` : ''}
+        <div class="album-actions">
+          ${imageDriveUrl ? `<a class="btn btn-primary" href="${escapeHTML(imageDriveUrl)}" target="_blank" rel="noopener noreferrer">Mở ảnh trong Drive</a>` : ''}
+          ${sourceUrl ? `<a class="btn btn-soft" href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">Mở nguồn tham khảo</a>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  openModal(html);
+}
+
+function openDailyTipModal(tipID=''){
+  if(normalizeRole(state.user.Role) !== 'GVCN'){
+    showToast('Chỉ GVCN được quản lí Điều hay mỗi ngày.', 'warn');
+    return;
+  }
+  const item = (state.dailyTips || []).find(row => String(row.TipID) === String(tipID)) || {};
+  const commonTopics = ['Kĩ năng số','An toàn mạng','Nhận biết tin giả','Phương pháp học','Đọc và viết','Sáng tạo','Giao tiếp ứng xử','Sức khỏe và đời sống','Hướng nghiệp','Khác'];
+
+  const html = `
+    <div class="modal-backdrop">
+      <div class="modal" style="width:min(780px,100%)">
+        <div class="modal-head">
+          <div>
+            <h2>${tipID ? 'Cập nhật điều hay' : 'Thêm Điều hay mỗi ngày'}</h2>
+            <p class="muted" style="margin:.25rem 0 0">Ưu tiên một ảnh rõ chữ, nội dung khái quát và phù hợp cả điện thoại.</p>
+          </div>
+          <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="dailyTipForm" class="form-grid">
+          <div class="split">
+            <div class="field">
+              <label>Ngày đăng</label>
+              <input id="tipPublishDate" class="input" type="date" value="${escapeHTML(localDateInputValue(item.PublishDate))}">
+            </div>
+            <div class="field">
+              <label>Chủ đề</label>
+              <input id="tipTopic" class="input" list="tipTopicList" value="${escapeHTML(item.Topic || 'Kĩ năng số')}" placeholder="Ví dụ: Nhận biết tin giả">
+              <datalist id="tipTopicList">${commonTopics.map(topic => `<option value="${escapeHTML(topic)}"></option>`).join('')}</datalist>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tiêu đề</label>
+            <input id="tipTitle" class="input" value="${escapeHTML(item.Title || '')}" placeholder="Ví dụ: 5 dấu hiệu giúp em nhận biết tin giả">
+          </div>
+
+          <div class="field">
+            <label>Mô tả ngắn</label>
+            <textarea id="tipSummary" class="textarea" style="min-height:82px" placeholder="Giới thiệu ngắn nội dung và điều người xem nên ghi nhớ">${escapeHTML(item.Summary || '')}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Liên kết tệp ảnh trên Google Drive</label>
+            <input id="tipImageUrl" class="input" type="url" value="${escapeHTML(item.ImageUrl || '')}" placeholder="https://drive.google.com/file/d/.../view">
+            <p class="muted" style="margin:.35rem 0 0">Phải là liên kết của một tệp ảnh, không phải thư mục. Với nội dung chung, đặt quyền xem phù hợp để HS/PHHS mở được.</p>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Nguồn tham khảo (không bắt buộc)</label>
+              <input id="tipSourceName" class="input" value="${escapeHTML(item.SourceName || '')}" placeholder="Ví dụ: Bộ TT&TT, tài liệu của GVCN...">
+            </div>
+            <div class="field">
+              <label>Liên kết tham khảo (không bắt buộc)</label>
+              <input id="tipSourceUrl" class="input" type="url" value="${escapeHTML(item.SourceUrl || '')}" placeholder="https://...">
+            </div>
+          </div>
+
+          <div class="split">
+            <div class="field">
+              <label>Đối tượng xem</label>
+              <select id="tipAudience" class="select">
+                ${['Học sinh và PHHS','Học sinh','PHHS'].map(value => `<option ${String(item.Audience||'Học sinh và PHHS')===value?'selected':''}>${value}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Trạng thái</label>
+              <select id="tipStatus" class="select">
+                ${['Hiển thị','Đã ẩn'].map(value => `<option ${String(item.Status||'Hiển thị')===value?'selected':''}>${value}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Thứ tự hiển thị</label>
+            <input id="tipSortOrder" class="input" type="number" min="0" max="9999" step="1" value="${escapeHTML(String(item.SortOrder ?? 100))}">
+            <p class="muted" style="margin:.35rem 0 0">Số nhỏ hiển thị trước. Nếu cùng thứ tự, nội dung mới hơn được đặt trước.</p>
+          </div>
+
+          <div class="notice">Nếu ngày đăng ở tương lai, GVCN vẫn xem được nội dung với nhãn <b>Đã lên lịch</b>; HS/PHHS chỉ thấy từ đúng ngày đã chọn.</div>
+          <button class="btn btn-primary full" type="submit">Lưu Điều hay mỗi ngày</button>
+        </form>
+      </div>
+    </div>
+  `;
+  openModal(html);
+
+  $('#dailyTipForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const title = $('#tipTitle').value.trim();
+    const imageUrl = $('#tipImageUrl').value.trim();
+    if(!title){
+      showToast('Vui lòng nhập tiêu đề.', 'warn');
+      return;
+    }
+    if(!imageUrl){
+      showToast('Vui lòng dán liên kết tệp ảnh Google Drive.', 'warn');
+      return;
+    }
+
+    await withLoading(async () => {
+      const data = await api('saveDailyTip', {
+        token:state.token,
+        tipID,
+        publishDate:$('#tipPublishDate').value,
+        title,
+        topic:$('#tipTopic').value.trim(),
+        summary:$('#tipSummary').value.trim(),
+        imageUrl,
+        sourceName:$('#tipSourceName').value.trim(),
+        sourceUrl:$('#tipSourceUrl').value.trim(),
+        audience:$('#tipAudience').value,
+        status:$('#tipStatus').value,
+        sortOrder:$('#tipSortOrder').value
+      });
+      closeModal();
+      showToast(data.message || 'Đã lưu Điều hay mỗi ngày.', 'success');
+      await loadDailyTips();
+    }, 'Đang lưu nội dung...');
+  });
+}
+
+async function deleteDailyTip(tipID){
+  if(!confirm('Xóa nội dung này khỏi Điều hay mỗi ngày?')) return;
+  await withLoading(async () => {
+    const data = await api('deleteDailyTip', { token:state.token, tipID });
+    showToast(data.message || 'Đã xóa nội dung.', 'success');
+    await loadDailyTips();
+  }, 'Đang xóa nội dung...');
 }
 
 
