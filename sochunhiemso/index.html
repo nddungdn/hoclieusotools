@@ -2202,6 +2202,247 @@
       .app-shell{padding-top:8px}
       .footer-note{border-radius:17px;padding:14px}
     }
+
+    /* ======================================================
+       ĐIỀU HƯỚNG V16.3 – GỌN THEO VAI TRÒ
+       Máy tính: tối đa 5–6 mục chính và menu nhóm.
+       Điện thoại: 5 mục cố định ở cạnh dưới màn hình.
+    ====================================================== */
+    .user-menu-wrap{position:relative;min-width:0}
+    button.user-pill{
+      appearance:none;
+      font:inherit;
+      text-align:left;
+      cursor:pointer;
+    }
+    .user-pill-text{min-width:0}
+    .user-menu-chevron{font-size:1rem;transition:transform .16s ease}
+    .user-pill[aria-expanded="true"] .user-menu-chevron{transform:rotate(180deg)}
+    .user-pill.active{box-shadow:0 0 0 3px rgba(255,255,255,.24),0 8px 22px rgba(15,23,42,.16)}
+
+    .user-menu{
+      position:absolute;
+      z-index:80;
+      top:calc(100% + 9px);
+      left:0;
+      width:min(300px,calc(100vw - 24px));
+      padding:8px;
+      color:var(--text);
+      background:rgba(255,255,255,.98);
+      border:1px solid rgba(165,180,252,.55);
+      border-radius:17px;
+      box-shadow:0 20px 46px rgba(30,27,75,.22);
+      backdrop-filter:blur(18px);
+    }
+    .user-menu button{
+      width:100%;
+      min-height:43px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 11px;
+      color:#334155;
+      background:transparent;
+      border:0;
+      border-radius:12px;
+      font:inherit;
+      font-weight:800;
+      text-align:left;
+    }
+    .user-menu button:hover,.user-menu button:focus-visible{background:#eef2ff;color:#3730a3}
+    .user-menu button.danger{color:#be123c}
+    .user-menu button.danger:hover{background:#fff1f2}
+    .user-menu-divider{height:1px;margin:6px;background:#e0e7ff}
+
+    .nav{
+      position:relative;
+      z-index:16;
+      overflow:visible;
+      align-items:center;
+      flex-wrap:nowrap;
+    }
+    .nav > button,.nav-group{flex:0 0 auto}
+    .nav-group{position:relative}
+    .nav-group > .nav-group-trigger{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+    }
+    .nav-group-trigger[data-nav-group="classroom"]{background:#fff7ed;color:#c2410c}
+    .nav-group-trigger[data-nav-group="discover"]{background:#f0fdfa;color:#0f766e}
+    .nav-group-trigger[data-nav-group="more"]{background:#f1f5f9;color:#475569}
+    .nav-caret{font-size:.75rem;transition:transform .16s ease}
+    .nav-group.open .nav-caret{transform:rotate(180deg)}
+
+    .nav-popover{
+      display:none;
+      position:absolute;
+      z-index:70;
+      top:calc(100% + 9px);
+      right:0;
+      width:min(350px,calc(100vw - 28px));
+      max-height:min(70vh,560px);
+      overflow:auto;
+      padding:10px;
+      color:var(--text);
+      background:rgba(255,255,255,.98);
+      border:1px solid rgba(165,180,252,.55);
+      border-radius:18px;
+      box-shadow:0 22px 50px rgba(30,27,75,.22);
+      backdrop-filter:blur(18px);
+    }
+    .nav-group.open .nav-popover{display:block}
+    .nav-group-classroom .nav-popover,.nav-group-discover .nav-popover{left:0;right:auto}
+    .nav-section + .nav-section{margin-top:10px;padding-top:10px;border-top:1px solid #e0e7ff}
+    .nav-section-title{
+      padding:2px 8px 8px;
+      color:#64748b;
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .nav-menu-grid{display:grid;grid-template-columns:1fr;gap:5px}
+    .nav .nav-menu-item{
+      width:100%;
+      min-height:43px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      padding:9px 11px;
+      color:#334155;
+      background:transparent;
+      border:0;
+      border-radius:12px;
+      box-shadow:none;
+      font-size:.9rem;
+      text-align:left;
+      white-space:normal;
+    }
+    .nav .nav-menu-item:hover{transform:none;background:#eef2ff;border-color:transparent}
+    .nav .nav-menu-item.active{color:#312e81;background:#e0e7ff;box-shadow:none}
+    .nav-badge{
+      min-width:20px;
+      height:20px;
+      display:inline-grid;
+      place-items:center;
+      margin-left:2px;
+      padding:0 6px;
+      color:#fff;
+      background:#e11d48;
+      border-radius:999px;
+      font-size:.68rem;
+      font-weight:900;
+      line-height:1;
+    }
+    .mobile-only-nav-section{display:none}
+    .nav-backdrop{
+      position:fixed;
+      z-index:45;
+      inset:0;
+      width:100%;
+      height:100%;
+      padding:0;
+      background:rgba(15,23,42,.34);
+      border:0;
+      backdrop-filter:blur(2px);
+    }
+
+    @media (max-width:760px){
+      body.nav-menu-open{overflow:hidden}
+      .app-shell{padding-bottom:96px}
+      .nav{
+        position:fixed;
+        z-index:60;
+        left:0;
+        right:0;
+        bottom:0;
+        display:grid;
+        grid-template-columns:repeat(5,minmax(0,1fr));
+        gap:3px;
+        width:100%;
+        margin:0;
+        padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left));
+        overflow:visible;
+        background:rgba(255,255,255,.97);
+        border:1px solid rgba(165,180,252,.55);
+        border-width:1px 0 0;
+        border-radius:20px 20px 0 0;
+        box-shadow:0 -12px 34px rgba(30,27,75,.16);
+        backdrop-filter:blur(18px);
+      }
+      .nav > button,.nav-group > .nav-group-trigger{
+        width:100%;
+        min-width:0;
+        min-height:58px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:3px;
+        padding:5px 2px;
+        overflow:hidden;
+        color:#475569;
+        background:transparent;
+        border:0;
+        border-radius:14px;
+        box-shadow:none;
+        font-size:.67rem;
+        line-height:1.1;
+        text-overflow:ellipsis;
+      }
+      .nav > button .nav-icon,.nav-group-trigger .nav-icon{font-size:1.2rem}
+      .nav > button:hover,.nav-group > .nav-group-trigger:hover{transform:none;border-color:transparent}
+      .nav > button.active,.nav-group > .nav-group-trigger.active{
+        color:var(--primary-dark);
+        background:var(--primary-soft);
+        border-color:transparent;
+        box-shadow:none;
+      }
+      .nav-caret{display:none}
+      .nav-badge{
+        position:absolute;
+        top:4px;
+        right:calc(50% - 25px);
+        min-width:18px;
+        height:18px;
+        padding:0 5px;
+        border:2px solid #fff;
+        font-size:.62rem;
+      }
+      .nav > button,.nav-group > .nav-group-trigger{position:relative}
+      .teacher-classroom-nav{display:none}
+      .mobile-only-nav-section{display:block}
+      .nav-popover{
+        position:fixed;
+        z-index:75;
+        top:auto;
+        left:10px !important;
+        right:10px !important;
+        bottom:calc(78px + env(safe-area-inset-bottom));
+        width:auto;
+        max-height:min(68vh,570px);
+        padding:12px;
+        border-radius:22px;
+      }
+      .nav-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+      .nav .nav-menu-item{
+        min-height:50px;
+        padding:10px;
+        background:#f8faff;
+        border:1px solid #e0e7ff;
+        line-height:1.25;
+      }
+      .nav .nav-menu-item.active{border-color:#a5b4fc;background:#e0e7ff}
+      .user-menu{position:fixed;top:76px;left:10px;right:10px;width:auto}
+    }
+
+    @media (max-width:390px){
+      .nav > button,.nav-group > .nav-group-trigger{font-size:.62rem}
+      .nav-menu-grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 
@@ -2246,25 +2487,35 @@
   <main id="appView" class="hidden">
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="user-pill">
-          <div id="userAvatar" class="avatar">CN</div>
-          <div>
-            <strong id="userName">Người dùng</strong>
-            <span id="userRole">Vai trò</span>
+        <div class="user-menu-wrap">
+          <button id="userMenuBtn" class="user-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
+            <div id="userAvatar" class="avatar">CN</div>
+            <div class="user-pill-text">
+              <strong id="userName">Người dùng</strong>
+              <span id="userRole">Vai trò</span>
+            </div>
+            <span class="user-menu-chevron" aria-hidden="true">⌄</span>
+          </button>
+
+          <div id="userMenu" class="user-menu hidden" role="menu">
+            <button type="button" data-user-page="profile" role="menuitem"><span aria-hidden="true">🪪</span><span id="userProfileMenuLabel">Hồ sơ</span></button>
+            <button type="button" data-user-page="timetable" role="menuitem"><span aria-hidden="true">📅</span><span>Thời khóa biểu</span></button>
+            <div class="user-menu-divider"></div>
+            <button id="changePassBtn" type="button" role="menuitem"><span aria-hidden="true">🔐</span><span>Đổi mật khẩu</span></button>
+            <button id="logoutBtn" class="danger" type="button" role="menuitem"><span aria-hidden="true">↪</span><span>Đăng xuất</span></button>
           </div>
         </div>
 
         <div class="top-actions">
           <button id="installAppBtn" class="btn btn-soft btn-small" type="button" onclick="openInstallGuide()">📲 <span class="optional">Cài APP</span></button>
           <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
-          <button id="changePassBtn" class="btn btn-soft btn-small" type="button">🔐 <span class="optional">Đổi mật khẩu</span></button>
-          <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
         </div>
       </div>
     </div>
 
     <div class="app-shell">
-      <nav id="nav" class="nav"></nav>
+      <nav id="nav" class="nav" aria-label="Điều hướng chính"></nav>
+      <button id="navBackdrop" class="nav-backdrop hidden" type="button" aria-label="Đóng menu"></button>
 
       <section id="dashboardPage" class="page"></section>
       <section id="timetablePage" class="page hidden"></section>
@@ -2283,7 +2534,7 @@
       <section id="aiStatsPage" class="page hidden"></section>
 
       <p class="footer-note">
-        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Phiên bản 16.2.0</b>
+        Dữ liệu chỉ phục vụ công tác chủ nhiệm cá nhân. Không công khai thông tin riêng tư của học sinh. <br><b id="appVersionText">Giao diện 16.3.0</b>
       </p>
     </div>
   </main>
@@ -2299,7 +2550,7 @@
 ========================================================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycby99lEV9vfHUsQagIUPxUJj7RZfPqZVekvTShfY6S8pfkcCy9sxF0k1-6wtIyuozki8/exec';
 
-const APP_VERSION = '16.2.0';
+const APP_VERSION = '16.3.0';
 
 const LS_TOKEN = 'scn_token_v7';
 const LS_USER = 'scn_user_v7';
@@ -2403,6 +2654,35 @@ function bindBaseEvents(){
   $('#logoutBtn').addEventListener('click', logout);
   $('#changePassBtn').addEventListener('click', () => openChangePasswordModal(false));
   $('#refreshBtn').addEventListener('click', refreshCurrent);
+
+  $('#userMenuBtn').addEventListener('click', event => {
+    event.stopPropagation();
+    toggleUserMenu();
+  });
+  $$('[data-user-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeUserMenu();
+      goPage(btn.dataset.userPage);
+    });
+  });
+  $('#navBackdrop').addEventListener('click', () => {
+    closeNavigationMenus();
+    closeUserMenu();
+  });
+  document.addEventListener('click', event => {
+    if(!event.target.closest('#nav')) closeNavigationMenus();
+    if(!event.target.closest('.user-menu-wrap')) closeUserMenu();
+  });
+  document.addEventListener('keydown', event => {
+    if(event.key === 'Escape'){
+      closeNavigationMenus();
+      closeUserMenu();
+    }
+  });
+  window.addEventListener('resize', () => {
+    closeNavigationMenus();
+    activatePageShell(state.currentPage || 'dashboard');
+  });
 
 }
 
@@ -2578,12 +2858,12 @@ function showApp(){
 function applyAppBranding(){
   const app = state.dashboard && state.dashboard.app ? state.dashboard.app : {};
   const appName = app.appName || 'Sổ chủ nhiệm số';
-  const version = app.version || APP_VERSION;
+  const backendVersion = app.version || '—';
   document.title = appName;
   const loginName = $('#loginAppName');
   const versionText = $('#appVersionText');
   if(loginName) loginName.textContent = appName;
-  if(versionText) versionText.textContent = 'Phiên bản ' + version;
+  if(versionText) versionText.textContent = `Giao diện ${APP_VERSION} · Apps Script ${backendVersion}`;
 }
 
 function clearSession(){
@@ -2632,42 +2912,159 @@ function renderUser(){
   const role = normalizeRole(state.user.Role);
   $('#userRole').textContent = roleLabel(role) + (state.user.StudentID ? ' · ' + state.user.StudentID : '');
   $('#userAvatar').textContent = avatarText(state.user.FullName || state.user.Username || 'CN');
+  const profileLabel = $('#userProfileMenuLabel');
+  if(profileLabel){
+    profileLabel.textContent = role === 'GVCN' ? 'Hồ sơ học sinh' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em');
+  }
 }
 
 /* =========================================================
    NAV / PAGES
 ========================================================= */
 
+function toggleUserMenu(force){
+  const menu = $('#userMenu');
+  const btn = $('#userMenuBtn');
+  if(!menu || !btn) return;
+  const open = typeof force === 'boolean' ? force : menu.classList.contains('hidden');
+  if(open) closeNavigationMenus();
+  menu.classList.toggle('hidden', !open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function closeUserMenu(){
+  const menu = $('#userMenu');
+  const btn = $('#userMenuBtn');
+  if(menu) menu.classList.add('hidden');
+  if(btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function closeNavigationMenus(){
+  $$('#nav .nav-group').forEach(group => group.classList.remove('open'));
+  $$('#nav [data-nav-group]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+  const backdrop = $('#navBackdrop');
+  if(backdrop) backdrop.classList.add('hidden');
+  document.body.classList.remove('nav-menu-open');
+}
+
+function toggleNavigationGroup(groupID){
+  const group = document.querySelector(`#nav .nav-group[data-group-id="${groupID}"]`);
+  if(!group) return;
+  const willOpen = !group.classList.contains('open');
+  closeNavigationMenus();
+  closeUserMenu();
+  if(!willOpen) return;
+  group.classList.add('open');
+  const trigger = group.querySelector('[data-nav-group]');
+  if(trigger) trigger.setAttribute('aria-expanded', 'true');
+  const backdrop = $('#navBackdrop');
+  if(backdrop) backdrop.classList.remove('hidden');
+  document.body.classList.add('nav-menu-open');
+}
+
+function isMobileNavigation(){
+  return window.matchMedia('(max-width:760px)').matches;
+}
+
 function renderNav(){
   const role = normalizeRole(state.user?.Role);
-  const items = [
-    { id:'dashboard', icon:'🏠', label:'Tổng quan', show:true },
-    { id:'timetable', icon:'📅', label:'Thời khóa biểu', show:true },
-    { id:'students', icon:'👥', label:'Học sinh', show:role === 'GVCN' },
-    { id:'profile', icon:'🪪', label:role === 'GVCN' ? 'Hồ sơ' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em'), show:true },
-    { id:'messages', icon:'💬', label:'Tin nhắn', show:true },
-    { id:'notices', icon:'🔔', label:`Thông báo${state.noticePendingCount > 0 ? ' (' + state.noticePendingCount + ')' : ''}`, show:true },
-    { id:'progress', icon:'🌱', label:'Hành trình tiến bộ', show:true },
-    { id:'activities', icon:'🎯', label:'Các hoạt động chính', show:true },
-    { id:'gallery', icon:'📸', label:'Khoảnh khắc lớp', show:true },
-    { id:'dailyTips', icon:'💡', label:'Điều hay mỗi ngày', show:true },
-    { id:'aiSupport', icon:'✨', label: role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em', show: role !== 'GVCN' },
-    { id:'reset', icon:'🔐', label:'Quên mật khẩu', show:role === 'GVCN' },
-    { id:'setup', icon:'⚙️', label:'Thiết lập', show:role === 'GVCN' },
-    { id:'operations', icon:'🗄️', label:'Sao lưu & năm học', show:role === 'GVCN' },
-    { id:'aiStats', icon:'📊', label:'Thống kê AI', show:role === 'GVCN' }
-  ].filter(i => i.show);
+  const isTeacher = role === 'GVCN';
+  const unreadCount = Math.max(0, Number(state.dashboard?.unreadCount || 0));
+  const noticeCount = Math.max(0, Number(state.noticePendingCount || 0));
+  const badgeText = value => value > 99 ? '99+' : String(value);
 
-  $('#nav').innerHTML = items.map(i => `
-    <button type="button" data-page="${i.id}" class="${state.currentPage === i.id ? 'active' : ''}">
-      <span class="nav-icon" aria-hidden="true">${i.icon}</span>
-      <span>${escapeHTML(i.label)}</span>
-    </button>
-  `).join('');
+  const catalog = {
+    dashboard:{icon:'🏠',label:'Tổng quan'},
+    timetable:{icon:'📅',label:'Thời khóa biểu'},
+    students:{icon:'👥',label:'Học sinh'},
+    profile:{icon:'🪪',label:isTeacher ? 'Hồ sơ học sinh' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em')},
+    messages:{icon:'💬',label:'Tin nhắn',badge:unreadCount},
+    notices:{icon:'🔔',label:'Thông báo',badge:noticeCount},
+    progress:{icon:'🌱',label:'Hành trình'},
+    activities:{icon:'🎯',label:'Hoạt động chính'},
+    gallery:{icon:'📸',label:'Khoảnh khắc lớp'},
+    dailyTips:{icon:'💡',label:'Điều hay mỗi ngày'},
+    aiSupport:{icon:'✨',label:role === 'PHHS' ? 'AI hỗ trợ PHHS' : 'AI hỗ trợ em'},
+    reset:{icon:'🔐',label:'Yêu cầu mật khẩu'},
+    setup:{icon:'⚙️',label:'Thiết lập'},
+    operations:{icon:'🗄️',label:'Sao lưu & năm học'},
+    aiStats:{icon:'📊',label:'Thống kê AI'}
+  };
 
-  $$('#nav button').forEach(btn => {
-    btn.addEventListener('click', () => goPage(btn.dataset.page));
+  const pageButton = (page, menuItem=false) => {
+    const item = catalog[page];
+    if(!item) return '';
+    const active = state.currentPage === page ? ' active' : '';
+    const badge = item.badge > 0 ? `<span class="nav-badge" aria-label="${item.badge} mục mới">${badgeText(item.badge)}</span>` : '';
+    return `
+      <button type="button" data-page="${page}" class="${menuItem ? 'nav-menu-item' : 'nav-main-item'}${active}" ${menuItem ? 'role="menuitem"' : ''}>
+        <span class="nav-icon" aria-hidden="true">${item.icon}</span>
+        <span class="nav-label">${escapeHTML(item.label)}</span>
+        ${badge}
+      </button>`;
+  };
+
+  const section = (title, pages, extraClass='') => `
+    <div class="nav-section ${extraClass}">
+      <div class="nav-section-title">${escapeHTML(title)}</div>
+      <div class="nav-menu-grid">${pages.map(page => pageButton(page, true)).join('')}</div>
+    </div>`;
+
+  const group = ({id,icon,label,pages,mobilePages,sections,className=''}) => {
+    const activePages = (isMobileNavigation() && mobilePages?.length) ? mobilePages : pages;
+    const active = activePages.includes(state.currentPage) ? ' active' : '';
+    return `
+      <div class="nav-group nav-group-${id} ${className}" data-group-id="${id}">
+        <button type="button" class="nav-group-trigger${active}" data-nav-group="${id}" data-pages="${pages.join(',')}" data-mobile-pages="${(mobilePages || pages).join(',')}" aria-haspopup="true" aria-expanded="false">
+          <span class="nav-icon" aria-hidden="true">${icon}</span>
+          <span class="nav-label">${escapeHTML(label)}</span>
+          <span class="nav-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="nav-popover" role="menu" aria-label="${escapeHTML(label)}">
+          ${sections.join('')}
+        </div>
+      </div>`;
+  };
+
+  const classroomPages = ['timetable','notices','activities','gallery','dailyTips'];
+  const adminPages = ['reset','setup','operations','aiStats'];
+  let html = '';
+
+  if(isTeacher){
+    html += ['dashboard','messages','students','progress'].map(page => pageButton(page)).join('');
+    html += group({
+      id:'classroom',icon:'🏫',label:'Lớp học',pages:classroomPages,
+      sections:[section('Nội dung lớp',classroomPages)],
+      className:'teacher-classroom-nav'
+    });
+    html += group({
+      id:'more',icon:'☰',label:'Thêm',pages:adminPages,mobilePages:[...classroomPages,...adminPages],
+      sections:[section('Lớp học',classroomPages,'mobile-only-nav-section'),section('Quản trị',adminPages)]
+    });
+  }else{
+    const discoverPages = ['activities','gallery','dailyTips','aiSupport'];
+    html += ['dashboard','messages','notices','progress'].map(page => pageButton(page)).join('');
+    html += group({
+      id:'discover',icon:'🧭',label:'Khám phá',pages:discoverPages,
+      sections:[section('Khám phá',discoverPages)]
+    });
+  }
+
+  $('#nav').innerHTML = html;
+  $$('#nav [data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      closeNavigationMenus();
+      goPage(page);
+    });
   });
+  $$('#nav [data-nav-group]').forEach(btn => {
+    btn.addEventListener('click', event => {
+      event.stopPropagation();
+      toggleNavigationGroup(btn.dataset.navGroup);
+    });
+  });
+  activatePageShell(state.currentPage || 'dashboard');
 }
 
 async function goPage(page, save=true){
@@ -2724,6 +3121,14 @@ function activatePageShell(page){
   $$('#nav button').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.page === page);
   });
+  $$('#nav [data-nav-group]').forEach(btn => {
+    const attr = isMobileNavigation() ? (btn.dataset.mobilePages || btn.dataset.pages || '') : (btn.dataset.pages || '');
+    const pages = attr.split(',').filter(Boolean);
+    btn.classList.toggle('active', pages.includes(page));
+  });
+  const userMenuBtn = $('#userMenuBtn');
+  if(userMenuBtn) userMenuBtn.classList.toggle('active', ['profile','timetable'].includes(page));
+  closeNavigationMenus();
 }
 
 /* =========================================================
@@ -2741,8 +3146,13 @@ async function loadDashboard(force=false){
   const load = async () => {
     const data = await api('getDashboard', { token: state.token });
     state.dashboard = data;
+    if(data.noticePendingCount !== undefined){
+      state.noticePendingCount = Number(data.noticePendingCount || 0);
+    }
     state.dashboardLoadedAt = Date.now();
     writeCacheEnvelope(LS_DASHBOARD_CACHE, data);
+    applyAppBranding();
+    renderNav();
     renderDashboard();
   };
 
@@ -5010,6 +5420,12 @@ async function loadMessages(){
   await withLoading(async () => {
     const data = await api('getMessages', { token: state.token });
     state.messages = data.messages || [];
+    const unreadCount = state.messages.filter(message => {
+      const sentByMe = String(message.FromUserID) === String(state.user?.UserID);
+      return !sentByMe && String(message.ReadStatus) !== 'Đã đọc';
+    }).length;
+    if(state.dashboard) state.dashboard.unreadCount = unreadCount;
+    renderNav();
     renderMessages();
   }, 'Đang tải tin nhắn...');
 }
