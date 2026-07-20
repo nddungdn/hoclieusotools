@@ -2215,6 +2215,8 @@
       text-align:left;
       cursor:pointer;
     }
+    button.user-pill.static{cursor:default}
+    button.user-pill.static:disabled{opacity:1}
     .user-pill-text{min-width:0}
     .user-menu-chevron{font-size:1rem;transition:transform .16s ease}
     .user-pill[aria-expanded="true"] .user-menu-chevron{transform:rotate(180deg)}
@@ -2269,6 +2271,7 @@
       justify-content:center;
       gap:7px;
     }
+    .nav-label-row{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:0}
     .nav-group-trigger[data-nav-group="classroom"]{background:#fff7ed;color:#c2410c}
     .nav-group-trigger[data-nav-group="discover"]{background:#f0fdfa;color:#0f766e}
     .nav-group-trigger[data-nav-group="more"]{background:#f1f5f9;color:#475569}
@@ -2350,6 +2353,10 @@
       backdrop-filter:none;
     }
 
+    @media (min-width:761px){
+      body[data-role="GVCN"] .nav{justify-content:center}
+    }
+
     @media (max-width:760px){
       body.nav-menu-open{overflow:hidden}
       .app-shell{padding-bottom:96px}
@@ -2394,6 +2401,12 @@
         text-overflow:ellipsis;
       }
       .nav > button .nav-icon,.nav-group-trigger .nav-icon{font-size:1.2rem}
+      .nav > button .nav-label{
+        max-width:100%;
+        white-space:normal;
+        text-align:center;
+        line-height:1.05;
+      }
       .nav > button:hover,.nav-group > .nav-group-trigger:hover{transform:none;border-color:transparent}
       .nav > button.active,.nav-group > .nav-group-trigger.active{
         color:var(--primary-dark);
@@ -2401,7 +2414,22 @@
         border-color:transparent;
         box-shadow:none;
       }
-      .nav-caret{display:none}
+      .nav-group-trigger .nav-label-row{
+        display:flex;
+        max-width:100%;
+        padding:1px 5px 1px 7px;
+        background:rgba(255,255,255,.78);
+        border:1px solid rgba(165,180,252,.55);
+        border-radius:999px;
+        line-height:1.15;
+      }
+      .nav-group-trigger .nav-caret{
+        display:inline-block;
+        flex:0 0 auto;
+        color:var(--primary-dark);
+        font-size:.58rem;
+        font-weight:900;
+      }
       .nav-badge{
         position:absolute;
         top:4px;
@@ -2500,15 +2528,14 @@
           <div id="userMenu" class="user-menu hidden" role="menu">
             <button type="button" data-user-page="profile" role="menuitem"><span aria-hidden="true">🪪</span><span id="userProfileMenuLabel">Hồ sơ</span></button>
             <button type="button" data-user-page="timetable" role="menuitem"><span aria-hidden="true">📅</span><span>Thời khóa biểu</span></button>
-            <div class="user-menu-divider"></div>
-            <button id="changePassBtn" type="button" role="menuitem"><span aria-hidden="true">🔐</span><span>Đổi mật khẩu</span></button>
-            <button id="logoutBtn" class="danger" type="button" role="menuitem"><span aria-hidden="true">↪</span><span>Đăng xuất</span></button>
           </div>
         </div>
 
         <div class="top-actions">
           <button id="installAppBtn" class="btn btn-soft btn-small" type="button" onclick="openInstallGuide()">📲 <span class="optional">Cài APP</span></button>
           <button id="refreshBtn" class="btn btn-ghost btn-small" type="button">↻ <span class="optional">Làm mới</span></button>
+          <button id="changePassBtn" class="btn btn-soft btn-small" type="button" aria-label="Đổi mật khẩu">🔐 <span class="optional">Đổi mật khẩu</span></button>
+          <button id="logoutBtn" class="btn btn-danger btn-small" type="button">Đăng xuất</button>
         </div>
       </div>
     </div>
@@ -2912,6 +2939,17 @@ function renderUser(){
   const role = normalizeRole(state.user.Role);
   $('#userRole').textContent = roleLabel(role) + (state.user.StudentID ? ' · ' + state.user.StudentID : '');
   $('#userAvatar').textContent = avatarText(state.user.FullName || state.user.Username || 'CN');
+  const userMenuBtn = $('#userMenuBtn');
+  const userMenuChevron = userMenuBtn?.querySelector('.user-menu-chevron');
+  const hasUserMenu = role === 'GVCN';
+  if(userMenuBtn){
+    userMenuBtn.disabled = !hasUserMenu;
+    userMenuBtn.classList.toggle('static', !hasUserMenu);
+    userMenuBtn.setAttribute('aria-haspopup', hasUserMenu ? 'true' : 'false');
+    userMenuBtn.setAttribute('aria-expanded', 'false');
+  }
+  if(userMenuChevron) userMenuChevron.classList.toggle('hidden', !hasUserMenu);
+  if(!hasUserMenu) closeUserMenu();
   const profileLabel = $('#userProfileMenuLabel');
   if(profileLabel){
     profileLabel.textContent = role === 'GVCN' ? 'Hồ sơ học sinh' : (role === 'PHHS' ? 'Hồ sơ của con' : 'Hồ sơ của em');
@@ -2925,7 +2963,7 @@ function renderUser(){
 function toggleUserMenu(force){
   const menu = $('#userMenu');
   const btn = $('#userMenuBtn');
-  if(!menu || !btn) return;
+  if(!menu || !btn || btn.disabled) return;
   const open = typeof force === 'boolean' ? force : menu.classList.contains('hidden');
   if(open) closeNavigationMenus();
   menu.classList.toggle('hidden', !open);
@@ -3015,12 +3053,12 @@ function renderNav(){
   const group = ({id,icon,label,pages,mobilePages,sections,className=''}) => {
     const activePages = (isMobileNavigation() && mobilePages?.length) ? mobilePages : pages;
     const active = activePages.includes(state.currentPage) ? ' active' : '';
+    const childCount = (mobilePages?.length || pages.length);
     return `
       <div class="nav-group nav-group-${id} ${className}" data-group-id="${id}">
-        <button type="button" class="nav-group-trigger${active}" data-nav-group="${id}" data-pages="${pages.join(',')}" data-mobile-pages="${(mobilePages || pages).join(',')}" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="nav-group-trigger${active}" data-nav-group="${id}" data-pages="${pages.join(',')}" data-mobile-pages="${(mobilePages || pages).join(',')}" aria-label="${escapeHTML(label)}, menu gồm ${childCount} mục" aria-haspopup="true" aria-expanded="false">
           <span class="nav-icon" aria-hidden="true">${icon}</span>
-          <span class="nav-label">${escapeHTML(label)}</span>
-          <span class="nav-caret" aria-hidden="true">▾</span>
+          <span class="nav-label-row"><span class="nav-label">${escapeHTML(label)}</span><span class="nav-caret" aria-hidden="true">▾</span></span>
         </button>
         <div class="nav-popover" role="menu" aria-label="${escapeHTML(label)}">
           ${sections.join('')}
@@ -3044,11 +3082,11 @@ function renderNav(){
       sections:[section('Lớp học',classroomPages,'mobile-only-nav-section'),section('Quản trị',adminPages)]
     });
   }else{
-    const discoverPages = ['activities','gallery','dailyTips','aiSupport'];
-    html += ['dashboard','messages','notices','progress'].map(page => pageButton(page)).join('');
+    const discoverPages = ['profile','progress','activities','gallery','dailyTips','aiSupport'];
+    html += ['dashboard','messages','notices','timetable'].map(page => pageButton(page)).join('');
     html += group({
-      id:'discover',icon:'🧭',label:'Khám phá',pages:discoverPages,
-      sections:[section('Khám phá',discoverPages)]
+      id:'discover',icon:'☰',label:'Xem thêm',pages:discoverPages,
+      sections:[section('Các chức năng khác',discoverPages)]
     });
   }
 
@@ -3129,7 +3167,7 @@ function activatePageShell(page){
     btn.classList.toggle('active', pages.includes(page));
   });
   const userMenuBtn = $('#userMenuBtn');
-  if(userMenuBtn) userMenuBtn.classList.toggle('active', ['profile','timetable'].includes(page));
+  if(userMenuBtn) userMenuBtn.classList.toggle('active', !userMenuBtn.disabled && ['profile','timetable'].includes(page));
   closeNavigationMenus();
 }
 
