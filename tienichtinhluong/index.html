@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#083f73" />
+  <meta name="description" content="Công cụ tính lương tham khảo cho nhà giáo theo mức lương cơ sở và phụ cấp ưu đãi nghề." />
+  <title>Tính lương giáo viên tham khảo</title>
+  <style>
+    :root {
+      --navy: #083f73;
+      --navy-2: #0a4c86;
+      --red: #e60000;
+      --green: #138a2e;
+      --cream: #fffde9;
+      --cream-2: #fffbc5;
+      --paper: #ffffff;
+      --line: #d7d7d7;
+      --text: #0b3f6d;
+      --muted: #5e6f7f;
+      --shadow: 0 12px 26px rgba(0, 38, 74, .16);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #eef1f4;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+
+    .page {
+      width: min(100%, 780px);
+      margin: 0 auto;
+      padding: 14px 10px 34px;
+    }
+
+    .calculator {
+      background: linear-gradient(180deg, var(--cream), #fffef2);
+      border: 5px solid var(--navy);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 28px 24px 12px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: var(--red);
+      font-size: clamp(28px, 6vw, 45px);
+      line-height: 1.42;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .2px;
+    }
+
+    .header p {
+      margin: 14px 0 0;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: clamp(15px, 3.4vw, 21px);
+      line-height: 1.45;
+    }
+
+    .status-note {
+      margin: 8px 24px 0;
+      padding: 10px 13px;
+      border-left: 4px solid var(--navy);
+      background: rgba(8, 63, 115, .07);
+      color: #294f70;
+      font-size: 14px;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .form-area { padding: 18px 28px 26px; }
+
+    .field { margin-bottom: 17px; }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: clamp(17px, 3.7vw, 24px);
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .control {
+      width: 100%;
+      min-height: 72px;
+      border: 4px solid var(--navy);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--navy);
+      padding: 12px 17px;
+      font-size: clamp(20px, 4.5vw, 29px);
+      font-weight: 800;
+      outline: none;
+      transition: box-shadow .18s ease, border-color .18s ease;
+    }
+
+    select.control {
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #668095 50%),
+        linear-gradient(135deg, #668095 50%, transparent 50%);
+      background-position:
+        calc(100% - 24px) 31px,
+        calc(100% - 17px) 31px;
+      background-size: 7px 7px, 7px 7px;
+      background-repeat: no-repeat;
+      padding-right: 52px;
+    }
+
+    .control:focus {
+      box-shadow: 0 0 0 4px rgba(8, 63, 115, .13);
+      border-color: var(--navy-2);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px 18px;
+    }
+
+    .two-col .field { min-width: 0; }
+    .two-col .control { min-height: 68px; }
+
+    .custom-base, .custom-rate { display: none; margin-top: 10px; }
+    .visible { display: block !important; }
+
+    details.advanced {
+      margin: 8px 0 20px;
+      border: 2px solid rgba(8, 63, 115, .25);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .65);
+      overflow: hidden;
+    }
+
+    details.advanced summary {
+      padding: 13px 16px;
+      font-weight: 800;
+      color: var(--navy);
+      user-select: none;
+    }
+
+    .advanced-body { padding: 2px 15px 15px; }
+    .advanced-body .field label { font-size: 16px; }
+    .advanced-body .control {
+      min-height: 54px;
+      border-width: 2px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .check-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      margin: 5px 0 14px;
+      color: #173f62;
+      font-weight: 700;
+    }
+
+    .check-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 15px;
+    }
+
+    .check-row input { width: 19px; height: 19px; accent-color: var(--navy); }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 82px;
+      border: 1px solid #032b52;
+      border-radius: 13px;
+      background: linear-gradient(180deg, #08477e, #073c6b);
+      color: white;
+      font-size: clamp(25px, 5vw, 35px);
+      font-weight: 900;
+      box-shadow: 0 7px 14px rgba(0, 37, 70, .28);
+      text-transform: uppercase;
+    }
+
+    .primary-btn:active { transform: translateY(1px); }
+
+    .result-wrap {
+      padding: 0 28px 28px;
+    }
+
+    .result-box {
+      border: 4px dashed var(--navy);
+      border-radius: 17px;
+      background: var(--cream-2);
+      padding: 17px 24px 20px;
+      scroll-margin-top: 10px;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: baseline;
+      padding: 9px 0;
+      border-bottom: 1px solid #cfd2c4;
+      font-size: clamp(17px, 4vw, 25px);
+      line-height: 1.25;
+    }
+
+    .result-row .value {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-row.total {
+      font-weight: 900;
+      font-size: clamp(19px, 4.2vw, 27px);
+    }
+    .result-row.total .value { color: var(--green); }
+
+    .result-row.deduct {
+      color: #d12626;
+      font-weight: 800;
+    }
+
+    .result-row.net {
+      margin-top: 13px;
+      padding-top: 18px;
+      border-top: 4px solid var(--navy);
+      border-bottom: 0;
+      color: var(--red);
+      font-weight: 900;
+      font-size: clamp(22px, 4.8vw, 31px);
+      text-transform: uppercase;
+    }
+
+    .result-row.net .value { color: var(--red); }
+
+    .small-info {
+      margin-top: 12px;
+      color: #536779;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .secondary-btn {
+      min-height: 48px;
+      border: 2px solid var(--navy);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--navy);
+      font-weight: 800;
+      padding: 9px 8px;
+    }
+
+    .secondary-btn:hover { background: #f1f6fa; }
+
+    .footer-note {
+      padding: 0 28px 24px;
+      color: #52677a;
+      font-size: 13px;
+      line-height: 1.55;
+      text-align: justify;
+    }
+
+    .footer-note strong { color: var(--navy); }
+    .footer-note a { color: var(--navy); font-weight: 700; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 99;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      background: #163b5c;
+      color: white;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      transition: .25s ease;
+      box-shadow: 0 7px 20px rgba(0,0,0,.22);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 520px) {
+      .page { padding: 0; }
+      .calculator { border-width: 4px; border-radius: 0; }
+      .header { padding: 25px 16px 10px; }
+      .status-note { margin-left: 16px; margin-right: 16px; }
+      .form-area, .result-wrap { padding-left: 18px; padding-right: 18px; }
+      .form-area { padding-top: 14px; }
+      .field { margin-bottom: 14px; }
+      .control { min-height: 64px; border-width: 3px; padding: 10px 13px; }
+      select.control {
+        background-position: calc(100% - 22px) 27px, calc(100% - 15px) 27px;
+        padding-right: 44px;
+      }
+      .two-col { gap: 13px 10px; }
+      .two-col .field label { min-height: 40px; font-size: 16px; }
+      .two-col .control { min-height: 60px; font-size: 20px; }
+      .primary-btn { min-height: 72px; }
+      .result-box { padding: 12px 16px 16px; }
+      .result-row { gap: 8px; }
+      .actions { grid-template-columns: 1fr; }
+      .footer-note { padding-left: 18px; padding-right: 18px; }
+    }
+
+    @media (max-width: 365px) {
+      .two-col { grid-template-columns: 1fr; }
+      .two-col .field label { min-height: 0; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; padding: 0; }
+      .calculator { border: 2px solid #1d3d59; box-shadow: none; }
+      .form-area, .actions, .status-note { display: none !important; }
+      .header { padding-bottom: 16px; }
+      .result-wrap { padding-top: 0; }
+      .footer-note { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="calculator" aria-labelledby="pageTitle">
+      <header class="header">
+        <h1 id="pageTitle">Tính lương tham khảo<br>NĐ 182/2026/NĐ-CP</h1>
+        <p>Công cụ dành cho nhà giáo và viên chức giáo dục</p>
+      </header>
+
+      <div class="status-note">
+        Đã đặt mặc định mức lương cơ sở <strong>2.530.000 đồng/tháng</strong>, áp dụng từ ngày 01/7/2026. Có thể chọn mức cũ để đối chiếu.
+      </div>
+
+      <form class="form-area" id="salaryForm" autocomplete="off">
+        <div class="field">
+          <label for="baseSalary">Lương cơ sở (VNĐ)</label>
+          <select class="control" id="baseSalary">
+            <option value="2530000" selected>2.530.000 VNĐ (Từ 01/7/2026)</option>
+            <option value="2340000">2.340.000 VNĐ (Mức trước 01/7/2026)</option>
+            <option value="custom">Nhập mức khác</option>
+          </select>
+          <div class="custom-base" id="customBaseWrap">
+            <input class="control" id="customBase" inputmode="numeric" placeholder="Ví dụ: 2.530.000" aria-label="Mức lương cơ sở khác" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="teacherGroup">Đối tượng / Cấp dạy</label>
+          <select class="control" id="teacherGroup">
+            <option value="20">Nhân sự hỗ trợ giáo dục (20%)</option>
+            <option value="25">Giảng dạy đại học, trường đào tạo/bồi dưỡng (25%)</option>
+            <option value="30">Cao đẳng, trung cấp, TT GDNN… (30%)</option>
+            <option value="35">TT GDNN ở địa bàn được quy định (35%)</option>
+            <option value="40" selected>Giáo viên THCS, THPT, THCN, GDTX… (40%)</option>
+            <option value="45">Giáo viên mầm non, tiểu học; một số địa bàn (45%)</option>
+            <option value="60">Trường năng khiếu, DT bán trú; một số địa bàn (60%)</option>
+            <option value="70">Vùng kinh tế - xã hội đặc biệt khó khăn (70%)</option>
+            <option value="80">Nội trú, chuyên biệt, dạy người khuyết tật… (80%)</option>
+            <option value="custom">Tự nhập mức phụ cấp</option>
+          </select>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="salaryCoefficient">Hệ số lương</label>
+            <input class="control" id="salaryCoefficient" inputmode="decimal" value="2,34" />
+          </div>
+          <div class="field">
+            <label for="preferentialRate">PC Ưu đãi (%)</label>
+            <input class="control" id="preferentialRate" inputmode="decimal" value="40" readonly />
+          </div>
+          <div class="field">
+            <label for="positionCoefficient">PC Chức vụ (Hệ số)</label>
+            <input class="control" id="positionCoefficient" inputmode="decimal" value="0,0" />
+          </div>
+          <div class="field">
+            <label for="regionCoefficient">PC Khu vực (Hệ số)</label>
+            <input class="control" id="regionCoefficient" inputmode="decimal" value="0,0" />
+          </div>
+          <div class="field">
+            <label for="seniorityRate">PC Thâm niên (%)</label>
+            <input class="control" id="seniorityRate" inputmode="decimal" value="0" />
+          </div>
+          <div class="field">
+            <label for="overFrameRate">PC Vượt khung (%)</label>
+            <input class="control" id="overFrameRate" inputmode="decimal" value="0" />
+          </div>
+        </div>
+
+        <details class="advanced">
+          <summary>Tùy chọn nâng cao</summary>
+          <div class="advanced-body">
+            <div class="two-col">
+              <div class="field">
+                <label for="reserveCoefficient">Chênh lệch bảo lưu (hệ số)</label>
+                <input class="control" id="reserveCoefficient" inputmode="decimal" value="0" />
+              </div>
+              <div class="field">
+                <label for="excludedDays">Ngày không hưởng PC ưu đãi (0–22)</label>
+                <input class="control" id="excludedDays" inputmode="numeric" value="0" min="0" max="22" />
+              </div>
+              <div class="field">
+                <label for="otherIncome">Thu nhập khác (VNĐ)</label>
+                <input class="control" id="otherIncome" inputmode="numeric" value="0" />
+              </div>
+              <div class="field">
+                <label for="otherDeduction">Khấu trừ khác (VNĐ)</label>
+                <input class="control" id="otherDeduction" inputmode="numeric" value="0" />
+              </div>
+              <div class="field">
+                <label for="insuranceOverride">Căn cứ đóng BH (để trống = tự tính)</label>
+                <input class="control" id="insuranceOverride" inputmode="numeric" placeholder="Tự động" />
+              </div>
+            </div>
+
+            <div class="check-row" aria-label="Các khoản bảo hiểm">
+              <label><input type="checkbox" id="useBHXH" checked /> BHXH 8%</label>
+              <label><input type="checkbox" id="useBHYT" checked /> BHYT 1,5%</label>
+              <label><input type="checkbox" id="useBHTN" checked /> BHTN 1%</label>
+            </div>
+          </div>
+        </details>
+
+        <button class="primary-btn" type="submit">Tính lương</button>
+      </form>
+
+      <div class="result-wrap">
+        <section class="result-box" id="resultBox" aria-live="polite">
+          <div class="result-row"><span>Lương chính:</span><span class="value" id="rMain">0 đ</span></div>
+          <div class="result-row"><span>Phụ cấp ưu đãi:</span><span class="value" id="rPreferential">0 đ</span></div>
+          <div class="result-row"><span>Phụ cấp chức vụ:</span><span class="value" id="rPosition">0 đ</span></div>
+          <div class="result-row"><span>Phụ cấp thâm niên:</span><span class="value" id="rSeniority">0 đ</span></div>
+          <div class="result-row"><span>Phụ cấp vượt khung:</span><span class="value" id="rOverFrame">0 đ</span></div>
+          <div class="result-row"><span>Phụ cấp khu vực:</span><span class="value" id="rRegion">0 đ</span></div>
+          <div class="result-row" id="reserveRow" hidden><span>Chênh lệch bảo lưu:</span><span class="value" id="rReserve">0 đ</span></div>
+          <div class="result-row" id="otherIncomeRow" hidden><span>Thu nhập khác:</span><span class="value" id="rOtherIncome">0 đ</span></div>
+          <div class="result-row total"><span>TỔNG LƯƠNG GỘP:</span><span class="value" id="rGross">0 đ</span></div>
+          <div class="result-row deduct" id="bhytRow"><span>Trừ BHYT (1,5%):</span><span class="value" id="rBHYT">0 đ</span></div>
+          <div class="result-row deduct" id="bhxhBhtnRow"><span>Trừ BHXH, BHTN (9%):</span><span class="value" id="rBHXHBHTN">0 đ</span></div>
+          <div class="result-row deduct" id="otherDeductionRow" hidden><span>Khấu trừ khác:</span><span class="value" id="rOtherDeduction">0 đ</span></div>
+          <div class="result-row net"><span>Thực nhận:</span><span class="value" id="rNet">0 đ</span></div>
+          <div class="small-info" id="insuranceInfo">Căn cứ đóng bảo hiểm: 0 đ.</div>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="secondary-btn" id="copyBtn">Sao chép kết quả</button>
+          <button type="button" class="secondary-btn" id="printBtn">In / Lưu PDF</button>
+          <button type="button" class="secondary-btn" id="resetBtn">Nhập lại</button>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <strong>Lưu ý:</strong> Kết quả chỉ dùng để tham khảo. Công cụ chưa tự tính thuế thu nhập cá nhân, đoàn phí/công đoàn, truy lĩnh, truy thu hoặc các khoản đặc thù của từng đơn vị. Danh mục đối tượng đã được rút gọn; người dùng cần đối chiếu đúng trường hợp được hưởng theo Nghị định 182/2026/NĐ-CP. Phụ cấp ưu đãi được tính trên lương theo hệ số, phụ cấp chức vụ, phụ cấp thâm niên vượt khung và hệ số chênh lệch bảo lưu; khoản này không dùng làm căn cứ đóng bảo hiểm.
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Đã sao chép kết quả</div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = (id) => document.getElementById(id);
+      const form = $('salaryForm');
+      const moneyFmt = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
+      const STORAGE_KEY = 'tinhLuongGiaoVien_182_2026_v1';
+
+      const inputIds = [
+        'baseSalary', 'customBase', 'teacherGroup', 'preferentialRate',
+        'salaryCoefficient', 'positionCoefficient', 'regionCoefficient',
+        'seniorityRate', 'overFrameRate', 'reserveCoefficient',
+        'excludedDays', 'otherIncome', 'otherDeduction', 'insuranceOverride',
+        'useBHXH', 'useBHYT', 'useBHTN'
+      ];
+
+      function parseNumber(value) {
+        let s = String(value ?? '').trim().replace(/\s+/g, '');
+        if (!s) return 0;
+
+        const hasComma = s.includes(',');
+        const hasDot = s.includes('.');
+
+        if (hasComma && hasDot) {
+          if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+            s = s.replace(/\./g, '').replace(',', '.');
+          } else {
+            s = s.replace(/,/g, '');
+          }
+        } else if (hasComma) {
+          const parts = s.split(',');
+          if (parts.length === 2 && parts[1].length <= 3) s = s.replace(',', '.');
+          else s = s.replace(/,/g, '');
+        } else if (hasDot) {
+          const parts = s.split('.');
+          if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parts[0].length > 1)) {
+            s = s.replace(/\./g, '');
+          }
+        }
+
+        s = s.replace(/[^0-9.-]/g, '');
+        const n = Number(s);
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      function clamp(n, min, max) { return Math.min(max, Math.max(min, n)); }
+      function roundMoney(n) { return Math.round(Number.isFinite(n) ? n : 0); }
+      function formatMoney(n) { return `${moneyFmt.format(roundMoney(n))} đ`; }
+
+      function getBaseSalary() {
+        return $('baseSalary').value === 'custom'
+          ? Math.max(0, parseNumber($('customBase').value))
+          : Number($('baseSalary').value);
+      }
+
+      function getRate() {
+        if ($('teacherGroup').value === 'custom') {
+          return clamp(parseNumber($('preferentialRate').value), 0, 100);
+        }
+        return clamp(Number($('teacherGroup').value), 0, 100);
+      }
+
+      function updateConditionalFields() {
+        $('customBaseWrap').classList.toggle('visible', $('baseSalary').value === 'custom');
+        const isCustomRate = $('teacherGroup').value === 'custom';
+        $('preferentialRate').readOnly = !isCustomRate;
+        if (!isCustomRate) {
+          $('preferentialRate').value = String(Number($('teacherGroup').value)).replace('.', ',');
+        }
+      }
+
+      function calculate(shouldScroll = false) {
+        const base = getBaseSalary();
+        const salaryCoefficient = Math.max(0, parseNumber($('salaryCoefficient').value));
+        const positionCoefficient = Math.max(0, parseNumber($('positionCoefficient').value));
+        const regionCoefficient = Math.max(0, parseNumber($('regionCoefficient').value));
+        const seniorityRate = clamp(parseNumber($('seniorityRate').value), 0, 100);
+        const overFrameRate = clamp(parseNumber($('overFrameRate').value), 0, 100);
+        const reserveCoefficient = Math.max(0, parseNumber($('reserveCoefficient').value));
+        const rate = getRate();
+        const excludedDays = clamp(Math.round(parseNumber($('excludedDays').value)), 0, 22);
+        const otherIncome = Math.max(0, parseNumber($('otherIncome').value));
+        const otherDeduction = Math.max(0, parseNumber($('otherDeduction').value));
+
+        const main = base * salaryCoefficient;
+        const position = base * positionCoefficient;
+        const overFrame = main * overFrameRate / 100;
+        const reserve = base * reserveCoefficient;
+
+        const preferentialBase = main + position + overFrame + reserve;
+        const preferentialFull = preferentialBase * rate / 100;
+        const preferential = preferentialFull * (22 - excludedDays) / 22;
+
+        const seniorityBase = main + position + overFrame + reserve;
+        const seniority = seniorityBase * seniorityRate / 100;
+        const region = base * regionCoefficient;
+
+        const gross = main + preferential + position + seniority + overFrame + region + reserve + otherIncome;
+
+        const autoInsuranceBase = main + position + overFrame + seniority + reserve;
+        const insuranceOverrideRaw = $('insuranceOverride').value.trim();
+        const insuranceBase = insuranceOverrideRaw
+          ? Math.max(0, parseNumber(insuranceOverrideRaw))
+          : autoInsuranceBase;
+
+        const bhxhRate = $('useBHXH').checked ? 8 : 0;
+        const bhytRate = $('useBHYT').checked ? 1.5 : 0;
+        const bhtnRate = $('useBHTN').checked ? 1 : 0;
+
+        const bhxh = insuranceBase * bhxhRate / 100;
+        const bhyt = insuranceBase * bhytRate / 100;
+        const bhtn = insuranceBase * bhtnRate / 100;
+        const bhxhBhtn = bhxh + bhtn;
+        const net = gross - bhxh - bhyt - bhtn - otherDeduction;
+
+        $('rMain').textContent = formatMoney(main);
+        $('rPreferential').textContent = formatMoney(preferential);
+        $('rPosition').textContent = formatMoney(position);
+        $('rSeniority').textContent = formatMoney(seniority);
+        $('rOverFrame').textContent = formatMoney(overFrame);
+        $('rRegion').textContent = formatMoney(region);
+        $('rReserve').textContent = formatMoney(reserve);
+        $('rOtherIncome').textContent = formatMoney(otherIncome);
+        $('rGross').textContent = formatMoney(gross);
+        $('rBHYT').textContent = `-${moneyFmt.format(roundMoney(bhyt))} đ`;
+        $('rBHXHBHTN').textContent = `-${moneyFmt.format(roundMoney(bhxhBhtn))} đ`;
+        $('rOtherDeduction').textContent = `-${moneyFmt.format(roundMoney(otherDeduction))} đ`;
+        $('rNet').textContent = formatMoney(net);
+
+        $('reserveRow').hidden = reserve <= 0;
+        $('otherIncomeRow').hidden = otherIncome <= 0;
+        $('otherDeductionRow').hidden = otherDeduction <= 0;
+        $('bhytRow').hidden = bhytRate === 0;
+        $('bhxhBhtnRow').hidden = (bhxhRate + bhtnRate) === 0;
+
+        const bhParts = [];
+        if (bhxhRate) bhParts.push(`BHXH ${bhxhRate}%`);
+        if (bhytRate) bhParts.push(`BHYT ${String(bhytRate).replace('.', ',')}%`);
+        if (bhtnRate) bhParts.push(`BHTN ${bhtnRate}%`);
+        const dayNote = excludedDays > 0
+          ? ` Phụ cấp ưu đãi đã giảm theo ${excludedDays} ngày không được tính hưởng.`
+          : '';
+        $('insuranceInfo').textContent = `Căn cứ đóng bảo hiểm: ${formatMoney(insuranceBase)}${bhParts.length ? ` (${bhParts.join(', ')})` : ' (không khấu trừ bảo hiểm)'}.${dayNote}`;
+
+        window.currentSalaryResult = {
+          base, salaryCoefficient, rate, main, preferential, position,
+          seniority, overFrame, region, reserve, otherIncome, gross,
+          insuranceBase, bhyt, bhxhBhtn, otherDeduction, net, excludedDays
+        };
+
+        saveState();
+        if (shouldScroll) $('resultBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function saveState() {
+        const state = {};
+        inputIds.forEach(id => {
+          const el = $(id);
+          state[id] = el.type === 'checkbox' ? el.checked : el.value;
+        });
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+      }
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          inputIds.forEach(id => {
+            if (!(id in saved)) return;
+            const el = $(id);
+            if (el.type === 'checkbox') el.checked = Boolean(saved[id]);
+            else el.value = saved[id];
+          });
+        } catch (_) {}
+      }
+
+      function resetForm() {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+        $('baseSalary').value = '2530000';
+        $('customBase').value = '';
+        $('teacherGroup').value = '40';
+        $('salaryCoefficient').value = '2,34';
+        $('positionCoefficient').value = '0,0';
+        $('regionCoefficient').value = '0,0';
+        $('seniorityRate').value = '0';
+        $('overFrameRate').value = '0';
+        $('reserveCoefficient').value = '0';
+        $('excludedDays').value = '0';
+        $('otherIncome').value = '0';
+        $('otherDeduction').value = '0';
+        $('insuranceOverride').value = '';
+        $('useBHXH').checked = true;
+        $('useBHYT').checked = true;
+        $('useBHTN').checked = true;
+        updateConditionalFields();
+        calculate(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function buildCopyText() {
+        const r = window.currentSalaryResult;
+        if (!r) return '';
+        const lines = [
+          'KẾT QUẢ TÍNH LƯƠNG THAM KHẢO',
+          `Lương cơ sở: ${formatMoney(r.base)}`,
+          `Hệ số lương: ${String(r.salaryCoefficient).replace('.', ',')}`,
+          `Phụ cấp ưu đãi: ${r.rate}%`,
+          '------------------------------',
+          `Lương chính: ${formatMoney(r.main)}`,
+          `Phụ cấp ưu đãi: ${formatMoney(r.preferential)}`,
+          `Phụ cấp chức vụ: ${formatMoney(r.position)}`,
+          `Phụ cấp thâm niên: ${formatMoney(r.seniority)}`,
+          `Phụ cấp vượt khung: ${formatMoney(r.overFrame)}`,
+          `Phụ cấp khu vực: ${formatMoney(r.region)}`
+        ];
+        if (r.reserve > 0) lines.push(`Chênh lệch bảo lưu: ${formatMoney(r.reserve)}`);
+        if (r.otherIncome > 0) lines.push(`Thu nhập khác: ${formatMoney(r.otherIncome)}`);
+        lines.push(
+          `TỔNG LƯƠNG GỘP: ${formatMoney(r.gross)}`,
+          `Trừ BHYT: -${formatMoney(r.bhyt)}`,
+          `Trừ BHXH, BHTN: -${formatMoney(r.bhxhBhtn)}`
+        );
+        if (r.otherDeduction > 0) lines.push(`Khấu trừ khác: -${formatMoney(r.otherDeduction)}`);
+        lines.push(`THỰC NHẬN: ${formatMoney(r.net)}`);
+        return lines.join('\n');
+      }
+
+      function showToast(message) {
+        const toast = $('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+      }
+
+      async function copyResult() {
+        const text = buildCopyText();
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Đã sao chép kết quả');
+        } catch (_) {
+          const area = document.createElement('textarea');
+          area.value = text;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand('copy');
+          area.remove();
+          showToast('Đã sao chép kết quả');
+        }
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        calculate(true);
+      });
+
+      $('baseSalary').addEventListener('change', () => { updateConditionalFields(); calculate(false); });
+      $('teacherGroup').addEventListener('change', () => { updateConditionalFields(); calculate(false); });
+      inputIds.forEach(id => {
+        const el = $(id);
+        if (!el || ['baseSalary', 'teacherGroup'].includes(id)) return;
+        el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => calculate(false));
+      });
+
+      $('copyBtn').addEventListener('click', copyResult);
+      $('printBtn').addEventListener('click', () => window.print());
+      $('resetBtn').addEventListener('click', resetForm);
+
+      loadState();
+      updateConditionalFields();
+      calculate(false);
+    })();
+  </script>
+</body>
+</html>
