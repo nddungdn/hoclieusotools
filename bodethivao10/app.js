@@ -4,6 +4,7 @@
   const els = {};
   const state = {
     exams: [],
+    questions: [],
     filtered: [],
     current: null,
     extraAnswerCount: 0,
@@ -23,6 +24,42 @@
     }
   ];
 
+  const SAMPLE_QUESTIONS = [
+    {
+      IDDe: "MAU2026",
+      MaCau: "DH1",
+      Phan: "Đọc hiểu",
+      TenCau: "Câu 1",
+      YeuCau: "Xác định thể thơ của văn bản.",
+      DapAn: "Học sinh xác định đúng thể thơ được sử dụng trong ngữ liệu.",
+      DiemToiDa: "0,5",
+      ThuTu: "1",
+      TrangThai: "HIEN"
+    },
+    {
+      IDDe: "MAU2026",
+      MaCau: "DH2",
+      Phan: "Đọc hiểu",
+      TenCau: "Câu 2",
+      YeuCau: "Nêu nội dung chính của văn bản.",
+      DapAn: "Nêu đúng nội dung chính; có thể diễn đạt theo cách khác nhưng phải hợp lí và bám sát ngữ liệu.",
+      DiemToiDa: "1,0",
+      ThuTu: "2",
+      TrangThai: "HIEN"
+    },
+    {
+      IDDe: "MAU2026",
+      MaCau: "V1",
+      Phan: "Viết",
+      TenCau: "Câu 1",
+      YeuCau: "Viết đoạn văn nghị luận khoảng 200 chữ.",
+      DapAn: "Đúng hình thức đoạn văn; xác định đúng vấn đề; triển khai lập luận hợp lí; diễn đạt trong sáng và có sáng tạo.",
+      DiemToiDa: "2,0",
+      ThuTu: "3",
+      TrangThai: "HIEN"
+    }
+  ];
+
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
@@ -37,9 +74,11 @@
       "menuBtn", "headerActions", "fontDownBtn", "fontUpBtn", "themeBtn",
       "provinceSelect", "yearSelect", "typeSelect", "searchInput",
       "studentName", "studentClass", "studentSchool", "statusBar",
+      "apiKeyInput", "toggleApiKeyBtn", "saveApiKeyBtn",
       "emptyState", "workspace", "examCount", "examTitle", "examYear",
       "examType", "examContent", "answerFields", "saveIndicator",
-      "progressText", "progressBar", "addAnswerBtn", "clearBtn", "finishBtn",
+      "progressText", "progressBar", "totalScore", "maxTotalScore",
+      "addAnswerBtn", "clearBtn", "finishBtn",
       "answerKeySection", "answerKeyContent", "backToWorkBtn", "toast"
     ].forEach(id => { els[id] = document.getElementById(id); });
   }
@@ -59,6 +98,8 @@
     [els.studentName, els.studentClass, els.studentSchool].forEach(el => {
       el.addEventListener("input", saveStudentInfo);
     });
+    els.toggleApiKeyBtn.addEventListener("click", toggleApiKeyVisibility);
+    els.saveApiKeyBtn.addEventListener("click", saveApiKeyForSession);
     els.addAnswerBtn.addEventListener("click", () => addExtraAnswer());
     els.clearBtn.addEventListener("click", clearCurrentWork);
     els.finishBtn.addEventListener("click", finishWork);
@@ -66,12 +107,18 @@
       els.answerKeySection.hidden = true;
       els.workspace.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+    els.apiKeyInput.value = sessionStorage.getItem("van10-gemini-key") || "";
   }
 
   async function loadExams() {
     const url = String(window.VAN10_APPS_SCRIPT_URL || "").trim();
     if (!url) {
-      useExamData(SAMPLE_EXAMS, "Đang dùng đề minh họa. Quản trị viên cần dán URL Apps Script vào file config.js.", "is-error");
+      useExamData(
+        SAMPLE_EXAMS,
+        SAMPLE_QUESTIONS,
+        "Đang dùng đề minh họa. Quản trị viên cần dán URL Apps Script vào file config.js.",
+        "is-error"
+      );
       return;
     }
 
@@ -79,12 +126,19 @@
     try {
       const data = await loadJsonp(url);
       const rows = Array.isArray(data) ? data : data.exams;
+      const questions = Array.isArray(data?.questions) ? data.questions : [];
       if (!Array.isArray(rows)) throw new Error("Dữ liệu trả về không đúng cấu trúc.");
-      useExamData(rows, `Đã tải ${rows.length} dòng dữ liệu từ Google Sheets.`, "is-success");
+      useExamData(
+        rows,
+        questions,
+        `Đã tải ${rows.length} đề và ${questions.length} câu hỏi từ Google Sheets.`,
+        "is-success"
+      );
     } catch (error) {
       console.error(error);
       useExamData(
         SAMPLE_EXAMS,
+        SAMPLE_QUESTIONS,
         "Không kết nối được Google Sheets nên tiện ích đang hiển thị đề minh họa. Kiểm tra URL và quyền triển khai Apps Script.",
         "is-error"
       );
@@ -112,7 +166,7 @@
     });
   }
 
-  function useExamData(rows, message, statusClass) {
+  function useExamData(rows, questionRows, message, statusClass) {
     state.exams = rows
       .map(normalizeExam)
       .filter(exam => exam.ID && exam.TinhThanh && isVisible(exam.TrangThai));
@@ -121,6 +175,10 @@
       String(b.Nam).localeCompare(String(a.Nam), "vi", { numeric: true }) ||
       a.TinhThanh.localeCompare(b.TinhThanh, "vi")
     );
+    state.questions = (questionRows || [])
+      .map(normalizeQuestion)
+      .filter(question => question.IDDe && question.MaCau && isVisible(question.TrangThai))
+      .sort((a, b) => a.ThuTu - b.ThuTu);
 
     els.examCount.textContent = state.exams.length;
     populateFilter(els.yearSelect, uniqueValues(state.exams, "Nam"), "Tất cả");
@@ -140,6 +198,25 @@
       DapAn: String(row.DapAn ?? row.dapan ?? ""),
       TrangThai: clean(row.TrangThai ?? row.trangthai)
     };
+  }
+
+  function normalizeQuestion(row) {
+    return {
+      IDDe: clean(row.IDDe ?? row.idde),
+      MaCau: clean(row.MaCau ?? row.macau),
+      Phan: clean(row.Phan ?? row.phan),
+      TenCau: clean(row.TenCau ?? row.tencau),
+      YeuCau: String(row.YeuCau ?? row.yeucau ?? ""),
+      DapAn: String(row.DapAn ?? row.dapan ?? ""),
+      DiemToiDa: parseScore(row.DiemToiDa ?? row.diemtoida),
+      ThuTu: Number(String(row.ThuTu ?? row.thutu ?? "0").replace(",", ".")) || 0,
+      TrangThai: clean(row.TrangThai ?? row.trangthai)
+    };
+  }
+
+  function parseScore(value) {
+    const score = Number(String(value ?? "0").replace(",", "."));
+    return Number.isFinite(score) && score >= 0 ? score : 0;
   }
 
   function clean(value) {
@@ -201,7 +278,8 @@
     els.examYear.textContent = exam.Nam;
     els.examType.textContent = exam.LoaiDe;
     els.examContent.innerHTML = renderMarkdown(exam.DeThi);
-    els.answerKeyContent.innerHTML = renderMarkdown(exam.DapAn || "Chưa cập nhật đáp án.");
+    const examQuestions = questionsForExam(exam.ID);
+    els.answerKeyContent.innerHTML = renderFullAnswerKey(exam, examQuestions);
     buildAnswerFields(exam);
     document.title = `${exam.TinhThanh} – Luyện đề Ngữ văn 10`;
   }
@@ -209,16 +287,80 @@
   function buildAnswerFields(exam) {
     state.extraAnswerCount = 0;
     const saved = readSavedWork(exam.ID);
+    const savedById = new Map((saved?.fields || []).map(field => [field.id, field]));
+    const sheetQuestions = questionsForExam(exam.ID);
     const detected = detectQuestions(exam.DeThi);
-    const fields = saved?.fields?.length
-      ? saved.fields
-      : (detected.length ? detected.map((label, index) => ({ id: `q${index + 1}`, label, value: "" })) : [
-          { id: "bailam", label: "Bài làm", value: "" }
-        ]);
+    let fields;
+
+    if (sheetQuestions.length) {
+      fields = sheetQuestions.map(question => {
+        const old = savedById.get(question.MaCau) || {};
+        return {
+          id: question.MaCau,
+          label: [question.Phan, question.TenCau].filter(Boolean).join(" – ") || question.MaCau,
+          prompt: question.YeuCau,
+          officialAnswer: question.DapAn,
+          maxScore: question.DiemToiDa,
+          value: old.value || "",
+          score: clampScore(old.score, question.DiemToiDa),
+          aiResponse: old.aiResponse || ""
+        };
+      });
+    } else {
+      fields = detected.length
+        ? detected.map((label, index) => {
+            const id = `q${index + 1}`;
+            const old = savedById.get(id) || {};
+            return {
+              id,
+              label,
+              prompt: "",
+              officialAnswer: "",
+              maxScore: 0,
+              value: old.value || "",
+              score: 0,
+              aiResponse: old.aiResponse || ""
+            };
+          })
+        : [{
+            id: "bailam",
+            label: "Bài làm",
+            prompt: "",
+            officialAnswer: exam.DapAn || "",
+            maxScore: 10,
+            value: savedById.get("bailam")?.value || "",
+            score: clampScore(savedById.get("bailam")?.score, 10),
+            aiResponse: savedById.get("bailam")?.aiResponse || ""
+          }];
+    }
 
     els.answerFields.innerHTML = "";
     fields.forEach(field => appendAnswerField(field));
     updateProgress();
+    updateScoreSummary();
+  }
+
+  function questionsForExam(examId) {
+    return state.questions.filter(question => question.IDDe === examId);
+  }
+
+  function clampScore(value, maxScore) {
+    const score = parseScore(value);
+    return Math.max(0, Math.min(score, Number(maxScore) || 0));
+  }
+
+  function renderFullAnswerKey(exam, questions) {
+    if (!questions.length) return renderMarkdown(exam.DapAn || "Chưa cập nhật đáp án.");
+    return questions.map(question => {
+      const heading = [question.Phan, question.TenCau].filter(Boolean).join(" – ") || question.MaCau;
+      return `
+        <section class="full-answer-item">
+          <h3>${escapeHtml(heading)} <small>(${formatScore(question.DiemToiDa)} điểm)</small></h3>
+          ${question.YeuCau ? `<div class="full-question">${renderMarkdown(question.YeuCau)}</div>` : ""}
+          ${renderMarkdown(question.DapAn || "Chưa cập nhật đáp án.")}
+        </section>
+      `;
+    }).join("");
   }
 
   function detectQuestions(markdown) {
@@ -246,28 +388,88 @@
     const wrapper = document.createElement("div");
     wrapper.className = "answer-field";
     wrapper.dataset.fieldId = field.id;
+    wrapper.fieldMeta = field;
+    const canRemove = String(field.id).startsWith("them-");
+    const hasOfficialAnswer = Boolean(String(field.officialAnswer || "").trim());
     wrapper.innerHTML = `
       <div class="answer-label-row">
-        <label for="${escapeAttr(`answer-${field.id}`)}">${escapeHtml(field.label)}</label>
-        <button class="remove-answer" type="button" title="Xóa ô này">Xóa ô</button>
+        <label class="answer-main-label" for="${escapeAttr(`answer-${field.id}`)}">${escapeHtml(field.label)}</label>
+        ${canRemove ? '<button class="remove-answer" type="button" title="Xóa ô này">Xóa ô</button>' : ""}
       </div>
-      <textarea id="${escapeAttr(`answer-${field.id}`)}" placeholder="Nhập bài làm tại đây…">${escapeHtml(field.value || "")}</textarea>
+      ${field.prompt ? `<div class="question-prompt">${renderMarkdown(field.prompt)}</div>` : ""}
+      <textarea class="student-answer" id="${escapeAttr(`answer-${field.id}`)}" placeholder="Nhập bài làm tại đây…">${escapeHtml(field.value || "")}</textarea>
+
+      <div class="answer-tools">
+        <button class="small-btn reveal-answer-btn" type="button" ${hasOfficialAnswer ? "" : "disabled"}>
+          ${hasOfficialAnswer ? "Xem đáp án" : "Chưa có đáp án"}
+        </button>
+        <button class="small-btn ai-btn open-ai-btn" type="button">AI hỗ trợ</button>
+      </div>
+
+      <div class="result-grid">
+        <div class="official-answer">
+          <strong>Đáp án</strong>
+          <div class="answer-html">${hasOfficialAnswer ? "Nhấn “Xem đáp án” để tự đối chiếu." : "Chưa cập nhật đáp án cho câu này."}</div>
+        </div>
+        <label class="score-field">
+          <span>Điểm</span>
+          <input class="earned-score" type="number" min="0" max="${field.maxScore || 0}" step="0.25" value="${formatInputScore(field.score)}">
+          <small>Tối đa ${formatScore(field.maxScore)}</small>
+        </label>
+      </div>
+
+      <div class="ai-box" hidden>
+        <strong>AI hỗ trợ câu này</strong>
+        <textarea class="ai-question" placeholder="Ví dụ: Gợi ý cho em cách triển khai câu này, không viết hộ đáp án…"></textarea>
+        <div class="ai-actions">
+          <button class="small-btn ask-ai-btn" type="button">Gửi câu hỏi</button>
+          <button class="small-btn grade-ai-btn" type="button">AI nhận xét và chấm thử</button>
+        </div>
+        <div class="ai-response">${escapeHtml(field.aiResponse || "")}</div>
+        <p class="ai-disclaimer">Nhận xét và điểm của AI chỉ có giá trị tham khảo.</p>
+      </div>
     `;
-    const textarea = wrapper.querySelector("textarea");
+    const textarea = wrapper.querySelector(".student-answer");
     textarea.addEventListener("input", () => {
       els.saveIndicator.textContent = "Đang lưu…";
       clearTimeout(state.saveTimer);
       state.saveTimer = setTimeout(saveCurrentWork, 450);
       updateProgress();
     });
-    wrapper.querySelector(".remove-answer").addEventListener("click", () => {
-      if (els.answerFields.children.length <= 1) {
-        showToast("Cần giữ lại ít nhất một ô làm bài.");
-        return;
+    const removeButton = wrapper.querySelector(".remove-answer");
+    if (removeButton) {
+      removeButton.addEventListener("click", () => {
+        wrapper.remove();
+        saveCurrentWork();
+        updateProgress();
+        updateScoreSummary();
+      });
+    }
+    wrapper.querySelector(".reveal-answer-btn").addEventListener("click", button => {
+      if (!hasOfficialAnswer) return;
+      const answerBox = wrapper.querySelector(".answer-html");
+      const isRevealed = wrapper.dataset.answerRevealed === "true";
+      if (isRevealed) {
+        answerBox.textContent = "Nhấn “Xem đáp án” để tự đối chiếu.";
+        wrapper.dataset.answerRevealed = "false";
+        button.currentTarget.textContent = "Xem đáp án";
+      } else {
+        answerBox.innerHTML = renderMarkdown(field.officialAnswer);
+        wrapper.dataset.answerRevealed = "true";
+        button.currentTarget.textContent = "Ẩn đáp án";
       }
-      wrapper.remove();
+    });
+    wrapper.querySelector(".open-ai-btn").addEventListener("click", () => {
+      const box = wrapper.querySelector(".ai-box");
+      box.hidden = !box.hidden;
+      if (!box.hidden) wrapper.querySelector(".ai-question").focus();
+    });
+    wrapper.querySelector(".ask-ai-btn").addEventListener("click", event => askAiForHelp(wrapper, event.currentTarget));
+    wrapper.querySelector(".grade-ai-btn").addEventListener("click", event => gradeWithAi(wrapper, event.currentTarget));
+    wrapper.querySelector(".earned-score").addEventListener("change", event => {
+      event.currentTarget.value = formatInputScore(clampScore(event.currentTarget.value, field.maxScore));
       saveCurrentWork();
-      updateProgress();
+      updateScoreSummary();
     });
     els.answerFields.appendChild(wrapper);
   }
@@ -277,18 +479,52 @@
     appendAnswerField({
       id: `them-${Date.now()}-${state.extraAnswerCount}`,
       label: `Nội dung bổ sung ${state.extraAnswerCount}`,
-      value: ""
+      prompt: "",
+      officialAnswer: "",
+      maxScore: 0,
+      value: "",
+      score: 0,
+      aiResponse: ""
     });
     saveCurrentWork();
     els.answerFields.lastElementChild.querySelector("textarea").focus();
   }
 
   function collectFields() {
-    return [...els.answerFields.querySelectorAll(".answer-field")].map(wrapper => ({
-      id: wrapper.dataset.fieldId,
-      label: wrapper.querySelector("label").textContent,
-      value: wrapper.querySelector("textarea").value
-    }));
+    return [...els.answerFields.querySelectorAll(".answer-field")].map(wrapper => {
+      const meta = wrapper.fieldMeta || {};
+      return {
+        id: wrapper.dataset.fieldId,
+        label: wrapper.querySelector(".answer-main-label").textContent,
+        value: wrapper.querySelector(".student-answer").value,
+        score: clampScore(wrapper.querySelector(".earned-score").value, meta.maxScore),
+        aiResponse: wrapper.querySelector(".ai-response").textContent || ""
+      };
+    });
+  }
+
+  function formatScore(value) {
+    const score = parseScore(value);
+    return score.toLocaleString("vi-VN", { maximumFractionDigits: 2 });
+  }
+
+  function formatInputScore(value) {
+    const score = parseScore(value);
+    return String(Math.round(score * 100) / 100);
+  }
+
+  function updateScoreSummary() {
+    const wrappers = [...els.answerFields.querySelectorAll(".answer-field")];
+    let total = 0;
+    let maxTotal = 0;
+    wrappers.forEach(wrapper => {
+      const maxScore = Number(wrapper.fieldMeta?.maxScore) || 0;
+      const input = wrapper.querySelector(".earned-score");
+      maxTotal += maxScore;
+      total += clampScore(input?.value, maxScore);
+    });
+    els.totalScore.textContent = formatScore(total);
+    els.maxTotalScore.textContent = formatScore(maxTotal);
   }
 
   function saveCurrentWork() {
@@ -363,6 +599,181 @@
     } catch (_) {}
   }
 
+  function toggleApiKeyVisibility() {
+    const showing = els.apiKeyInput.type === "text";
+    els.apiKeyInput.type = showing ? "password" : "text";
+    els.toggleApiKeyBtn.textContent = showing ? "Hiện" : "Ẩn";
+  }
+
+  function saveApiKeyForSession() {
+    const key = els.apiKeyInput.value.trim();
+    if (!key) {
+      sessionStorage.removeItem("van10-gemini-key");
+      showToast("Đã xóa API key khỏi phiên này.");
+      return;
+    }
+    sessionStorage.setItem("van10-gemini-key", key);
+    els.apiKeyInput.type = "password";
+    els.toggleApiKeyBtn.textContent = "Hiện";
+    showToast("Đã lưu API key trong phiên trình duyệt hiện tại.");
+  }
+
+  function getApiKey() {
+    const key = els.apiKeyInput.value.trim() || sessionStorage.getItem("van10-gemini-key") || "";
+    if (key) return key;
+    const details = els.apiKeyInput.closest("details");
+    if (details) details.open = true;
+    els.apiKeyInput.focus();
+    showToast("Hãy nhập Gemini API key để sử dụng AI hỗ trợ.");
+    return "";
+  }
+
+  async function askAiForHelp(wrapper, button) {
+    const key = getApiKey();
+    if (!key) return;
+    const meta = wrapper.fieldMeta || {};
+    const studentAnswer = wrapper.querySelector(".student-answer").value.trim();
+    const userQuestion = wrapper.querySelector(".ai-question").value.trim() ||
+      "Hãy gợi ý từng bước để em tự làm câu này, không cung cấp bài làm hoàn chỉnh.";
+    const responseBox = wrapper.querySelector(".ai-response");
+    const prompt = [
+      "Bạn là giáo viên Ngữ văn THCS hỗ trợ học sinh tự luyện thi vào lớp 10.",
+      "Chỉ hướng dẫn phương pháp, đặt câu hỏi gợi mở và chỉ ra hướng cải thiện.",
+      "Không viết hộ đáp án hoàn chỉnh, không bịa dẫn chứng hoặc kiến thức.",
+      `Đề/câu hỏi: ${plainText(meta.prompt || meta.label || "")}`,
+      studentAnswer ? `Bài học sinh đang viết: ${studentAnswer}` : "Học sinh chưa viết bài.",
+      `Điều học sinh muốn hỏi: ${userQuestion}`,
+      "Trả lời bằng tiếng Việt, rõ ràng, thân thiện và ngắn gọn."
+    ].join("\n\n");
+
+    await runAiButton(button, responseBox, async () => {
+      const text = await callGemini(key, prompt);
+      responseBox.textContent = text;
+      saveCurrentWork();
+    }, "AI đang chuẩn bị gợi ý…");
+  }
+
+  async function gradeWithAi(wrapper, button) {
+    const key = getApiKey();
+    if (!key) return;
+    const meta = wrapper.fieldMeta || {};
+    const studentAnswer = wrapper.querySelector(".student-answer").value.trim();
+    const responseBox = wrapper.querySelector(".ai-response");
+
+    if (!studentAnswer) {
+      showToast("Hãy nhập bài làm trước khi yêu cầu AI nhận xét.");
+      wrapper.querySelector(".student-answer").focus();
+      return;
+    }
+    if (!meta.officialAnswer) {
+      showToast("Câu này chưa có đáp án trong Google Sheets nên AI chưa thể chấm thử.");
+      return;
+    }
+
+    const prompt = [
+      "Bạn là giáo viên Ngữ văn chấm bài luyện thi vào lớp 10.",
+      "Đánh giá linh hoạt: học sinh có thể diễn đạt khác đáp án nhưng đúng ý vẫn được ghi nhận.",
+      "Không tự bổ sung ý mà học sinh chưa viết. Điểm phải nằm trong giới hạn.",
+      `Câu hỏi: ${plainText(meta.prompt || meta.label || "")}`,
+      `Đáp án/hướng dẫn chấm: ${plainText(meta.officialAnswer)}`,
+      `Điểm tối đa: ${meta.maxScore}`,
+      `Bài làm học sinh: ${studentAnswer}`,
+      'Chỉ trả về JSON hợp lệ theo mẫu: {"score":0,"feedback":"Nhận xét ngắn gọn","strengths":["ưu điểm"],"improvements":["điểm cần sửa"]}'
+    ].join("\n\n");
+
+    await runAiButton(button, responseBox, async () => {
+      const text = await callGemini(key, prompt);
+      const result = parseAiGrade(text);
+      if (!result) {
+        responseBox.textContent = text;
+        showToast("AI đã nhận xét nhưng không trả về điểm đúng định dạng.");
+        return;
+      }
+      const score = clampScore(result.score, meta.maxScore);
+      wrapper.querySelector(".earned-score").value = formatInputScore(score);
+      const strengths = Array.isArray(result.strengths) && result.strengths.length
+        ? `\nƯu điểm: ${result.strengths.join("; ")}`
+        : "";
+      const improvements = Array.isArray(result.improvements) && result.improvements.length
+        ? `\nCần cải thiện: ${result.improvements.join("; ")}`
+        : "";
+      responseBox.textContent =
+        `Điểm AI chấm thử: ${formatScore(score)}/${formatScore(meta.maxScore)}\n${result.feedback || ""}${strengths}${improvements}`;
+      updateScoreSummary();
+      saveCurrentWork();
+    }, "AI đang đọc và nhận xét bài làm…");
+  }
+
+  async function runAiButton(button, responseBox, action, loadingText) {
+    const original = button.textContent;
+    button.disabled = true;
+    responseBox.textContent = loadingText;
+    try {
+      await action();
+    } catch (error) {
+      console.error(error);
+      responseBox.textContent = `Không sử dụng được AI: ${error.message || error}`;
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  async function callGemini(apiKey, prompt) {
+    const model = String(window.VAN10_GEMINI_MODEL || "gemini-3.5-flash").trim();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 1200
+        }
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data?.error?.message || `Lỗi Gemini API (${response.status})`;
+      throw new Error(message);
+    }
+    const text = (data.candidates?.[0]?.content?.parts || [])
+      .map(part => part.text || "")
+      .join("")
+      .trim();
+    if (!text) throw new Error("AI không trả về nội dung.");
+    return text;
+  }
+
+  function parseAiGrade(text) {
+    try {
+      const normalized = String(text || "")
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+      const start = normalized.indexOf("{");
+      const end = normalized.lastIndexOf("}");
+      if (start === -1 || end === -1) return null;
+      return JSON.parse(normalized.slice(start, end + 1));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function plainText(value) {
+    return String(value || "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/[*_#>|`]/g, "")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
   function toggleTheme() {
     document.body.classList.toggle("dark");
     localStorage.setItem("van10-theme", document.body.classList.contains("dark") ? "dark" : "light");
@@ -397,6 +808,8 @@
   function renderMarkdown(source) {
     const normalized = String(source || "")
       .replace(/\r\n?/g, "\n")
+      .replace(/<p\s+align\s*=\s*["']?(left|right|center|justify)["']?\s*>/gi, "\n@@ALIGN:$1@@\n")
+      .replace(/<\/p>/gi, "\n@@ENDALIGN@@\n")
       .replace(/<br\s*\/?>/gi, "\n");
     const lines = normalized.split("\n").map(line => {
       // Khi nội dung được chuẩn bị dưới dạng bảng Markdown một cột,
@@ -408,10 +821,12 @@
     const output = [];
     let paragraph = [];
     let listType = "";
+    let paragraphAlign = "";
 
     const flushParagraph = () => {
       if (!paragraph.length) return;
-      output.push(`<p>${inlineMarkdown(paragraph.join("\n"))}</p>`);
+      const alignClass = paragraphAlign ? ` class="align-${paragraphAlign}"` : "";
+      output.push(`<p${alignClass}>${inlineMarkdown(paragraph.join("\n"))}</p>`);
       paragraph = [];
     };
     const closeList = () => {
@@ -427,6 +842,20 @@
       if (!line) {
         flushParagraph();
         closeList();
+        continue;
+      }
+
+      const alignStart = line.match(/^@@ALIGN:(left|right|center|justify)@@$/i);
+      if (alignStart) {
+        flushParagraph();
+        closeList();
+        paragraphAlign = alignStart[1].toLowerCase();
+        continue;
+      }
+      if (line === "@@ENDALIGN@@") {
+        flushParagraph();
+        closeList();
+        paragraphAlign = "";
         continue;
       }
 
@@ -496,7 +925,16 @@
   }
 
   function inlineMarkdown(value) {
-    let text = escapeHtml(value);
+    const allowedTags = [];
+    const protectedValue = String(value ?? "").replace(
+      /<\/?(?:b|strong|i|em|u|sup|sub)>/gi,
+      tag => {
+        const token = `\uE000${allowedTags.length}\uE001`;
+        allowedTags.push(tag.toLowerCase());
+        return token;
+      }
+    );
+    let text = escapeHtml(protectedValue);
     text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">');
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -505,6 +943,7 @@
     text = text.replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,;:!?])/g, "$1<em>$2</em>");
     text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
     text = text.replace(/\n/g, "<br>");
+    text = text.replace(/\uE000(\d+)\uE001/g, (_, index) => allowedTags[Number(index)] || "");
     return text;
   }
 

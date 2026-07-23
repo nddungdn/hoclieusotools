@@ -83,6 +83,24 @@
           </label>
         </div>
       </details>
+
+      <details class="ai-settings">
+        <summary>AI hỗ trợ <span>(không bắt buộc)</span></summary>
+        <div class="api-key-wrap">
+          <label>
+            <span>Google Gemini API Key</span>
+            <div class="password-field">
+              <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Dán API key của bạn…">
+              <button id="toggleApiKeyBtn" type="button" aria-label="Hiện hoặc ẩn API key">Hiện</button>
+            </div>
+          </label>
+          <button id="saveApiKeyBtn" class="secondary-btn" type="button">Lưu trong phiên này</button>
+        </div>
+        <p class="api-note">
+          Khóa chỉ được giữ trong phiên trình duyệt hiện tại, không lưu vào Google Sheets hoặc mã GitHub.
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Tạo API key Gemini</a>
+        </p>
+      </details>
     </section>
 
     <div id="statusBar" class="status-bar" role="status" aria-live="polite">Đang kết nối dữ liệu đề thi…</div>
@@ -124,6 +142,11 @@
               <strong id="progressText">0%</strong>
             </div>
             <div class="progress-track"><span id="progressBar"></span></div>
+          </div>
+
+          <div class="score-summary">
+            <span>Tổng điểm tự luyện</span>
+            <strong><span id="totalScore">0</span>/<span id="maxTotalScore">10</span></strong>
           </div>
 
           <div id="answerFields" class="answer-fields"></div>
