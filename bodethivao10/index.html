@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b5cab">
+  <meta name="description" content="Tiện ích luyện đề thi vào lớp 10 môn Ngữ văn">
+  <title>Luyện đề vào lớp 10 môn Ngữ văn</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="./" aria-label="Trang chủ luyện đề">
+        <span class="brand-mark">V10</span>
+        <span>
+          <strong>Luyện đề vào lớp 10</strong>
+          <small>Môn Ngữ văn</small>
+        </span>
+      </a>
+      <button id="menuBtn" class="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="headerActions">☰</button>
+      <div id="headerActions" class="header-actions">
+        <button id="fontDownBtn" class="icon-btn" type="button" title="Giảm cỡ chữ">A−</button>
+        <button id="fontUpBtn" class="icon-btn" type="button" title="Tăng cỡ chữ">A+</button>
+        <button id="themeBtn" class="icon-btn" type="button" title="Đổi chế độ sáng tối">◐</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">BỘ ĐỀ TUYỂN SINH 2026–2027</span>
+        <h1>Luyện đề vào lớp 10 môn Ngữ văn</h1>
+        <p>Chọn đề, làm bài trực tiếp và tự đối chiếu với đáp án – hướng dẫn chấm.</p>
+      </div>
+      <div class="hero-stat">
+        <strong id="examCount">0</strong>
+        <span>đề đang hiển thị</span>
+      </div>
+    </section>
+
+    <section class="control-card" aria-label="Thiết lập bài làm">
+      <div class="control-grid">
+        <label>
+          <span>Tỉnh/thành</span>
+          <select id="provinceSelect">
+            <option value="">Đang tải dữ liệu…</option>
+          </select>
+        </label>
+        <label>
+          <span>Năm</span>
+          <select id="yearSelect">
+            <option value="">Tất cả</option>
+          </select>
+        </label>
+        <label>
+          <span>Loại đề</span>
+          <select id="typeSelect">
+            <option value="">Tất cả</option>
+          </select>
+        </label>
+        <label class="search-field">
+          <span>Tìm đề</span>
+          <input id="searchInput" type="search" placeholder="Nhập tên tỉnh/thành…">
+        </label>
+      </div>
+
+      <details class="student-details">
+        <summary>Thông tin học sinh <span>(không bắt buộc)</span></summary>
+        <div class="student-grid">
+          <label>
+            <span>Họ và tên</span>
+            <input id="studentName" type="text" autocomplete="name" placeholder="Nguyễn Văn A">
+          </label>
+          <label>
+            <span>Lớp</span>
+            <input id="studentClass" type="text" placeholder="9/1">
+          </label>
+          <label>
+            <span>Trường</span>
+            <input id="studentSchool" type="text" placeholder="Tên trường">
+          </label>
+        </div>
+      </details>
+    </section>
+
+    <div id="statusBar" class="status-bar" role="status" aria-live="polite">Đang kết nối dữ liệu đề thi…</div>
+
+    <section id="emptyState" class="empty-state" hidden>
+      <div class="empty-icon">⌕</div>
+      <h2>Chưa tìm thấy đề phù hợp</h2>
+      <p>Thầy/cô kiểm tra dữ liệu Google Sheets hoặc thay đổi bộ lọc.</p>
+    </section>
+
+    <section id="workspace" class="workspace" hidden>
+      <article class="paper-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">ĐỀ BÀI</span>
+            <h2 id="examTitle">Đề thi</h2>
+          </div>
+          <div class="exam-meta">
+            <span id="examYear"></span>
+            <span id="examType"></span>
+          </div>
+        </div>
+        <div id="examContent" class="document-content"></div>
+      </article>
+
+      <aside class="answer-panel">
+        <div class="answer-sticky">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-kicker">BÀI LÀM</span>
+              <h2>Phiếu trả lời</h2>
+            </div>
+            <span id="saveIndicator" class="save-indicator">Đã lưu</span>
+          </div>
+
+          <div class="progress-wrap" aria-label="Tiến độ bài làm">
+            <div class="progress-meta">
+              <span>Tiến độ</span>
+              <strong id="progressText">0%</strong>
+            </div>
+            <div class="progress-track"><span id="progressBar"></span></div>
+          </div>
+
+          <div id="answerFields" class="answer-fields"></div>
+          <button id="addAnswerBtn" class="secondary-btn" type="button">＋ Thêm ô làm bài</button>
+
+          <div class="action-row">
+            <button id="clearBtn" class="danger-text-btn" type="button">Xóa bài làm</button>
+            <button id="finishBtn" class="primary-btn" type="button">Hoàn thành bài làm</button>
+          </div>
+          <p class="local-note">Bài làm tự động lưu trên thiết bị này. Phiên bản hiện tại chưa gửi bài qua email.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section id="answerKeySection" class="answer-key-section" hidden>
+      <div class="answer-key-heading">
+        <div>
+          <span class="panel-kicker">ĐỐI CHIẾU</span>
+          <h2>Đáp án và hướng dẫn chấm</h2>
+        </div>
+        <button id="backToWorkBtn" class="secondary-btn" type="button">Quay lại bài làm</button>
+      </div>
+      <div id="answerKeyContent" class="document-content"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Tiện ích học tập trên <a href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener">Học liệu số</a></p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
