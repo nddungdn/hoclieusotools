@@ -283,6 +283,50 @@ input::placeholder, textarea::placeholder { color: #98a3b3; }
 .document-content .align-right { text-align: right; }
 .document-content .align-center { text-align: center; }
 .document-content .align-justify { text-align: justify; }
+.pdf-viewer {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+.pdf-toolbar strong, .pdf-toolbar small { display: block; }
+.pdf-toolbar small { margin-top: 2px; color: var(--muted); font-size: 11px; }
+.pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pdf-actions a {
+  padding: 7px 10px;
+  border: 1px solid #bdd1e5;
+  border-radius: 8px;
+  color: var(--primary-dark);
+  background: var(--surface);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+.pdf-viewer iframe {
+  display: block;
+  width: 100%;
+  height: min(76vh, 900px);
+  min-height: 620px;
+  border: 0;
+  background: #eef2f6;
+}
+.pdf-fallback {
+  margin: 0 !important;
+  padding: 9px 13px;
+  color: var(--muted);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-size: 12px;
+}
+.pdf-fallback a { color: var(--primary); font-weight: 750; }
 
 .save-indicator {
   color: var(--success);
@@ -394,6 +438,19 @@ input::placeholder, textarea::placeholder { color: #98a3b3; }
   font-size: 15px;
   line-height: 1.55;
 }
+.marking-guide {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #8fc3a6;
+}
+.marking-guide > strong,
+.full-official-answer > strong,
+.full-marking-guide > strong {
+  display: block;
+  margin-bottom: 5px;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+}
 .score-field input { text-align: center; font-weight: 850; }
 .score-field small { display: block; margin-top: 4px; color: var(--muted); text-align: center; }
 .ai-box {
@@ -455,6 +512,13 @@ input::placeholder, textarea::placeholder { color: #98a3b3; }
 .full-answer-item h3 { margin: 0 0 8px; }
 .full-answer-item h3 small { color: var(--muted); font-size: .75em; }
 .full-question { color: var(--muted); }
+.full-official-answer, .full-marking-guide {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+}
+.full-official-answer { border: 1px solid #b9dfcb; background: #eef9f3; }
+.full-marking-guide { border: 1px solid #c8d8ea; background: var(--primary-soft); }
 .full-question .document-content, .full-answer-item > .document-content { padding-top: 0; }
 .empty-state { padding: 60px 24px; text-align: center; }
 .empty-state h2 { margin: 10px 0 5px; }
@@ -495,6 +559,7 @@ body.dark input, body.dark select, body.dark textarea { border-color: #425267; }
 body.dark .status-bar { color: #b7d8f7; background: #18324b; }
 body.dark .document-content th { background: #18324b; }
 body.dark .official-answer { color: #cdebdc; border-color: #315e49; background: #19392c; }
+body.dark .full-official-answer { color: #cdebdc; border-color: #315e49; background: #19392c; }
 body.dark .ai-box { color: #f4dfb7; border-color: #705a31; background: #332a19; }
 body.dark .ai-box textarea, body.dark .small-btn { background: var(--surface); }
 body.dark .small-btn.ai-btn { color: #f1d49e; border-color: #705a31; background: #332a19; }
@@ -534,6 +599,10 @@ body.dark .small-btn.ai-btn { color: #f1d49e; border-color: #705a31; background:
   .answer-key-heading .secondary-btn { margin-top: 12px; }
   .document-content { padding-top: 17px; line-height: 1.58; }
   .document-content table { display: block; overflow-x: auto; }
+  .pdf-toolbar { align-items: flex-start; flex-direction: column; }
+  .pdf-actions, .pdf-actions a { width: 100%; }
+  .pdf-actions a { text-align: center; }
+  .pdf-viewer iframe { height: 68vh; min-height: 480px; }
   .action-row { align-items: stretch; flex-direction: column-reverse; }
   .action-row button { width: 100%; }
   .toast { right: 16px; bottom: 16px; }

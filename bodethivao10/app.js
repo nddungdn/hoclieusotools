@@ -32,6 +32,7 @@
       TenCau: "Câu 1",
       YeuCau: "Xác định thể thơ của văn bản.",
       DapAn: "Học sinh xác định đúng thể thơ được sử dụng trong ngữ liệu.",
+      HuongDanCham: "Trả lời đúng yêu cầu: 0,5 điểm.",
       DiemToiDa: "0,5",
       ThuTu: "1",
       TrangThai: "HIEN"
@@ -43,6 +44,7 @@
       TenCau: "Câu 2",
       YeuCau: "Nêu nội dung chính của văn bản.",
       DapAn: "Nêu đúng nội dung chính; có thể diễn đạt theo cách khác nhưng phải hợp lí và bám sát ngữ liệu.",
+      HuongDanCham: "Chấp nhận cách diễn đạt tương đương, miễn là bám sát ngữ liệu.",
       DiemToiDa: "1,0",
       ThuTu: "2",
       TrangThai: "HIEN"
@@ -54,6 +56,7 @@
       TenCau: "Câu 1",
       YeuCau: "Viết đoạn văn nghị luận khoảng 200 chữ.",
       DapAn: "Đúng hình thức đoạn văn; xác định đúng vấn đề; triển khai lập luận hợp lí; diễn đạt trong sáng và có sáng tạo.",
+      HuongDanCham: "Chấm theo các tiêu chí: hình thức, nội dung, lập luận, diễn đạt và sáng tạo.",
       DiemToiDa: "2,0",
       ThuTu: "3",
       TrangThai: "HIEN"
@@ -208,6 +211,7 @@
       TenCau: clean(row.TenCau ?? row.tencau),
       YeuCau: String(row.YeuCau ?? row.yeucau ?? ""),
       DapAn: String(row.DapAn ?? row.dapan ?? ""),
+      HuongDanCham: String(row.HuongDanCham ?? row.huongdancham ?? ""),
       DiemToiDa: parseScore(row.DiemToiDa ?? row.diemtoida),
       ThuTu: Number(String(row.ThuTu ?? row.thutu ?? "0").replace(",", ".")) || 0,
       TrangThai: clean(row.TrangThai ?? row.trangthai)
@@ -277,7 +281,7 @@
     els.examTitle.textContent = exam.TinhThanh || "Đề thi";
     els.examYear.textContent = exam.Nam;
     els.examType.textContent = exam.LoaiDe;
-    els.examContent.innerHTML = renderMarkdown(exam.DeThi);
+    els.examContent.innerHTML = renderDocumentContent(exam.DeThi, "Đề thi");
     const examQuestions = questionsForExam(exam.ID);
     els.answerKeyContent.innerHTML = renderFullAnswerKey(exam, examQuestions);
     buildAnswerFields(exam);
@@ -300,6 +304,7 @@
           label: [question.Phan, question.TenCau].filter(Boolean).join(" – ") || question.MaCau,
           prompt: question.YeuCau,
           officialAnswer: question.DapAn,
+          markingGuide: question.HuongDanCham,
           maxScore: question.DiemToiDa,
           value: old.value || "",
           score: clampScore(old.score, question.DiemToiDa),
@@ -316,6 +321,7 @@
               label,
               prompt: "",
               officialAnswer: "",
+              markingGuide: "",
               maxScore: 0,
               value: old.value || "",
               score: 0,
@@ -327,6 +333,7 @@
             label: "Bài làm",
             prompt: "",
             officialAnswer: exam.DapAn || "",
+            markingGuide: "",
             maxScore: 10,
             value: savedById.get("bailam")?.value || "",
             score: clampScore(savedById.get("bailam")?.score, 10),
@@ -350,14 +357,25 @@
   }
 
   function renderFullAnswerKey(exam, questions) {
-    if (!questions.length) return renderMarkdown(exam.DapAn || "Chưa cập nhật đáp án.");
+    if (!questions.length) {
+      return renderDocumentContent(exam.DapAn || "Chưa cập nhật đáp án.", "Đáp án");
+    }
     return questions.map(question => {
       const heading = [question.Phan, question.TenCau].filter(Boolean).join(" – ") || question.MaCau;
       return `
         <section class="full-answer-item">
           <h3>${escapeHtml(heading)} <small>(${formatScore(question.DiemToiDa)} điểm)</small></h3>
           ${question.YeuCau ? `<div class="full-question">${renderMarkdown(question.YeuCau)}</div>` : ""}
-          ${renderMarkdown(question.DapAn || "Chưa cập nhật đáp án.")}
+          <div class="full-official-answer">
+            <strong>Đáp án</strong>
+            ${renderDocumentContent(question.DapAn || "Chưa cập nhật đáp án.", `Đáp án ${heading}`)}
+          </div>
+          ${question.HuongDanCham ? `
+            <div class="full-marking-guide">
+              <strong>Hướng dẫn chấm</strong>
+              ${renderMarkdown(question.HuongDanCham)}
+            </div>
+          ` : ""}
         </section>
       `;
     }).join("");
@@ -390,7 +408,10 @@
     wrapper.dataset.fieldId = field.id;
     wrapper.fieldMeta = field;
     const canRemove = String(field.id).startsWith("them-");
-    const hasOfficialAnswer = Boolean(String(field.officialAnswer || "").trim());
+    const hasOfficialAnswer = Boolean(
+      String(field.officialAnswer || "").trim() ||
+      String(field.markingGuide || "").trim()
+    );
     wrapper.innerHTML = `
       <div class="answer-label-row">
         <label class="answer-main-label" for="${escapeAttr(`answer-${field.id}`)}">${escapeHtml(field.label)}</label>
@@ -454,7 +475,15 @@
         wrapper.dataset.answerRevealed = "false";
         button.currentTarget.textContent = "Xem đáp án";
       } else {
-        answerBox.innerHTML = renderMarkdown(field.officialAnswer);
+        answerBox.innerHTML = `
+          ${field.officialAnswer ? renderDocumentContent(field.officialAnswer, `Đáp án ${field.label}`) : "<p>Chưa cập nhật đáp án.</p>"}
+          ${field.markingGuide ? `
+            <div class="marking-guide">
+              <strong>Hướng dẫn chấm</strong>
+              ${renderMarkdown(field.markingGuide)}
+            </div>
+          ` : ""}
+        `;
         wrapper.dataset.answerRevealed = "true";
         button.currentTarget.textContent = "Ẩn đáp án";
       }
@@ -481,6 +510,7 @@
       label: `Nội dung bổ sung ${state.extraAnswerCount}`,
       prompt: "",
       officialAnswer: "",
+      markingGuide: "",
       maxScore: 0,
       value: "",
       score: 0,
@@ -665,8 +695,12 @@
       wrapper.querySelector(".student-answer").focus();
       return;
     }
-    if (!meta.officialAnswer) {
-      showToast("Câu này chưa có đáp án trong Google Sheets nên AI chưa thể chấm thử.");
+    if (!meta.officialAnswer && !meta.markingGuide) {
+      showToast("Câu này chưa có đáp án hoặc hướng dẫn chấm nên AI chưa thể chấm thử.");
+      return;
+    }
+    if (getPdfInfo(meta.officialAnswer) && !meta.markingGuide) {
+      showToast("AI chưa đọc trực tiếp nội dung PDF. Cần nhập hướng dẫn chấm dạng văn bản cho câu này.");
       return;
     }
 
@@ -675,7 +709,8 @@
       "Đánh giá linh hoạt: học sinh có thể diễn đạt khác đáp án nhưng đúng ý vẫn được ghi nhận.",
       "Không tự bổ sung ý mà học sinh chưa viết. Điểm phải nằm trong giới hạn.",
       `Câu hỏi: ${plainText(meta.prompt || meta.label || "")}`,
-      `Đáp án/hướng dẫn chấm: ${plainText(meta.officialAnswer)}`,
+      `Đáp án: ${getPdfInfo(meta.officialAnswer) ? "Đáp án tổng hợp được lưu trong tệp PDF; hãy dựa chủ yếu vào hướng dẫn chấm bên dưới." : plainText(meta.officialAnswer)}`,
+      `Hướng dẫn chấm: ${plainText(meta.markingGuide)}`,
       `Điểm tối đa: ${meta.maxScore}`,
       `Bài làm học sinh: ${studentAnswer}`,
       'Chỉ trả về JSON hợp lệ theo mẫu: {"score":0,"feedback":"Nhận xét ngắn gọn","strengths":["ưu điểm"],"improvements":["điểm cần sửa"]}'
@@ -803,6 +838,71 @@
     els.toast.textContent = message;
     els.toast.classList.add("show");
     state.toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2600);
+  }
+
+  function renderDocumentContent(source, title) {
+    const pdf = getPdfInfo(source);
+    if (!pdf) return renderMarkdown(source);
+    return `
+      <div class="pdf-viewer">
+        <div class="pdf-toolbar">
+          <div>
+            <strong>${escapeHtml(title || "Tài liệu PDF")}</strong>
+            <small>PDF từ Google Drive</small>
+          </div>
+          <div class="pdf-actions">
+            <a href="${escapeAttr(pdf.openUrl)}" target="_blank" rel="noopener">Mở toàn màn hình</a>
+          </div>
+        </div>
+        <iframe
+          src="${escapeAttr(pdf.previewUrl)}"
+          title="${escapeAttr(title || "Tài liệu PDF")}"
+          loading="lazy"
+          allow="autoplay"
+        ></iframe>
+        <p class="pdf-fallback">
+          Nếu PDF không hiển thị trên thiết bị này, hãy
+          <a href="${escapeAttr(pdf.openUrl)}" target="_blank" rel="noopener">mở tệp trong cửa sổ mới</a>.
+        </p>
+      </div>
+    `;
+  }
+
+  function getPdfInfo(source) {
+    const text = String(source || "").trim().replace(/^["']|["']$/g, "");
+    const markdownLink = text.match(/^\[[^\]]*]\((https:\/\/[^)\s]+)\)$/i);
+    const rawUrl = markdownLink ? markdownLink[1] : (/^https:\/\/\S+$/i.test(text) ? text : "");
+    if (!rawUrl) return null;
+
+    const cleanedUrl = rawUrl.replace(/[)\],.;]+$/g, "");
+    let url;
+    try {
+      url = new URL(cleanedUrl);
+    } catch (_) {
+      return null;
+    }
+    if (url.protocol !== "https:") return null;
+
+    const isGoogleDrive = /(^|\.)drive\.google\.com$/i.test(url.hostname);
+    if (isGoogleDrive) {
+      const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/i);
+      const fileId = pathMatch?.[1] || url.searchParams.get("id") || "";
+      if (!/^[A-Za-z0-9_-]{10,}$/.test(fileId)) return null;
+      const resourceKey = url.searchParams.get("resourcekey");
+      const suffix = resourceKey ? `?resourcekey=${encodeURIComponent(resourceKey)}` : "";
+      return {
+        openUrl: `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/view${suffix}`,
+        previewUrl: `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview${suffix}`
+      };
+    }
+
+    const looksLikePdf = /\.pdf(?:$|[?#])/i.test(url.href) ||
+      url.searchParams.get("format")?.toLowerCase() === "pdf";
+    if (!looksLikePdf) return null;
+    return {
+      openUrl: url.href,
+      previewUrl: url.href
+    };
   }
 
   function renderMarkdown(source) {

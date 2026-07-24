@@ -19,19 +19,38 @@ Hàng đầu gồm đúng 7 cột:
 - Khi đã nhập đáp án theo từng câu ở sheet `CauHoi`, cột `DapAn` tại
   `Nam2026` có thể để trống.
 
+### Dùng tệp PDF trong `DeThi` và `DapAn`
+
+Có thể dán liên kết PDF Google Drive đầy đủ vào một trong hai ô. Ví dụ:
+
+```text
+https://drive.google.com/file/d/MA_FILE_PDF/view?usp=sharing
+```
+
+Tiện ích tự nhận biết liên kết và hiển thị trình đọc PDF cùng nút
+**Mở toàn màn hình**. Tiện ích không cung cấp nút tải PDF.
+
+- Tệp Drive phải được chia sẻ ở chế độ **Bất kỳ ai có đường liên kết – Người xem**.
+- Trong cài đặt chia sẻ của Drive, tắt quyền cho người xem tải xuống, in và sao chép.
+- Dán URL đầy đủ dạng văn bản; không dùng Smart chip/thẻ tệp.
+- Nếu ô chứa nội dung chữ thay vì URL PDF, tiện ích vẫn hiển thị chữ như cũ.
+- PDF đáp án tổng hợp không thay thế dữ liệu từng câu trong `CauHoiNam2026`
+  nếu cần tạo ô làm bài và dùng AI chấm thử.
+
 ### Sheet câu hỏi: `CauHoiNam2026`
 
 Mỗi câu hỏi/đáp án nằm trên một dòng riêng:
 
-| IDDe | MaCau | Phan | TenCau | YeuCau | DapAn | DiemToiDa | ThuTu | TrangThai |
-|---|---|---|---|---|---|---:|---:|---|
-| NB2026 | DH1 | Đọc hiểu | Câu 1 | Yêu cầu câu 1 | Đáp án câu 1 | 0,5 | 1 | HIEN |
-| NB2026 | DH2 | Đọc hiểu | Câu 2 | Yêu cầu câu 2 | Đáp án câu 2 | 1,0 | 2 | HIEN |
-| NB2026 | V1 | Viết | Câu 1 | Yêu cầu viết | Hướng dẫn chấm | 2,0 | 3 | HIEN |
+| IDDe | MaCau | Phan | TenCau | YeuCau | DapAn | HuongDanCham | DiemToiDa | ThuTu | TrangThai |
+|---|---|---|---|---|---|---|---:|---:|---|
+| NB2026 | DH1 | Đọc hiểu | Câu 1 | Yêu cầu câu 1 | Đáp án câu 1 | Cách cho điểm | 0,5 | 1 | HIEN |
+| NB2026 | DH2 | Đọc hiểu | Câu 2 | Yêu cầu câu 2 | Đáp án câu 2 | Chấp nhận cách diễn đạt tương đương | 1,0 | 2 | HIEN |
+| NB2026 | V1 | Viết | Câu 1 | Yêu cầu viết | Nội dung cần đạt | Hướng dẫn chấm chi tiết | 2,0 | 3 | HIEN |
 
 - `IDDe` phải trùng với `ID` của đề trong sheet `Nam2026`.
 - `MaCau` phải duy nhất trong một đề.
 - `DiemToiDa` là điểm tối đa của câu.
+- `HuongDanCham` ghi cách chia điểm, cách xử lí phương án trả lời khác hoặc các lưu ý khi chấm.
 - `ThuTu` quyết định thứ tự câu trong khung bài làm.
 
 Apps Script tự động đọc các sheet có tên theo mẫu:
@@ -83,6 +102,7 @@ https://tools.hoclieuso.id.vn/luyendevan10/
 
 - Lọc đề theo tỉnh/thành, năm và loại đề.
 - Hiển thị Markdown, bảng, chữ đậm/nghiêng và xuống dòng.
+- Hiển thị PDF Google Drive trực tiếp trong khung đề và đáp án.
 - Tạo phiếu trả lời theo từng dòng của sheet `CauHoi`.
 - Hiển thị đáp án và điểm tối đa của từng câu.
 - Cho học sinh tự nhập điểm hoặc dùng AI nhận xét và chấm thử.
