@@ -1,6 +1,7 @@
 (() => {
   "use strict";
 
+  const APP_VERSION = "7.0.0";
   const els = {};
   const state = {
     exams: [],
@@ -66,6 +67,7 @@
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
+    console.info(`Luyện đề Ngữ văn 10 – phiên bản ${APP_VERSION}`);
     cacheElements();
     bindEvents();
     restorePreferences();
