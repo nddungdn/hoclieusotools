@@ -3,7 +3,7 @@
  * Ví dụ:
  * window.VAN10_APPS_SCRIPT_URL = "https://script.google.com/macros/s/ABC.../exec";
  */
-window.VAN10_APPS_SCRIPT_URL = "";
+window.VAN10_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyhxZVN-aqAUEIVwzHDQVZ5qMg5iE4HkJ9m_JldbyAnPydo4UhiVCg8AUFDlefOh620/exec";
 
 /*
  * Mô hình Gemini dùng cho chức năng gợi ý và chấm thử.
