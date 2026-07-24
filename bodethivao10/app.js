@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = "7.0.0";
+  const APP_VERSION = "7.2.0";
   const els = {};
   const state = {
     exams: [],
@@ -850,22 +850,19 @@
         <div class="pdf-toolbar">
           <div>
             <strong>${escapeHtml(title || "Tài liệu PDF")}</strong>
-            <small>PDF từ Google Drive</small>
-          </div>
-          <div class="pdf-actions">
-            <a href="${escapeAttr(pdf.openUrl)}" target="_blank" rel="noopener">Mở toàn màn hình</a>
+            <small>Chế độ chỉ xem trong tiện ích</small>
           </div>
         </div>
-        <iframe
-          src="${escapeAttr(pdf.previewUrl)}"
-          title="${escapeAttr(title || "Tài liệu PDF")}"
-          loading="lazy"
-          allow="autoplay"
-        ></iframe>
-        <p class="pdf-fallback">
-          Nếu PDF không hiển thị trên thiết bị này, hãy
-          <a href="${escapeAttr(pdf.openUrl)}" target="_blank" rel="noopener">mở tệp trong cửa sổ mới</a>.
-        </p>
+        <div class="pdf-frame-wrap">
+          <iframe
+            src="${escapeAttr(pdf.previewUrl)}"
+            title="${escapeAttr(title || "Tài liệu PDF")}"
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin"
+            referrerpolicy="no-referrer"
+          ></iframe>
+          <span class="pdf-view-only-badge" aria-hidden="true">Chỉ xem</span>
+        </div>
       </div>
     `;
   }
@@ -891,10 +888,10 @@
       const fileId = pathMatch?.[1] || url.searchParams.get("id") || "";
       if (!/^[A-Za-z0-9_-]{10,}$/.test(fileId)) return null;
       const resourceKey = url.searchParams.get("resourcekey");
-      const suffix = resourceKey ? `?resourcekey=${encodeURIComponent(resourceKey)}` : "";
+      const previewParams = new URLSearchParams({ rm: "minimal" });
+      if (resourceKey) previewParams.set("resourcekey", resourceKey);
       return {
-        openUrl: `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/view${suffix}`,
-        previewUrl: `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview${suffix}`
+        previewUrl: `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview?${previewParams.toString()}`
       };
     }
 
@@ -902,7 +899,6 @@
       url.searchParams.get("format")?.toLowerCase() === "pdf";
     if (!looksLikePdf) return null;
     return {
-      openUrl: url.href,
       previewUrl: url.href
     };
   }

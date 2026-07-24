@@ -300,18 +300,12 @@ input::placeholder, textarea::placeholder { color: #98a3b3; }
 }
 .pdf-toolbar strong, .pdf-toolbar small { display: block; }
 .pdf-toolbar small { margin-top: 2px; color: var(--muted); font-size: 11px; }
-.pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.pdf-actions a {
-  padding: 7px 10px;
-  border: 1px solid #bdd1e5;
-  border-radius: 8px;
-  color: var(--primary-dark);
-  background: var(--surface);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 800;
+.pdf-frame-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #eef2f6;
 }
-.pdf-viewer iframe {
+.pdf-frame-wrap iframe {
   display: block;
   width: 100%;
   height: min(76vh, 900px);
@@ -319,14 +313,23 @@ input::placeholder, textarea::placeholder { color: #98a3b3; }
   border: 0;
   background: #eef2f6;
 }
-.pdf-fallback {
-  margin: 0 !important;
-  padding: 9px 13px;
-  color: var(--muted);
+.pdf-view-only-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  width: 64px;
+  height: 50px;
+  place-items: center;
+  color: #fff;
+  background: #202124;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: auto;
+  user-select: none;
 }
-.pdf-fallback a { color: var(--primary); font-weight: 750; }
 
 .save-indicator {
   color: var(--success);
@@ -599,10 +602,7 @@ body.dark .small-btn.ai-btn { color: #f1d49e; border-color: #705a31; background:
   .answer-key-heading .secondary-btn { margin-top: 12px; }
   .document-content { padding-top: 17px; line-height: 1.58; }
   .document-content table { display: block; overflow-x: auto; }
-  .pdf-toolbar { align-items: flex-start; flex-direction: column; }
-  .pdf-actions, .pdf-actions a { width: 100%; }
-  .pdf-actions a { text-align: center; }
-  .pdf-viewer iframe { height: 68vh; min-height: 480px; }
+  .pdf-frame-wrap iframe { height: 68vh; min-height: 480px; }
   .action-row { align-items: stretch; flex-direction: column-reverse; }
   .action-row button { width: 100%; }
   .toast { right: 16px; bottom: 16px; }
