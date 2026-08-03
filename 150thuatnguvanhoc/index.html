@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Tiện ích tra cứu 150 thuật ngữ văn học do nhà nghiên cứu Lại Nguyên Ân biên soạn.">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Tra cứu 150 thuật ngữ văn học | Lại Nguyên Ân</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/app.css">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="site-header">
+      <div class="header-inner">
+        <h1>Tra cứu 150 thuật ngữ văn học</h1>
+        <p>Tiện ích sử dụng dữ liệu của <em>150 thuật ngữ Văn học</em> do nhà nghiên cứu văn học Lại Nguyên Ân biên soạn, Nhà xuất bản Văn học ấn hành năm 2017.</p>
+      </div>
+    </header>
+
+    <main class="page-wrap">
+      <div id="statusBanner" class="status-banner" hidden role="status" aria-live="polite">
+        <span id="statusIcon" class="status-icon" aria-hidden="true">!</span>
+        <span id="statusText" class="status-text"></span>
+        <button id="closeStatus" class="status-close" type="button" aria-label="Đóng thông báo">Đóng</button>
+      </div>
+
+      <div class="mobile-tabs" aria-label="Chuyển nội dung trên thiết bị nhỏ">
+        <button id="mobileListTab" type="button" class="mobile-tab active" aria-controls="sidebarPanel" aria-selected="true">
+          <span aria-hidden="true">☰</span>
+          <span>Danh sách (<strong id="mobileResultCount">0</strong>)</span>
+        </button>
+        <button id="mobileDetailTab" type="button" class="mobile-tab" aria-controls="detailPanel" aria-selected="false">
+          <span aria-hidden="true">▤</span>
+          <span>Nội dung khái niệm</span>
+        </button>
+      </div>
+
+      <div class="content-grid">
+        <aside id="sidebarPanel" class="sidebar panel-visible" aria-label="Danh sách thuật ngữ">
+          <div class="search-wrap">
+            <span class="search-symbol" aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="Tìm kiếm thuật ngữ..." aria-label="Tìm kiếm thuật ngữ">
+            <button id="clearSearch" type="button" class="icon-button clear-search" aria-label="Xóa nội dung tìm kiếm" hidden>×</button>
+          </div>
+
+          <div class="sidebar-title-row">
+            <strong>Danh mục thuật ngữ</strong>
+            <span id="termCount">0 thuật ngữ</span>
+          </div>
+
+          <div class="view-tabs" role="tablist" aria-label="Bộ lọc danh sách">
+            <button type="button" class="view-tab active" data-view="all" aria-selected="true">Tất cả</button>
+            <button type="button" class="view-tab" data-view="recent" aria-selected="false">Đã xem (<span id="recentCount">0</span>)</button>
+            <button type="button" class="view-tab" data-view="favorites" aria-selected="false">★ Lưu (<span id="favoriteCount">0</span>)</button>
+          </div>
+
+          <div class="search-options">
+            <label>
+              <input id="searchDefinition" type="checkbox">
+              <span>Tìm trong nội dung khái niệm</span>
+            </label>
+            <button id="resetFilters" type="button" class="link-button" hidden>Đặt lại</button>
+          </div>
+
+          <div id="alphabetBar" class="alphabet-bar" aria-label="Lọc theo chữ cái"></div>
+
+          <div id="termList" class="term-list" role="listbox" aria-label="Các thuật ngữ"></div>
+
+          <div id="clearRecentWrap" class="clear-recent-wrap" hidden>
+            <button id="clearRecent" type="button" class="link-button danger">↻ Xóa lịch sử tra cứu</button>
+          </div>
+        </aside>
+
+        <section id="detailPanel" class="detail-card panel-hidden-mobile" aria-live="polite">
+          <div id="emptyDetail" class="empty-detail">
+            <div class="empty-icon" aria-hidden="true">▤</div>
+            <h2>Chọn một thuật ngữ để bắt đầu</h2>
+            <p>Dùng ô tìm kiếm hoặc chạm vào một mục trong danh sách để xem nội dung giải thích.</p>
+          </div>
+
+          <div id="termDetail" class="term-detail" hidden>
+            <div class="detail-toolbar">
+              <div class="detail-meta">
+                <span id="termPosition" class="position-badge">Thuật ngữ</span>
+                <span id="dataSource" class="source-label">NXB Văn học (2017)</span>
+              </div>
+
+              <div class="action-bar">
+                <div class="font-controls" aria-label="Điều chỉnh cỡ chữ">
+                  <button id="decreaseFont" type="button" title="Giảm cỡ chữ" aria-label="Giảm cỡ chữ">A−</button>
+                  <span id="fontSizeLabel">18px</span>
+                  <button id="increaseFont" type="button" title="Tăng cỡ chữ" aria-label="Tăng cỡ chữ">A+</button>
+                </div>
+                <button id="speechButton" type="button" class="action-button" title="Đọc thuật ngữ" hidden>🔊 <span>Đọc</span></button>
+                <button id="copyButton" type="button" class="action-button" title="Sao chép nội dung">⧉ <span>Sao chép</span></button>
+                <button id="favoriteButton" type="button" class="action-button" title="Lưu thuật ngữ">☆ <span>Lưu</span></button>
+                <button id="shareButton" type="button" class="action-button icon-only" title="Chia sẻ thuật ngữ" aria-label="Chia sẻ thuật ngữ">↗</button>
+                <button id="printButton" type="button" class="action-button icon-only" title="In thuật ngữ" aria-label="In thuật ngữ">⎙</button>
+              </div>
+            </div>
+
+            <article class="detail-scroll">
+              <div class="term-heading">
+                <div class="eyebrow"><span aria-hidden="true">◆</span> Thuật ngữ văn học</div>
+                <h2 id="detailTerm"></h2>
+              </div>
+
+              <div id="definitionContent" class="definition-card"></div>
+
+              <section id="relatedSection" class="related-section" hidden>
+                <h3>✦ Thuật ngữ có thể bạn quan tâm</h3>
+                <div id="relatedTerms" class="related-grid"></div>
+              </section>
+            </article>
+
+            <nav class="detail-nav" aria-label="Điều hướng thuật ngữ">
+              <button id="prevTerm" type="button">← <span>Thuật ngữ trước</span></button>
+              <span class="keyboard-hint">Dùng phím mũi tên ← → để chuyển đổi</span>
+              <button id="nextTerm" type="button"><span>Thuật ngữ tiếp theo</span> →</button>
+            </nav>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-divider"><span></span><b aria-hidden="true">◆</b><span></span></div>
+        <p class="footer-main">Công cụ được xây dựng bởi <a href="https://www.hoclieuso.id.vn" target="_blank" rel="noopener noreferrer">Học liệu số – www.hoclieuso.id.vn ↗</a></p>
+        <p>Tiện ích nhằm hỗ trợ hoạt động dạy học cho giáo viên và học sinh, không nhằm mục đích thương mại.</p>
+        <p class="copyright">© <span id="currentYear"></span> Học Liệu Số. Tất cả các quyền được bảo lưu.</p>
+      </div>
+    </footer>
+  </div>
+
+  <noscript>Tiện ích cần JavaScript để hoạt động. Vui lòng bật JavaScript trong trình duyệt.</noscript>
+  <script src="./assets/fallback-terms.js"></script>
+  <script src="./assets/app.js" defer></script>
+</body>
+</html>
