@@ -138,7 +138,7 @@
       const hasCache = state.source === 'cache' && state.terms.length > 0;
       const hasFallback = state.terms.length > 0;
       const message = hasCache
-        ? `Không thể kết nối Google Sheet. Đang dùng ${state.terms.length} thuật ngữ đã lưu từ lần truy cập trước.`
+        ? 'Chưa thể kết nối dữ liệu.'
         : hasFallback
           ? `Không thể kết nối Google Sheet. Đang hiển thị ${state.terms.length} thuật ngữ dự phòng có trong mã nguồn.`
           : 'Không thể tải dữ liệu thuật ngữ. Vui lòng thử lại khi có kết nối mạng.';
