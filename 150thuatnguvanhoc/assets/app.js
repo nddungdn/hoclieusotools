@@ -118,18 +118,9 @@
 
   async function loadLiveTerms() {
     showStatus('loading', 'Đang đồng bộ dữ liệu thuật ngữ từ Google Sheet…', false);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
 
     try {
-      const response = await fetch(`${GOOGLE_SCRIPT_URL}${GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?'}_=${Date.now()}`, {
-        method: 'GET',
-        cache: 'no-store',
-        redirect: 'follow',
-        signal: controller.signal
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
+      const payload = await loadJsonp(GOOGLE_SCRIPT_URL, 15000);
       const rawTerms = Array.isArray(payload) ? payload : (Array.isArray(payload?.terms) ? payload.terms : []);
       const liveTerms = normalizeTerms(rawTerms);
       if (!liveTerms.length) throw new Error('Dữ liệu trả về không hợp lệ');
@@ -150,9 +141,47 @@
           : 'Không thể tải dữ liệu thuật ngữ. Vui lòng thử lại khi có kết nối mạng.';
       showStatus('warning', message, false);
       console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', error);
-    } finally {
-      clearTimeout(timeout);
     }
+  }
+
+  function loadJsonp(url, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+      const callbackName = `__hoclieusoTerms_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      const separator = url.includes('?') ? '&' : '?';
+      let finished = false;
+
+      const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeoutId);
+        script.remove();
+        try {
+          delete window[callbackName];
+        } catch {
+          window[callbackName] = undefined;
+        }
+      };
+
+      window[callbackName] = (payload) => {
+        cleanup();
+        resolve(payload);
+      };
+
+      script.async = true;
+      script.src = `${url}${separator}callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Không tải được dữ liệu JSONP từ Google Apps Script'));
+      };
+
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error('Google Apps Script phản hồi quá chậm'));
+      }, timeoutMs);
+
+      document.head.appendChild(script);
+    });
   }
 
   function normalizeTerms(items) {
