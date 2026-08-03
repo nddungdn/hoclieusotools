@@ -1,505 +1,1459 @@
-<div id="go-wrap">
-<style>
-#go-wrap *,#go-wrap *::before,#go-wrap *::after{box-sizing:border-box;margin:0;padding:0}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9d174d">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://generativelanguage.googleapis.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Biến một ý tưởng đơn giản thành các prompt chuyên sâu để tạo trò chơi giáo dục bằng Gemini Canvas.">
+  <title>Tạo prompt trò chơi | Học Liệu Số</title>
 
-/* Light mode */
-#go-wrap{
-  --go-bg:#faf6f0;
-  --go-surface:#f5f0e8;
-  --go-card:#ffffff;
-  --go-border:#e8e2d9;
-  --go-border-focus:#a21caf;
-  --go-accent:#a21caf;
-  --go-accent-light:#c026d3;
-  --go-accent-bg:rgba(162,28,175,.08);
-  --go-accent-bg2:rgba(162,28,175,.15);
-  --go-text:#1c1917;
-  --go-muted:#78716c;
-  --go-dim:#a8a29e;
-  --go-success:#15803d;
-  --go-success-bg:rgba(21,128,61,.1);
-  --go-error:#b91c1c;
-  --go-error-bg:rgba(185,28,28,.08);
-  --go-shadow:0 2px 12px rgba(28,25,23,.08);
-  --go-shadow-lg:0 8px 32px rgba(28,25,23,.12);
-  background:var(--go-bg);
-  color:var(--go-text);
-  font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;
-  border-radius:16px;
-  padding:2rem 1.25rem;
-  border:1px solid var(--go-border);
-}
-/* Dark mode — theo class dark trên html */
-html.dark #go-wrap{
-  --go-bg:#0c0a09;
-  --go-surface:#1c1917;
-  --go-card:#1c1917;
-  --go-border:#2e2a24;
-  --go-border-focus:#f472b6;
-  --go-accent:#f472b6;
-  --go-accent-light:#fb7185;
-  --go-accent-bg:rgba(244,114,182,.1);
-  --go-accent-bg2:rgba(244,114,182,.2);
-  --go-text:#f5f5f4;
-  --go-muted:#a8a29e;
-  --go-dim:#78716c;
-  --go-success:#34d399;
-  --go-success-bg:rgba(52,211,153,.1);
-  --go-error:#f87171;
-  --go-error-bg:rgba(248,113,113,.08);
-  --go-shadow:0 2px 12px rgba(0,0,0,.3);
-  --go-shadow-lg:0 8px 32px rgba(0,0,0,.4);
-  background:var(--go-bg);
-  border-color:var(--go-border);
-}
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('go_theme');
+        var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = savedTheme || (systemDark ? 'dark' : 'light');
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    }());
+  </script>
 
-/* Header */
-#go-wrap header{text-align:center;padding:1.5rem 0 2rem}
-#go-wrap .go-badge{
-  display:inline-flex;align-items:center;gap:.4rem;
-  background:var(--go-accent-bg2);border:1px solid var(--go-accent);
-  border-radius:99px;padding:.3rem 1rem;font-size:.7rem;
-  color:var(--go-accent);letter-spacing:.07em;text-transform:uppercase;
-  font-weight:700;margin-bottom:1rem;
-}
-#go-wrap h1{
-  font-size:clamp(1.5rem,4vw,2.1rem);font-weight:700;
-  color:var(--go-text);line-height:1.25;letter-spacing:-.02em;margin-bottom:.6rem;
-}
-#go-wrap h1 span{color:var(--go-accent)}
-#go-wrap header p{color:var(--go-muted);font-size:.9rem}
+  <style>
+    :root {
+      --go-bg: #fbf7f2;
+      --go-bg-glow: rgba(190, 24, 93, 0.1);
+      --go-surface: #f7f1ea;
+      --go-card: rgba(255, 255, 255, 0.96);
+      --go-border: #e8ddd2;
+      --go-border-focus: #be185d;
+      --go-accent: #9d174d;
+      --go-accent-hover: #be185d;
+      --go-accent-soft: rgba(157, 23, 77, 0.09);
+      --go-accent-soft-2: rgba(157, 23, 77, 0.16);
+      --go-text: #1c1917;
+      --go-muted: #6f6761;
+      --go-dim: #8e847d;
+      --go-success: #15803d;
+      --go-success-bg: #ecfdf3;
+      --go-error: #b91c1c;
+      --go-error-bg: #fef2f2;
+      --go-shadow: 0 8px 24px rgba(67, 43, 31, 0.08);
+      --go-shadow-lg: 0 18px 46px rgba(67, 43, 31, 0.14);
+      --go-radius: 18px;
+    }
 
-/* Grid */
-#go-wrap .go-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:620px){#go-wrap .go-grid{grid-template-columns:1fr}}
-#go-wrap .go-full{grid-column:1/-1}
+    html[data-theme="dark"] {
+      --go-bg: #0f0c0d;
+      --go-bg-glow: rgba(244, 114, 182, 0.12);
+      --go-surface: #211b1e;
+      --go-card: rgba(29, 24, 26, 0.97);
+      --go-border: #3c3136;
+      --go-border-focus: #f472b6;
+      --go-accent: #f472b6;
+      --go-accent-hover: #f9a8d4;
+      --go-accent-soft: rgba(244, 114, 182, 0.11);
+      --go-accent-soft-2: rgba(244, 114, 182, 0.2);
+      --go-text: #faf7f8;
+      --go-muted: #c1b6bb;
+      --go-dim: #9f9398;
+      --go-success: #6ee7b7;
+      --go-success-bg: rgba(22, 101, 52, 0.22);
+      --go-error: #fca5a5;
+      --go-error-bg: rgba(127, 29, 29, 0.24);
+      --go-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+      --go-shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.4);
+    }
 
-/* Card */
-#go-wrap .go-card{
-  background:var(--go-card);border:1px solid var(--go-border);
-  border-radius:12px;padding:1.25rem;
-  box-shadow:var(--go-shadow);
-  transition:border-color .25s,box-shadow .25s;
-}
-#go-wrap .go-card:focus-within{
-  border-color:var(--go-border-focus);
-  box-shadow:var(--go-shadow),0 0 0 3px var(--go-accent-bg);
-}
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-#go-wrap .go-card-title{
-  display:flex;align-items:center;gap:.5rem;
-  font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--go-muted);margin-bottom:1rem;
-}
-#go-wrap .go-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--go-accent);flex-shrink:0;
-}
+    html {
+      min-width: 320px;
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
-/* Form */
-#go-wrap label{display:block;font-size:.8rem;color:var(--go-muted);margin-bottom:.35rem;font-weight:600}
-#go-wrap input[type=text],
-#go-wrap input[type=number],
-#go-wrap input[type=password],
-#go-wrap select,
-#go-wrap textarea{
-  width:100%;background:var(--go-surface);border:1px solid var(--go-border);
-  border-radius:8px;padding:.6rem .85rem;color:var(--go-text);
-  font-family:inherit;font-size:.875rem;
-  transition:border-color .2s,box-shadow .2s;outline:none;
-}
-#go-wrap input[type=text]:focus,
-#go-wrap input[type=number]:focus,
-#go-wrap input[type=password]:focus,
-#go-wrap select:focus,
-#go-wrap textarea:focus{
-  border-color:var(--go-border-focus);
-  box-shadow:0 0 0 3px var(--go-accent-bg);
-}
-#go-wrap textarea{resize:vertical;min-height:85px;line-height:1.55}
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% 0%, var(--go-bg-glow), transparent 30rem),
+        radial-gradient(circle at 100% 30%, var(--go-accent-soft), transparent 34rem),
+        var(--go-bg);
+      color: var(--go-text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
 
-/* API key */
-#go-wrap .go-key-wrap{position:relative}
-#go-wrap .go-key-wrap input{padding-right:2.6rem}
-#go-wrap .go-eye{
-  position:absolute;right:.7rem;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;color:var(--go-muted);
-  font-size:.9rem;padding:.2rem;line-height:1;
-  transition:color .2s;
-}
-#go-wrap .go-eye:hover{color:var(--go-accent)}
-#go-wrap .go-hint{font-size:.72rem;color:var(--go-dim);margin-top:.35rem}
-#go-wrap .go-hint a{color:var(--go-accent);text-decoration:none;font-weight:600}
-#go-wrap .go-hint a:hover{text-decoration:underline}
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
 
-/* Row */
-#go-wrap .go-row{display:flex;align-items:center;gap:.75rem}
-#go-wrap .go-row label{margin:0;white-space:nowrap;flex-shrink:0}
-#go-wrap .go-row input{max-width:72px}
+    button,
+    label,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
 
-/* Checkboxes */
-#go-wrap .go-cb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem}
-#go-wrap .go-cb{
-  display:flex;align-items:center;gap:.5rem;
-  background:var(--go-surface);border:1px solid var(--go-border);
-  border-radius:8px;padding:.45rem .7rem;cursor:pointer;
-  transition:border-color .2s,background .2s;font-size:.78rem;color:var(--go-text);
-}
-#go-wrap .go-cb:hover{border-color:var(--go-accent);background:var(--go-accent-bg)}
-#go-wrap .go-cb input[type=checkbox]{
-  width:14px;height:14px;cursor:pointer;accent-color:var(--go-accent);flex-shrink:0;
-}
+    button {
+      touch-action: manipulation;
+    }
 
-/* Button */
-#go-wrap .go-btn{
-  width:100%;padding:.9rem;border:none;border-radius:10px;cursor:pointer;
-  background:var(--go-accent);color:#fff;
-  font-family:inherit;font-size:.95rem;font-weight:700;
-  letter-spacing:.01em;
-  transition:background .2s,transform .1s,box-shadow .2s;
-  display:flex;align-items:center;justify-content:center;gap:.55rem;
-  box-shadow:0 4px 14px rgba(162,28,175,.35);
-}
-html.dark #go-wrap .go-btn{box-shadow:0 4px 14px rgba(244,114,182,.3)}
-#go-wrap .go-btn:hover:not(:disabled){background:var(--go-accent-light);box-shadow:0 6px 20px rgba(162,28,175,.45)}
-#go-wrap .go-btn:active:not(:disabled){transform:scale(.99)}
-#go-wrap .go-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    .go-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
 
-@keyframes go-spin{to{transform:rotate(360deg)}}
-#go-wrap .go-spinner{
-  width:16px;height:16px;border:2px solid rgba(255,255,255,.35);
-  border-top-color:#fff;border-radius:50%;animation:go-spin .7s linear infinite;
-}
+    .go-page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) 0 max(24px, env(safe-area-inset-bottom));
+    }
 
-/* Results */
-#go-wrap .go-results{
-  display:flex;flex-direction:column;gap:0;
-}
-#go-wrap .go-empty{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:var(--go-dim);text-align:center;gap:.6rem;
-  padding:3rem 2rem;
-  background:var(--go-surface);border:1px solid var(--go-border);
-  border-radius:10px;
-}
-#go-wrap .go-empty-icon{font-size:2rem;opacity:.4}
+    .go-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
 
-@keyframes go-fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .go-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--go-accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-/* Prompt card — standalone, full width, no scroll container */
-#go-wrap .go-pcard{
-  background:var(--go-card);border:1px solid var(--go-border);
-  border-radius:12px;padding:1.4rem;
-  box-shadow:var(--go-shadow);
-  animation:go-fadeup .35s ease both;
-  margin-bottom:1.25rem;
-}
-#go-wrap .go-pcard:last-child{margin-bottom:0}
+    .go-brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid var(--go-accent);
+      border-radius: 11px;
+      background: var(--go-accent-soft);
+    }
 
-/* Header row of each prompt card */
-#go-wrap .go-pcard-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:1rem;padding-bottom:.75rem;
-  border-bottom:2px solid var(--go-accent-bg2);
-  gap:.75rem;
-}
-#go-wrap .go-pnum{
-  display:inline-flex;align-items:center;gap:.5rem;
-  font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--go-accent);
-  background:var(--go-accent-bg);border:1px solid var(--go-accent);
-  border-radius:99px;padding:.25rem .75rem;white-space:nowrap;
-}
-#go-wrap .go-copy{
-  display:inline-flex;align-items:center;gap:.35rem;
-  background:var(--go-accent);border:none;
-  border-radius:7px;padding:.38rem .85rem;color:#fff;
-  font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;
-  transition:background .2s,transform .1s;white-space:nowrap;flex-shrink:0;
-}
-#go-wrap .go-copy:hover{background:var(--go-accent-light)}
-#go-wrap .go-copy:active{transform:scale(.97)}
-#go-wrap .go-copy.copied{background:var(--go-success)}
+    .go-theme-button,
+    .go-icon-button,
+    .go-secondary-button {
+      display: inline-flex;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--go-border);
+      border-radius: 12px;
+      background: var(--go-card);
+      color: var(--go-text);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    }
 
-/* Prompt body */
-#go-wrap .go-ptext{font-size:.875rem;line-height:1.75;color:var(--go-text);word-break:break-word}
-#go-wrap .go-ptext h3{
-  color:var(--go-accent);font-size:.925rem;font-weight:700;
-  margin:1.1rem 0 .4rem;padding-left:.6rem;
-  border-left:3px solid var(--go-accent);
-}
-#go-wrap .go-ptext h3:first-child{margin-top:0}
-#go-wrap .go-ptext strong{color:var(--go-text);font-weight:700}
-#go-wrap .go-ptext p{margin:.35rem 0}
-#go-wrap .go-ptext code{
-  background:var(--go-accent-bg);color:var(--go-accent);
-  padding:1px 6px;border-radius:4px;font-size:.8rem;font-family:monospace;
-}
-#go-wrap .go-ptext ul,#go-wrap .go-ptext ol{padding-left:1.4rem;margin:.4rem 0}
-#go-wrap .go-ptext li{margin:.2rem 0}
+    .go-theme-button:hover,
+    .go-icon-button:hover,
+    .go-secondary-button:hover {
+      border-color: var(--go-accent);
+      background: var(--go-accent-soft);
+    }
 
-#go-wrap .go-err{
-  background:var(--go-error-bg);border:1px solid var(--go-error);
-  border-radius:8px;padding:.85rem;color:var(--go-error);
-  font-size:.84rem;text-align:center;
-}
+    .go-theme-button:active,
+    .go-icon-button:active,
+    .go-secondary-button:active {
+      transform: scale(0.97);
+    }
 
-/* Toast */
-@keyframes go-toast{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
-#go-toast{
-  position:fixed;bottom:1.25rem;right:1.25rem;
-  padding:.6rem 1rem;border-radius:9px;font-size:.84rem;font-weight:600;
-  z-index:99999;animation:go-toast .25s ease;
-  box-shadow:var(--go-shadow-lg);display:none;font-family:'Plus Jakarta Sans',sans-serif;
-}
-#go-toast.ok{background:var(--go-success-bg);color:var(--go-success);border:1px solid var(--go-success)}
-#go-toast.err{background:var(--go-error-bg);color:var(--go-error);border:1px solid var(--go-error)}
+    .go-hero {
+      padding: clamp(28px, 6vw, 62px) clamp(18px, 5vw, 54px);
+      overflow: hidden;
+      border: 1px solid var(--go-border);
+      border-radius: 26px;
+      background: var(--go-card);
+      background:
+        linear-gradient(135deg, var(--go-card), color-mix(in srgb, var(--go-card) 84%, var(--go-accent-soft-2)));
+      box-shadow: var(--go-shadow-lg);
+      text-align: center;
+    }
 
-/* Footer */
-#go-wrap footer{text-align:center;padding:1.5rem 0 .25rem;color:var(--go-dim);font-size:.75rem}
-#go-wrap footer span{color:var(--go-accent);font-weight:600}
+    .go-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 16px;
+      padding: 6px 13px;
+      border: 1px solid var(--go-accent);
+      border-radius: 999px;
+      background: var(--go-accent-soft);
+      color: var(--go-accent);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-/* Divider inside card */
-#go-wrap .go-sep{border:none;border-top:1px solid var(--go-border);margin:.85rem 0}
-</style>
+    h1 {
+      max-width: 780px;
+      margin: 0 auto;
+      font-size: clamp(2rem, 6vw, 3.65rem);
+      font-weight: 820;
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+    }
 
-<header>
-  <div class="go-badge">✦ HỌC LIỆU SỐ</div>
-  <h1>Công cụ tối ưu <span>Prompt trò chơi</span></h1>
-  <p>Biến ý tưởng đơn giản thành prompt trò chơi tương tác chuyên sâu (Sử dụng trên Gemini Canvas)</p>
-</header>
-<div class="go-grid">
-  <!--API Key-->
-  <div class="go-card go-full">
-    <div class="go-card-title"><span class="go-dot"></span>API Key</div>
-    <label>🔑 Google AI Studio API Key</label>
-    <div class="go-key-wrap">
-      <input autocomplete="off" id="go-apikey" type="password" />
-      <button class="go-eye" onclick="goToggleEye()" title="Hiện/ẩn">👁</button>
-    </div>
-    <div class="go-hint">🔒 API Key chỉ lưu cục bộ trên trình duyệt của bạn. &nbsp;·&nbsp; <a href="https://www.hls.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank">Xem cách tạo API Key →</a></div>
-  </div>
+    h1 span {
+      color: var(--go-accent);
+    }
 
-  <!--Settings-->
-  <div class="go-card" style="display: flex; flex-direction: column; gap: 0.85rem;">
-    <div class="go-card-title"><span class="go-dot"></span>Ý Tưởng &amp; Cài Đặt</div>
-    <div>
-      <label>💡 Mô tả ý tưởng trò chơi *</label>
-      <textarea id="go-idea" placeholder="Ví dụ: Trò chơi nhận biết từ ngữ toàn dân và từ ngữ địa phương Việt Nam..."></textarea>
-    </div>
-    <div class="go-row">
-      <label>📦 Số prompt (1–5):</label>
-      <input id="go-count" max="5" type="number" value="3" />
-    </div>
-    <div>
-      <label>✍️ Tên người sáng tạo</label>
-      <input id="go-creator" placeholder="Ví dụ: Nguyễn Văn A" type="text" />
-    </div>
-    <div>
-      <label>🎨 Phong cách giao diện</label>
-      <select id="go-style" onchange="goToggleCustom()">
-        <option>Cute 3D style</option>
-        <option>Anime 3D</option>
-        <option>Colorful style</option>
-        <option>2D Illustration</option>
-        <option>3D UI</option>
-        <option value="custom">Tùy chỉnh...</option>
-      </select>
-    </div>
-    <div id="go-custom-wrap" style="display: none;">
-      <label>✏️ Mô tả phong cách tùy chỉnh</label>
-      <input id="go-custom" placeholder="Mô tả phong cách của bạn" type="text" />
-    </div>
-  </div>
+    .go-hero p {
+      max-width: 690px;
+      margin: 18px auto 0;
+      color: var(--go-muted);
+      font-size: clamp(0.95rem, 2vw, 1.06rem);
+    }
 
-  <!--Features-->
-  <div class="go-card">
-    <div class="go-card-title"><span class="go-dot"></span>Tính Năng</div>
-    <div class="go-cb-grid">
-      <label class="go-cb"><input checked="" name="studentName" type="checkbox" /> 👤 Nhập tên</label>
-      <label class="go-cb"><input checked="" name="leaderboard" type="checkbox" /> 🏆 Bảng xếp hạng</label>
-      <label class="go-cb"><input checked="" name="soundEffects" type="checkbox" /> 🔊 Âm thanh</label>
-      <label class="go-cb"><input checked="" name="backgroundMusic" type="checkbox" /> 🎵 Nhạc nền</label>
-      <label class="go-cb"><input name="musicToggle" type="checkbox" /> 🎛 Bật/tắt nhạc</label>
-      <label class="go-cb"><input name="localStorage" type="checkbox" /> 💾 Lưu dữ liệu</label>
-      <label class="go-cb"><input name="disableRightClick" type="checkbox" /> 🖱 Khóa chuột phải</label>
-      <label class="go-cb"><input name="disableF12" type="checkbox" /> ⌨️ Khóa F12</label>
-      <label class="go-cb"><input name="obfuscateCode" type="checkbox" /> 🔐 Mã hóa code</label>
-    </div>
-  </div>
+    .go-main {
+      margin-top: 22px;
+    }
 
-  <!--Generate-->
-  <div class="go-full">
-    <button class="go-btn" id="go-btn" onclick="goGenerate()">
-      <span id="go-btn-inner">🪄 Tạo Prompt Chuyên Sâu</span>
-    </button>
-  </div>
+    .go-form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
 
-  <!--Results-->
-  <div class="go-full">
-    <div class="go-card-title" style="padding: 0.1rem 0px 0.5rem;"><span class="go-dot"></span>Kết Quả Prompt</div>
-    <div class="go-results" id="go-results">
-      <div class="go-empty">
-        <div class="go-empty-icon">✨</div>
-        <div>Các prompt được tạo ra sẽ hiển thị ở đây.<br /><small>Nhập ý tưởng và nhấn tạo để bắt đầu.</small></div>
-      </div>
-    </div>
-  </div>
+    .go-full {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
 
-</div>
+    .go-card {
+      min-width: 0;
+      padding: clamp(18px, 3vw, 26px);
+      border: 1px solid var(--go-border);
+      border-radius: var(--go-radius);
+      background: var(--go-card);
+      box-shadow: var(--go-shadow);
+    }
 
-<footer>Được thiết kế bởi <span>Học Liệu Số</span></footer>
-<div id="go-toast"></div>
+    .go-card:focus-within {
+      border-color: var(--go-border-focus);
+      box-shadow: var(--go-shadow), 0 0 0 3px var(--go-accent-soft);
+    }
 
-<script>
-(function(){
-  var saved=localStorage.getItem('go_gemini_key');
-  if(saved)document.getElementById('go-apikey').value=saved;
+    .go-card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 18px;
+      color: var(--go-muted);
+      font-size: 0.73rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
 
-  window.goToggleEye=function(){
-    var el=document.getElementById('go-apikey');
-    var btn=el.parentNode.querySelector('.go-eye');
-    if(el.type==='password'){el.type='text';btn.textContent='🙈';}
-    else{el.type='password';btn.textContent='👁';}
-  };
-  window.goToggleCustom=function(){
-    var s=document.getElementById('go-style').value;
-    document.getElementById('go-custom-wrap').style.display=s==='custom'?'block':'none';
-  };
+    .go-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--go-accent);
+      box-shadow: 0 0 0 5px var(--go-accent-soft);
+    }
 
-  function showToast(msg,type){
-    var t=document.getElementById('go-toast');
-    t.textContent=msg;t.className=type==='ok'?'ok':'err';
-    t.style.display='block';
-    clearTimeout(t._tid);t._tid=setTimeout(function(){t.style.display='none';},3000);
-  }
+    .go-stack {
+      display: grid;
+      gap: 16px;
+    }
 
-  function getFeatures(){
-    var map={studentName:'Nhập tên người chơi',leaderboard:'Bảng xếp hạng điểm cao',soundEffects:'Hiệu ứng âm thanh (tone.js hoặc Web Audio API, không dùng link ngoài)',backgroundMusic:'Nhạc nền phù hợp với chủ đề',musicToggle:'Nút bật/tắt nhạc nền',localStorage:'Lưu dữ liệu Local Storage (điểm cao, tên người chơi)',disableRightClick:'Khóa chuột phải',disableF12:'Khóa F12 và Developer Tools',obfuscateCode:'Mã hóa và rút gọn code JavaScript'};
-    var result=[];
-    document.querySelectorAll('#go-wrap .go-cb-grid input[type=checkbox]').forEach(function(cb){
-      if(cb.checked&&map[cb.name])result.push(map[cb.name]);
-    });
-    return result;
-  }
+    .go-field {
+      min-width: 0;
+    }
 
-  function renderMd(text){
-    // Normalize literal \n (from JSON) to real newlines
-    var t=text.replace(/\\n/g,'\n').replace(/\\t/g,'  ');
-    // Process markdown
-    t=t.replace(/### (.*?)(\n|$)/g,'<h3>$1</h3>\n');
-    t=t.replace(/## (.*?)(\n|$)/g,'<h3>$1</h3>\n');
-    t=t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-    t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
-    // Lists
-    var lines=t.split('\n');
-    var out=[];var inList=false;
-    for(var i=0;i<lines.length;i++){
-      var l=lines[i];
-      var liMatch=l.match(/^[\s]*[-*]\s+(.*)/);
-      if(liMatch){
-        if(!inList){out.push('<ul>');inList=true;}
-        out.push('<li>'+liMatch[1]+'</li>');
-      } else {
-        if(inList){out.push('</ul>');inList=false;}
-        if(l.trim()===''){ out.push('<br/>'); }
-        else if(l.match(/^<h3>/)){out.push(l);}
-        else{out.push('<p>'+l+'</p>');}
+    .go-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--go-muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .go-required {
+      color: var(--go-error);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      border: 1px solid var(--go-border);
+      border-radius: 11px;
+      outline: none;
+      background: var(--go-surface);
+      color: var(--go-text);
+      font-size: 0.93rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select {
+      padding: 10px 13px;
+    }
+
+    textarea {
+      min-height: 138px;
+      padding: 12px 13px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--go-border-focus);
+      background: var(--go-card);
+      box-shadow: 0 0 0 3px var(--go-accent-soft);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--go-dim);
+      opacity: 1;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    .go-key-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+    }
+
+    .go-key-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    .go-key-wrap input {
+      padding-right: 48px;
+    }
+
+    .go-key-wrap .go-icon-button {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      min-width: 44px;
+      min-height: 44px;
+      border: 0;
+      background: transparent;
+    }
+
+    .go-secondary-button {
+      gap: 7px;
+      padding: 0 14px;
+      color: var(--go-muted);
+      font-size: 0.82rem;
+      font-weight: 750;
+    }
+
+    .go-hint {
+      margin: 9px 0 0;
+      color: var(--go-dim);
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+
+    .go-hint a {
+      color: var(--go-accent);
+      font-weight: 750;
+      text-underline-offset: 3px;
+    }
+
+    .go-remember {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      color: var(--go-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .go-remember input,
+    .go-check input {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+      margin: 0;
+      accent-color: var(--go-accent);
+      cursor: pointer;
+    }
+
+    .go-inline-fields {
+      display: grid;
+      grid-template-columns: 132px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .go-check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .go-check {
+      display: flex;
+      min-width: 0;
+      min-height: 46px;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 11px;
+      border: 1px solid var(--go-border);
+      border-radius: 11px;
+      background: var(--go-surface);
+      color: var(--go-text);
+      font-size: 0.82rem;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .go-check:hover,
+    .go-check:has(input:checked) {
+      border-color: var(--go-accent);
+      background: var(--go-accent-soft);
+    }
+
+    .go-actions {
+      position: relative;
+    }
+
+    .go-primary-button {
+      display: inline-flex;
+      width: 100%;
+      min-height: 54px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 20px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--go-accent), var(--go-accent-hover));
+      color: #fff;
+      box-shadow: 0 9px 24px rgba(157, 23, 77, 0.28);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .go-primary-button:hover:not(:disabled) {
+      filter: brightness(1.07);
+      box-shadow: 0 12px 30px rgba(157, 23, 77, 0.36);
+    }
+
+    .go-primary-button:active:not(:disabled) {
+      transform: translateY(1px) scale(0.995);
+    }
+
+    .go-primary-button:disabled {
+      cursor: wait;
+      opacity: 0.62;
+      box-shadow: none;
+    }
+
+    @keyframes go-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes go-fade-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .go-spinner {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      border: 2px solid rgba(255, 255, 255, 0.38);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: go-spin 0.72s linear infinite;
+    }
+
+    .go-result-section {
+      scroll-margin-top: 16px;
+    }
+
+    .go-result-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .go-result-title-row .go-card-title {
+      margin: 0;
+    }
+
+    .go-status {
+      color: var(--go-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .go-results {
+      display: grid;
+      min-width: 0;
+      gap: 16px;
+    }
+
+    .go-empty {
+      display: grid;
+      min-height: 180px;
+      place-items: center;
+      padding: 28px 18px;
+      border: 1px dashed var(--go-border);
+      border-radius: 15px;
+      background: var(--go-surface);
+      color: var(--go-dim);
+      text-align: center;
+    }
+
+    .go-empty-inner {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .go-empty-icon {
+      font-size: 2rem;
+      opacity: 0.6;
+    }
+
+    .go-empty small {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.77rem;
+    }
+
+    .go-loading-spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--go-accent-soft-2);
+      border-top-color: var(--go-accent);
+      border-radius: 50%;
+      animation: go-spin 0.72s linear infinite;
+    }
+
+    .go-prompt-card {
+      min-width: 0;
+      padding: clamp(17px, 3vw, 24px);
+      border: 1px solid var(--go-border);
+      border-radius: 16px;
+      background: var(--go-card);
+      box-shadow: var(--go-shadow);
+      animation: go-fade-up 0.35s ease both;
+    }
+
+    .go-prompt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 13px;
+      border-bottom: 2px solid var(--go-accent-soft-2);
+    }
+
+    .go-prompt-number {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 11px;
+      border: 1px solid var(--go-accent);
+      border-radius: 999px;
+      background: var(--go-accent-soft);
+      color: var(--go-accent);
+      font-size: 0.73rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .go-copy-button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 13px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--go-accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: filter 0.2s ease, transform 0.15s ease;
+    }
+
+    .go-copy-button:hover {
+      filter: brightness(1.1);
+    }
+
+    .go-copy-button:active {
+      transform: scale(0.97);
+    }
+
+    .go-copy-button.is-copied {
+      background: var(--go-success);
+    }
+
+    .go-prompt-body {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: var(--go-text);
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    .go-prompt-body h3 {
+      margin: 22px 0 7px;
+      padding-left: 10px;
+      border-left: 3px solid var(--go-accent);
+      color: var(--go-accent);
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .go-prompt-body h3:first-child {
+      margin-top: 0;
+    }
+
+    .go-prompt-body p {
+      margin: 7px 0;
+    }
+
+    .go-prompt-body ul,
+    .go-prompt-body ol {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .go-prompt-body li {
+      margin: 5px 0;
+    }
+
+    .go-prompt-body code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--go-accent-soft);
+      color: var(--go-accent);
+      font-size: 0.86em;
+    }
+
+    .go-error {
+      padding: 15px 16px;
+      border: 1px solid var(--go-error);
+      border-radius: 12px;
+      background: var(--go-error-bg);
+      color: var(--go-error);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .go-toast {
+      position: fixed;
+      z-index: 9999;
+      right: max(18px, env(safe-area-inset-right));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      max-width: min(420px, calc(100vw - 36px));
+      padding: 11px 15px;
+      border-radius: 12px;
+      box-shadow: var(--go-shadow-lg);
+      font-size: 0.84rem;
+      font-weight: 750;
+      animation: go-fade-up 0.25s ease;
+    }
+
+    .go-toast[hidden] {
+      display: none;
+    }
+
+    .go-toast.is-ok {
+      border: 1px solid var(--go-success);
+      background: var(--go-success-bg);
+      color: var(--go-success);
+    }
+
+    .go-toast.is-error {
+      border: 1px solid var(--go-error);
+      background: var(--go-error-bg);
+      color: var(--go-error);
+    }
+
+    .go-footer {
+      padding: 24px 10px 4px;
+      color: var(--go-dim);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    .go-footer strong {
+      color: var(--go-accent);
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--go-accent-soft-2);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 860px) {
+      .go-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .go-full {
+        grid-column: auto;
       }
     }
-    if(inList)out.push('</ul>');
-    return out.join('');
-  }
 
-  window.goGenerate=async function(){
-    var apiKey=document.getElementById('go-apikey').value.trim();
-    var idea=document.getElementById('go-idea').value.trim();
-    var count=parseInt(document.getElementById('go-count').value)||3;
-    var creator=document.getElementById('go-creator').value.trim();
-    var styleEl=document.getElementById('go-style');
-    var uiStyle=styleEl.value==='custom'?document.getElementById('go-custom').value:styleEl.value;
-    var features=getFeatures();
+    @media (max-width: 620px) {
+      .go-page {
+        width: min(100% - 20px, 1180px);
+        padding-top: max(12px, env(safe-area-inset-top));
+      }
 
-    if(!apiKey){showToast('Vui lòng nhập API Key!','err');return;}
-    if(!idea){showToast('Vui lòng nhập ý tưởng trò chơi!','err');return;}
+      .go-topbar {
+        margin-bottom: 10px;
+      }
 
-    localStorage.setItem('go_gemini_key',apiKey);
+      .go-hero {
+        border-radius: 20px;
+      }
 
-    var btn=document.getElementById('go-btn');
-    btn.disabled=true;
-    document.getElementById('go-btn-inner').innerHTML='<div class="go-spinner"></div> Đang tạo...';
+      h1 {
+        font-size: clamp(1.85rem, 10vw, 2.55rem);
+      }
 
-    var results=document.getElementById('go-results');
-    results.innerHTML='<div class="go-empty"><div class="go-spinner" style="width:2rem;height:2rem;border-width:3px;border-color:var(--go-accent-bg);border-top-color:var(--go-accent)"></div><p style="color:var(--go-muted);margin-top:.85rem;font-weight:600">AI đang phân tích ý tưởng của bạn...</p></div>';
+      .go-main {
+        margin-top: 14px;
+      }
 
-    var featText=features.length?features.join('\n- '):'Các tính năng cơ bản';
-    var metaPrompt='Với vai trò là chuyên gia thiết kế game giáo dục và kỹ sư frontend, hãy tạo ra '+count+' câu lệnh (prompt) chuyên sâu và vô cùng chi tiết để yêu cầu Gemini tạo một trò chơi tương tác bằng HTML, CSS, và JavaScript trong một file duy nhất.\n\n**Ý tưởng gốc của người dùng:** "'+idea+'"\n\nMỗi prompt phải là một kịch bản hoàn chỉnh, tích hợp đầy đủ và logic các yếu tố sau:\n\n1. **Mục tiêu giáo dục:** Trò chơi phải có tính giáo dục cao, giúp người chơi học hỏi và rèn luyện kỹ năng một cách tự nhiên.\n2. **Luật chơi & Gameplay:** Mô tả rõ ràng, chi tiết cách chơi, các vòng chơi, cách tính điểm, và điều kiện thắng/thua. Phải đảm bảo logic game chặt chẽ.\n3. **Phong cách giao diện:** "'+uiStyle+'". Mô tả chi tiết các yếu tố hình ảnh, màu sắc, nhân vật, và hiệu ứng theo phong cách này.\n4. **Yếu tố đồ họa (Rất quan trọng):** Tuyệt đối không sử dụng URL hình ảnh. Thay vào đó hãy dùng Font Awesome, Lucide, SVG inline hoặc EMOJI.\n5. **Các tính năng bắt buộc:**\n- '+featText+'\n6. **Bản quyền:** Hiển thị thông tin người sáng tạo: "'+( creator||'Không rõ')+'"\n7. **Yêu cầu đầu ra:**\n- Đánh số thứ tự rõ ràng cho mỗi prompt.\n- Dùng định dạng Markdown. Cấu trúc mỗi prompt gồm: ### 🎮 Tên Trò Chơi Gợi Ý, ### 🎯 Mục Tiêu Giáo Dục, ### 📋 Luật Chơi & Gameplay, ### 🎨 Phong Cách Giao Diện & UX, ### ✨ Tính Năng Đặc Biệt, ### 🔧 Yêu Cầu Kỹ Thuật.\n- Ngôn ngữ chuyên nghiệp, chi tiết và đầy đủ.\n- Phân tách mỗi prompt bằng chuỗi ký tự "---PROMPT-SEPARATOR---".';
+      .go-form-grid {
+        gap: 12px;
+      }
 
-    try{
-      var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:metaPrompt}]}]})});
-      var raw=await resp.text();
-      if(!raw)throw new Error('Phản hồi trống từ API (Status: '+resp.status+').');
-      var result=JSON.parse(raw);
-      if(!resp.ok)throw new Error(result&&result.error&&result.error.message?result.error.message:'Lỗi API: '+resp.status);
-      if(!result.candidates||!result.candidates[0]||!result.candidates[0].content)throw new Error('Phản hồi từ AI không chứa nội dung. Có thể đã bị bộ lọc an toàn chặn.');
-      var textResp=result.candidates[0].content.parts[0].text;
-      var prompts=textResp.split('---PROMPT-SEPARATOR---').filter(function(p){return p.trim()!=='';});
-      if(prompts.length===0)throw new Error('AI không trả về prompt đúng định dạng. Hãy thử lại.');
+      .go-card {
+        border-radius: 15px;
+      }
 
-      results.innerHTML='';
-      // Loading state replaced — show count summary
-      var summary=document.createElement('p');
-      summary.style.cssText='font-size:.78rem;color:var(--go-muted);margin-bottom:.85rem;font-weight:600';
-      summary.textContent='✅ Đã tạo '+prompts.length+' prompt thành công';
-      results.appendChild(summary);
+      .go-key-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
 
-      prompts.forEach(function(prompt,i){
-        var card=document.createElement('div');
-        card.className='go-pcard';
-        card.style.animationDelay=(i*.12)+'s';
-        var trimmed=prompt.trim();
-        var copyId='go-copy-'+i;
-        // Header row: badge left, copy button right
-        var header=document.createElement('div');
-        header.className='go-pcard-header';
-        header.innerHTML='<span class="go-pnum">✦ Prompt '+(i+1)+' / '+prompts.length+'</span>'
-          +'<button class="go-copy" id="'+copyId+'">📋 Sao chép</button>';
-        // Body
-        var body=document.createElement('div');
-        body.className='go-ptext';
-        body.innerHTML=renderMd(trimmed);
-        card.appendChild(header);
-        card.appendChild(body);
-        results.appendChild(card);
-        // Copy handler
-        document.getElementById(copyId).addEventListener('click',function(){
-          var btn=this;
-          var doCopy=function(){
-            btn.textContent='✓ Đã sao chép!';btn.classList.add('copied');
-            showToast('✓ Đã sao chép prompt '+(i+1)+'!','ok');
-            setTimeout(function(){btn.textContent='📋 Sao chép';btn.classList.remove('copied');},2200);
-          };
-          if(navigator.clipboard){
-            navigator.clipboard.writeText(trimmed).then(doCopy).catch(function(){
-              var ta=document.createElement('textarea');ta.value=trimmed;
-              ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);
-              ta.select();document.execCommand('copy');document.body.removeChild(ta);doCopy();
-            });
-          } else {
-            var ta=document.createElement('textarea');ta.value=trimmed;
-            ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);
-            ta.select();document.execCommand('copy');document.body.removeChild(ta);doCopy();
-          }
-        });
-      });
-    }catch(err){
-      results.innerHTML='<div class="go-err">⚠️ <strong>Lỗi:</strong> '+err.message+'</div>';
-      showToast('Có lỗi xảy ra!','err');
-    }finally{
-      btn.disabled=false;
-      document.getElementById('go-btn-inner').textContent='🪄 Tạo Prompt Chuyên Sâu';
+      .go-key-row > .go-secondary-button {
+        grid-column: 1 / -1;
+      }
+
+      .go-inline-fields {
+        grid-template-columns: 1fr;
+      }
+
+      .go-check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="password"],
+      select,
+      textarea {
+        font-size: 16px;
+      }
+
+      .go-prompt-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .go-prompt-number {
+        align-self: flex-start;
+      }
+
+      .go-copy-button {
+        width: 100%;
+      }
+
+      .go-result-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .go-toast {
+        right: max(14px, env(safe-area-inset-right));
+        left: max(14px, env(safe-area-inset-left));
+        width: auto;
+        max-width: none;
+        transform: none;
+      }
     }
-  };
-})();
-</script>
-</div>
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="go-page">
+    <div class="go-topbar">
+      <div class="go-brand">
+        <span class="go-brand-mark" aria-hidden="true">✦</span>
+        <span>Học Liệu Số</span>
+      </div>
+      <button class="go-theme-button" id="go-theme-button" type="button" aria-label="Chuyển giao diện sáng hoặc tối" title="Đổi giao diện">
+        <span id="go-theme-icon" aria-hidden="true">☾</span>
+      </button>
+    </div>
+
+    <header class="go-hero">
+      <div class="go-badge">✨ Công cụ AI dành cho giáo dục</div>
+      <h1>Biến ý tưởng thành <span>prompt trò chơi</span></h1>
+      <p>Tạo các câu lệnh chi tiết để xây dựng trò chơi giáo dục tương tác bằng HTML, CSS và JavaScript trên Gemini Canvas.</p>
+    </header>
+
+    <noscript>
+      <p class="go-error">Trang web cần JavaScript để tạo prompt. Vui lòng bật JavaScript rồi tải lại trang.</p>
+    </noscript>
+
+    <main class="go-main">
+      <form id="go-form" class="go-form-grid" novalidate>
+        <section class="go-card go-full" aria-labelledby="go-key-title">
+          <h2 class="go-card-title" id="go-key-title"><span class="go-dot"></span>API Key</h2>
+          <div class="go-field">
+            <label class="go-label" for="go-apikey">🔑 Google AI Studio API Key <span class="go-required" aria-hidden="true">*</span></label>
+            <div class="go-key-row">
+              <div class="go-key-wrap">
+                <input id="go-apikey" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Dán API Key của bạn">
+                <button class="go-icon-button" id="go-eye-button" type="button" aria-label="Hiện API Key" title="Hiện hoặc ẩn API Key">
+                  <span id="go-eye-icon" aria-hidden="true">👁️</span>
+                </button>
+              </div>
+              <button class="go-secondary-button" id="go-clear-key" type="button" title="Xóa API Key đã lưu">Xóa khóa</button>
+            </div>
+            <label class="go-remember">
+              <input id="go-remember-key" type="checkbox" checked>
+              <span>Ghi nhớ API Key trên thiết bị này</span>
+            </label>
+            <p class="go-hint">🔒 Khóa chỉ được dùng để gọi trực tiếp Google Gemini và không gửi về máy chủ của Học Liệu Số. <a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API Key siêu nhanh →</a></p>
+          </div>
+        </section>
+
+        <section class="go-card" aria-labelledby="go-settings-title">
+          <h2 class="go-card-title" id="go-settings-title"><span class="go-dot"></span>Ý tưởng &amp; cài đặt</h2>
+          <div class="go-stack">
+            <div class="go-field">
+              <label class="go-label" for="go-idea">💡 Mô tả ý tưởng trò chơi <span class="go-required" aria-hidden="true">*</span></label>
+              <textarea id="go-idea" required placeholder="Ví dụ: Trò chơi nhận biết từ ngữ toàn dân và từ ngữ địa phương Việt Nam..."></textarea>
+            </div>
+
+            <div class="go-inline-fields">
+              <div class="go-field">
+                <label class="go-label" for="go-count">📦 Số prompt</label>
+                <input id="go-count" type="number" inputmode="numeric" min="1" max="5" step="1" value="3">
+              </div>
+              <div class="go-field">
+                <label class="go-label" for="go-creator">✍️ Tên người sáng tạo</label>
+                <input id="go-creator" type="text" autocomplete="name" placeholder="Ví dụ: Nguyễn Văn A">
+              </div>
+            </div>
+
+            <div class="go-field">
+              <label class="go-label" for="go-style">🎨 Phong cách giao diện</label>
+              <select id="go-style">
+                <option value="Cute 3D style">Cute 3D style</option>
+                <option value="Anime 3D">Anime 3D</option>
+                <option value="Colorful style">Colorful style</option>
+                <option value="2D Illustration">2D Illustration</option>
+                <option value="3D UI">3D UI</option>
+                <option value="custom">Tùy chỉnh...</option>
+              </select>
+            </div>
+
+            <div class="go-field" id="go-custom-wrap" hidden>
+              <label class="go-label" for="go-custom">✏️ Mô tả phong cách tùy chỉnh</label>
+              <input id="go-custom" type="text" placeholder="Mô tả màu sắc, hình khối, nhân vật..." disabled>
+            </div>
+          </div>
+        </section>
+
+        <section class="go-card" aria-labelledby="go-features-title">
+          <h2 class="go-card-title" id="go-features-title"><span class="go-dot"></span>Tính năng</h2>
+          <div class="go-check-grid">
+            <label class="go-check"><input type="checkbox" name="studentName" checked><span>👤 Nhập tên người chơi</span></label>
+            <label class="go-check"><input type="checkbox" name="leaderboard" checked><span>🏆 Bảng xếp hạng</span></label>
+            <label class="go-check"><input type="checkbox" name="soundEffects" checked><span>🔊 Hiệu ứng âm thanh</span></label>
+            <label class="go-check"><input type="checkbox" name="backgroundMusic" checked><span>🎵 Nhạc nền</span></label>
+            <label class="go-check"><input type="checkbox" name="musicToggle"><span>🎛️ Bật/tắt nhạc</span></label>
+            <label class="go-check"><input type="checkbox" name="localStorage"><span>💾 Lưu dữ liệu</span></label>
+            <label class="go-check"><input type="checkbox" name="disableRightClick"><span>🖱️ Hạn chế chuột phải</span></label>
+            <label class="go-check"><input type="checkbox" name="disableF12"><span>⌨️ Hạn chế phím F12</span></label>
+            <label class="go-check"><input type="checkbox" name="obfuscateCode"><span>🔐 Làm rối mã JavaScript</span></label>
+          </div>
+        </section>
+
+        <div class="go-actions go-full">
+          <button class="go-primary-button" id="go-generate-button" type="submit">
+            <span id="go-button-content">🪄 Tạo prompt chuyên sâu</span>
+          </button>
+        </div>
+
+        <section class="go-result-section go-full" id="go-result-section" aria-labelledby="go-results-title">
+          <div class="go-result-title-row">
+            <h2 class="go-card-title" id="go-results-title"><span class="go-dot"></span>Kết quả prompt</h2>
+            <div class="go-status" id="go-status" aria-live="polite"></div>
+          </div>
+          <div class="go-results" id="go-results" aria-live="polite">
+            <div class="go-empty">
+              <div class="go-empty-inner">
+                <div class="go-empty-icon" aria-hidden="true">✨</div>
+                <div>Các prompt được tạo sẽ hiển thị tại đây.<small>Nhập ý tưởng rồi nhấn “Tạo prompt chuyên sâu”.</small></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <footer class="go-footer">Được thiết kế bởi <strong>Học Liệu Số</strong> · <span id="go-year">2026</span></footer>
+  </div>
+
+  <div class="go-toast" id="go-toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var MODEL_NAME = 'gemini-3.5-flash';
+      var STORAGE_KEY = 'go_gemini_key';
+      var THEME_KEY = 'go_theme';
+      var REQUEST_TIMEOUT_MS = 90000;
+
+      var form = document.getElementById('go-form');
+      var apiKeyInput = document.getElementById('go-apikey');
+      var rememberKeyInput = document.getElementById('go-remember-key');
+      var eyeButton = document.getElementById('go-eye-button');
+      var eyeIcon = document.getElementById('go-eye-icon');
+      var clearKeyButton = document.getElementById('go-clear-key');
+      var ideaInput = document.getElementById('go-idea');
+      var countInput = document.getElementById('go-count');
+      var creatorInput = document.getElementById('go-creator');
+      var styleInput = document.getElementById('go-style');
+      var customWrap = document.getElementById('go-custom-wrap');
+      var customInput = document.getElementById('go-custom');
+      var generateButton = document.getElementById('go-generate-button');
+      var buttonContent = document.getElementById('go-button-content');
+      var results = document.getElementById('go-results');
+      var status = document.getElementById('go-status');
+      var resultSection = document.getElementById('go-result-section');
+      var toast = document.getElementById('go-toast');
+      var themeButton = document.getElementById('go-theme-button');
+      var themeIcon = document.getElementById('go-theme-icon');
+
+      var featureMap = {
+        studentName: 'Cho phép nhập tên người chơi',
+        leaderboard: 'Bảng xếp hạng điểm cao',
+        soundEffects: 'Hiệu ứng âm thanh bằng Web Audio API; không phụ thuộc tệp âm thanh bên ngoài',
+        backgroundMusic: 'Nhạc nền phù hợp với chủ đề, được tạo bằng Web Audio API',
+        musicToggle: 'Nút bật hoặc tắt nhạc nền, có nhãn dễ hiểu',
+        localStorage: 'Lưu tên người chơi, điểm cao và tiến trình bằng localStorage',
+        disableRightClick: 'Hạn chế menu chuột phải; không mô tả đây là biện pháp bảo mật tuyệt đối',
+        disableF12: 'Hạn chế các phím tắt mở công cụ phát triển; không mô tả đây là biện pháp bảo mật tuyệt đối',
+        obfuscateCode: 'Tổ chức và làm rối mã JavaScript ở mức phù hợp nhưng vẫn bảo đảm trò chơi hoạt động ổn định'
+      };
+
+      function safeStorageGet(key) {
+        try {
+          return localStorage.getItem(key) || '';
+        } catch (error) {
+          return '';
+        }
+      }
+
+      function safeStorageSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function safeStorageRemove(key) {
+        try {
+          localStorage.removeItem(key);
+        } catch (error) {
+          // Trình duyệt có thể chặn localStorage; không làm gián đoạn tiện ích.
+        }
+      }
+
+      function updateThemeButton() {
+        var isDark = document.documentElement.dataset.theme === 'dark';
+        themeIcon.textContent = isDark ? '☀️' : '🌙';
+        themeButton.setAttribute('aria-label', isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', isDark ? '#0f0c0d' : '#9d174d');
+      }
+
+      function toggleTheme() {
+        var nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = nextTheme;
+        safeStorageSet(THEME_KEY, nextTheme);
+        updateThemeButton();
+      }
+
+      function toggleApiKeyVisibility() {
+        var willShow = apiKeyInput.type === 'password';
+        apiKeyInput.type = willShow ? 'text' : 'password';
+        eyeIcon.textContent = willShow ? '🙈' : '👁️';
+        eyeButton.setAttribute('aria-label', willShow ? 'Ẩn API Key' : 'Hiện API Key');
+      }
+
+      function clearApiKey() {
+        apiKeyInput.value = '';
+        safeStorageRemove(STORAGE_KEY);
+        rememberKeyInput.checked = false;
+        apiKeyInput.focus();
+        showToast('Đã xóa API Key khỏi thiết bị.', 'ok');
+      }
+
+      function toggleCustomStyle() {
+        var isCustom = styleInput.value === 'custom';
+        customWrap.hidden = !isCustom;
+        customInput.disabled = !isCustom;
+        if (isCustom) {
+          window.setTimeout(function () { customInput.focus(); }, 0);
+        }
+      }
+
+      function clampPromptCount() {
+        var count = Number.parseInt(countInput.value, 10);
+        if (!Number.isFinite(count)) count = 3;
+        count = Math.min(5, Math.max(1, count));
+        countInput.value = String(count);
+        return count;
+      }
+
+      function showToast(message, type) {
+        toast.textContent = message;
+        toast.className = 'go-toast ' + (type === 'ok' ? 'is-ok' : 'is-error');
+        toast.hidden = false;
+        window.clearTimeout(toast._timer);
+        toast._timer = window.setTimeout(function () {
+          toast.hidden = true;
+        }, 3200);
+      }
+
+      function getSelectedFeatures() {
+        return Array.from(document.querySelectorAll('.go-check-grid input[type="checkbox"]:checked'))
+          .map(function (checkbox) { return featureMap[checkbox.name]; })
+          .filter(Boolean);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function formatInline(escapedLine) {
+        return escapedLine
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      }
+
+      function renderMarkdown(markdown) {
+        var normalized = String(markdown || '').replace(/\\n/g, '\n').replace(/\\t/g, '  ');
+        var lines = normalized.split(/\r?\n/);
+        var output = [];
+        var listType = '';
+
+        function closeList() {
+          if (listType) output.push('</' + listType + '>');
+          listType = '';
+        }
+
+        lines.forEach(function (rawLine) {
+          var line = rawLine.trimEnd();
+          var heading = line.match(/^#{2,3}\s+(.+)$/);
+          var unordered = line.match(/^\s*[-*]\s+(.+)$/);
+          var ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+
+          if (heading) {
+            closeList();
+            output.push('<h3>' + formatInline(escapeHtml(heading[1])) + '</h3>');
+            return;
+          }
+
+          if (unordered || ordered) {
+            var nextType = unordered ? 'ul' : 'ol';
+            if (listType !== nextType) {
+              closeList();
+              output.push('<' + nextType + '>');
+              listType = nextType;
+            }
+            output.push('<li>' + formatInline(escapeHtml((unordered || ordered)[1])) + '</li>');
+            return;
+          }
+
+          closeList();
+          if (line.trim()) output.push('<p>' + formatInline(escapeHtml(line)) + '</p>');
+        });
+
+        closeList();
+        return output.join('');
+      }
+
+      function createMetaPrompt(data) {
+        var featureText = data.features.length
+          ? '- ' + data.features.join('\n- ')
+          : '- Các tính năng cơ bản cần thiết để trò chơi hoàn chỉnh';
+
+        return [
+          'Với vai trò là chuyên gia thiết kế trò chơi giáo dục và kỹ sư frontend, hãy tạo đúng ' + data.count + ' câu lệnh (prompt) độc lập, chuyên sâu và thật chi tiết để người dùng đưa vào Gemini Canvas, yêu cầu Gemini tạo một trò chơi tương tác bằng HTML, CSS và JavaScript trong một tệp HTML duy nhất.',
+          '',
+          '**Ý tưởng gốc của người dùng:** "' + data.idea + '"',
+          '',
+          'Mỗi prompt phải là một phương án trò chơi hoàn chỉnh, khác biệt rõ về gameplay nhưng vẫn bám sát ý tưởng gốc. Tích hợp đầy đủ và hợp lí các yêu cầu sau:',
+          '',
+          '1. **Mục tiêu giáo dục:** Nêu kiến thức hoặc kĩ năng người chơi được rèn luyện; phù hợp với đối tượng học sinh và tạo cơ hội học qua thao tác.',
+          '2. **Luật chơi và gameplay:** Mô tả cụ thể nhiệm vụ, các vòng hoặc cấp độ, phản hồi đúng/sai, cách tính điểm, điều kiện thắng/thua và cách chơi lại. Logic phải chặt chẽ, dễ triển khai.',
+          '3. **Phong cách giao diện:** "' + data.uiStyle + '". Mô tả màu sắc, bố cục, nhân vật, nút bấm, hiệu ứng chuyển động và trạng thái phản hồi.',
+          '4. **Thiết kế thích ứng:** Trò chơi phải hiển thị tốt trên máy tính, máy tính bảng và điện thoại; nút bấm đủ lớn cho thao tác chạm; không tràn ngang; chữ dễ đọc.',
+          '5. **Đồ họa:** Không dùng URL hình ảnh hoặc tệp tài nguyên bên ngoài. Chỉ dùng SVG inline, CSS, biểu tượng Unicode hoặc emoji. Nếu dùng thư viện ngoài, phải có phương án dự phòng để trò chơi vẫn chạy.',
+          '6. **Khả năng tiếp cận:** Có nhãn rõ ràng, tương phản đủ tốt, hỗ trợ bàn phím, thông báo trạng thái và tùy chọn giảm chuyển động khi phù hợp.',
+          '7. **Các tính năng đã chọn:**',
+          featureText,
+          '8. **Thông tin tác giả:** Hiển thị tên người sáng tạo: "' + (data.creator || 'Không rõ') + '".',
+          '9. **Yêu cầu kỹ thuật:** Mã chạy độc lập trong một tệp HTML, không cần máy chủ, không có lỗi console, không dùng dữ liệu mẫu dang dở, và sẵn sàng mở trực tiếp hoặc đưa lên GitHub Pages.',
+          '',
+          '**Yêu cầu đầu ra:**',
+          '- Viết bằng tiếng Việt, không viết lời dẫn chung trước các prompt.',
+          '- Mỗi prompt dùng đúng cấu trúc: `### 🎮 Tên trò chơi gợi ý`, `### 🎯 Mục tiêu giáo dục`, `### 📋 Luật chơi & Gameplay`, `### 🎨 Phong cách giao diện & UX`, `### ✨ Tính năng đặc biệt`, `### 🔧 Yêu cầu kỹ thuật`.',
+          '- Mỗi prompt phải đủ thông tin để Gemini Canvas có thể tạo trò chơi ngay mà không cần hỏi lại.',
+          '- Phân tách các prompt bằng một dòng chỉ chứa chuỗi `---PROMPT-SEPARATOR---`.'
+        ].join('\n');
+      }
+
+      function parsePrompts(text, expectedCount) {
+        var cleaned = String(text || '')
+          .replace(/^```(?:markdown)?\s*/i, '')
+          .replace(/\s*```$/i, '')
+          .trim();
+
+        var prompts = cleaned
+          .split(/\s*---PROMPT-SEPARATOR---\s*/i)
+          .map(function (item) { return item.trim(); })
+          .filter(Boolean);
+
+        if (prompts.length === 1 && expectedCount > 1) {
+          var headingParts = cleaned
+            .split(/(?=^###\s*🎮)/gm)
+            .map(function (item) { return item.trim(); })
+            .filter(function (item) { return /^###\s*🎮/m.test(item); });
+          if (headingParts.length > 1) prompts = headingParts;
+        }
+
+        return prompts.slice(0, 5);
+      }
+
+      function setLoading(isLoading) {
+        generateButton.disabled = isLoading;
+        buttonContent.innerHTML = isLoading
+          ? '<span class="go-spinner" aria-hidden="true"></span><span>AI đang tạo prompt...</span>'
+          : '🪄 Tạo prompt chuyên sâu';
+      }
+
+      function renderLoading() {
+        status.textContent = 'Đang xử lý...';
+        results.replaceChildren();
+        var empty = document.createElement('div');
+        empty.className = 'go-empty';
+        empty.innerHTML = '<div class="go-empty-inner"><div class="go-loading-spinner" aria-hidden="true"></div><div>AI đang phân tích ý tưởng của bạn.<small>Thời gian xử lý có thể lâu hơn khi dùng mạng di động.</small></div></div>';
+        results.appendChild(empty);
+      }
+
+      function renderError(message) {
+        status.textContent = 'Chưa tạo được prompt';
+        results.replaceChildren();
+        var errorBox = document.createElement('div');
+        errorBox.className = 'go-error';
+        var strong = document.createElement('strong');
+        strong.textContent = '⚠️ Có lỗi: ';
+        errorBox.appendChild(strong);
+        errorBox.appendChild(document.createTextNode(message));
+        results.appendChild(errorBox);
+      }
+
+      async function copyText(text, button, index) {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            var temporary = document.createElement('textarea');
+            temporary.value = text;
+            temporary.setAttribute('readonly', '');
+            temporary.style.position = 'fixed';
+            temporary.style.opacity = '0';
+            document.body.appendChild(temporary);
+            temporary.select();
+            document.execCommand('copy');
+            temporary.remove();
+          }
+          button.textContent = '✓ Đã sao chép';
+          button.classList.add('is-copied');
+          showToast('Đã sao chép prompt ' + index + '.', 'ok');
+          window.setTimeout(function () {
+            button.textContent = '📋 Sao chép';
+            button.classList.remove('is-copied');
+          }, 2200);
+        } catch (error) {
+          showToast('Không thể sao chép tự động. Hãy chọn và sao chép nội dung thủ công.', 'error');
+        }
+      }
+
+      function renderPrompts(prompts) {
+        results.replaceChildren();
+        status.textContent = '✅ Đã tạo ' + prompts.length + ' prompt';
+
+        prompts.forEach(function (prompt, index) {
+          var card = document.createElement('article');
+          card.className = 'go-prompt-card';
+          card.style.animationDelay = (index * 0.08) + 's';
+
+          var header = document.createElement('div');
+          header.className = 'go-prompt-header';
+
+          var number = document.createElement('span');
+          number.className = 'go-prompt-number';
+          number.textContent = '✦ Prompt ' + (index + 1) + ' / ' + prompts.length;
+
+          var copyButton = document.createElement('button');
+          copyButton.className = 'go-copy-button';
+          copyButton.type = 'button';
+          copyButton.textContent = '📋 Sao chép';
+          copyButton.addEventListener('click', function () {
+            copyText(prompt, copyButton, index + 1);
+          });
+
+          var body = document.createElement('div');
+          body.className = 'go-prompt-body';
+          body.innerHTML = renderMarkdown(prompt);
+
+          header.append(number, copyButton);
+          card.append(header, body);
+          results.appendChild(card);
+        });
+      }
+
+      function getApiErrorMessage(httpStatus, responseData) {
+        var apiMessage = responseData && responseData.error && responseData.error.message;
+        if (httpStatus === 400) return apiMessage || 'Yêu cầu chưa hợp lệ. Hãy kiểm tra API Key và thử lại.';
+        if (httpStatus === 403) return 'API Key không hợp lệ, chưa bật Gemini API hoặc đang bị giới hạn quyền truy cập.';
+        if (httpStatus === 429) return 'API Key đã vượt giới hạn lượt dùng. Hãy chờ một lúc hoặc dùng API Key khác.';
+        if (httpStatus >= 500) return 'Dịch vụ Gemini đang tạm thời không ổn định. Hãy thử lại sau ít phút.';
+        return apiMessage || ('Gemini API trả về lỗi ' + httpStatus + '.');
+      }
+
+      async function requestGemini(apiKey, promptText) {
+        var controller = new AbortController();
+        var timeoutId = window.setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS);
+        var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL_NAME + ':generateContent?key=' + encodeURIComponent(apiKey);
+
+        try {
+          var response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: promptText }] }],
+              generationConfig: {
+                temperature: 0.8,
+                topP: 0.95,
+                maxOutputTokens: 24576
+              }
+            })
+          });
+
+          var rawText = await response.text();
+          var responseData = null;
+          try {
+            responseData = rawText ? JSON.parse(rawText) : null;
+          } catch (parseError) {
+            throw new Error('Phản hồi từ Gemini không đúng định dạng. Hãy thử lại.');
+          }
+
+          if (!response.ok) throw new Error(getApiErrorMessage(response.status, responseData));
+
+          var parts = responseData && responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content && responseData.candidates[0].content.parts;
+          var responseText = Array.isArray(parts)
+            ? parts.map(function (part) { return part && part.text ? part.text : ''; }).join('\n').trim()
+            : '';
+
+          if (!responseText) {
+            throw new Error('AI không trả về nội dung. Yêu cầu có thể đã bị bộ lọc an toàn chặn.');
+          }
+
+          return responseText;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            throw new Error('Kết nối đã quá thời gian chờ. Hãy kiểm tra mạng rồi thử lại.');
+          }
+          if (error instanceof TypeError) {
+            throw new Error('Không thể kết nối với Gemini API. Hãy kiểm tra Internet, trình chặn quảng cáo hoặc giới hạn trình duyệt.');
+          }
+          throw error;
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      }
+
+      async function handleSubmit(event) {
+        event.preventDefault();
+
+        var apiKey = apiKeyInput.value.trim();
+        var idea = ideaInput.value.trim();
+        var count = clampPromptCount();
+        var creator = creatorInput.value.trim();
+        var uiStyle = styleInput.value === 'custom' ? customInput.value.trim() : styleInput.value;
+
+        if (!apiKey) {
+          showToast('Vui lòng nhập Google AI Studio API Key.', 'error');
+          apiKeyInput.focus();
+          return;
+        }
+
+        if (!idea) {
+          showToast('Vui lòng mô tả ý tưởng trò chơi.', 'error');
+          ideaInput.focus();
+          return;
+        }
+
+        if (styleInput.value === 'custom' && !uiStyle) {
+          showToast('Vui lòng mô tả phong cách tùy chỉnh.', 'error');
+          customInput.focus();
+          return;
+        }
+
+        if (rememberKeyInput.checked) {
+          if (!safeStorageSet(STORAGE_KEY, apiKey)) {
+            showToast('Trình duyệt không cho phép lưu API Key; tiện ích vẫn tiếp tục hoạt động.', 'error');
+          }
+        } else {
+          safeStorageRemove(STORAGE_KEY);
+        }
+
+        var promptText = createMetaPrompt({
+          count: count,
+          idea: idea,
+          creator: creator,
+          uiStyle: uiStyle,
+          features: getSelectedFeatures()
+        });
+
+        setLoading(true);
+        renderLoading();
+
+        try {
+          var responseText = await requestGemini(apiKey, promptText);
+          var prompts = parsePrompts(responseText, count);
+          if (!prompts.length) throw new Error('AI chưa trả về prompt đúng định dạng. Hãy thử lại.');
+          renderPrompts(prompts);
+          showToast('Đã tạo prompt thành công.', 'ok');
+          resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          renderError(error && error.message ? error.message : 'Đã xảy ra lỗi không xác định.');
+          showToast('Chưa thể tạo prompt.', 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function initialize() {
+        var savedKey = safeStorageGet(STORAGE_KEY);
+        if (savedKey) {
+          apiKeyInput.value = savedKey;
+          rememberKeyInput.checked = true;
+        }
+
+        document.getElementById('go-year').textContent = String(new Date().getFullYear());
+        updateThemeButton();
+        toggleCustomStyle();
+
+        themeButton.addEventListener('click', toggleTheme);
+        eyeButton.addEventListener('click', toggleApiKeyVisibility);
+        clearKeyButton.addEventListener('click', clearApiKey);
+        styleInput.addEventListener('change', toggleCustomStyle);
+        countInput.addEventListener('change', clampPromptCount);
+        form.addEventListener('submit', handleSubmit);
+      }
+
+      initialize();
+    }());
+  </script>
+</body>
+</html>
