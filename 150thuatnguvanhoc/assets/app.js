@@ -6,12 +6,14 @@
     favorites: 'hoclieuso_favorite_terms',
     recent: 'hoclieuso_recent_terms',
     liveCache: 'hoclieuso_terms_cache_v1',
-    fontSize: 'hoclieuso_term_font_size'
+    fontSize: 'hoclieuso_term_font_size',
+    selected: 'hoclieuso_selected_term'
   };
   const ALPHABET = ['Tất cả', 'A', 'B', 'C', 'D', 'Đ', 'E', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y'];
   const ALLOWED_TAGS = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'SUP', 'SUB']);
 
   const fallbackTerms = Array.isArray(window.FALLBACK_TERMS) ? window.FALLBACK_TERMS : [];
+  let pendingInitialTermName = readTermNameFromHash() || localStorage.getItem(STORAGE.selected) || '';
 
   const state = {
     terms: normalizeTerms(fallbackTerms),
@@ -46,7 +48,9 @@
       state.source = 'cache';
     }
 
+    cleanAddressBar();
     state.selectedTerm = chooseInitialTerm(state.terms);
+    if (state.selectedTerm) localStorage.setItem(STORAGE.selected, state.selectedTerm.term);
     renderAll();
     loadLiveTerms();
   }
@@ -112,7 +116,6 @@
     el.prevTerm.addEventListener('click', () => navigateTerm(-1));
     el.nextTerm.addEventListener('click', () => navigateTerm(1));
     window.addEventListener('keydown', handleKeyboard);
-    window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('beforeunload', stopSpeech);
   }
 
@@ -349,7 +352,8 @@
     state.selectedTerm = term;
     state.recent = [term.term, ...state.recent.filter((name) => name !== term.term)].slice(0, 30);
     saveStringArray(STORAGE.recent, state.recent);
-    if (!options.fromHash) updateHash(term.term);
+    pendingInitialTermName = '';
+    localStorage.setItem(STORAGE.selected, term.term);
     setMobileTab('detail', false);
     renderAll();
     if (window.innerWidth < 1024 && !options.skipScroll) {
@@ -478,7 +482,7 @@
     const shareData = {
       title: `Thuật ngữ: ${state.selectedTerm.term}`,
       text: `${state.selectedTerm.term}: ${stripHtml(state.selectedTerm.definition).slice(0, 180)}…`,
-      url: window.location.href
+      url: cleanPageUrl()
     };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch (error) {
@@ -535,31 +539,40 @@
   }
 
   function chooseInitialTerm(terms) {
-    const hashTerm = termFromHash(terms);
-    return hashTerm || terms[0] || null;
+    const preferred = pendingInitialTermName
+      ? terms.find((term) => term.term === pendingInitialTermName)
+      : null;
+    return preferred || terms[0] || null;
   }
 
   function reconcileSelection() {
-    const fromHash = termFromHash(state.terms);
-    const current = state.selectedTerm ? state.terms.find((term) => term.term === state.selectedTerm.term) : null;
-    state.selectedTerm = fromHash || current || state.terms[0] || null;
+    const preferred = pendingInitialTermName
+      ? state.terms.find((term) => term.term === pendingInitialTermName)
+      : null;
+    const current = state.selectedTerm
+      ? state.terms.find((term) => term.term === state.selectedTerm.term)
+      : null;
+    state.selectedTerm = preferred || current || state.terms[0] || null;
+    pendingInitialTermName = '';
+    if (state.selectedTerm) localStorage.setItem(STORAGE.selected, state.selectedTerm.term);
   }
 
-  function handleHashChange() {
-    const term = termFromHash(state.terms);
-    if (term && term.term !== state.selectedTerm?.term) selectTerm(term, { fromHash: true, skipScroll: true });
+  function readTermNameFromHash() {
+    if (!window.location.hash) return '';
+    try {
+      return decodeURIComponent(window.location.hash.slice(1));
+    } catch {
+      return '';
+    }
   }
 
-  function updateHash(termName) {
-    const hash = `#${encodeURIComponent(termName)}`;
-    if (window.location.hash !== hash) history.replaceState(null, '', hash);
+  function cleanPageUrl() {
+    return `${window.location.origin}${window.location.pathname}${window.location.search}`;
   }
 
-  function termFromHash(terms) {
-    if (!window.location.hash) return null;
-    let decoded = '';
-    try { decoded = decodeURIComponent(window.location.hash.slice(1)); } catch { return null; }
-    return terms.find((term) => term.term === decoded) || null;
+  function cleanAddressBar() {
+    if (!window.location.hash) return;
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   }
 
   function firstLetterGroup(term) {
