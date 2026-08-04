@@ -9,7 +9,9 @@
     grade: 'all',
     query: '',
     recent: readJson(config.recentKey, []),
-    mobileView: 'list'
+    mobileView: 'list',
+    isLoading: false,
+    autoRetryTimer: null
   };
 
   var els = {
@@ -52,7 +54,7 @@
 
   bindEvents();
   renderRecent();
-  loadData();
+  loadData({ allowAutoRetry: true });
 
   function byId(id) {
     return document.getElementById(id);
@@ -111,6 +113,10 @@
       if (event.key === 'ArrowRight') moveSelection(1);
     });
 
+    window.addEventListener('online', function () {
+      loadData({ silent: Boolean(state.data.length), allowAutoRetry: false });
+    });
+
     window.addEventListener('resize', function () {
       if (window.innerWidth > 820) {
         els.listPanel.classList.add('panel-visible');
@@ -123,12 +129,37 @@
     });
   }
 
-  async function loadData() {
-    setStatus('loading', 'Đang tải dữ liệu...', false);
+  async function loadData(options) {
+    options = options || {};
+    if (state.isLoading) return;
+    state.isLoading = true;
+
+    if (state.autoRetryTimer) {
+      clearTimeout(state.autoRetryTimer);
+      state.autoRetryTimer = null;
+    }
+
+    var cached = readJson(config.cacheKey, null);
+    var hasUsableCache = cached && Array.isArray(cached.data) && cached.data.length;
+
+    // Hiển thị dữ liệu đã lưu ngay lập tức, không bắt người dùng chờ mạng.
+    if (!state.data.length && hasUsableCache) {
+      state.data = cached.data.map(function (item, index) {
+        item.id = index;
+        item.grades = Array.isArray(item.grades) ? item.grades : extractGrades(item.grade);
+        return item;
+      });
+      renderRecent();
+      applyFilters();
+    }
+
+    if (!options.silent) {
+      setStatus('loading', hasUsableCache ? 'Đang cập nhật dữ liệu...' : 'Đang tải dữ liệu...', false);
+    }
     els.retryButton.hidden = true;
 
     try {
-      var payload = await loadRemotePayload(config.apiUrl, Number(config.requestTimeout) || 15000);
+      var payload = await loadRemotePayload(config.apiUrl, Number(config.requestTimeout) || 7000);
       var terms = normalizePayload(payload);
       if (!terms.length) throw new Error('Dữ liệu không có thuật ngữ hợp lệ.');
 
@@ -149,13 +180,9 @@
       applyFilters();
     } catch (error) {
       console.warn('Không tải được dữ liệu trực tuyến:', error);
-      var cached = readJson(config.cacheKey, null);
-      if (cached && Array.isArray(cached.data) && cached.data.length) {
-        state.data = cached.data.map(function (item, index) {
-          item.id = index;
-          return item;
-        });
-        setStatus('error', 'Chưa thể kết nối dữ liệu.', true);
+
+      if (state.data.length || hasUsableCache) {
+        setStatus('error', 'Chưa thể cập nhật dữ liệu. Đang dùng dữ liệu đã lưu.', true);
         renderRecent();
         applyFilters();
       } else {
@@ -164,32 +191,60 @@
         setStatus('error', 'Chưa thể kết nối dữ liệu.', true);
         renderList();
       }
+
+      if (options.allowAutoRetry !== false && navigator.onLine !== false) {
+        state.autoRetryTimer = setTimeout(function () {
+          loadData({ silent: Boolean(state.data.length), allowAutoRetry: false });
+        }, Number(config.autoRetryDelay) || 5000);
+      }
+    } finally {
+      state.isLoading = false;
     }
   }
 
   async function loadRemotePayload(url, timeout) {
     if (!url) throw new Error('Chưa cấu hình địa chỉ dữ liệu.');
-    var errors = [];
 
+    // Apps Script Content Service chuyển hướng qua googleusercontent.com.
+    // JSONP là đường chính; fetch chạy song song làm phương án dự phòng cho API JSON thuần.
     try {
-      return await fetchPayload(url, timeout);
-    } catch (error) {
-      errors.push(error);
+      return await firstSuccessful([
+        jsonpPayload(url, 'prefix', timeout),
+        delayedAttempt(function () { return fetchPayload(url, timeout); }, 700)
+      ]);
+    } catch (primaryError) {
+      try {
+        return await jsonpPayload(url, 'callback', Math.min(timeout, 5000));
+      } catch (callbackError) {
+        throw callbackError || primaryError;
+      }
     }
+  }
 
-    try {
-      return await jsonpPayload(url, 'prefix', timeout);
-    } catch (error) {
-      errors.push(error);
-    }
+  function firstSuccessful(promises) {
+    return new Promise(function (resolve, reject) {
+      var pending = promises.length;
+      var errors = [];
+      if (!pending) {
+        reject(new Error('Không có phương thức tải dữ liệu.'));
+        return;
+      }
+      promises.forEach(function (promise, index) {
+        Promise.resolve(promise).then(resolve).catch(function (error) {
+          errors[index] = error;
+          pending -= 1;
+          if (pending === 0) reject(errors[errors.length - 1] || new Error('Không thể tải dữ liệu.'));
+        });
+      });
+    });
+  }
 
-    try {
-      return await jsonpPayload(url, 'callback', timeout);
-    } catch (error) {
-      errors.push(error);
-    }
-
-    throw errors[errors.length - 1] || new Error('Không thể tải dữ liệu.');
+  function delayedAttempt(factory, delay) {
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        Promise.resolve().then(factory).then(resolve).catch(reject);
+      }, delay);
+    });
   }
 
   async function fetchPayload(url, timeout) {
@@ -199,10 +254,9 @@
     }, timeout);
 
     try {
-      var separator = url.indexOf('?') >= 0 ? '&' : '?';
-      var response = await fetch(url + separator + '_=' + Date.now(), {
+      var response = await fetch(url, {
         method: 'GET',
-        cache: 'no-store',
+        cache: 'no-cache',
         redirect: 'follow',
         signal: controller ? controller.signal : undefined
       });
@@ -222,8 +276,8 @@
     return new Promise(function (resolve, reject) {
       var callbackName = '__tlCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
       var script = document.createElement('script');
-      var timer;
       var completed = false;
+      var timer;
 
       function cleanup() {
         clearTimeout(timer);
@@ -232,6 +286,7 @@
       }
 
       window[callbackName] = function (payload) {
+        if (completed) return;
         completed = true;
         cleanup();
         resolve(payload);
@@ -239,20 +294,22 @@
 
       script.onerror = function () {
         if (completed) return;
+        completed = true;
         cleanup();
         reject(new Error('Không tải được JSONP.'));
       };
 
-      var separator = url.indexOf('?') >= 0 ? '&' : '?';
-      script.src = url + separator + encodeURIComponent(parameterName) + '=' + encodeURIComponent(callbackName) + '&_=' + Date.now();
-      script.async = true;
-      document.head.appendChild(script);
-
       timer = setTimeout(function () {
         if (completed) return;
+        completed = true;
         cleanup();
         reject(new Error('JSONP quá thời gian chờ.'));
       }, timeout);
+
+      var separator = url.indexOf('?') >= 0 ? '&' : '?';
+      script.src = url + separator + encodeURIComponent(parameterName) + '=' + encodeURIComponent(callbackName);
+      script.async = true;
+      document.head.appendChild(script);
     });
   }
 
