@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlWJPoCDiAsfhkT1avWRtmg92lprbnEQ6mzJSYDcrDwHYOJxRKzUW3Sd5llZqvg9s/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTdkEiL9q-NQ9eRyV2B2J8QAtOP8vlfekOPMk3Huk97Odsk52u20JhhH3gubI1dQw/exec';
   const STORAGE = {
     favorites: 'hoclieuso_favorite_terms',
     recent: 'hoclieuso_recent_terms',
