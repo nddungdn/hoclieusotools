@@ -140,8 +140,8 @@
       const message = hasCache
         ? 'Chưa thể kết nối dữ liệu.'
         : hasFallback
-          ? `Không thể kết nối Google Sheet. Đang hiển thị ${state.terms.length} thuật ngữ dự phòng có trong mã nguồn.`
-          : 'Không thể tải dữ liệu thuật ngữ. Vui lòng thử lại khi có kết nối mạng.';
+          ? `Chưa thể kết nối dữ liệu. Đang hiển thị ${state.terms.length} thuật ngữ dự phòng có trong mã nguồn.`
+          : 'Chưa thể tải dữ liệu thuật ngữ. Vui lòng thử lại khi có kết nối mạng.';
       showStatus('warning', message, false);
       console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', error);
     }
