@@ -169,6 +169,8 @@
     requestTimeoutMs: 240000,
     maxAnalysisChars: 58000,
     maxFileBytes: 30 * 1024 * 1024,
+    maxModelAttempts: 3,
+    retryDelayMs: 1200,
   };
 
   const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -310,7 +312,7 @@
   }
 
   const state = {
-    subject:"Ngữ văn", grade:7, lesson:null, ppctText:"", ppctName:"", plan:null, busy:false,
+    subject:"Ngữ văn", grade:7, lesson:null, ppctText:"", ppctName:"", plan:null, busy:false,lastModelUsed:"",recoveryCount:0,
     apiKey:sessionStorage.getItem(APP.apiStorageKey)||localStorage.getItem(APP.apiStorageKey)||"",
     model:localStorage.getItem(APP.modelStorageKey)||"gemini-2.5-flash",
     customModel:localStorage.getItem(APP.customModelStorageKey)||"",
@@ -480,11 +482,11 @@
       updateProgress(25,"Đang đối chiếu mã năng lực số theo khối lớp...");await sleep(180);
       const prompt=buildPrompt(source,structure);
       updateProgress(43,"Đang gửi yêu cầu phân tích tới Gemini...");
-      const raw=await callGemini(prompt);
+      state.recoveryCount=0;const response=await getStructuredPlan(prompt);
       updateProgress(78,"Đang kiểm tra mã NLS và vị trí chèn...");
-      const parsed=parseGeminiJson(raw);state.plan=validatePlan(parsed,source.nodes,structure.compacted);
+      state.plan=validatePlan(response.parsed,source.nodes,structure.compacted);
       updateProgress(94,"Đang tạo bản duyệt cho giáo viên...");renderPlan(source);await sleep(220);
-      updateProgress(100,"Đã hoàn tất đề xuất.");await sleep(350);els.statusCard.classList.remove("show");els.resultCard.classList.add("show");els.resultCard.scrollIntoView({behavior:"smooth",block:"start"});
+      updateProgress(100,state.recoveryCount?`Đã hoàn tất bằng ${state.lastModelUsed} sau khi tự phục hồi.`:`Đã hoàn tất đề xuất bằng ${state.lastModelUsed}.`);await sleep(350);els.statusCard.classList.remove("show");els.resultCard.classList.add("show");els.resultCard.scrollIntoView({behavior:"smooth",block:"start"});
     }catch(error){
       console.error(error);els.statusCard.classList.remove("show");showNotice(`Không thể hoàn tất phân tích: ${friendlyError(error)}`,"error");
     }finally{setBusy(false);}
@@ -567,19 +569,84 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
     return nonempty.find(node=>/(^|[.\s])phẩm\s*chất\b/i.test(node.text))||null;
   }
 
-  async function callGemini(prompt){
-    const model=getActiveModel().replace(/^models\//,"").trim();const url=APP.endpoint.replace("{MODEL}",encodeURIComponent(model)).replace("{KEY}",encodeURIComponent(state.apiKey));
-    const body={contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{temperature:.12,topP:.85,maxOutputTokens:4096,responseMimeType:"application/json"}};
-    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),APP.requestTimeoutMs);
+  const PLAN_RESPONSE_SCHEMA={
+    type:"OBJECT",
+    properties:{
+      summary:{type:"STRING"},selectedCodes:{type:"ARRAY",items:{type:"STRING"}},
+      goal:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]}},required:["anchorId","position"]},
+      activities:{type:"ARRAY",items:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]},activityName:{type:"STRING"},targetField:{type:"STRING"},codes:{type:"ARRAY",items:{type:"STRING"}},text:{type:"STRING"}},required:["anchorId","position","activityName","targetField","codes","text"]}},
+      warnings:{type:"ARRAY",items:{type:"STRING"}},
+    },
+    required:["summary","selectedCodes","goal","activities","warnings"],
+  };
+
+  async function getStructuredPlan(prompt){
+    const first=await callGemini(prompt,{purpose:"analysis"});
+    try{return {parsed:parseGeminiJson(first.text),model:first.model,recovered:false};}
+    catch(jsonError){
+      state.recoveryCount++;updateProgress(69,"Phản hồi chưa đúng cấu trúc. Đang tự yêu cầu Gemini tạo lại JSON...");await sleep(650);
+      const recoveryPrompt=`${prompt}\n\nLƯU Ý PHỤC HỒI: Phản hồi trước không phải JSON hợp lệ. Hãy tạo lại TOÀN BỘ kết quả từ đầu, chỉ trả về đúng một đối tượng JSON khớp cấu trúc đã yêu cầu; không dùng Markdown, không thêm lời dẫn, không bỏ dở giữa chừng.`;
+      const recoveryModels=getModelCandidates(first.model);const second=await callGemini(recoveryPrompt,{purpose:"json",models:recoveryModels,maxAttempts:2});
+      try{return {parsed:parseGeminiJson(second.text),model:second.model,recovered:true};}
+      catch(secondError){const error=new Error("Gemini đã trả dữ liệu sai cấu trúc hai lần liên tiếp. Tiện ích đã thử tự tạo lại JSON nhưng chưa thành công.");error.code="INVALID_JSON_AFTER_RECOVERY";throw error;}
+    }
+  }
+
+  function getModelCandidates(preferred=""){
+    const active=getActiveModel().replace(/^models\//,"").trim();const order=[preferred,active,"gemini-2.5-flash","gemini-2.5-flash-lite","gemini-2.5-pro"];
+    return Array.from(new Set(order.filter(Boolean)));
+  }
+
+  async function callGemini(prompt,options={}){
+    const models=(options.models||getModelCandidates()).slice(0,options.maxAttempts||APP.maxModelAttempts);let lastError=null;
+    for(let index=0;index<models.length;index++){
+      const model=models[index];if(index>0){state.recoveryCount++;updateProgress(Math.min(67,49+index*7),`Model trước đang bận. Đang tự chuyển sang ${model}...`);await sleep(APP.retryDelayMs*index);}
+      try{const result=await requestGemini(prompt,model,true);state.lastModelUsed=model;return result;}
+      catch(error){lastError=error;if(!isRetryableModelError(error)||index===models.length-1)break;}
+    }
+    if(lastError&&isRetryableModelError(lastError)){const error=new Error("Các model Gemini hiện đều đang quá tải hoặc tạm thời không khả dụng. Tiện ích đã tự thử các model dự phòng.");error.code="ALL_MODELS_BUSY";error.cause=lastError;throw error;}
+    throw lastError||new Error("Không thể kết nối Gemini.");
+  }
+
+  async function requestGemini(prompt,model,useSchema){
+    const url=APP.endpoint.replace("{MODEL}",encodeURIComponent(model)).replace("{KEY}",encodeURIComponent(state.apiKey));
+    const generationConfig={temperature:.08,topP:.82,maxOutputTokens:6000,responseMimeType:"application/json"};if(useSchema)generationConfig.responseSchema=PLAN_RESPONSE_SCHEMA;
+    const body={contents:[{role:"user",parts:[{text:prompt}]}],generationConfig};const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),APP.requestTimeoutMs);
     try{
       const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data?.error?.message||`Lỗi HTTP ${response.status}`);
-      const text=data?.candidates?.[0]?.content?.parts?.map(part=>part.text||"").join("\n")||"";if(!text.trim())throw new Error(`Gemini không trả về nội dung (${data?.candidates?.[0]?.finishReason||"không rõ nguyên nhân"}).`);return text;
-    }catch(error){if(error.name==="AbortError")throw new Error("Quá thời gian chờ. Hãy thử model nhẹ hơn hoặc bật xử lí an toàn với giáo án dài.");throw error;}finally{clearTimeout(timer);}
+      if(!response.ok){
+        const message=data?.error?.message||`Lỗi HTTP ${response.status}`;
+        if(useSchema&&response.status===400&&/(responseSchema|response schema|schema|responseMimeType)/i.test(message))return requestGemini(prompt,model,false);
+        const error=new Error(message);error.status=response.status;error.apiStatus=data?.error?.status||"";error.model=model;throw error;
+      }
+      const text=data?.candidates?.[0]?.content?.parts?.map(part=>part.text||"").join("\n")||"";const finishReason=data?.candidates?.[0]?.finishReason||"";
+      if(!text.trim()){const error=new Error(`Gemini không trả về nội dung (${finishReason||"không rõ nguyên nhân"}).`);error.status=503;error.model=model;throw error;}
+      return {text,model,finishReason};
+    }catch(error){if(error.name==="AbortError"){const timeout=new Error("Quá thời gian chờ phản hồi từ Gemini.");timeout.code="TIMEOUT";timeout.status=504;timeout.model=model;throw timeout;}throw error;}finally{clearTimeout(timer);}
+  }
+
+  function isRetryableModelError(error){
+    const message=`${error?.message||""} ${error?.apiStatus||""}`;if(/invalid api key|api_key_invalid|permission|billing|daily quota|quota exceeded/i.test(message))return false;
+    return [429,500,502,503,504].includes(Number(error?.status))||/high demand|temporarily unavailable|overloaded|resource_exhausted|unavailable|server error|timeout|quá thời gian/i.test(message);
   }
 
   function parseGeminiJson(raw){
-    const cleaned=String(raw).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");try{return JSON.parse(cleaned);}catch(firstError){const start=cleaned.indexOf("{");const end=cleaned.lastIndexOf("}");if(start>=0&&end>start){try{return JSON.parse(cleaned.slice(start,end+1));}catch{}}throw new Error("AI trả về dữ liệu không đúng cấu trúc JSON. Hãy thử lại.");}
+    const base=String(raw||"").replace(/^\uFEFF/,"").trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/i,"");const balanced=extractBalancedJsonObject(base);const candidates=[base,balanced];
+    for(const candidate of candidates.filter(Boolean)){
+      const variants=[candidate,escapeRawControlsInJson(candidate),candidate.replace(/,\s*([}\]])/g,"$1"),escapeRawControlsInJson(candidate).replace(/,\s*([}\]])/g,"$1")];
+      for(const variant of variants){try{const parsed=JSON.parse(variant);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch{}}
+    }
+    const error=new Error("AI trả về dữ liệu không đúng cấu trúc JSON.");error.code="INVALID_JSON";throw error;
+  }
+
+  function extractBalancedJsonObject(text){
+    const start=text.indexOf("{");if(start<0)return "";let depth=0,inString=false,escaped=false;
+    for(let index=start;index<text.length;index++){const char=text[index];if(inString){if(escaped)escaped=false;else if(char==="\\")escaped=true;else if(char==='"')inString=false;continue;}if(char==='"'){inString=true;continue;}if(char==="{")depth++;else if(char==="}"){depth--;if(depth===0)return text.slice(start,index+1);}}
+    return "";
+  }
+
+  function escapeRawControlsInJson(text){
+    let output="",inString=false,escaped=false;for(const char of text){if(inString){if(escaped){output+=char;escaped=false;continue;}if(char==="\\"){output+=char;escaped=true;continue;}if(char==='"'){inString=false;output+=char;continue;}if(char==="\n"){output+="\\n";continue;}if(char==="\r"){output+="\\r";continue;}if(char==="\t"){output+="\\t";continue;}output+=char;}else{if(char==='"')inString=true;output+=char;}}return output;
   }
 
   function validatePlan(raw,nodes,wasCompacted){
@@ -700,7 +767,7 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
   function updateProgress(percent,text){const safe=Math.max(0,Math.min(100,percent));els.progressCircle.style.setProperty("--p",safe);els.progressNumber.textContent=`${safe}%`;els.progressBar.style.width=`${safe}%`;els.statusText.textContent=text;}
   function showNotice(message,type="error"){els.notice.textContent=message;els.notice.className=`notice ${type} show`;if(type==="error")window.scrollTo({top:0,behavior:"smooth"});}
   function clearNotice(){els.notice.className="notice";els.notice.textContent="";}
-  function friendlyError(error){const message=error?.message||String(error);if(/API key not valid|API_KEY_INVALID/i.test(message))return "API Key không hợp lệ. Hãy tạo hoặc nhập lại key.";if(/not found|is not found|404/i.test(message)&&/model/i.test(message))return "Model không tồn tại hoặc không được API Key hỗ trợ. Hãy chọn model khác.";if(/quota|429|RESOURCE_EXHAUSTED/i.test(message))return "Đã vượt hạn mức hoặc model đang quá tải. Hãy chờ một lúc hoặc đổi model.";return message;}
+  function friendlyError(error){const message=error?.message||String(error);if(error?.code==="ALL_MODELS_BUSY")return "Các model Gemini đang quá tải hoặc tạm thời không khả dụng. Tiện ích đã tự thử model dự phòng; vui lòng thử lại sau ít phút.";if(error?.code==="INVALID_JSON_AFTER_RECOVERY")return "Gemini trả dữ liệu sai cấu trúc dù tiện ích đã tự yêu cầu tạo lại. Vui lòng bấm phân tích lại; không cần tải lại giáo án.";if(/API key not valid|API_KEY_INVALID/i.test(message))return "API Key không hợp lệ. Hãy tạo hoặc nhập lại key.";if(/not found|is not found|404/i.test(message)&&/model/i.test(message))return "Model không tồn tại hoặc không được API Key hỗ trợ. Tiện ích không tìm được model dự phòng phù hợp.";if(/high demand|temporarily unavailable|overloaded|unavailable/i.test(message))return "Model Gemini đang quá tải tạm thời. Tiện ích đã thử chuyển model nhưng chưa nhận được phản hồi.";if(/daily quota|quota exceeded|billing/i.test(message))return "API Key đã hết hạn mức hoặc chưa được cấp hạn mức phù hợp.";if(/429|RESOURCE_EXHAUSTED/i.test(message))return "Gemini đang giới hạn số lượt yêu cầu. Vui lòng thử lại sau ít phút.";if(error?.code==="TIMEOUT")return "Gemini phản hồi quá chậm. Tiện ích đã thử model dự phòng nhưng vẫn quá thời gian chờ.";return message;}
   function shorten(text,max){const value=String(text||"");return value.length<=max?value:`${value.slice(0,max-1)}…`;}
   function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
   function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[char]));}
