@@ -123,10 +123,20 @@
     showStatus('loading', 'Đang đồng bộ dữ liệu thuật ngữ từ Google Sheet…', false);
 
     try {
-      const payload = await loadJsonp(GOOGLE_SCRIPT_URL, 15000);
-      const rawTerms = Array.isArray(payload) ? payload : (Array.isArray(payload?.terms) ? payload.terms : []);
+      const payload = await loadGoogleSheetData();
+
+      if (payload && !Array.isArray(payload) && payload.success === false) {
+        throw new Error(payload.error || 'Google Apps Script trả về trạng thái không thành công');
+      }
+
+      const rawTerms = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.terms) ? payload.terms : []);
       const liveTerms = normalizeTerms(rawTerms);
-      if (!liveTerms.length) throw new Error('Dữ liệu trả về không hợp lệ');
+
+      if (!liveTerms.length) {
+        throw new Error('Google Apps Script không trả về danh sách thuật ngữ hợp lệ');
+      }
 
       state.terms = liveTerms;
       state.source = 'live';
@@ -135,24 +145,52 @@
       renderAll();
       showStatus('success', `Đã đồng bộ ${liveTerms.length} thuật ngữ từ Google Sheet.`, true);
     } catch (error) {
-      const hasCache = state.source === 'cache' && state.terms.length > 0;
-      const hasFallback = state.terms.length > 0;
-      const message = hasCache
-        ? 'Chưa thể kết nối dữ liệu.'
-        : hasFallback
-          ? `Chưa thể kết nối dữ liệu. Đang hiển thị ${state.terms.length} thuật ngữ dự phòng có trong mã nguồn.`
-          : 'Chưa thể tải dữ liệu thuật ngữ. Vui lòng thử lại khi có kết nối mạng.';
-      showStatus('warning', message, false);
-      console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', error);
+      showStatus('warning', 'Chưa thể kết nối dữ liệu.', false);
+      console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', {
+        endpoint: GOOGLE_SCRIPT_URL,
+        error
+      });
     }
   }
 
-  function loadJsonp(url, timeoutMs = 15000) {
+  async function loadGoogleSheetData() {
+    const errors = [];
+
+    // Cách chính thức được Google Apps Script hướng dẫn cho trang web ngoài:
+    // JSONP với tham số "prefix".
+    try {
+      return await loadJsonp(GOOGLE_SCRIPT_URL, 'prefix', 20000);
+    } catch (error) {
+      errors.push(error);
+    }
+
+    // Tương thích với các phiên bản Code.gs trước đây dùng "callback".
+    try {
+      return await loadJsonp(GOOGLE_SCRIPT_URL, 'callback', 20000);
+    } catch (error) {
+      errors.push(error);
+    }
+
+    // Phương án dự phòng khi web app đang trả JSON và cho phép CORS.
+    try {
+      return await loadJson(GOOGLE_SCRIPT_URL, 20000);
+    } catch (error) {
+      errors.push(error);
+    }
+
+    const details = errors
+      .map((error) => error instanceof Error ? error.message : String(error))
+      .join(' | ');
+    throw new Error(details || 'Không thể tải dữ liệu từ Google Apps Script');
+  }
+
+  function loadJsonp(url, parameterName = 'prefix', timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
       const callbackName = `__hoclieusoTerms_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
       const separator = url.includes('?') ? '&' : '?';
       let finished = false;
+      let timeoutId;
 
       const cleanup = () => {
         if (finished) return;
@@ -166,25 +204,62 @@
         }
       };
 
+      const fail = (message) => {
+        if (finished) return;
+        cleanup();
+        reject(new Error(message));
+      };
+
       window[callbackName] = (payload) => {
+        if (finished) return;
         cleanup();
         resolve(payload);
       };
 
       script.async = true;
-      script.src = `${url}${separator}callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+      script.src = `${url}${separator}${parameterName}=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
       script.onerror = () => {
-        cleanup();
-        reject(new Error('Không tải được dữ liệu JSONP từ Google Apps Script'));
+        fail(`Không tải được JSONP bằng tham số ${parameterName}`);
+      };
+      script.onload = () => {
+        // Nếu tệp đã tải xong nhưng callback không được gọi, web app nhiều khả năng
+        // vẫn đang trả JSON thông thường hoặc chưa cập nhật bản triển khai mới.
+        window.setTimeout(() => {
+          if (!finished) {
+            fail(`Apps Script chưa gọi callback JSONP (${parameterName})`);
+          }
+        }, 0);
       };
 
-      const timeoutId = setTimeout(() => {
-        cleanup();
-        reject(new Error('Google Apps Script phản hồi quá chậm'));
+      timeoutId = window.setTimeout(() => {
+        fail(`Google Apps Script phản hồi quá chậm (${parameterName})`);
       }, timeoutMs);
 
       document.head.appendChild(script);
     });
+  }
+
+  async function loadJson(url, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+    const separator = url.includes('?') ? '&' : '?';
+
+    try {
+      const response = await fetch(`${url}${separator}_=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        redirect: 'follow',
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   function normalizeTerms(items) {
