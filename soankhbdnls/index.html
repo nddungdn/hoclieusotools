@@ -1,424 +1,75 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PCM3STGFCZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-PCM3STGFCZ');
-</script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soạn giáo án năng lực số</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tích hợp năng lực số và AI vào giáo án THCS, giữ nguyên mẫu DOCX gốc.">
+  <title>Soạn giáo án tích hợp năng lực số</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!--
-    APP MỘT FILE INDEX.HTML
-    - Có thể đưa thẳng lên GitHub Pages, Blogger Page, hoặc hosting tĩnh.
-    - Muốn sửa giao diện: tìm phần CSS trong <style>.
-    - Muốn sửa prompt/model/môn học: tìm phần CONFIG trong <script>.
-  -->
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root {
-      --blue-50: #eff6ff;
-      --blue-100: #dbeafe;
-      --blue-200: #bfdbfe;
-      --blue-300: #93c5fd;
-      --blue-500: #3b82f6;
-      --blue-600: #2563eb;
-      --blue-700: #1d4ed8;
-      --blue-800: #1e40af;
-      --indigo-600: #4f46e5;
-      --slate-50: #f8fafc;
-      --slate-100: #f1f5f9;
-      --slate-200: #e2e8f0;
-      --slate-400: #94a3b8;
-      --slate-500: #64748b;
-      --slate-600: #475569;
-      --slate-700: #334155;
-      --slate-800: #1e293b;
-      --green-50: #f0fdf4;
-      --green-600: #16a34a;
-      --red-50: #fef2f2;
-      --red-600: #dc2626;
-      --amber-500: #f59e0b;
-      --radius: 18px;
-      --shadow: 0 12px 32px rgba(37, 99, 235, .12);
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-200:#bfdbfe; --blue-500:#3b82f6;
+      --blue-600:#2563eb; --blue-700:#1d4ed8; --blue-800:#1e40af; --indigo:#4f46e5;
+      --slate-50:#f8fafc; --slate-100:#f1f5f9; --slate-200:#e2e8f0; --slate-400:#94a3b8;
+      --slate-500:#64748b; --slate-600:#475569; --slate-700:#334155; --slate-800:#1e293b;
+      --green-50:#f0fdf4; --green-100:#dcfce7; --green-600:#16a34a; --green-700:#15803d;
+      --amber-50:#fffbeb; --amber-200:#fde68a; --amber-700:#b45309;
+      --red-50:#fef2f2; --red-200:#fecaca; --red-600:#dc2626; --red-700:#b91c1c;
+      --radius:18px; --shadow:0 14px 36px rgba(30,64,175,.12);
     }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #eaf6ff 0%, #dff1ff 100%);
-      color: var(--slate-800);
-      min-height: 100vh;
-    }
-
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-
-    .app-header {
-      background: linear-gradient(90deg, var(--blue-600), var(--blue-700));
-      color: white;
-      box-shadow: 0 8px 24px rgba(37, 99, 235, .28);
-    }
-
-    .header-inner {
-      width: min(1100px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 20px 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-    }
-
-    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-    .brand-icon {
-      width: 52px; height: 52px;
-      display: grid; place-items: center;
-      border-radius: 12px;
-      background: rgba(30, 64, 175, .8);
-      font-size: 28px;
-      flex: 0 0 auto;
-    }
-    .brand h1 { margin: 0; font-size: clamp(20px, 3vw, 28px); letter-spacing: -.03em; line-height: 1.1; }
-    .brand p { margin: 6px 0 0; color: #dbeafe; font-size: 14px; }
-
-    .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
-    .pill, .ghost-btn {
-      border: 0;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      color: white;
-      background: rgba(255, 255, 255, .13);
-      transition: .18s ease;
-      white-space: nowrap;
-    }
-    .ghost-btn:hover, .pill:hover { background: rgba(255, 255, 255, .22); transform: translateY(-1px); }
-    .header-api { width: min(420px, 42vw); min-width: 290px; display: grid; gap: 6px; }
-    .header-api-line { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
-    .header-api input {
-      height: 42px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.35);
-      background: rgba(255,255,255,.95);
-      color: var(--slate-800);
-      padding: 10px 12px;
-      font-size: 14px;
-    }
-    .api-help-link { color: #fde68a; text-decoration: none; font-size: 12.5px; font-weight: 800; line-height: 1.25; }
-    .api-help-link:hover { text-decoration: underline; }
-    .model-btn { width: 42px; height: 42px; padding: 0; justify-content: center; border-radius: 12px; flex: 0 0 auto; }
-
-    .page {
-      width: min(1100px, calc(100% - 32px));
-      margin: 34px auto 48px;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
-      gap: 28px;
-      align-items: start;
-    }
-
-    .card {
-      background: rgba(255,255,255,.92);
-      border: 1px solid var(--blue-100);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 0 0 20px;
-      color: #0f3f91;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .section-title::before {
-      content: "";
-      width: 4px;
-      height: 32px;
-      border-radius: 999px;
-      background: var(--blue-600);
-      flex: 0 0 auto;
-    }
-
-    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 22px; }
-    .option-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; align-items: end; margin-top: 12px; }
-    .option-row .hint { display: block; color: var(--slate-500); }
-    label { display: block; font-weight: 600; font-size: 14px; color: var(--slate-700); margin-bottom: 8px; }
-    select, input[type="password"], input[type="text"], textarea {
-      width: 100%;
-      border: 1px solid var(--slate-200);
-      background: var(--slate-50);
-      color: var(--slate-800);
-      border-radius: 12px;
-      padding: 12px 14px;
-      outline: none;
-      transition: .18s ease;
-    }
-    textarea { resize: vertical; min-height: 120px; line-height: 1.55; }
-    select:focus, input:focus, textarea:focus { border-color: var(--blue-500); box-shadow: 0 0 0 4px rgba(59,130,246,.14); }
-
-    .upload-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
-    .upload-box {
-      position: relative;
-      min-height: 210px;
-      border: 2px dashed var(--blue-200);
-      border-radius: 16px;
-      background: #f0f7ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-      transition: .18s ease;
-    }
-    .upload-box:hover { border-color: var(--blue-500); background: #eaf3ff; transform: translateY(-1px); }
-    .upload-box.loaded { border-color: #86efac; background: var(--green-50); }
-    .upload-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .file-icon {
-      width: 56px; height: 56px; border-radius: 999px;
-      display: grid; place-items: center;
-      background: white;
-      color: var(--blue-600);
-      margin: 0 auto 14px;
-      font-size: 28px;
-      box-shadow: 0 8px 20px rgba(37,99,235,.10);
-    }
-    .upload-title { font-weight: 800; color: var(--slate-800); margin-bottom: 8px; }
-    .upload-sub { color: var(--slate-500); font-size: 14px; line-height: 1.45; }
-    .support { display: inline-block; margin-top: 12px; font-size: 12px; color: var(--blue-500); background: white; border: 1px solid var(--blue-100); padding: 5px 9px; border-radius: 8px; }
-    .required { color: var(--red-600); font-size: 13px; margin-top: 10px; }
-    .optional { color: var(--slate-500); font-size: 13px; margin-top: 10px; }
-
-    .advanced-line {
-      border: 1px solid var(--blue-200);
-      background: #eff8ff;
-      border-radius: 14px;
-      padding: 16px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .advanced-line input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--blue-600); }
-    .hint { color: var(--blue-600); font-size: 13px; margin-top: 4px; }
-
-    details.manual { border: 1px dashed var(--blue-200); border-radius: 14px; padding: 16px; background: #fbfdff; }
-    details.manual summary { cursor: pointer; font-weight: 700; color: #0f3f91; }
-    details.manual textarea { margin-top: 14px; }
-
-    .main-button {
-      width: 100%;
-      border: 0;
-      border-radius: 14px;
-      padding: 18px 24px;
-      background: linear-gradient(90deg, var(--blue-600), var(--blue-800));
-      color: white;
-      font-weight: 900;
-      font-size: 18px;
-      letter-spacing: .02em;
-      box-shadow: 0 12px 24px rgba(37,99,235,.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: .18s ease;
-    }
-    .main-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 28px rgba(37,99,235,.42); }
-    .main-button:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
-
-    .side-card {
-      background: white;
-      border: 1px solid var(--blue-100);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
-      margin-bottom: 24px;
-    }
-    .quick { background: #1e40af; color: white; border: 0; }
-    .quick h3 { margin: 0 0 16px; font-size: 18px; }
-    .quick ol { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 12px; }
-    .quick li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; color: #dbeafe; font-size: 14px; line-height: 1.45; }
-    .num { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: rgba(96,165,250,.8); color: white; font-weight: 800; font-size: 12px; }
-    .domains h3 { color: #0f3f91; margin: 0 0 12px; font-size: 17px; }
-    .domains ul { margin: 0; padding-left: 18px; color: var(--slate-600); line-height: 1.9; font-size: 14px; }
-    .domains li::marker { color: var(--blue-500); }
-
-    .status-card { display: none; text-align: center; padding: 34px 24px; }
-    .status-card.show { display: block; }
-    .circle {
-      --p: 0;
-      width: 98px; height: 98px; border-radius: 50%;
-      background: conic-gradient(var(--blue-500) calc(var(--p) * 1%), var(--slate-200) 0);
-      display: grid; place-items: center;
-      margin: 0 auto 22px;
-      position: relative;
-    }
-    .circle::after { content: ""; width: 76px; height: 76px; border-radius: 50%; background: white; position: absolute; }
-    .circle strong { position: relative; z-index: 1; color: var(--blue-600); font-size: 22px; }
-    .bar { width: min(460px, 100%); height: 12px; background: var(--slate-200); border-radius: 999px; overflow: hidden; margin: 0 auto 18px; }
-    .bar > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue-500), var(--blue-700)); border-radius: inherit; transition: width .25s ease; }
-    .status-text { font-weight: 800; color: #0f3f91; margin-bottom: 8px; }
-    .do-not-close { color: var(--amber-500); font-size: 13px; font-weight: 700; }
-
-    .result-card { display: none; }
-    .result-card.show { display: block; }
-    .result-toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .tool-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-    .small-btn {
-      border: 1px solid var(--blue-200);
-      background: white;
-      color: var(--blue-700);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 800;
-      transition: .18s ease;
-    }
-    .small-btn:hover { background: var(--blue-50); transform: translateY(-1px); }
-    .small-btn.primary { background: var(--blue-600); color: white; border-color: var(--blue-600); }
-    .small-btn.danger { color: var(--red-600); border-color: #fecaca; }
-    .result-area { min-height: 430px; background: #fff; font-family: "Times New Roman", serif; font-size: 16px; }
-    .note { color: var(--slate-500); font-size: 13px; line-height: 1.6; }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(15, 23, 42, .55);
-      z-index: 99;
-    }
-    .modal-backdrop.show { display: flex; }
-    .modal {
-      width: min(520px, 100%);
-      max-height: min(780px, calc(100vh - 40px));
-      overflow: auto;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 24px 80px rgba(15,23,42,.35);
-    }
-    .modal-head {
-      background: linear-gradient(90deg, var(--blue-600), var(--blue-700));
-      color: white;
-      padding: 18px 22px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .modal-head h2 { margin: 0; font-size: 20px; }
-    .close-btn { background: transparent; border: 0; color: white; font-size: 28px; line-height: 1; }
-    .modal-body { padding: 22px; }
-    .model-list { display: grid; gap: 12px; margin-bottom: 20px; }
-    .model-option {
-      border: 1px solid var(--slate-200);
-      border-radius: 14px;
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 1fr 22px;
-      gap: 12px;
-      align-items: center;
-      background: white;
-      transition: .18s ease;
-    }
-    .model-option:hover { border-color: var(--blue-300); background: var(--blue-50); }
-    .model-option.selected { border-color: var(--blue-600); background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,.10); }
-    .model-name { font-weight: 800; margin-bottom: 3px; }
-    .model-desc { color: var(--slate-500); font-size: 13px; }
-    .check { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; background: var(--slate-100); color: transparent; font-weight: 900; }
-    .model-option.selected .check { background: var(--blue-500); color: white; }
-    .save-row { display: flex; justify-content: flex-end; margin-top: 18px; }
-    .link-row { text-align: center; border-top: 1px solid var(--slate-100); margin-top: 20px; padding-top: 18px; }
-    .link-row a { color: var(--blue-600); text-decoration: none; font-weight: 800; }
-    .error-box {
-      display: none;
-      border: 1px solid #fecaca;
-      background: var(--red-50);
-      color: #991b1b;
-      padding: 14px 16px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      line-height: 1.55;
-    }
-    .error-box.show { display: block; }
-
-    @media (max-width: 920px) {
-      .layout { grid-template-columns: 1fr; }
-      .side { order: -1; }
-      .quick { display: none; }
-      .header-inner { align-items: flex-start; flex-direction: column; }
-      .header-actions { width: 100%; justify-content: flex-start; }
-      .header-api { width: min(100%, 520px); }
-    }
-    @media (max-width: 680px) {
-      .grid-2, .upload-grid, .option-row { grid-template-columns: 1fr; }
-      .page, .header-inner { width: min(100% - 20px, 1100px); }
-      .card, .side-card { padding: 18px; }
-      .brand-icon { width: 44px; height: 44px; font-size: 24px; }
-      .main-button { font-size: 15px; }
-      .pill span.hide-sm { display: none; }
-    }
-
-    @media print {
-      .app-header, .side, .card:not(.result-card), .status-card, .result-toolbar, .note, .modal-backdrop { display: none !important; }
-      body { background: white; }
-      .page, .layout { width: 100%; margin: 0; display: block; }
-      .result-card { display: block !important; border: 0; box-shadow: none; padding: 0; }
-      .result-area { border: 0; min-height: auto; }
-    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--slate-800);background:linear-gradient(180deg,#eaf6ff 0%,#f7fbff 55%,#eaf6ff 100%)}
+    button,input,select,textarea{font:inherit} button{cursor:pointer} button:disabled{cursor:not-allowed;opacity:.58}
+    .app-header{background:linear-gradient(105deg,var(--blue-600),var(--blue-800));color:#fff;box-shadow:0 8px 26px rgba(37,99,235,.25)}
+    .header-inner{width:min(1180px,calc(100% - 32px));margin:auto;padding:20px 0;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}.brand-icon{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:28px;flex:0 0 auto}
+    .brand h1{margin:0;font-size:clamp(20px,3vw,28px);line-height:1.15;letter-spacing:-.03em}.brand p{margin:6px 0 0;color:#dbeafe;font-size:14px}
+    .header-api{width:min(430px,43vw);min-width:300px;display:grid;gap:6px}.header-api-line{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .header-api input{height:43px;border:1px solid rgba(255,255,255,.45);border-radius:12px;background:rgba(255,255,255,.96);padding:10px 12px;color:var(--slate-800)}
+    .icon-btn{height:43px;min-width:43px;border:0;border-radius:12px;color:#fff;background:rgba(255,255,255,.14)}.icon-btn:hover{background:rgba(255,255,255,.24)}
+    .api-link{color:#fde68a;font-weight:800;font-size:12.5px;text-decoration:none}.api-link:hover{text-decoration:underline}
+    .page{width:min(1180px,calc(100% - 32px));margin:32px auto 50px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:26px;align-items:start}
+    .card,.side-card{background:rgba(255,255,255,.94);border:1px solid var(--blue-100);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card{padding:24px;margin-bottom:22px}.side-card{padding:20px;margin-bottom:18px}.side{position:sticky;top:18px}
+    .section-title{display:flex;align-items:center;gap:11px;margin:0 0 20px;color:#123f8c;font-size:18px;font-weight:800}.section-title:before{content:"";width:4px;height:30px;border-radius:99px;background:var(--blue-600)}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    label{display:block;margin:0 0 8px;color:var(--slate-700);font-size:14px;font-weight:700}.hint{display:block;margin-top:6px;color:var(--slate-500);font-size:12.5px;line-height:1.5}
+    select,input[type="text"],input[type="password"],textarea{width:100%;border:1px solid var(--slate-200);border-radius:12px;background:var(--slate-50);color:var(--slate-800);padding:11px 13px;outline:none;transition:.16s}
+    select:focus,input:focus,textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(59,130,246,.13)} textarea{resize:vertical;line-height:1.55}
+    .upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.upload-box{position:relative;min-height:194px;border:2px dashed var(--blue-200);border-radius:16px;background:#f2f8ff;display:grid;place-items:center;text-align:center;padding:22px;transition:.16s}
+    .upload-box:hover{border-color:var(--blue-500);background:#eaf3ff}.upload-box.loaded{border-color:#86efac;background:var(--green-50)}.upload-box.warning{border-color:var(--amber-200);background:var(--amber-50)}.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .file-icon{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 13px;background:#fff;color:var(--blue-600);font-size:27px;box-shadow:0 7px 18px rgba(37,99,235,.11)}
+    .upload-title{font-weight:800;margin-bottom:7px}.upload-sub{color:var(--slate-500);font-size:13.5px;line-height:1.45;word-break:break-word}.support{display:inline-block;margin-top:10px;padding:5px 9px;border:1px solid var(--blue-100);border-radius:8px;background:#fff;color:var(--blue-600);font-size:12px}
+    .required,.optional{margin-top:9px;font-size:12.5px;line-height:1.45}.required{color:var(--red-600)}.optional{color:var(--slate-500)}
+    details.manual{border:1px solid var(--blue-100);border-radius:14px;background:var(--blue-50);padding:14px 16px}details.manual summary{cursor:pointer;color:var(--blue-800);font-weight:800}details.manual textarea{min-height:160px;margin-top:14px;background:#fff}
+    .check-line{display:flex;align-items:flex-start;gap:11px;margin:0;border:1px solid var(--blue-200);border-radius:14px;background:#f2f8ff;padding:14px}.check-line input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue-600);flex:0 0 auto}.check-line strong{display:block;font-size:14px}.check-line .hint{margin-top:4px}
+    .notice{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;line-height:1.55;font-size:14px}.notice.show{display:block}.notice.error{border:1px solid var(--red-200);background:var(--red-50);color:var(--red-700)}.notice.warn{border:1px solid var(--amber-200);background:var(--amber-50);color:#92400e}.notice.success{border:1px solid #86efac;background:var(--green-50);color:var(--green-700)}
+    .main-button{width:100%;border:0;border-radius:15px;background:linear-gradient(90deg,var(--blue-600),var(--indigo));color:#fff;padding:16px 20px;font-size:16px;font-weight:800;box-shadow:0 11px 24px rgba(37,99,235,.25);transition:.16s}.main-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 29px rgba(37,99,235,.3)}
+    .status-card,.result-card{display:none}.status-card.show,.result-card.show{display:block}.status-wrap{display:flex;align-items:center;gap:18px}.circle{--p:0;width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--blue-600) calc(var(--p)*1%),var(--blue-100) 0);position:relative;flex:0 0 auto}.circle:before{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff}.circle strong{position:relative;color:var(--blue-700)}.status-copy{min-width:0;flex:1}.status-text{font-weight:800;color:var(--blue-800)}.bar{height:9px;margin-top:10px;border-radius:99px;background:var(--blue-100);overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue-500),var(--indigo));transition:width .3s}
+    .result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.result-head .section-title{margin-bottom:5px}.tool-buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid var(--slate-200);border-radius:10px;background:#fff;color:var(--slate-700);padding:9px 12px;font-size:13px;font-weight:800}.btn:hover:not(:disabled){border-color:var(--blue-300);background:var(--blue-50)}.btn.primary{border-color:var(--blue-600);background:var(--blue-600);color:#fff}.btn.success{border-color:var(--green-600);background:var(--green-600);color:#fff}.btn.danger{border-color:var(--red-200);color:var(--red-600)}
+    .summary-box{border:1px solid var(--blue-100);border-radius:14px;background:var(--blue-50);padding:14px 16px;line-height:1.55}.summary-box b{color:var(--blue-800)}
+    .competency-list{display:grid;gap:10px;margin:15px 0}.competency{border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}.code{display:inline-flex;align-items:center;border-radius:8px;background:#dbeafe;color:#1e40af;padding:4px 7px;font-size:12px;font-weight:800;white-space:nowrap}.competency p{margin:1px 0 0;font-size:13.5px;line-height:1.5}
+    .insert-card{border:1px solid var(--slate-200);border-radius:14px;background:#fff;padding:16px;margin-top:12px}.insert-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.insert-title{font-weight:800;color:var(--slate-800)}.anchor{margin:7px 0 11px;color:var(--slate-500);font-size:12.5px;line-height:1.5}.insert-card textarea{min-height:104px;background:var(--slate-50)}.mini-row{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.warning-list{margin:14px 0 0;padding:12px 16px 12px 34px;border:1px solid var(--amber-200);border-radius:12px;background:var(--amber-50);color:#92400e;font-size:13px;line-height:1.55}
+    .side-card h3{margin:0 0 14px;color:var(--blue-800);font-size:16px}.side-card ol,.side-card ul{margin:0;padding-left:20px;color:var(--slate-600);font-size:13.5px;line-height:1.65}.side-card li+li{margin-top:7px}.side-card p{margin:0;color:var(--slate-600);font-size:13px;line-height:1.6}.badge{display:inline-flex;margin-bottom:10px;border-radius:999px;background:var(--green-100);color:var(--green-700);padding:5px 9px;font-size:11.5px;font-weight:800}
+    .modal-backdrop{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.55)}.modal-backdrop.show{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--slate-200)}.modal-head h2{margin:0;color:var(--blue-800);font-size:19px}.close{width:36px;height:36px;border:0;border-radius:10px;background:var(--slate-100);font-size:22px}.modal-body{padding:20px}.model-list{display:grid;gap:9px}.model-option{width:100%;border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px;text-align:left;display:flex;justify-content:space-between;gap:12px}.model-option.selected{border-color:var(--blue-500);background:var(--blue-50)}.model-name{display:block;font-weight:800;color:var(--slate-800)}.model-desc{display:block;margin-top:3px;color:var(--slate-500);font-size:12px}.model-option .tick{visibility:hidden;color:var(--blue-600);font-weight:900}.model-option.selected .tick{visibility:visible}.modal-actions{display:flex;justify-content:flex-end;margin-top:18px}
+    .hidden{display:none!important}
+    @media(max-width:940px){.layout{grid-template-columns:1fr}.side{position:static;order:-1}.side .guide{display:none}.header-inner{align-items:flex-start;flex-direction:column}.header-api{width:min(100%,540px)}}
+    @media(max-width:680px){.page,.header-inner{width:min(100% - 20px,1180px)}.card,.side-card{padding:17px}.grid-2,.grid-3,.upload-grid{grid-template-columns:1fr}.result-head{display:block}.tool-buttons{justify-content:flex-start;margin-top:12px}.mini-row{grid-template-columns:1fr}.status-wrap{align-items:flex-start}.brand-icon{width:46px;height:46px;font-size:24px}.header-api{min-width:0}.main-button{font-size:15px}}
+    @media print{.app-header,.side,.card:not(.result-card),.tool-buttons,.notice,.modal-backdrop{display:none!important}.page,.layout{width:100%;margin:0;display:block}.result-card{display:block!important;border:0;box-shadow:none}.insert-card textarea{border:0;background:#fff;resize:none}}
   </style>
-
-  <!-- Thư viện đọc DOCX/PDF. Các thư viện này chạy trực tiếp trong trình duyệt. -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.pdfjsLib) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
-    });
-  </script>
 </head>
 <body>
   <header class="app-header">
     <div class="header-inner">
-      <div class="brand">
-        <div class="brand-icon">🎓</div>
-        <div>
-          <h1>SOẠN GIÁO ÁN NĂNG LỰC SỐ</h1>
-          <p>Hỗ trợ tích hợp năng lực số vào kế hoạch bài dạy</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="header-api">
-          <div class="header-api-line">
-            <input id="apiKeyHeader" type="password" placeholder="Nhập API Key" autocomplete="off" />
-            <button class="ghost-btn model-btn" id="openSettingsTop" type="button" title="Chọn model AI">⚙️</button>
-          </div>
-          <a class="api-help-link" href="https://hoclieuso.id.vn" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
-        </div>
+      <div class="brand"><div class="brand-icon">🎓</div><div><h1>SOẠN GIÁO ÁN TÍCH HỢP NĂNG LỰC SỐ</h1><p>Giữ nguyên mẫu DOCX gốc · Bổ sung NLS và AI đúng vị trí</p></div></div>
+      <div class="header-api">
+        <div class="header-api-line"><input id="apiKeyHeader" type="password" placeholder="Nhập Gemini API Key" autocomplete="off"><button id="openSettingsTop" class="icon-btn" type="button" title="Cấu hình model">⚙️</button></div>
+        <a class="api-link" href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
       </div>
     </div>
   </header>
@@ -426,19 +77,13 @@
   <main class="page">
     <div class="layout">
       <section class="main">
-        <div class="error-box" id="errorBox"></div>
+        <div id="notice" class="notice" role="alert"></div>
 
         <section class="card">
-          <h2 class="section-title">Thông tin Kế hoạch bài dạy</h2>
+          <h2 class="section-title">Thông tin kế hoạch bài dạy</h2>
           <div class="grid-2">
-            <div>
-              <label for="subject">Môn học</label>
-              <select id="subject"></select>
-            </div>
-            <div>
-              <label for="grade">Khối lớp</label>
-              <select id="grade"></select>
-            </div>
+            <div><label for="subject">Môn học</label><select id="subject"></select></div>
+            <div><label for="grade">Khối lớp</label><select id="grade"><option value="6">Lớp 6 · TC1</option><option value="7" selected>Lớp 7 · TC1</option><option value="8">Lớp 8 · TC2</option><option value="9">Lớp 9 · TC2</option></select></div>
           </div>
         </section>
 
@@ -446,756 +91,622 @@
           <h2 class="section-title">Tài liệu đầu vào</h2>
           <div class="upload-grid">
             <div>
-              <label><span style="color:#dc2626">*</span> File Giáo án</label>
-              <div class="upload-box" id="lessonBox">
-                <input id="lessonFile" type="file" accept=".docx,.pdf" />
-                <div>
-                  <div class="file-icon">📄</div>
-                  <div class="upload-title" id="lessonTitle">Tải lên Giáo án</div>
-                  <div class="upload-sub" id="lessonSub">Giáo án bài dạy cần tích hợp</div>
-                  <span class="support">Hỗ trợ .docx, .pdf</span>
-                </div>
-              </div>
-              <div class="required">ⓘ Bắt buộc, trừ khi bạn dán nội dung thủ công bên dưới.</div>
+              <label><span style="color:#dc2626">*</span> Giáo án cần tích hợp</label>
+              <div class="upload-box" id="lessonBox"><input id="lessonFile" type="file" accept=".docx,.pdf"><div><div class="file-icon">📄</div><div id="lessonTitle" class="upload-title">Tải lên giáo án</div><div id="lessonSub" class="upload-sub">DOCX để giữ nguyên mẫu; PDF chỉ dùng tham khảo</div><span class="support">.docx, .pdf</span></div></div>
+              <div class="required">Để xuất đúng mẫu gốc, giáo án bắt buộc phải là tệp DOCX.</div>
             </div>
             <div>
-              <label>File Phân phối chương trình</label>
-              <div class="upload-box" id="ppctBox">
-                <input id="ppctFile" type="file" accept=".docx,.pdf" />
-                <div>
-                  <div class="file-icon">📤</div>
-                  <div class="upload-title" id="ppctTitle">Tải lên PPCT</div>
-                  <div class="upload-sub" id="ppctSub">Tài liệu tham khảo năng lực nếu có</div>
-                  <span class="support">Hỗ trợ .docx, .pdf</span>
-                </div>
-              </div>
-              <div class="optional">Tùy chọn. Giúp AI xác định năng lực chính xác hơn.</div>
+              <label>Phân phối chương trình/Tài liệu tham khảo</label>
+              <div class="upload-box" id="ppctBox"><input id="ppctFile" type="file" accept=".docx,.pdf"><div><div class="file-icon">📤</div><div id="ppctTitle" class="upload-title">Tải lên PPCT</div><div id="ppctSub" class="upload-sub">Giúp AI hiểu thêm bài học nếu có</div><span class="support">.docx, .pdf</span></div></div>
+              <div class="optional">Tùy chọn. Mã NLS chính thức đã được tích hợp sẵn theo lớp.</div>
             </div>
           </div>
         </section>
 
         <section class="card">
-          <details class="manual">
-            <summary>Dán nội dung giáo án thủ công nếu file không đọc được</summary>
-            <textarea id="manualLesson" placeholder="Dán nội dung giáo án tại đây. Nếu có nội dung ở ô này, app sẽ ưu tiên dùng nội dung bạn dán thay cho file tải lên."></textarea>
-          </details>
+          <details class="manual"><summary>Dán nội dung giáo án nếu không có tệp DOCX/PDF</summary><textarea id="manualLesson" placeholder="Chế độ này chỉ tạo bản đề xuất tích hợp; không thể giữ nguyên định dạng một tệp chưa được tải lên."></textarea></details>
         </section>
 
         <section class="card">
-          <h2 class="section-title">Tùy chọn nâng cao</h2>
-          <label class="advanced-line">
-            <input type="checkbox" id="aiOption" />
-            <span>
-              <strong>Thêm năng lực trí tuệ nhân tạo vào giáo án</strong>
-              <span class="hint">AI sẽ phân tích và gợi ý hoạt động sử dụng AI phù hợp, an toàn, có trách nhiệm.</span>
-            </span>
-          </label>
-          <div class="option-row">
-            <div>
-              <label for="nlsCount">Số năng lực số muốn tích hợp</label>
-              <span class="hint">Nên chọn 1–3 năng lực chính để tránh giáo án bị nặng và gượng ép.</span>
-            </div>
-            <select id="nlsCount">
-              <option value="auto">Tự động hợp lí</option>
-              <option value="1">1 năng lực</option>
-              <option value="2">2 năng lực</option>
-              <option value="3" selected>3 năng lực</option>
-              <option value="4">4 năng lực</option>
-              <option value="5">5 năng lực</option>
-            </select>
+          <h2 class="section-title">Tùy chọn tích hợp</h2>
+          <div class="grid-3">
+            <div><label for="nlsCount">Số NLS chính</label><select id="nlsCount"><option value="auto">Tự động hợp lí</option><option value="1">1 năng lực</option><option value="2">2 năng lực</option><option value="3" selected>3 năng lực</option><option value="4">4 năng lực</option><option value="5">5 năng lực</option></select></div>
+            <div><label for="deviceMode">Điều kiện thiết bị</label><select id="deviceMode"><option value="auto">Tự xác định theo giáo án</option><option value="no-personal">Không dùng thiết bị cá nhân trên lớp</option><option value="teacher">Giáo viên thao tác/trình chiếu</option><option value="group">Học sinh dùng thiết bị theo nhóm</option><option value="lab">Học tại phòng máy</option><option value="home">Học sinh thực hiện ở nhà</option></select></div>
+            <div><label for="integrationPlace">Vị trí ưu tiên</label><select id="integrationPlace"><option value="auto">AI tự chọn phù hợp</option><option value="formation">Hình thành kiến thức/Khám phá</option><option value="practice">Luyện tập</option><option value="application">Vận dụng/Mở rộng</option></select></div>
+          </div>
+          <div style="height:16px"></div>
+          <div class="grid-2">
+            <label class="check-line"><input id="aiOption" type="checkbox"><span><strong>Tích hợp sử dụng AI</strong><span class="hint">Ưu tiên mã thuộc miền 6; luôn kèm kiểm chứng, trách nhiệm và bảo vệ dữ liệu.</span></span></label>
+            <label class="check-line"><input id="highlightOption" type="checkbox" checked><span><strong>Tô đỏ phần bổ sung trong Word</strong><span class="hint">Giúp giáo viên nhận ra nội dung mới; bỏ chọn để phần chèn theo màu chữ gốc.</span></span></label>
           </div>
           <div style="height:12px"></div>
-          <label class="advanced-line">
-            <input type="checkbox" id="safeLongOption" checked />
-            <span>
-              <strong>Chế độ an toàn khi giáo án/PPCT dài</strong>
-              <span class="hint">Tự rút gọn thông minh, đặt thời gian chờ và nếu tài liệu quá dài sẽ tạo phần bổ sung NLS theo vị trí chèn thay vì bắt AI viết lại toàn bộ.</span>
-            </span>
-          </label>
+          <label class="check-line"><input id="safeLongOption" type="checkbox" checked><span><strong>Xử lí an toàn với giáo án dài</strong><span class="hint">Giữ nguyên toàn bộ tệp; chỉ nén cấu trúc gửi cho AI, tuyệt đối không cắt nội dung trong bản Word đầu ra.</span></span></label>
         </section>
 
-        <div style="display:flex; justify-content:flex-end; margin:-8px 2px 22px;">
-          <button class="small-btn" id="openSettingsLink" type="button">🔑 Cấu hình API Key</button>
-        </div>
+        <div style="display:flex;justify-content:flex-end;margin:-6px 2px 18px"><button id="openSettingsLink" class="btn" type="button">🔑 Cấu hình API và model</button></div>
+        <button id="generateBtn" class="main-button" type="button">✨ PHÂN TÍCH VÀ ĐỀ XUẤT TÍCH HỢP</button>
 
-        <button class="main-button" id="generateBtn" type="button">✨ BẮT ĐẦU SOẠN GIÁO ÁN</button>
+        <section id="statusCard" class="card status-card" aria-live="polite"><div class="status-wrap"><div id="progressCircle" class="circle" style="--p:0"><strong id="progressNumber">0%</strong></div><div class="status-copy"><div id="statusText" class="status-text">Đang chuẩn bị...</div><div class="bar"><span id="progressBar"></span></div><span class="hint">Vui lòng không đóng trang trong khi AI đang phân tích.</span></div></div></section>
 
-        <section class="card status-card" id="statusCard">
-          <div class="circle" id="progressCircle" style="--p:0"><strong id="progressNumber">0%</strong></div>
-          <div class="bar"><span id="progressBar"></span></div>
-          <div class="status-text" id="statusText">Đang chuẩn bị...</div>
-          <p class="do-not-close">💡 Vui lòng không đóng trang này</p>
-        </section>
-
-        <section class="card result-card" id="resultCard">
-          <div class="result-toolbar">
-            <div>
-              <h2 class="section-title" style="margin-bottom:4px">Kết quả giáo án</h2>
-              <div class="note">Bạn có thể sửa trực tiếp nội dung trong ô dưới đây trước khi xuất Word.</div>
-            </div>
-            <div class="tool-buttons">
-              <button class="small-btn" id="copyBtn" type="button">📋 Sao chép</button>
-              <button class="small-btn" id="txtBtn" type="button">⬇️ Tải TXT</button>
-              <button class="small-btn primary" id="docxBtn" type="button">📘 Xuất Word</button>
-              <button class="small-btn" id="printBtn" type="button">🖨️ In/PDF</button>
-              <button class="small-btn danger" id="clearBtn" type="button">Làm lại</button>
-            </div>
-          </div>
-          <textarea class="result-area" id="resultArea" spellcheck="false"></textarea>
+        <section id="resultCard" class="card result-card">
+          <div class="result-head"><div><h2 class="section-title">Đề xuất tích hợp</h2><span class="hint">Kiểm tra và sửa nội dung trước khi áp dụng vào tệp Word gốc.</span></div><div class="tool-buttons"><button id="downloadPlanBtn" class="btn" type="button">⬇️ Tải bản đề xuất</button><button id="printBtn" class="btn" type="button">🖨️ In/PDF</button><button id="clearBtn" class="btn danger" type="button">Làm lại</button></div></div>
+          <div id="planView"></div>
+          <div style="height:16px"></div>
+          <button id="applyBtn" class="main-button" type="button">📘 ÁP DỤNG VÀ TẢI GIÁO ÁN DOCX</button>
+          <div id="fallbackNote" class="notice warn" style="margin:14px 0 0"></div>
         </section>
       </section>
 
       <aside class="side">
-        <div class="side-card quick">
-          <h3>Hướng dẫn nhanh</h3>
-          <ol>
-            <li><span class="num">1</span><span>Chọn môn học và khối lớp.</span></li>
-            <li><span class="num">2</span><span><b>Bắt buộc:</b> tải file giáo án .docx/.pdf hoặc dán nội dung thủ công.</span></li>
-            <li><span class="num">3</span><span><i>Tùy chọn:</i> tải PPCT nếu muốn AI bám năng lực cụ thể.</span></li>
-          </ol>
-        </div>
-        <div class="side-card domains">
-          <h3>Miền năng lực số</h3>
-          <ul>
-            <li>Khai thác dữ liệu và thông tin</li>
-            <li>Giao tiếp và hợp tác</li>
-            <li>Sáng tạo nội dung số</li>
-            <li>An toàn số</li>
-            <li>Giải quyết vấn đề</li>
-            <li>Ứng dụng AI</li>
-          </ul>
-        </div>
-        <div class="side-card domains">
-          <h3>Lưu ý bảo mật</h3>
-          <p class="note">API key được lưu trong trình duyệt của bạn bằng localStorage. Nội dung giáo án sẽ được gửi trực tiếp từ trình duyệt tới Gemini để xử lí.</p>
-        </div>
+        <div class="side-card guide"><span class="badge">QUY TRÌNH AN TOÀN</span><h3>Cách tiện ích xử lí</h3><ol><li>Đọc cấu trúc DOCX và giữ nguyên tệp gốc.</li><li>AI chỉ chọn mã, nội dung và vị trí chèn.</li><li>Giáo viên xem, sửa và duyệt đề xuất.</li><li>Ứng dụng chèn vào DOCX gốc rồi kiểm tra lại.</li></ol></div>
+        <div class="side-card"><h3>Dữ liệu đang sử dụng</h3><ul><li>Lớp 6–7: 54 tiêu chí TC1.</li><li>Lớp 8–9: 55 tiêu chí TC2.</li><li>Gồm 6 miền, trong đó miền 6 là ứng dụng AI.</li></ul></div>
+        <div class="side-card"><h3>Lưu ý về dữ liệu</h3><p>Tệp DOCX được xử lí trong trình duyệt. Chỉ phần văn bản cần phân tích được gửi tới Gemini. Tệp gốc không được tải lên máy chủ riêng của tiện ích.</p></div>
       </aside>
     </div>
   </main>
 
-  <div class="modal-backdrop" id="settingsModal" aria-hidden="true">
+  <div id="settingsModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <div class="modal-head">
-        <h2 id="settingsTitle">🔑 Thiết lập Model & API Key</h2>
-        <button class="close-btn" id="closeSettings" type="button" aria-label="Đóng">×</button>
-      </div>
+      <div class="modal-head"><h2 id="settingsTitle">Thiết lập Gemini API</h2><button id="closeSettings" class="close" type="button" aria-label="Đóng">×</button></div>
       <div class="modal-body">
-        <label>Chọn Model AI</label>
-        <div class="model-list" id="modelList"></div>
-
-        <div style="margin: 18px 0;">
-          <label for="customModel">Tên model tùy chỉnh</label>
-          <input id="customModel" type="text" placeholder="Ví dụ: gemini-2.5-flash" />
-          <div class="note">Dùng khi Google đổi tên model hoặc bạn muốn thử model khác.</div>
-        </div>
-
-        <p class="note">Nhập Gemini API Key của bạn. Key sẽ được lưu trên trình duyệt, không gửi về máy chủ riêng của app.</p>
-        <label for="apiKey">Gemini API Key</label>
-        <input id="apiKey" type="password" placeholder="AIza... hoặc AQ..." autocomplete="off" />
-
-        <div class="save-row">
-          <button class="small-btn primary" id="saveSettings" type="button">💾 Lưu cấu hình</button>
-        </div>
-
-        <div class="link-row">
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">👉 Lấy API key tại đây</a>
-          <div class="note">Sau khi lấy key, quay lại app và dán vào ô trên.</div>
-        </div>
+        <label>Chọn model</label><div id="modelList" class="model-list"></div>
+        <div style="height:16px"></div><label for="customModel">Tên model tùy chỉnh</label><input id="customModel" type="text" placeholder="Ví dụ: gemini-2.5-flash"><span class="hint">Dùng khi Google thay đổi hoặc bổ sung model.</span>
+        <div style="height:16px"></div><label for="apiKey">Gemini API Key</label><input id="apiKey" type="password" placeholder="AIza..." autocomplete="off">
+        <div style="height:12px"></div><label class="check-line"><input id="rememberKey" type="checkbox"><span><strong>Ghi nhớ API Key trên thiết bị này</strong><span class="hint">Nếu không chọn, key chỉ được giữ trong phiên làm việc hiện tại.</span></span></label>
+        <div class="modal-actions"><button id="saveSettings" class="btn primary" type="button">Lưu cấu hình</button></div>
       </div>
     </div>
   </div>
 
   <script>
-    /*****************************************************************
-     * CONFIG - SỬA Ở ĐÂY KHI MUỐN NÂNG CẤP APP
-     *****************************************************************/
-    const APP = {
-      name: "Soạn giáo án năng lực số",
-      apiStorageKey: "nls_gemini_api_key",
-      modelStorageKey: "nls_gemini_model",
-      customModelStorageKey: "nls_custom_model",
-      endpoint: "https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={KEY}",
-      maxLessonChars: 36000,
-      maxPpctChars: 12000,
-      longInputThreshold: 52000,
-      requestTimeoutMs: 180000,
+  "use strict";
+
+  const APP = {
+    apiStorageKey: "nls_gemini_api_key_v2",
+    modelStorageKey: "nls_gemini_model_v2",
+    customModelStorageKey: "nls_custom_model_v2",
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={KEY}",
+    requestTimeoutMs: 240000,
+    maxAnalysisChars: 58000,
+    maxFileBytes: 30 * 1024 * 1024,
+  };
+
+  const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const SUBJECTS = ["Ngữ văn","Toán","Tiếng Anh","Khoa học tự nhiên","Vật lí","Hóa học","Sinh học","Lịch sử và Địa lí","Lịch sử","Địa lí","Giáo dục công dân","Tin học","Công nghệ","Giáo dục thể chất","Nghệ thuật","Âm nhạc","Mĩ thuật","Hoạt động trải nghiệm, hướng nghiệp","Giáo dục địa phương"];
+  const MODELS = [
+    {id:"gemini-2.5-flash",name:"Gemini 2.5 Flash",desc:"Cân bằng tốc độ và chất lượng"},
+    {id:"gemini-2.5-pro",name:"Gemini 2.5 Pro",desc:"Phân tích sâu, phù hợp giáo án phức tạp"},
+    {id:"gemini-2.5-flash-lite",name:"Gemini 2.5 Flash-Lite",desc:"Nhanh và tiết kiệm"},
+    {id:"custom",name:"Model tùy chỉnh",desc:"Nhập tên model ở ô bên dưới"},
+  ];
+
+  const NLS_TC1 = parseFramework(`
+1.1.TC1a|Giải thích được nhu cầu thông tin.
+1.1.TC1b|Thực hiện được rõ ràng và theo quy trình các tìm kiếm để tìm dữ liệu, thông tin và nội dung trong môi trường số.
+1.1.TC1c|Giải thích được cách truy cập và điều hướng các kết quả tìm kiếm.
+1.1.TC1d|Giải thích được rõ ràng và theo quy trình chiến lược tìm kiếm.
+1.2.TC1a|Thực hiện phân tích, so sánh, đánh giá được độ tin cậy và độ chính xác của các nguồn dữ liệu, thông tin và nội dung số đã được tổ chức rõ ràng.
+1.2.TC1b|Thực hiện phân tích, diễn giải và đánh giá được dữ liệu, thông tin và nội dung số được xác định rõ ràng.
+1.3.TC1a|Lựa chọn được dữ liệu, thông tin và nội dung để tổ chức, lưu trữ và truy xuất chúng một cách thường xuyên trong môi trường số.
+1.3.TC1b|Sắp xếp chúng một cách trật tự trong một môi trường có cấu trúc.
+2.1.TC1a|Thực hiện được các tương tác được xác định rõ ràng và thường xuyên với các công nghệ số.
+2.1.TC1b|Lựa chọn được các phương tiện giao tiếp số phù hợp, được xác định rõ ràng cho phù hợp với bối cảnh nhất định.
+2.2.TC1a|Lựa chọn các công nghệ số phù hợp được xác định rõ để trao đổi dữ liệu, thông tin và nội dung số.
+2.2.TC1b|Giải thích cách thức hoạt động như một trung gian để chia sẻ thông tin và nội dung thông qua các công nghệ kỹ thuật số được xác định rõ ràng và thường xuyên.
+2.2.TC1c|Minh họa rõ ràng và thường xuyên các phương pháp tham chiếu và ghi chú nguồn.
+2.3.TC1a|Lựa chọn được các dịch vụ số được xác định rõ ràng và phổ biến để tham gia vào xã hội.
+2.3.TC1b|Xác định được các công nghệ số rõ ràng và thích hợp để tự mình trang bị và tham gia vào xã hội như một công dân.
+2.4.TC1a|Lựa chọn được các công cụ và công nghệ số được xác định rõ ràng và thường xuyên cho các quá trình hợp tác.
+2.5.TC1a|Làm rõ được các chuẩn mực hành vi thường xuyên và được xác định rõ ràng cũng như bí quyết khi sử dụng công nghệ số và tương tác trong môi trường số.
+2.5.TC1b|Thể hiện được các chiến lược giao tiếp thường xuyên và xác định rõ ràng phương thức giao tiếp phù hợp trong môi trường số.
+2.5.TC1c|Mô tả các khía cạnh đa dạng về văn hóa và thế hệ được xác định rõ ràng và thông thường cần xem xét trong môi trường số.
+2.6.TC1a|Phân biệt được một loạt các danh tính số thông thường và được xác định rõ ràng.
+2.6.TC1b|Giải thích được những cách được xác định rõ ràng và thường xuyên để bảo vệ danh tiếng trực tuyến của bản thân.
+2.6.TC1c|Mô tả dữ liệu được xác định rõ ràng mà bạn thường xuyên thu được thông qua các công cụ, môi trường hoặc dịch vụ số.
+3.1.TC1a|Chỉ ra được cách tạo và chỉnh sửa nội dung có khái niệm cụ thể và mang tính phổ thông bằng những định dạng rõ ràng, phổ biến.
+3.1.TC1b|Thể hiện được bản thân thông qua việc tạo ra các nội dung số thông thường và được xác định rõ ràng.
+3.2.TC1a|Giải thích được các cách sửa đổi, tinh chỉnh, cải thiện và tích hợp các mục nội dung và thông tin mới được xác định rõ ràng để tạo ra những nội dung và thông tin mới và độc đáo.
+3.3.TC1a|Chỉ ra được các quy tắc thông thường và được xác định rõ ràng về bản quyền và giấy phép áp dụng cho dữ liệu, thông tin và nội dung số.
+3.4.TC1a|Liệt kê được các hướng dẫn thông thường và được xác định rõ ràng cho một hệ thống máy tính để giải quyết các vấn đề thường ngày hoặc thực hiện các tác vụ thường ngày.
+4.1.TC1a|Chỉ ra được những cách thức cơ bản và phổ biến để bảo vệ thiết bị và nội dung số.
+4.1.TC1b|Phân biệt được những rủi ro và mối đe dọa cơ bản và phổ biến trong môi trường số.
+4.1.TC1c|Chọn lựa được các biện pháp an toàn và bảo mật rõ ràng và thường xuyên.
+4.1.TC1d|Chỉ ra được những cách thức cơ bản và phổ biến để quan tâm đến mức độ tin cậy và quyền riêng tư.
+4.2.TC1a|Giải thích được các cách thức cơ bản và phổ biến để bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số.
+4.2.TC1b|Giải thích được các cách thức cơ bản và phổ biến để sử dụng và chia sẻ thông tin định danh cá nhân một cách an toàn.
+4.2.TC1c|Chỉ ra được các tuyên bố cơ bản và phổ biến trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số.
+4.3.TC1a|Giải thích được những cách thức cơ bản và phổ biến để tránh rủi ro và đe dọa đối với sức khỏe thể chất và tinh thần khi sử dụng công nghệ số.
+4.3.TC1b|Lựa chọn được những cách thức cơ bản và phổ biến để bảo vệ bản thân khỏi nguy cơ trong môi trường số.
+4.3.TC1c|Chỉ ra được những công nghệ số cơ bản và phổ biến giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội.
+4.4.TC1a|Chỉ ra được những tác động cơ bản và phổ biến của công nghệ số và việc sử dụng công nghệ số đối với môi trường.
+5.1.TC1a|Chỉ ra được các vấn đề kỹ thuật thông thường và được xác định rõ ràng khi vận hành thiết bị và sử dụng môi trường số.
+5.1.TC1b|Chọn được các giải pháp được xác định rõ ràng và thông thường cho chúng.
+5.2.TC1a|Chỉ ra được những nhu cầu được xác định rõ ràng và thường xuyên.
+5.2.TC1b|Chọn được các công cụ số thông thường và được xác định rõ ràng cũng như các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó.
+5.2.TC1c|Chọn được những cách thông thường và được xác định rõ ràng để điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân.
+5.3.TC1a|Chọn được các công cụ và công nghệ số có thể được sử dụng để tạo ra kiến thức rõ ràng cũng như các quy trình và sản phẩm đổi mới được xác định rõ ràng.
+5.3.TC1b|Gắn kết được cá nhân và tập thể vào một số quá trình xử lý nhận thức để hiểu và giải quyết các vấn đề mang tính khái niệm và tình huống có vấn đề thông thường và được xác định rõ ràng trong môi trường số.
+5.4.TC1a|Giải thích được NLS của bản thân cần được cải thiện hoặc cập nhật ở đâu.
+5.4.TC1b|Chỉ ra được nơi để tìm kiếm các cơ hội được xác định rõ ràng để phát triển bản thân và cập nhật sự phát triển công nghệ số.
+6.1.TC1a|Giải thích được nguyên tắc hoạt động cơ bản của AI.
+6.1.TC1b|Diễn giải được các thuật ngữ và khái niệm liên quan đến AI.
+6.2.TC1a|Sử dụng được các công cụ AI trong công việc và học tập hàng ngày.
+6.2.TC1b|Thực hành được các kỹ năng sử dụng AI thông qua các bài tập và dự án nhỏ.
+6.2.TC1c|Xem xét các khía cạnh đạo đức khi sử dụng AI, bảo đảm không vi phạm quyền riêng tư và bảo mật dữ liệu.
+6.3.TC1a|Giải thích được cách thức hoạt động của các hệ thống AI đơn giản.
+6.3.TC1b|Tóm tắt được các đặc điểm và ứng dụng của hệ thống AI.
+`);
+
+  const NLS_TC2 = parseFramework(`
+1.1.TC2a|Minh họa được nhu cầu thông tin.
+1.1.TC2b|Tổ chức được tìm kiếm dữ liệu, thông tin và nội dung trong môi trường số.
+1.1.TC2c|Mô tả được cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng.
+1.1.TC2d|Tổ chức được các chiến lược tìm kiếm.
+1.2.TC2a|Thực hiện phân tích, so sánh và đánh giá được các nguồn dữ liệu, thông tin và nội dung số.
+1.2.TC2b|Thực hiện phân tích, diễn giải và đánh giá được dữ liệu, thông tin và nội dung số.
+1.3.TC2a|Sắp xếp được thông tin, dữ liệu, nội dung để dễ dàng lưu trữ và truy xuất.
+1.3.TC2b|Tổ chức được thông tin, dữ liệu và nội dung trong một môi trường có cấu trúc.
+2.1.TC2a|Lựa chọn được nhiều công nghệ số để tương tác.
+2.1.TC2b|Lựa chọn được nhiều phương tiện truyền thông số cho phù hợp với bối cảnh nhất định.
+2.2.TC2a|Vận dụng được các công nghệ số phù hợp để chia sẻ dữ liệu, thông tin và nội dung số.
+2.2.TC2b|Giải thích được cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số.
+2.2.TC2c|Áp dụng được các phương pháp tham chiếu và ghi chú nguồn.
+2.3.TC2a|Lựa chọn được các dịch vụ số để tham gia vào xã hội.
+2.3.TC2b|Thảo luận về các công nghệ số phù hợp để nâng cao năng lực của bản thân và tham gia vào xã hội với tư cách là một công dân.
+2.4.TC2a|Lựa chọn được các công cụ và công nghệ số cho các quá trình hợp tác.
+2.5.TC2a|Thảo luận về các chuẩn mực hành vi và cách sử dụng công nghệ số và tương tác trong môi trường số.
+2.5.TC2b|Thảo luận các chiến lược giao tiếp phù hợp trong môi trường số.
+2.5.TC2c|Thảo luận các khía cạnh đa dạng về văn hóa và thế hệ cần xem xét trong môi trường số.
+2.6.TC2a|Hiển thị được nhiều danh tính số cụ thể.
+2.6.TC2b|Thảo luận những cách cụ thể để bảo vệ danh tiếng trực tuyến của bản thân.
+2.6.TC2c|Thao tác dữ liệu cá nhân tạo ra thông qua các công cụ, môi trường hoặc dịch vụ số.
+3.1.TC2a|Chỉ ra được cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau.
+3.1.TC2b|Thể hiện được bản thân thông qua việc tạo ra các nội dung số.
+3.2.TC2a|Thảo luận các cách sửa đổi, tinh chỉnh, cải thiện và tích hợp nội dung và thông tin mới để tạo ra những nội dung và thông tin mới và độc đáo.
+3.3.TC2a|Thảo luận các quy tắc về bản quyền và giấy phép áp dụng cho thông tin và nội dung số.
+3.4.TC2a|Liệt kê được các hướng dẫn cho một hệ thống máy tính để giải quyết một vấn đề nhất định hoặc thực hiện một nhiệm vụ cụ thể.
+4.1.TC2a|Thiết lập được những cách thức bảo vệ thiết bị và nội dung số.
+4.1.TC2b|Phân biệt được rủi ro và mối đe dọa trong môi trường số.
+4.1.TC2c|Chọn lựa được các biện pháp an toàn và bảo mật.
+4.1.TC2d|Giải thích được các cách thức để quan tâm đến mức độ tin cậy và quyền riêng tư.
+4.2.TC2a|Thảo luận về cách bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số.
+4.2.TC2b|Thảo luận về cách sử dụng và chia sẻ thông tin định danh cá nhân một cách an toàn.
+4.2.TC2c|Chỉ ra được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số.
+4.3.TC2a|Giải thích được những cách thức để tránh những sự đe dọa liên quan đến việc sử dụng công nghệ số đối với sức khỏe thể chất và tinh thần.
+4.3.TC2b|Lựa chọn được cách thức bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số.
+4.3.TC2c|Thảo luận về những công nghệ số giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội.
+4.4.TC2a|Thảo luận về các cách thức bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số.
+5.1.TC2a|Phân biệt được các vấn đề kỹ thuật khi vận hành thiết bị và sử dụng môi trường số.
+5.1.TC2b|Chọn được giải pháp cho chúng.
+5.2.TC2a|Giải thích nhu cầu cá nhân.
+5.2.TC2b|Lựa chọn được các công cụ số và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó.
+5.2.TC2c|Chọn được cách điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân.
+5.3.TC2a|Phân biệt được các công cụ và công nghệ số có thể được sử dụng để tạo ra kiến thức và đổi mới quy trình và sản phẩm.
+5.3.TC2b|Gắn kết được cá nhân và tập thể vào quá trình xử lý nhận thức để hiểu và giải quyết các vấn đề khái niệm và tình huống có vấn đề trong môi trường số.
+5.4.TC2a|Thảo luận về lĩnh vực NLS của bản thân cần được cải thiện hoặc cập nhật.
+5.4.TC2b|Chỉ ra được cách hỗ trợ người khác phát triển NLS của họ.
+5.4.TC2c|Chỉ ra được nơi để tìm kiếm cơ hội phát triển bản thân và cập nhật sự phát triển công nghệ số.
+6.1.TC2a|Áp dụng được các nguyên tắc cơ bản của AI để giải quyết vấn đề đơn giản.
+6.1.TC2b|Thực hiện được các thao tác cơ bản trên các công cụ AI.
+6.2.TC2a|Tối ưu hóa việc sử dụng các công cụ AI để đạt hiệu quả cao hơn.
+6.2.TC2b|Quản lý được việc triển khai các công cụ AI trong các dự án nhỏ.
+6.2.TC2c|Bảo vệ được dữ liệu cá nhân và tuân thủ các quy định pháp luật về bảo mật thông tin khi sử dụng AI.
+6.3.TC2a|Phân tích được hiệu quả của hệ thống AI trong việc giải quyết các vấn đề cụ thể.
+6.3.TC2b|So sánh được hiệu suất của các hệ thống AI khác nhau.
+`);
+
+  const SUBJECT_GUIDANCE = {
+    "Ngữ văn":"Ưu tiên tìm kiếm và kiểm chứng nguồn; chú thích, bản quyền; tạo văn bản, sơ đồ, podcast hoặc sản phẩm số. AI chỉ gợi ý, học sinh phải kiểm chứng, chỉnh sửa và chịu trách nhiệm.",
+    "Toán":"Ưu tiên bảng tính, phần mềm hình học, mô phỏng, trực quan hóa và kiểm chứng kết quả; không thay thế lập luận toán học.",
+    "Tiếng Anh":"Ưu tiên từ điển số, học liệu nghe nói, ghi âm, giao tiếp số và đánh giá độ tin cậy của công cụ dịch/AI.",
+    "Tin học":"Ưu tiên dữ liệu, thuật toán, lập trình, sản phẩm số, an toàn, bản quyền và trách nhiệm trong môi trường số.",
+  };
+
+  function parseFramework(raw){
+    return raw.trim().split("\n").map(line=>{
+      const index=line.indexOf("|");
+      return {code:line.slice(0,index).trim(),criterion:line.slice(index+1).trim()};
+    }).filter(item=>item.code&&item.criterion);
+  }
+
+  const state = {
+    subject:"Ngữ văn", grade:7, lesson:null, ppctText:"", ppctName:"", plan:null, busy:false,
+    apiKey:sessionStorage.getItem(APP.apiStorageKey)||localStorage.getItem(APP.apiStorageKey)||"",
+    model:localStorage.getItem(APP.modelStorageKey)||"gemini-2.5-flash",
+    customModel:localStorage.getItem(APP.customModelStorageKey)||"",
+  };
+
+  const $=selector=>document.querySelector(selector);
+  const els={
+    notice:$("#notice"),subject:$("#subject"),grade:$("#grade"),lessonFile:$("#lessonFile"),ppctFile:$("#ppctFile"),
+    lessonBox:$("#lessonBox"),ppctBox:$("#ppctBox"),lessonTitle:$("#lessonTitle"),lessonSub:$("#lessonSub"),ppctTitle:$("#ppctTitle"),ppctSub:$("#ppctSub"),
+    manualLesson:$("#manualLesson"),nlsCount:$("#nlsCount"),deviceMode:$("#deviceMode"),integrationPlace:$("#integrationPlace"),aiOption:$("#aiOption"),highlightOption:$("#highlightOption"),safeLongOption:$("#safeLongOption"),
+    generateBtn:$("#generateBtn"),statusCard:$("#statusCard"),progressCircle:$("#progressCircle"),progressNumber:$("#progressNumber"),progressBar:$("#progressBar"),statusText:$("#statusText"),
+    resultCard:$("#resultCard"),planView:$("#planView"),applyBtn:$("#applyBtn"),fallbackNote:$("#fallbackNote"),downloadPlanBtn:$("#downloadPlanBtn"),printBtn:$("#printBtn"),clearBtn:$("#clearBtn"),
+    modal:$("#settingsModal"),modelList:$("#modelList"),customModel:$("#customModel"),apiKey:$("#apiKey"),apiKeyHeader:$("#apiKeyHeader"),rememberKey:$("#rememberKey"),
+    openSettingsTop:$("#openSettingsTop"),openSettingsLink:$("#openSettingsLink"),closeSettings:$("#closeSettings"),saveSettings:$("#saveSettings"),
+  };
+
+  function init(){
+    if(window.pdfjsLib) window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    els.subject.innerHTML=SUBJECTS.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+    els.subject.value=state.subject; els.grade.value=String(state.grade); els.apiKeyHeader.value=state.apiKey;
+    els.rememberKey.checked=Boolean(localStorage.getItem(APP.apiStorageKey));
+    renderModels(); bindEvents();
+  }
+
+  function bindEvents(){
+    els.subject.addEventListener("change",()=>state.subject=els.subject.value);
+    els.grade.addEventListener("change",()=>{state.grade=Number(els.grade.value);state.plan=null;hideResult();});
+    els.lessonFile.addEventListener("change",event=>event.target.files[0]&&readLessonFile(event.target.files[0]));
+    els.ppctFile.addEventListener("change",event=>event.target.files[0]&&readReferenceFile(event.target.files[0]));
+    els.generateBtn.addEventListener("click",handleGenerate);
+    els.applyBtn.addEventListener("click",applyPlanToDocx);
+    els.downloadPlanBtn.addEventListener("click",downloadPlan);
+    els.printBtn.addEventListener("click",()=>window.print());
+    els.clearBtn.addEventListener("click",clearAll);
+    els.apiKeyHeader.addEventListener("input",()=>{state.apiKey=els.apiKeyHeader.value.trim();sessionStorage.setItem(APP.apiStorageKey,state.apiKey);});
+    els.openSettingsTop.addEventListener("click",openSettings);els.openSettingsLink.addEventListener("click",openSettings);els.closeSettings.addEventListener("click",closeSettings);els.saveSettings.addEventListener("click",saveSettings);
+    els.modal.addEventListener("click",event=>{if(event.target===els.modal)closeSettings();});
+    document.addEventListener("keydown",event=>{if(event.key==="Escape")closeSettings();});
+  }
+
+  function renderModels(){
+    els.modelList.innerHTML=MODELS.map(model=>`<button type="button" class="model-option${model.id===state.model?" selected":""}" data-model="${model.id}"><span><span class="model-name">${escapeHtml(model.name)}</span><span class="model-desc">${escapeHtml(model.desc)}</span></span><span class="tick">✓</span></button>`).join("");
+    els.modelList.querySelectorAll(".model-option").forEach(button=>button.addEventListener("click",()=>{state.model=button.dataset.model;renderModels();}));
+  }
+
+  function openSettings(){
+    els.apiKey.value=state.apiKey;els.apiKeyHeader.value=state.apiKey;els.customModel.value=state.customModel;renderModels();
+    els.modal.classList.add("show");els.modal.setAttribute("aria-hidden","false");setTimeout(()=>els.apiKey.focus(),80);
+  }
+  function closeSettings(){els.modal.classList.remove("show");els.modal.setAttribute("aria-hidden","true");}
+  function saveSettings(){
+    state.apiKey=els.apiKey.value.trim();state.customModel=els.customModel.value.trim();els.apiKeyHeader.value=state.apiKey;
+    sessionStorage.setItem(APP.apiStorageKey,state.apiKey);localStorage.setItem(APP.modelStorageKey,state.model);localStorage.setItem(APP.customModelStorageKey,state.customModel);
+    if(els.rememberKey.checked)localStorage.setItem(APP.apiStorageKey,state.apiKey);else localStorage.removeItem(APP.apiStorageKey);
+    closeSettings();showNotice("Đã lưu cấu hình.","success");
+  }
+
+  async function readLessonFile(file){
+    clearNotice();hideResult();resetUploadBox(els.lessonBox);
+    if(file.size>APP.maxFileBytes)return showNotice("Tệp giáo án lớn hơn 30 MB. Hãy giảm dung lượng ảnh trong tệp rồi thử lại.","error");
+    try{
+      els.lessonTitle.textContent="Đang đọc tệp...";els.lessonSub.textContent=file.name;
+      const buffer=await file.arrayBuffer();const lower=file.name.toLowerCase();
+      if(lower.endsWith(".docx")){
+        const parsed=await parseDocx(buffer);
+        if(!parsed.nodes.some(node=>node.text))throw new Error("Không tìm thấy nội dung văn bản trong DOCX.");
+        state.lesson={type:"docx",fileName:file.name,buffer,nodes:parsed.nodes,fullText:nodesToText(parsed.nodes)};
+        els.lessonBox.classList.add("loaded");els.lessonTitle.textContent=file.name;els.lessonSub.textContent=`DOCX hợp lệ · ${parsed.nodes.filter(n=>n.text).length.toLocaleString("vi-VN")} đoạn/ô có nội dung`;
+        showNotice("Đã đọc DOCX. Tệp gốc sẽ được giữ nguyên và chỉ bổ sung các đoạn NLS đã duyệt.","success");
+      }else if(lower.endsWith(".pdf")){
+        const text=await extractPdfText(buffer);if(!text.trim())throw new Error("PDF không có lớp văn bản; có thể đây là bản scan.");
+        state.lesson={type:"pdf",fileName:file.name,buffer,nodes:buildSyntheticNodes(text),fullText:text};
+        els.lessonBox.classList.add("warning");els.lessonTitle.textContent=file.name;els.lessonSub.textContent="Đã đọc PDF · chỉ tạo bản đề xuất, không thể giữ nguyên mẫu Word";
+        showNotice("PDF chỉ dùng để phân tích. Muốn nhận giáo án giữ nguyên mẫu, thầy/cô cần tải lên bản DOCX.","warn");
+      }else throw new Error("Chỉ hỗ trợ tệp DOCX hoặc PDF.");
+    }catch(error){
+      state.lesson=null;resetUploadBox(els.lessonBox);els.lessonTitle.textContent="Tải lên giáo án";els.lessonSub.textContent=error.message||String(error);showNotice(`Không đọc được giáo án: ${error.message||error}`,"error");
+    }
+  }
+
+  async function readReferenceFile(file){
+    clearNotice();resetUploadBox(els.ppctBox);
+    if(file.size>APP.maxFileBytes)return showNotice("Tệp tham khảo lớn hơn 30 MB.","error");
+    try{
+      els.ppctTitle.textContent="Đang đọc tệp...";els.ppctSub.textContent=file.name;const buffer=await file.arrayBuffer();const lower=file.name.toLowerCase();let text="";
+      if(lower.endsWith(".docx")){const parsed=await parseDocx(buffer);text=nodesToText(parsed.nodes);}else if(lower.endsWith(".pdf"))text=await extractPdfText(buffer);else throw new Error("Chỉ hỗ trợ DOCX hoặc PDF.");
+      if(!text.trim())throw new Error("Không tìm thấy nội dung văn bản.");state.ppctText=text;state.ppctName=file.name;els.ppctBox.classList.add("loaded");els.ppctTitle.textContent=file.name;els.ppctSub.textContent=`Đã đọc khoảng ${text.length.toLocaleString("vi-VN")} kí tự`;
+    }catch(error){state.ppctText="";state.ppctName="";resetUploadBox(els.ppctBox);els.ppctTitle.textContent="Tải lên PPCT";els.ppctSub.textContent=error.message||String(error);showNotice(`Không đọc được tài liệu tham khảo: ${error.message||error}`,"error");}
+  }
+
+  async function parseDocx(buffer){
+    if(!window.JSZip)throw new Error("Chưa tải được thư viện xử lí DOCX. Hãy kiểm tra kết nối mạng.");
+    const zip=await JSZip.loadAsync(buffer);const entry=zip.file("word/document.xml");if(!entry)throw new Error("Tệp không có cấu trúc DOCX chuẩn (thiếu word/document.xml).");
+    const xmlText=await entry.async("string");const xmlDoc=parseXml(xmlText);return {zip,xmlDoc,xmlText,nodes:indexWordDocument(xmlDoc)};
+  }
+
+  function parseXml(xmlText){
+    const doc=new DOMParser().parseFromString(xmlText,"application/xml");const error=doc.querySelector("parsererror");if(error)throw new Error("Cấu trúc XML trong DOCX bị lỗi.");return doc;
+  }
+
+  function indexWordDocument(xmlDoc){
+    const body=xmlDoc.getElementsByTagNameNS(W_NS,"body")[0];if(!body)throw new Error("DOCX không có phần thân văn bản.");
+    const nodes=[];let serial=0;let tableSerial=0;let outsideParagraph=0;
+    const addParagraph=(paragraph,context)=>{
+      serial++;if(!context.table)outsideParagraph++;
+      const id=`N${String(serial).padStart(4,"0")}`;const text=normalizeText(extractParagraphText(paragraph));
+      const location=context.table?`Bảng ${context.table}, hàng ${context.row}, ô ${context.cell}`:`Đoạn ${outsideParagraph}`;
+      nodes.push({id,text,location,node:paragraph,index:nodes.length,isHeading:isLikelyHeading(text)});
     };
-
-    const SUBJECTS = [
-      "Toán", "Ngữ Văn", "Vật Lí", "Hóa Học", "Sinh Học", "Tiếng Anh",
-      "Lịch Sử", "Địa Lí", "GDCD", "Công Nghệ", "Tin Học", "Thể Dục",
-      "Nghệ thuật", "Hoạt động trải nghiệm", "Giáo dục Quốc phòng - An ninh", "Giáo dục Địa phương"
-    ];
-
-    const MODELS = [
-      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", desc: "Theo mẫu gốc; nếu lỗi, đổi sang 2.5 Flash" },
-      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", desc: "Nhanh, tiết kiệm chi phí" },
-      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", desc: "Suy luận sâu, preview" },
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", desc: "Ổn định, độ trễ thấp" },
-      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", desc: "Nhẹ, tiết kiệm" },
-      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", desc: "Chất lượng cao" },
-      { id: "custom", name: "Model tùy chỉnh", desc: "Nhập tên model ở ô bên dưới" },
-    ];
-
-    const DIGITAL_COMPETENCE_FRAMEWORK = `
-KHUNG NĂNG LỰC SỐ THAM CHIẾU - DÙNG ĐỂ TÍCH HỢP VÀO KẾ HOẠCH BÀI DẠY
-
-NGUYÊN TẮC TRIỂN KHAI:
-- Không gây quá tải chương trình; chỉ lồng ghép khi phù hợp với yêu cầu cần đạt, nội dung môn học và điều kiện lớp học.
-- Kế hoạch bài dạy cần nêu rõ nội dung/hoạt động cụ thể nhằm phát triển NLS trong từng hoạt động học.
-- Môn Tin học giữ vai trò chủ đạo; các môn học khác tạo môi trường cho học sinh vận dụng kỹ năng số vào thực tiễn.
-- Chú ý công nghệ mới như AI, IoT, VR khi phù hợp; bảo đảm an toàn thông tin và đạo đức số.
-
-MỨC ĐỘ THEO KHỐI LỚP:
-- Lớp 1,2,3: Cơ bản 1 - nhiệm vụ đơn giản, có sự hướng dẫn.
-- Lớp 4,5: Cơ bản 2 - nhiệm vụ đơn giản, tự chủ và có hướng dẫn khi cần.
-- Lớp 6,7: Trung cấp 1 - nhiệm vụ rõ ràng, vấn đề đơn giản, tự chủ hoàn toàn.
-- Lớp 8,9: Trung cấp 2 - nhiệm vụ rõ ràng nhưng không thường xuyên, độc lập theo nhu cầu cá nhân.
-- Lớp 10,11,12: Nâng cao 1 - nhiệm vụ/vấn đề khác nhau, có thể hướng dẫn người khác.
-
-6 MIỀN NĂNG LỰC VÀ NĂNG LỰC THÀNH PHẦN:
-1. Khai thác dữ liệu và thông tin
-   1.1. Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số.
-   1.2. Đánh giá dữ liệu, thông tin và nội dung số.
-   1.3. Quản lí dữ liệu, thông tin và nội dung số.
-2. Giao tiếp và hợp tác
-   2.1. Tương tác thông qua công nghệ số.
-   2.2. Chia sẻ thông tin và nội dung thông qua công nghệ số.
-   2.3. Sử dụng công nghệ số để thực hiện trách nhiệm công dân.
-   2.4. Hợp tác thông qua công nghệ số.
-   2.5. Quy tắc ứng xử trên mạng.
-   2.6. Quản lí danh tính số.
-3. Sáng tạo nội dung số
-   3.1. Phát triển nội dung số.
-   3.2. Tích hợp và tái cấu trúc nội dung số.
-   3.3. Bản quyền và giấy phép.
-   3.4. Lập trình.
-4. An toàn
-   4.1. Bảo vệ thiết bị.
-   4.2. Bảo vệ dữ liệu cá nhân và quyền riêng tư.
-   4.3. Bảo vệ sức khỏe và tinh thần.
-   4.4. Bảo vệ môi trường.
-5. Giải quyết vấn đề
-   5.1. Giải quyết các vấn đề kỹ thuật.
-   5.2. Xác định nhu cầu và giải pháp công nghệ.
-   5.3. Sử dụng sáng tạo công nghệ số.
-   5.4. Xác định các vấn đề cần cải thiện/cập nhật NLS.
-6. Ứng dụng trí tuệ nhân tạo
-   6.1. Nhận biết, hiểu bản chất và giới hạn của AI ở mức phù hợp lứa tuổi.
-   6.2. Sử dụng công cụ AI trong học tập một cách có kiểm soát.
-   6.3. Đánh giá kết quả AI, bảo đảm đạo đức, trích dẫn và trách nhiệm cá nhân.
-`;
-
-
-    const SUBJECT_GUIDANCE = {
-      "Ngữ Văn": `
-Gợi ý riêng cho môn Ngữ văn:
-- Ưu tiên đọc hiểu có hỗ trợ nguồn số đáng tin cậy, tra cứu từ ngữ/ngữ cảnh, kiểm chứng thông tin.
-- Có thể tổ chức học sinh tạo sản phẩm số: sơ đồ tư duy, nhật kí đọc, infographic, podcast, video ngắn, phiếu đọc số.
-- Nhấn mạnh bản quyền, trích dẫn nguồn, ứng xử văn minh khi bình luận/chia sẻ tác phẩm.
-- Nếu dùng AI: học sinh dùng AI như công cụ gợi ý, không chép nguyên văn; biết kiểm tra, chỉnh sửa, chịu trách nhiệm về sản phẩm.
-`,
-      "Toán": `Gợi ý riêng cho môn Toán: ưu tiên máy tính cầm tay, GeoGebra, bảng tính, mô phỏng, kiểm chứng kết quả và trình bày lời giải bằng công cụ số.`,
-      "Tin Học": `Gợi ý riêng cho môn Tin học: ưu tiên an toàn số, thuật toán, lập trình, dữ liệu, sản phẩm số, đạo đức số.`,
-      "Tiếng Anh": `Gợi ý riêng cho môn Tiếng Anh: ưu tiên từ điển số, luyện nghe nói, công cụ ghi âm, học liệu trực tuyến, giao tiếp số an toàn.`
+    const walk=(element,context={})=>{
+      for(const child of Array.from(element.children||[])){
+        if(child.namespaceURI!==W_NS){walk(child,context);continue;}
+        if(child.localName==="p")addParagraph(child,context);
+        else if(child.localName==="tbl"){
+          const table=++tableSerial;let row=0;
+          for(const tr of Array.from(child.children).filter(item=>item.localName==="tr")){row++;let cell=0;for(const tc of Array.from(tr.children).filter(item=>item.localName==="tc")){cell++;walk(tc,{table,row,cell});}}
+        }else walk(child,context);
+      }
     };
+    walk(body,{});return nodes;
+  }
 
-    /*****************************************************************
-     * STATE
-     *****************************************************************/
-    const state = {
-      subject: "Ngữ Văn",
-      grade: 7,
-      lessonText: "",
-      ppctText: "",
-      lessonFileName: "",
-      ppctFileName: "",
-      result: "",
-      apiKey: localStorage.getItem(APP.apiStorageKey) || "",
-      model: localStorage.getItem(APP.modelStorageKey) || "gemini-2.5-flash",
-      customModel: localStorage.getItem(APP.customModelStorageKey) || "",
-      isBusy: false,
-    };
+  function extractParagraphText(paragraph){
+    let text="";const walker=paragraph.ownerDocument.createTreeWalker(paragraph,NodeFilter.SHOW_ELEMENT);
+    let current=walker.currentNode;
+    while(current){if(current.namespaceURI===W_NS){if(current.localName==="t")text+=current.textContent||"";else if(current.localName==="tab")text+="\t";else if(current.localName==="br"||current.localName==="cr")text+="\n";}current=walker.nextNode();}
+    return text;
+  }
 
-    /*****************************************************************
-     * DOM HELPERS
-     *****************************************************************/
-    const $ = (selector) => document.querySelector(selector);
-    const els = {
-      subject: $("#subject"), grade: $("#grade"),
-      lessonFile: $("#lessonFile"), ppctFile: $("#ppctFile"),
-      lessonBox: $("#lessonBox"), ppctBox: $("#ppctBox"),
-      lessonTitle: $("#lessonTitle"), lessonSub: $("#lessonSub"),
-      ppctTitle: $("#ppctTitle"), ppctSub: $("#ppctSub"),
-      manualLesson: $("#manualLesson"), aiOption: $("#aiOption"), nlsCount: $("#nlsCount"), safeLongOption: $("#safeLongOption"),
-      generateBtn: $("#generateBtn"), errorBox: $("#errorBox"),
-      statusCard: $("#statusCard"), progressCircle: $("#progressCircle"),
-      progressNumber: $("#progressNumber"), progressBar: $("#progressBar"), statusText: $("#statusText"),
-      resultCard: $("#resultCard"), resultArea: $("#resultArea"),
-      copyBtn: $("#copyBtn"), txtBtn: $("#txtBtn"), docxBtn: $("#docxBtn"), printBtn: $("#printBtn"), clearBtn: $("#clearBtn"),
-      modal: $("#settingsModal"), modelList: $("#modelList"), apiKey: $("#apiKey"), apiKeyHeader: $("#apiKeyHeader"), customModel: $("#customModel"),
-      openSettingsTop: $("#openSettingsTop"), openSettingsLink: $("#openSettingsLink"), closeSettings: $("#closeSettings"), saveSettings: $("#saveSettings"),
-    };
+  function buildSyntheticNodes(text){
+    return text.replace(/\r\n/g,"\n").split(/\n+/).map(normalizeText).filter(Boolean).map((value,index)=>({id:`N${String(index+1).padStart(4,"0")}`,text:value,location:`Đoạn ${index+1}`,node:null,index,isHeading:isLikelyHeading(value)}));
+  }
 
-    function showError(message) {
-      els.errorBox.innerHTML = message;
-      els.errorBox.classList.add("show");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  async function extractPdfText(buffer){
+    if(!window.pdfjsLib)throw new Error("Chưa tải được thư viện đọc PDF.");const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;let text="";
+    for(let pageNumber=1;pageNumber<=pdf.numPages;pageNumber++){const page=await pdf.getPage(pageNumber);const content=await page.getTextContent();text+=`\n--- Trang ${pageNumber} ---\n${content.items.map(item=>item.str).join(" ")}`;}
+    return text.trim();
+  }
+
+  function nodesToText(nodes){return nodes.filter(node=>node.text).map(node=>node.text).join("\n");}
+  function normalizeText(text){return String(text||"").replace(/[\t ]+/g," ").replace(/\s*\n\s*/g," ").trim();}
+  function isLikelyHeading(text){return Boolean(text&&text.length<=180&&(/^(i{1,4}|iv|v|vi|vii|viii|ix|x)[.)\s]/i.test(text)||/^\d+(\.\d+)*[.)\s]/.test(text)||/^(mục tiêu|yêu cầu cần đạt|phẩm chất|năng lực|hoạt động|khởi động|khám phá|hình thành|luyện tập|vận dụng|mở rộng|nội dung|sản phẩm|tổ chức|đánh giá)/i.test(text)));}
+
+  function getFramework(){return state.grade<=7?NLS_TC1:NLS_TC2;}
+  function getActiveModel(){return state.model==="custom"?state.customModel.trim():state.model;}
+  function getLessonSource(){
+    if(state.lesson)return state.lesson;const manual=els.manualLesson.value.trim();if(!manual)return null;
+    return {type:"manual",fileName:"noi-dung-dan-thu-cong.txt",nodes:buildSyntheticNodes(manual),fullText:manual};
+  }
+
+  function validateGenerate(){
+    state.apiKey=els.apiKeyHeader.value.trim();sessionStorage.setItem(APP.apiStorageKey,state.apiKey);
+    const source=getLessonSource();if(!source)return "Cần tải giáo án DOCX/PDF hoặc dán nội dung giáo án.";
+    if(!state.apiKey)return "Chưa nhập Gemini API Key.";
+    if(!/^AIzaSy|^AQ/.test(state.apiKey))return "API Key có vẻ chưa đúng định dạng.";
+    if(!getActiveModel())return "Chưa chọn hoặc nhập tên model Gemini.";
+    if(!source.nodes.some(node=>node.text))return "Giáo án không có nội dung văn bản để phân tích.";
+    return "";
+  }
+
+  async function handleGenerate(){
+    clearNotice();const error=validateGenerate();if(error)return showNotice(error,"error");
+    const source=getLessonSource();setBusy(true);hideResult();els.statusCard.classList.add("show");
+    try{
+      updateProgress(8,"Đang chuẩn hóa cấu trúc giáo án...");await sleep(180);
+      const structure=buildAnalysisStructure(source.nodes,els.safeLongOption.checked);
+      updateProgress(25,"Đang đối chiếu mã năng lực số theo khối lớp...");await sleep(180);
+      const prompt=buildPrompt(source,structure);
+      updateProgress(43,"Đang gửi yêu cầu phân tích tới Gemini...");
+      const raw=await callGemini(prompt);
+      updateProgress(78,"Đang kiểm tra mã NLS và vị trí chèn...");
+      const parsed=parseGeminiJson(raw);state.plan=validatePlan(parsed,source.nodes,structure.compacted);
+      updateProgress(94,"Đang tạo bản duyệt cho giáo viên...");renderPlan(source);await sleep(220);
+      updateProgress(100,"Đã hoàn tất đề xuất.");await sleep(350);els.statusCard.classList.remove("show");els.resultCard.classList.add("show");els.resultCard.scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(error){
+      console.error(error);els.statusCard.classList.remove("show");showNotice(`Không thể hoàn tất phân tích: ${friendlyError(error)}`,"error");
+    }finally{setBusy(false);}
+  }
+
+  function buildAnalysisStructure(nodes,safeMode){
+    const usable=nodes.filter(node=>node.text);const makeLine=node=>`[${node.id}][${node.location}] ${node.text.slice(0,900)}`;
+    const allText=usable.map(makeLine).join("\n");if(allText.length<=APP.maxAnalysisChars)return {text:allText,compacted:false,includedIds:new Set(usable.map(node=>node.id))};
+    if(!safeMode)return {text:allText.slice(0,APP.maxAnalysisChars),compacted:true,includedIds:new Set()};
+    const priorityPattern=/(mục tiêu|yêu cầu cần đạt|phẩm chất|năng lực|hoạt động|khởi động|khám phá|hình thành|kiến thức mới|luyện tập|vận dụng|mở rộng|nội dung|sản phẩm|tổ chức thực hiện|đánh giá)/i;
+    const selected=new Set();usable.slice(0,24).forEach(node=>selected.add(node.index));
+    usable.forEach(node=>{if(node.isHeading||priorityPattern.test(node.text)){for(let offset=-3;offset<=8;offset++){const target=node.index+offset;if(target>=0&&target<nodes.length&&nodes[target].text)selected.add(target);}}});
+    const ordered=Array.from(selected).sort((a,b)=>a-b).map(index=>nodes[index]);let text="";const includedIds=new Set();
+    for(const node of ordered){const line=makeLine(node);if(text.length+line.length+1>APP.maxAnalysisChars)break;text+=(text?"\n":"")+line;includedIds.add(node.id);}
+    return {text,compacted:true,includedIds};
+  }
+
+  function buildPrompt(source,structure){
+    const framework=getFramework();const count=els.nlsCount.value==="auto"?"tự động, ưu tiên 1–3":els.nlsCount.value;
+    const autoGoal=findGoalAnchor(source.nodes);const deviceLabel=els.deviceMode.options[els.deviceMode.selectedIndex].text;const placeLabel=els.integrationPlace.options[els.integrationPlace.selectedIndex].text;
+    const reference=state.ppctText?state.ppctText.slice(0,9000):"[Không có tài liệu tham khảo]";
+    const subjectHint=SUBJECT_GUIDANCE[state.subject]||"Chọn hoạt động số phù hợp đặc thù môn học, không biến tiết học thành tiết Tin học.";
+    return `Bạn là chuyên gia thiết kế kế hoạch bài dạy ở Việt Nam. Nhiệm vụ duy nhất là lập KẾ HOẠCH CHÈN năng lực số vào giáo án đã có. Không viết lại giáo án, không sửa nội dung gốc.
+
+THÔNG TIN
+- Môn: ${state.subject}
+- Lớp: ${state.grade}; mức: ${state.grade<=7?"TC1":"TC2"}
+- Số năng lực số chính: ${count}
+- Tích hợp AI: ${els.aiOption.checked?"CÓ":"KHÔNG"}
+- Điều kiện thiết bị: ${deviceLabel}
+- Vị trí ưu tiên: ${placeLabel}
+- Cấu trúc đã nén do tài liệu dài: ${structure.compacted?"CÓ":"KHÔNG"}
+- Gợi ý riêng môn học: ${subjectHint}
+
+DANH SÁCH MÃ ĐƯỢC PHÉP (chỉ được chọn đúng mã dưới đây):
+${framework.map(item=>`${item.code} | ${item.criterion}`).join("\n")}
+
+NGUYÊN TẮC BẮT BUỘC
+1. Chọn đúng số mã nếu hợp lí; có thể chọn ít hơn khi tích hợp sẽ gượng ép.
+2. Nếu Tích hợp AI = KHÔNG: không chọn mã 6.x và không đưa AI vào hoạt động.
+3. Nếu Tích hợp AI = CÓ: ưu tiên ít nhất một mã 6.x khi phù hợp; hoạt động phải có kiểm chứng kết quả, trách nhiệm cá nhân và bảo vệ dữ liệu. Không ép dùng AI nếu bài học không phù hợp.
+4. Mỗi mã được chọn phải xuất hiện trong ít nhất một hoạt động cụ thể.
+5. Mục "Tích hợp năng lực số" phải chèn trong phần Mục tiêu/Yêu cầu cần đạt, ngay trước mục Phẩm chất nếu nhận diện được.
+6. Hoạt động tích hợp ưu tiên Hình thành kiến thức mới/Khám phá, Luyện tập hoặc Vận dụng; nêu rõ học sinh làm gì, bằng công cụ/nguồn số nào, sản phẩm hoặc minh chứng gì và cách kiểm tra.
+7. Tôn trọng điều kiện thiết bị. Nếu không dùng thiết bị cá nhân, có thể cho giáo viên trình chiếu, dùng thiết bị theo nhóm hoặc giao nhiệm vụ ở nhà.
+8. anchorId phải là ID có thật trong CẤU TRÚC GIÁO ÁN. Không tự tạo ID.
+9. Nội dung chèn ngắn gọn, dùng được ngay, không dùng emoji, không ghi lời giải thích ngoài giáo án.
+
+VỊ TRÍ MỤC TIÊU TỰ NHẬN DIỆN (chỉ là gợi ý): ${autoGoal?`${autoGoal.id} – ${autoGoal.text}`:"Chưa nhận diện được"}
+
+TÀI LIỆU THAM KHẢO/PPCT:
+${reference}
+
+CẤU TRÚC GIÁO ÁN (mỗi đoạn/ô bảng có một anchorId):
+${structure.text}
+
+Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đúng cấu trúc:
+{
+  "summary":"Nhận xét rất ngắn về hướng tích hợp",
+  "selectedCodes":["${framework[0].code}"],
+  "goal":{"anchorId":"N0001","position":"before"},
+  "activities":[
+    {
+      "anchorId":"N0010",
+      "position":"after",
+      "activityName":"Luyện tập",
+      "targetField":"Tổ chức thực hiện",
+      "codes":["${framework[0].code}"],
+      "text":"Học sinh ..."
     }
-    function clearError() { els.errorBox.classList.remove("show"); els.errorBox.textContent = ""; }
-    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+  ],
+  "warnings":[]
+}`;
+  }
 
-    /*****************************************************************
-     * INIT UI
-     *****************************************************************/
-    function initSelects() {
-      els.subject.innerHTML = SUBJECTS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
-      els.grade.innerHTML = Array.from({ length: 12 }, (_, i) => i + 1).map(g => `<option value="${g}">Lớp ${g}</option>`).join("");
-      els.subject.value = state.subject;
-      els.grade.value = state.grade;
-      els.subject.addEventListener("change", () => state.subject = els.subject.value);
-      els.grade.addEventListener("change", () => state.grade = Number(els.grade.value));
+  function findGoalAnchor(nodes){
+    const nonempty=nodes.filter(node=>node.text);const goalIndexes=[];
+    nonempty.forEach((node,index)=>{if(/(mục tiêu|mục tiêu cần đạt|mục tiêu bài học|yêu cầu cần đạt)/i.test(node.text))goalIndexes.push(index);});
+    for(const start of goalIndexes){for(let index=start;index<Math.min(nonempty.length,start+55);index++){if(/(^|[.\s])phẩm\s*chất\b/i.test(nonempty[index].text))return nonempty[index];}}
+    return nonempty.find(node=>/(^|[.\s])phẩm\s*chất\b/i.test(node.text))||null;
+  }
+
+  async function callGemini(prompt){
+    const model=getActiveModel().replace(/^models\//,"").trim();const url=APP.endpoint.replace("{MODEL}",encodeURIComponent(model)).replace("{KEY}",encodeURIComponent(state.apiKey));
+    const body={contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{temperature:.12,topP:.85,maxOutputTokens:4096,responseMimeType:"application/json"}};
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),APP.requestTimeoutMs);
+    try{
+      const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data?.error?.message||`Lỗi HTTP ${response.status}`);
+      const text=data?.candidates?.[0]?.content?.parts?.map(part=>part.text||"").join("\n")||"";if(!text.trim())throw new Error(`Gemini không trả về nội dung (${data?.candidates?.[0]?.finishReason||"không rõ nguyên nhân"}).`);return text;
+    }catch(error){if(error.name==="AbortError")throw new Error("Quá thời gian chờ. Hãy thử model nhẹ hơn hoặc bật xử lí an toàn với giáo án dài.");throw error;}finally{clearTimeout(timer);}
+  }
+
+  function parseGeminiJson(raw){
+    const cleaned=String(raw).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");try{return JSON.parse(cleaned);}catch(firstError){const start=cleaned.indexOf("{");const end=cleaned.lastIndexOf("}");if(start>=0&&end>start){try{return JSON.parse(cleaned.slice(start,end+1));}catch{}}throw new Error("AI trả về dữ liệu không đúng cấu trúc JSON. Hãy thử lại.");}
+  }
+
+  function validatePlan(raw,nodes,wasCompacted){
+    if(!raw||typeof raw!=="object")throw new Error("Kế hoạch AI không hợp lệ.");const framework=getFramework();const frameworkMap=new Map(framework.map(item=>[item.code,item]));const nodeMap=new Map(nodes.filter(node=>node.text).map(node=>[node.id,node]));
+    let selected=Array.from(new Set((Array.isArray(raw.selectedCodes)?raw.selectedCodes:[]).map(String))).filter(code=>frameworkMap.has(code));
+    if(!els.aiOption.checked)selected=selected.filter(code=>!code.startsWith("6."));
+    const requested=els.nlsCount.value==="auto"?3:Number(els.nlsCount.value);selected=selected.slice(0,Math.max(1,requested));if(!selected.length)throw new Error("AI chưa chọn được mã NLS hợp lệ cho bài học.");
+    const autoGoal=findGoalAnchor(nodes);let goalId=raw.goal&&nodeMap.has(raw.goal.anchorId)?raw.goal.anchorId:autoGoal?.id;if(!goalId)throw new Error("Không xác định được vị trí để chèn mục Năng lực số trong phần mục tiêu.");
+    const selectedSet=new Set(selected);const activities=[];
+    for(const item of Array.isArray(raw.activities)?raw.activities:[]){
+      if(!item||!nodeMap.has(item.anchorId))continue;const codes=Array.from(new Set((Array.isArray(item.codes)?item.codes:[]).map(String))).filter(code=>selectedSet.has(code));const text=cleanInsertionText(item.text);
+      if(!codes.length||!text)continue;activities.push({anchorId:item.anchorId,anchorText:nodeMap.get(item.anchorId).text,location:nodeMap.get(item.anchorId).location,position:item.position==="before"?"before":"after",activityName:cleanShort(item.activityName,"Hoạt động học"),targetField:cleanShort(item.targetField,"Tổ chức thực hiện"),codes,text});
+      if(activities.length>=6)break;
     }
+    if(!activities.length)throw new Error("AI chưa xác định được hoạt động cụ thể để triển khai các mã NLS đã chọn.");
+    const usedCodes=new Set(activities.flatMap(item=>item.codes));const missing=selected.filter(code=>!usedCodes.has(code));const warnings=Array.isArray(raw.warnings)?raw.warnings.map(value=>cleanShort(value,"")).filter(Boolean).slice(0,6):[];
+    if(missing.length){selected=selected.filter(code=>usedCodes.has(code));warnings.push(`Đã loại ${missing.join(", ")} khỏi mục tiêu vì AI chưa xác định được hoạt động triển khai cụ thể.`);}if(!selected.length)throw new Error("Không có mã NLS nào đồng thời xuất hiện trong mục tiêu và hoạt động học.");
+    if(wasCompacted)warnings.push("Giáo án dài nên cấu trúc gửi cho AI đã được nén; tệp Word gốc vẫn được giữ nguyên đầy đủ.");
+    return {summary:cleanShort(raw.summary,"Đã chọn các năng lực số phù hợp và xác định vị trí tích hợp trong giáo án."),selectedCodes:selected,competencies:selected.map(code=>frameworkMap.get(code)),goal:{anchorId:goalId,anchorText:nodeMap.get(goalId).text,location:nodeMap.get(goalId).location,position:raw.goal?.position==="after"&&!/phẩm\s*chất/i.test(nodeMap.get(goalId).text)?"after":"before"},activities,warnings};
+  }
 
-    function initModelList() {
-      els.modelList.innerHTML = MODELS.map(m => `
-        <button type="button" class="model-option" data-model="${m.id}">
-          <span>
-            <span class="model-name">${escapeHtml(m.name)}</span>
-            <span class="model-desc">${escapeHtml(m.desc)}</span>
-          </span>
-          <span class="check">✓</span>
-        </button>
-      `).join("");
-      els.modelList.addEventListener("click", (event) => {
-        const item = event.target.closest(".model-option");
-        if (!item) return;
-        state.model = item.dataset.model;
-        renderModelSelection();
-      });
-      els.apiKey.value = state.apiKey;
-      els.apiKeyHeader.value = state.apiKey;
-      els.customModel.value = state.customModel;
-      renderModelSelection();
-    }
+  function cleanInsertionText(value){return String(value||"").replace(/```[\s\S]*?```/g,"").replace(/[🔴🟢✨]/g,"").replace(/^\s*\[?NLS\]?\s*[:\-–]?\s*/i,"").trim().slice(0,1300);}
+  function cleanShort(value,fallback){const text=String(value||"").replace(/[\r\n]+/g," ").trim().slice(0,300);return text||fallback;}
 
-    function renderModelSelection() {
-      document.querySelectorAll(".model-option").forEach(btn => {
-        btn.classList.toggle("selected", btn.dataset.model === state.model);
-      });
-    }
+  function renderPlan(source){
+    const plan=state.plan;const competencyHtml=plan.competencies.map(item=>`<div class="competency"><span class="code">${escapeHtml(item.code)}</span><p>${escapeHtml(item.criterion)}</p></div>`).join("");
+    const goalText=plan.competencies.map(item=>`– ${item.code}: ${item.criterion}`).join("\n");
+    const activitiesHtml=plan.activities.map((item,index)=>`<div class="insert-card" data-insertion="${index}"><div class="insert-top"><div><div class="insert-title">${escapeHtml(item.activityName)} · ${escapeHtml(item.targetField)}</div><div class="anchor">${escapeHtml(item.location)} · ${escapeHtml(item.anchorId)}: “${escapeHtml(shorten(item.anchorText,180))}”</div></div><div class="chips">${item.codes.map(code=>`<span class="code">${escapeHtml(code)}</span>`).join("")}</div></div><div class="mini-row"><select class="position-select" aria-label="Vị trí chèn"><option value="after"${item.position==="after"?" selected":""}>Chèn sau vị trí này</option><option value="before"${item.position==="before"?" selected":""}>Chèn trước vị trí này</option></select><span class="hint">AI đã neo nội dung vào đúng đoạn/ô bảng của giáo án.</span></div><textarea class="insertion-text" aria-label="Nội dung NLS đề xuất">${escapeHtml(item.text)}</textarea></div>`).join("");
+    const warnings=plan.warnings.length?`<ul class="warning-list">${plan.warnings.map(warning=>`<li>${escapeHtml(warning)}</li>`).join("")}</ul>`:"";
+    els.planView.innerHTML=`<div class="summary-box"><b>Hướng tích hợp:</b> ${escapeHtml(plan.summary)}</div><h3 style="margin:18px 0 8px;color:#1e40af;font-size:16px">1. Năng lực số đưa vào mục tiêu</h3><div class="competency-list">${competencyHtml}</div><div class="insert-card"><div class="insert-title">Chèn mục “Tích hợp năng lực số” ${plan.goal.position==="before"?"trước":"sau"} ${escapeHtml(plan.goal.anchorId)}</div><div class="anchor">${escapeHtml(plan.goal.location)}: “${escapeHtml(shorten(plan.goal.anchorText,200))}”</div><textarea readonly aria-label="Nội dung mục tiêu năng lực số">${escapeHtml(goalText)}</textarea></div><h3 style="margin:20px 0 8px;color:#1e40af;font-size:16px">2. Tích hợp trong hoạt động học</h3>${activitiesHtml}${warnings}`;
+    els.planView.querySelectorAll(".insert-card[data-insertion]").forEach(card=>{
+      const index=Number(card.dataset.insertion);card.querySelector(".position-select").addEventListener("change",event=>state.plan.activities[index].position=event.target.value);card.querySelector(".insertion-text").addEventListener("input",event=>state.plan.activities[index].text=event.target.value.trim());
+    });
+    const canApply=source.type==="docx";els.applyBtn.disabled=!canApply;els.fallbackNote.classList.toggle("show",!canApply);
+    els.fallbackNote.textContent=canApply?"":source.type==="pdf"?"Giáo án đầu vào là PDF nên tiện ích chỉ có thể tải bản đề xuất. Hãy tải bản DOCX gốc để áp dụng tự động và giữ nguyên mẫu.":"Nội dung được dán thủ công nên không có tệp Word gốc để giữ định dạng. Hãy tải lên DOCX nếu muốn áp dụng tự động.";
+  }
 
-    /*****************************************************************
-     * FILE READING
-     *****************************************************************/
-    async function readUploadedFile(file, kind) {
-      clearError();
-      const isLesson = kind === "lesson";
-      const box = isLesson ? els.lessonBox : els.ppctBox;
-      const title = isLesson ? els.lessonTitle : els.ppctTitle;
-      const sub = isLesson ? els.lessonSub : els.ppctSub;
-      try {
-        title.textContent = "Đang đọc file...";
-        sub.textContent = file.name;
-        const text = await extractText(file);
-        if (!text.trim()) {
-          throw new Error("Không đọc được chữ trong file. File có thể là PDF scan/ảnh. Hãy dán nội dung thủ công.");
-        }
-        if (isLesson) {
-          state.lessonText = text;
-          state.lessonFileName = file.name;
-        } else {
-          state.ppctText = text;
-          state.ppctFileName = file.name;
-        }
-        box.classList.add("loaded");
-        title.textContent = file.name;
-        sub.textContent = `Đã đọc khoảng ${text.length.toLocaleString("vi-VN")} kí tự. Nhấn để thay đổi.`;
-      } catch (err) {
-        console.error(err);
-        box.classList.remove("loaded");
-        title.textContent = isLesson ? "Tải lên Giáo án" : "Tải lên PPCT";
-        sub.textContent = err.message || "Có lỗi khi đọc file.";
-        showError(`<strong>Không đọc được file:</strong> ${escapeHtml(err.message || String(err))}`);
+  async function applyPlanToDocx(){
+    clearNotice();if(!state.plan||!state.lesson||state.lesson.type!=="docx")return showNotice("Cần có giáo án DOCX và bản đề xuất hợp lệ.","error");
+    setBusy(true,true);updateApplyButton("ĐANG TẠO TỆP DOCX...");
+    try{
+      const parsed=await parseDocx(state.lesson.buffer);const nodeMap=new Map(parsed.nodes.map(node=>[node.id,node]));const originalTexts=parsed.nodes.filter(node=>node.text).map(node=>node.text);const expectedOriginalTexts=[...originalTexts];const cursors=new Map();
+      const goalAnchor=nodeMap.get(state.plan.goal.anchorId);if(!goalAnchor)throw new Error("Không còn tìm thấy vị trí chèn mục tiêu trong DOCX gốc.");
+      const goalHeading=prepareGoalHeading(goalAnchor,expectedOriginalTexts);const headingNode=cloneParagraphWithText(parsed.xmlDoc,goalAnchor.node,goalHeading.text,{red:els.highlightOption.checked,bold:true,stripNumbering:goalHeading.manualNumber});
+      const bodyTemplate=findBodyTemplate(parsed.nodes,goalAnchor.index)||goalAnchor.node;const goalNodes=[headingNode,...state.plan.competencies.map(item=>cloneParagraphWithText(parsed.xmlDoc,bodyTemplate,`– ${item.code}: ${item.criterion}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}))];
+      insertAtAnchor(goalAnchor.node,goalNodes,state.plan.goal.position,cursors);
+      for(const insertion of state.plan.activities){
+        const anchor=nodeMap.get(insertion.anchorId);if(!anchor)throw new Error(`Không tìm thấy vị trí ${insertion.anchorId}.`);const text=cleanInsertionText(insertion.text);if(!text)throw new Error(`Nội dung tại ${insertion.anchorId} đang để trống.`);
+        const prefix=`Tích hợp năng lực số (${insertion.codes.join(", ")}): `;const template=findBodyTemplate(parsed.nodes,anchor.index)||anchor.node;const paragraphs=text.split(/\n+/).map((line,index)=>cloneParagraphWithText(parsed.xmlDoc,template,`${index===0?prefix:""}${line.trim()}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}));
+        insertAtAnchor(anchor.node,paragraphs,insertion.position,cursors);
       }
-    }
+      const outputNodes=indexWordDocument(parsed.xmlDoc);verifyPreservation(expectedOriginalTexts,outputNodes.map(node=>node.text).filter(Boolean));const outputText=nodesToText(outputNodes);
+      for(const item of state.plan.competencies)if(!outputText.includes(item.code))throw new Error(`Không tìm thấy mã ${item.code} trong tệp sau khi chèn.`);
+      const xml=new XMLSerializer().serializeToString(parsed.xmlDoc);parseXml(xml);parsed.zip.file("word/document.xml",xml);
+      const blob=await parsed.zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",compression:"DEFLATE",compressionOptions:{level:6}});
+      downloadBlob(blob,makeOutputFileName(state.lesson.fileName));showNotice("Đã tạo giáo án DOCX từ chính tệp gốc. Nội dung cũ đã được kiểm tra giữ nguyên; phần NLS đã được chèn đúng các vị trí đã duyệt.","success");
+    }catch(error){console.error(error);showNotice(`Không thể tạo DOCX: ${friendlyError(error)}`,"error");}finally{setBusy(false,true);updateApplyButton("📘 ÁP DỤNG VÀ TẢI GIÁO ÁN DOCX");}
+  }
 
-    async function extractText(file) {
-      const name = file.name.toLowerCase();
-      const arrayBuffer = await file.arrayBuffer();
-      if (name.endsWith(".docx")) return extractDocx(arrayBuffer);
-      if (name.endsWith(".pdf")) return extractPdf(arrayBuffer);
-      throw new Error("Định dạng chưa hỗ trợ. Vui lòng dùng .docx hoặc .pdf.");
-    }
+  function prepareGoalHeading(anchor,expectedOriginalTexts){
+    const original=anchor.text;const numeric=original.match(/^(\s*)(\d+)([.)])\s*(phẩm\s*chất\b.*)$/i);
+    if(numeric){const next=`${numeric[1]}${Number(numeric[2])+1}${numeric[3]} ${numeric[4]}`;replaceParagraphVisibleText(anchor.node,next);replaceExpectedText(expectedOriginalTexts,original,next);return {text:`${numeric[1]}${numeric[2]}${numeric[3]} Tích hợp năng lực số`,manualNumber:true};}
+    const letter=original.match(/^(\s*)([a-zđ])([.)])\s*(phẩm\s*chất\b.*)$/i);
+    if(letter){const nextLetter=nextVietnameseLetter(letter[2]);if(nextLetter){const next=`${letter[1]}${nextLetter}${letter[3]} ${letter[4]}`;replaceParagraphVisibleText(anchor.node,next);replaceExpectedText(expectedOriginalTexts,original,next);return {text:`${letter[1]}${letter[2]}${letter[3]} Tích hợp năng lực số`,manualNumber:true};}}
+    return {text:"Tích hợp năng lực số",manualNumber:false};
+  }
 
-    async function extractDocx(arrayBuffer) {
-      if (!window.mammoth) throw new Error("Chưa tải được thư viện đọc DOCX. Hãy kiểm tra mạng.");
-      const result = await window.mammoth.extractRawText({ arrayBuffer });
-      return result.value || "";
-    }
+  function nextVietnameseLetter(value){const lower=value.toLowerCase();const order=["a","b","c","d","đ","e","g","h","i","k","l","m","n","o","p","q","r","s","t","u","v","x","y"];const index=order.indexOf(lower);if(index<0||index===order.length-1)return null;const next=order[index+1];return value===value.toUpperCase()?next.toUpperCase():next;}
+  function replaceExpectedText(list,oldText,newText){const index=list.indexOf(oldText);if(index>=0)list[index]=newText;}
 
-    async function extractPdf(arrayBuffer) {
-      if (!window.pdfjsLib) throw new Error("Chưa tải được thư viện đọc PDF. Hãy kiểm tra mạng.");
-      const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-      let allText = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(" ");
-        allText += `\n\n--- Trang ${i} ---\n${pageText}`;
-      }
-      return allText;
-    }
+  function replaceParagraphVisibleText(paragraph,newText){
+    const texts=Array.from(paragraph.getElementsByTagNameNS(W_NS,"t"));if(!texts.length)throw new Error("Không thể điều chỉnh số thứ tự của mục Phẩm chất.");texts[0].textContent=newText;texts[0].setAttributeNS("http://www.w3.org/XML/1998/namespace","xml:space","preserve");for(let index=1;index<texts.length;index++)texts[index].textContent="";
+  }
 
-    /*****************************************************************
-     * GEMINI
-     *****************************************************************/
-    function getActiveModel() {
-      if (state.model === "custom") return state.customModel.trim();
-      return state.model;
-    }
+  function cloneParagraphWithText(doc,template,text,options={}){
+    const paragraph=doc.createElementNS(W_NS,"w:p");const pPr=getDirectChild(template,W_NS,"pPr");
+    if(pPr){const cloned=pPr.cloneNode(true);for(const sect of Array.from(cloned.getElementsByTagNameNS(W_NS,"sectPr")))sect.remove();if(options.stripNumbering)for(const numPr of Array.from(cloned.getElementsByTagNameNS(W_NS,"numPr")))numPr.remove();paragraph.appendChild(cloned);}
+    const run=doc.createElementNS(W_NS,"w:r");const sourceRPr=template.getElementsByTagNameNS(W_NS,"rPr")[0];let rPr=sourceRPr?sourceRPr.cloneNode(true):null;
+    if(options.red||options.bold){if(!rPr)rPr=doc.createElementNS(W_NS,"w:rPr");if(options.red)setWordProperty(doc,rPr,"color","val","C00000");if(options.bold)setWordToggle(doc,rPr,"b");}
+    if(rPr)run.appendChild(rPr);const t=doc.createElementNS(W_NS,"w:t");t.setAttributeNS("http://www.w3.org/XML/1998/namespace","xml:space","preserve");t.textContent=text;run.appendChild(t);paragraph.appendChild(run);return paragraph;
+  }
 
-    function validateBeforeGenerate() {
-      syncApiKeyFromHeader();
-      const lesson = els.manualLesson.value.trim() || state.lessonText.trim();
-      if (!lesson) return "Bạn cần tải file giáo án hoặc dán nội dung giáo án thủ công.";
-      if (!state.apiKey.trim()) return "Bạn chưa nhập Gemini API Key ở ô trên header.";
-      if (!/^AIzaSy|^AQ/.test(state.apiKey.trim())) return "API Key có vẻ chưa đúng định dạng. Hãy kiểm tra lại.";
-      if (!getActiveModel()) return "Bạn chưa chọn hoặc nhập tên model AI.";
-      return "";
-    }
+  function setWordProperty(doc,parent,name,attribute,value){let element=parent.getElementsByTagNameNS(W_NS,name)[0];if(!element){element=doc.createElementNS(W_NS,`w:${name}`);parent.appendChild(element);}element.setAttributeNS(W_NS,`w:${attribute}`,value);}
+  function setWordToggle(doc,parent,name){if(!parent.getElementsByTagNameNS(W_NS,name)[0])parent.appendChild(doc.createElementNS(W_NS,`w:${name}`));}
+  function getDirectChild(parent,namespace,localName){return Array.from(parent.children||[]).find(child=>child.namespaceURI===namespace&&child.localName===localName)||null;}
 
-    function truncateForPrompt(text, max) {
-      if (text.length <= max) return text;
-      return text.slice(0, max) + `\n\n[Đã rút gọn do nội dung quá dài. Tổng độ dài gốc: ${text.length} kí tự.]`;
-    }
+  function findBodyTemplate(nodes,anchorIndex){
+    const anchor=nodes[anchorIndex];for(let distance=1;distance<=7;distance++){for(const index of [anchorIndex- distance,anchorIndex+distance]){const node=nodes[index];if(!node||!node.node||!node.text||node.isHeading)continue;if(anchor.location.startsWith("Bảng")&&!node.location.startsWith(anchor.location.split(", ô")[0]))continue;return node.node;}}return null;
+  }
 
-    function buildPrompt() {
-      const rawLesson = els.manualLesson.value.trim() || state.lessonText;
-      const rawPpct = state.ppctText;
-      const combinedLength = rawLesson.length + rawPpct.length;
-      const longMode = els.safeLongOption.checked && combinedLength > APP.longInputThreshold;
-      const lesson = truncateForPrompt(rawLesson, longMode ? 30000 : APP.maxLessonChars, "lesson");
-      const ppct = truncateForPrompt(rawPpct, longMode ? 8000 : APP.maxPpctChars, "ppct");
-      const subjectHint = SUBJECT_GUIDANCE[state.subject] || "Hãy chọn năng lực số phù hợp với đặc thù môn học, tránh gượng ép, tránh biến tiết học thành tiết Tin học.";
-      const useAI = els.aiOption.checked;
-      const nlsCount = els.nlsCount.value;
-      const nlsCountText = nlsCount === "auto" ? "Tự động hợp lí, ưu tiên 1-3 năng lực chính" : `${nlsCount} năng lực chính`;
+  function insertAtAnchor(anchor,nodes,position,cursors){
+    const parent=anchor.parentNode;if(!parent)throw new Error("Vị trí chèn không còn thuộc tài liệu.");
+    if(position==="before"){for(const node of nodes)parent.insertBefore(node,anchor);return;}
+    let cursor=cursors.get(anchor)||anchor;for(const node of nodes){parent.insertBefore(node,cursor.nextSibling);cursor=node;}cursors.set(anchor,cursor);
+  }
 
-      return `
-Bạn là trợ lý chuyên hỗ trợ giáo viên Việt Nam soạn Kế hoạch bài dạy theo định hướng phát triển phẩm chất, năng lực và tích hợp năng lực số.
+  function verifyPreservation(expected,output){
+    let cursor=0;for(const original of expected){let found=false;while(cursor<output.length){if(output[cursor]===original){found=true;cursor++;break;}cursor++;}if(!found)throw new Error(`Kiểm tra bảo toàn thất bại tại nội dung: “${shorten(original,90)}”. Tệp chưa được xuất để tránh làm mất nội dung gốc.`);}
+  }
 
-THÔNG TIN:
-- Môn học: ${state.subject}
-- Khối lớp: Lớp ${state.grade}
-- Yêu cầu thêm năng lực AI: ${useAI ? "Có" : "Không"}
-- Số năng lực số muốn tích hợp: ${nlsCountText}
-- Chế độ xử lí tài liệu dài: ${longMode ? "Có - ưu tiên trả kết quả gọn, chắc chắn" : "Không"}
+  function downloadPlan(){
+    if(!state.plan)return;const plan=state.plan;const lines=["ĐỀ XUẤT TÍCH HỢP NĂNG LỰC SỐ",`Môn: ${state.subject} – Lớp ${state.grade}`,"",`Hướng tích hợp: ${plan.summary}`,"","1. NĂNG LỰC SỐ TRONG MỤC TIÊU",...plan.competencies.map(item=>`- ${item.code}: ${item.criterion}`),"","2. VỊ TRÍ TÍCH HỢP TRONG HOẠT ĐỘNG"];
+    plan.activities.forEach((item,index)=>lines.push(`\n${index+1}. ${item.activityName} – ${item.targetField}`,`Vị trí: ${item.position==="before"?"trước":"sau"} ${item.anchorId}: ${item.anchorText}`,`Mã: ${item.codes.join(", ")}`,`Nội dung: ${item.text}`));if(plan.warnings.length)lines.push("","LƯU Ý",...plan.warnings.map(item=>`- ${item}`));
+    downloadBlob(new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"}),`De_xuat_NLS_${removeVietnameseTones(state.subject).replace(/\s+/g,"_")}_lop_${state.grade}.txt`);
+  }
 
-${DIGITAL_COMPETENCE_FRAMEWORK}
+  function makeOutputFileName(input){const base=input.replace(/\.docx$/i,"").replace(/[\\/:*?"<>|]+/g,"_");return `${base}_tich_hop_NLS.docx`;}
+  function downloadBlob(blob,fileName){const url=URL.createObjectURL(blob);const anchor=document.createElement("a");anchor.href=url;anchor.download=fileName;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 
-${subjectHint}
+  function clearAll(){
+    state.lesson=null;state.ppctText="";state.ppctName="";state.plan=null;els.lessonFile.value="";els.ppctFile.value="";els.manualLesson.value="";els.nlsCount.value="3";els.aiOption.checked=false;
+    resetUploadBox(els.lessonBox);resetUploadBox(els.ppctBox);els.lessonTitle.textContent="Tải lên giáo án";els.lessonSub.textContent="DOCX để giữ nguyên mẫu; PDF chỉ dùng tham khảo";els.ppctTitle.textContent="Tải lên PPCT";els.ppctSub.textContent="Giúp AI hiểu thêm bài học nếu có";hideResult();els.statusCard.classList.remove("show");clearNotice();window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function hideResult(){els.resultCard.classList.remove("show");els.planView.innerHTML="";els.fallbackNote.classList.remove("show");}
+  function resetUploadBox(box){box.classList.remove("loaded","warning");}
+  function setBusy(isBusy,applyOnly=false){state.busy=isBusy;if(!applyOnly){els.generateBtn.disabled=isBusy;els.generateBtn.textContent=isBusy?"ĐANG PHÂN TÍCH...":"✨ PHÂN TÍCH VÀ ĐỀ XUẤT TÍCH HỢP";}els.applyBtn.disabled=isBusy||(getLessonSource()?.type!=="docx");}
+  function updateApplyButton(text){els.applyBtn.textContent=text;}
+  function updateProgress(percent,text){const safe=Math.max(0,Math.min(100,percent));els.progressCircle.style.setProperty("--p",safe);els.progressNumber.textContent=`${safe}%`;els.progressBar.style.width=`${safe}%`;els.statusText.textContent=text;}
+  function showNotice(message,type="error"){els.notice.textContent=message;els.notice.className=`notice ${type} show`;if(type==="error")window.scrollTo({top:0,behavior:"smooth"});}
+  function clearNotice(){els.notice.className="notice";els.notice.textContent="";}
+  function friendlyError(error){const message=error?.message||String(error);if(/API key not valid|API_KEY_INVALID/i.test(message))return "API Key không hợp lệ. Hãy tạo hoặc nhập lại key.";if(/not found|is not found|404/i.test(message)&&/model/i.test(message))return "Model không tồn tại hoặc không được API Key hỗ trợ. Hãy chọn model khác.";if(/quota|429|RESOURCE_EXHAUSTED/i.test(message))return "Đã vượt hạn mức hoặc model đang quá tải. Hãy chờ một lúc hoặc đổi model.";return message;}
+  function shorten(text,max){const value=String(text||"");return value.length<=max?value:`${value.slice(0,max-1)}…`;}
+  function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+  function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[char]));}
+  function removeVietnameseTones(value){return String(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").replace(/[^a-zA-Z0-9_\s-]/g,"");}
 
-YÊU CẦU XỬ LÍ:
-1. Đọc giáo án gốc và xác định đúng các hoạt động học trong nội dung được cung cấp. Giáo án tải lên có thể chỉ là một phần của một bài/chủ đề lớn; không tự mở rộng sang các phần khác nếu giáo án gốc không có.
-2. Tích hợp NLS theo tinh thần: phù hợp, thực tiễn, không gây quá tải, không biến tiết học thành tiết Tin học.
-3. Số năng lực số chính cần chọn: ${nlsCountText}. Nếu người dùng chọn số cụ thể, hãy cố gắng chọn đúng số đó; nếu không đủ vị trí phù hợp thì chọn ít hơn và nêu lí do ngắn gọn.
-4. Mỗi năng lực số chính phải có vị trí chèn rõ ràng trong hoạt động học; tránh nhồi nhiều năng lực vào một hoạt động.
-5. Bổ sung NLS vào đúng vị trí: mục tiêu, nội dung, sản phẩm, tổ chức thực hiện hoặc đánh giá.
-6. Nội dung bổ sung phải ngắn, rõ, dùng được ngay trong giáo án.
-7. Đánh dấu rõ phần bổ sung bằng tiền tố: 🔴 [NLS]
-8. Nếu có PPCT và PPCT nêu rõ năng lực số/mã năng lực, phải ưu tiên bám PPCT, không tự bịa thêm năng lực không có căn cứ.
-9. Nếu yêu cầu thêm năng lực AI là “Không”, không đưa AI vào trừ khi thật sự cần. Nếu “Có”, thêm hoạt động dùng AI có kiểm chứng, có đạo đức sử dụng, không để học sinh chép nguyên văn.
-
-${longMode ? `
-VÌ TÀI LIỆU DÀI/PHỨC TẠP, KHÔNG VIẾT LẠI TOÀN BỘ GIÁO ÁN. Hãy trả về bản "PHẦN BỔ SUNG NĂNG LỰC SỐ ĐỂ CHÈN VÀO GIÁO ÁN" gồm:
-A. Mục tiêu cần bổ sung.
-B. Bảng vị trí chèn theo từng hoạt động: Hoạt động - Năng lực số chính - Vị trí chèn - Nội dung NLS đề xuất - Sản phẩm/đánh giá.
-C. Lưu ý triển khai để không quá tải.
-D. Nếu có AI: yêu cầu kiểm chứng, trích dẫn, bảo mật dữ liệu.
-` : `
-Trả về GIÁO ÁN HOÀN CHỈNH ĐÃ TÍCH HỢP. Giữ tối đa cấu trúc và nội dung gốc của giáo án, không giải thích ngoài lề.
-`}
-
-PHÂN PHỐI CHƯƠNG TRÌNH/THAM KHẢO NẾU CÓ:
-${ppct || "[Không có PPCT]"}
-
-GIÁO ÁN GỐC:
-${lesson}
-`;
-    }
-
-    async function callGemini(prompt) {
-      const model = getActiveModel().replace(/^models\//, "").trim();
-      const url = APP.endpoint
-        .replace("{MODEL}", encodeURIComponent(model))
-        .replace("{KEY}", encodeURIComponent(state.apiKey.trim()));
-
-      const body = {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.28,
-          topP: 0.9,
-          maxOutputTokens: 8192,
-        }
-      };
-
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), APP.requestTimeoutMs);
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const message = data?.error?.message || `Lỗi HTTP ${response.status}`;
-          throw new Error(message);
-        }
-
-        const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n") || "";
-        if (!text.trim()) {
-          const reason = data?.candidates?.[0]?.finishReason || "Không rõ nguyên nhân";
-          throw new Error(`Gemini không trả về nội dung. Finish reason: ${reason}`);
-        }
-        return text.trim();
-      } catch (err) {
-        if (err.name === "AbortError") {
-          throw new Error("Quá thời gian chờ. Tài liệu có thể quá dài hoặc model đang phản hồi chậm. App đã có chế độ rút gọn; hãy thử lại hoặc chọn model nhẹ hơn.");
-        }
-        throw err;
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-
-    async function handleGenerate() {
-      clearError();
-      const validationMessage = validateBeforeGenerate();
-      if (validationMessage) { showError(validationMessage); return; }
-
-      try {
-        state.isBusy = true;
-        setBusy(true);
-        els.resultCard.classList.remove("show");
-        els.statusCard.classList.add("show");
-        updateProgress(5, "Đang chuẩn bị dữ liệu...");
-        await sleep(250);
-        updateProgress(22, "Đang đọc giáo án và PPCT...");
-        await sleep(250);
-        const prompt = buildPrompt();
-        updateProgress(38, "Đang phân tích vị trí tích hợp năng lực số...");
-        await sleep(250);
-        updateProgress(52, "Đang gửi yêu cầu tới Gemini...");
-        const result = await callGemini(prompt);
-        updateProgress(86, "Đang hoàn thiện bản giáo án...");
-        await sleep(350);
-        state.result = result;
-        els.resultArea.value = result;
-        updateProgress(100, "Hoàn tất!");
-        await sleep(500);
-        els.statusCard.classList.remove("show");
-        els.resultCard.classList.add("show");
-        els.resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
-      } catch (err) {
-        console.error(err);
-        showError(`<strong>Có lỗi khi soạn giáo án:</strong> ${escapeHtml(err.message || String(err))}<br><br>
-        Gợi ý: kiểm tra API key, đổi model sang <b>gemini-2.5-flash</b>, bật <b>Chế độ an toàn khi giáo án/PPCT dài</b>, hoặc dán phần giáo án cần xử lí vào ô thủ công.`);
-      } finally {
-        state.isBusy = false;
-        setBusy(false);
-      }
-    }
-
-    function setBusy(isBusy) {
-      els.generateBtn.disabled = isBusy;
-      els.generateBtn.textContent = isBusy ? "ĐANG XỬ LÝ..." : "✨ BẮT ĐẦU SOẠN GIÁO ÁN";
-    }
-
-    function updateProgress(percent, text) {
-      const safe = Math.max(0, Math.min(100, percent));
-      els.progressCircle.style.setProperty("--p", safe);
-      els.progressNumber.textContent = `${safe}%`;
-      els.progressBar.style.width = `${safe}%`;
-      els.statusText.textContent = text;
-    }
-
-    /*****************************************************************
-     * EXPORT
-     *****************************************************************/
-    function getResultText() {
-      return els.resultArea.value.trim();
-    }
-
-    async function copyResult() {
-      const text = getResultText();
-      if (!text) return;
-      await navigator.clipboard.writeText(text);
-      els.copyBtn.textContent = "✅ Đã sao chép";
-      setTimeout(() => els.copyBtn.textContent = "📋 Sao chép", 1500);
-    }
-
-    function downloadTxt() {
-      const text = getResultText();
-      if (!text) return;
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      downloadBlob(blob, makeFileName("txt"));
-    }
-
-    async function downloadDocx() {
-      const text = getResultText();
-      if (!text) return;
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Giáo án NLS</title>
-        <style>body{font-family:"Times New Roman",serif;font-size:13pt;line-height:1.45} .nls{color:#c00000;font-weight:bold}</style>
-        </head><body>${textToHtml(text)}</body></html>`;
-      const blob = new Blob(['\ufeff', html], { type: "application/msword;charset=utf-8" });
-      downloadBlob(blob, makeFileName("doc"));
-    }
-
-    function textToHtml(text) {
-      return escapeHtml(text)
-        .replace(/🔴 \[NLS\]/g, '<span class="nls">[NLS]</span>')
-        .split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
-    }
-
-    function textToDocxParagraphs(text) {
-      const lines = text.replace(/\r\n/g, "\n").split("\n");
-      return lines.map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return new Paragraph({ text: "" });
-
-        const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
-        if (headingMatch) {
-          const level = headingMatch[1].length === 1 ? HeadingLevel.HEADING_1 : headingMatch[1].length === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3;
-          return new Paragraph({ text: headingMatch[2], heading: level });
-        }
-
-        const isLikelyHeading = trimmed.length < 90 && (
-          /^[IVX]+\./.test(trimmed) ||
-          /^\d+\./.test(trimmed) ||
-          /^[A-ZÀ-Ỵ\s]{8,}$/.test(trimmed)
-        );
-
-        const runs = [];
-        const parts = trimmed.split(/(🔴 \[NLS\])/g).filter(Boolean);
-        for (let i = 0; i < parts.length; i++) {
-          const part = parts[i];
-          if (part === "🔴 [NLS]") {
-            const next = parts[i + 1] || "";
-            runs.push(new TextRun({ text: "[NLS]" + next, color: "C00000", bold: true }));
-            i++;
-          } else {
-            runs.push(new TextRun({ text: part, bold: isLikelyHeading }));
-          }
-        }
-        return new Paragraph({
-          children: runs.length ? runs : [new TextRun(trimmed)],
-          spacing: { after: 120 },
-        });
-      });
-    }
-
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
-
-    function makeFileName(ext) {
-      const safeSubject = removeVietnameseTones(state.subject).replace(/\s+/g, "_");
-      const date = new Date().toISOString().slice(0, 10);
-      return `Giao_an_NLS_${safeSubject}_lop_${state.grade}_${date}.${ext}`;
-    }
-
-    function clearAll() {
-      state.lessonText = ""; state.ppctText = ""; state.lessonFileName = ""; state.ppctFileName = ""; state.result = "";
-      els.lessonFile.value = ""; els.ppctFile.value = ""; els.manualLesson.value = ""; els.nlsCount.value = "3"; els.resultArea.value = "";
-      els.lessonBox.classList.remove("loaded"); els.ppctBox.classList.remove("loaded");
-      els.lessonTitle.textContent = "Tải lên Giáo án"; els.lessonSub.textContent = "Giáo án bài dạy cần tích hợp";
-      els.ppctTitle.textContent = "Tải lên PPCT"; els.ppctSub.textContent = "Tài liệu tham khảo năng lực nếu có";
-      els.statusCard.classList.remove("show"); els.resultCard.classList.remove("show");
-      clearError();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    /*****************************************************************
-     * SETTINGS
-     *****************************************************************/
-    function openSettings() {
-      els.apiKey.value = state.apiKey;
-      els.apiKeyHeader.value = state.apiKey;
-      els.customModel.value = state.customModel;
-      renderModelSelection();
-      els.modal.classList.add("show");
-      els.modal.setAttribute("aria-hidden", "false");
-      setTimeout(() => els.apiKey.focus(), 100);
-    }
-    function closeSettings() {
-      els.modal.classList.remove("show");
-      els.modal.setAttribute("aria-hidden", "true");
-    }
-    function saveSettings() {
-      state.apiKey = els.apiKey.value.trim();
-      els.apiKeyHeader.value = state.apiKey;
-      state.customModel = els.customModel.value.trim();
-      localStorage.setItem(APP.apiStorageKey, state.apiKey);
-      localStorage.setItem(APP.modelStorageKey, state.model);
-      localStorage.setItem(APP.customModelStorageKey, state.customModel);
-      closeSettings();
-      clearError();
-    }
-
-    function syncApiKeyFromHeader() {
-      state.apiKey = (els.apiKeyHeader.value || "").trim();
-      if (state.apiKey) localStorage.setItem(APP.apiStorageKey, state.apiKey);
-      if (els.apiKey.value !== state.apiKey) els.apiKey.value = state.apiKey;
-    }
-
-    /*****************************************************************
-     * UTILITIES
-     *****************************************************************/
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>'"]/g, char => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;"
-      }[char]));
-    }
-
-    function removeVietnameseTones(str) {
-      return str.normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/đ/g, "d").replace(/Đ/g, "D")
-        .replace(/[^a-zA-Z0-9_\s-]/g, "");
-    }
-
-    /*****************************************************************
-     * EVENTS
-     *****************************************************************/
-    initSelects();
-    initModelList();
-
-    els.lessonFile.addEventListener("change", (e) => e.target.files[0] && readUploadedFile(e.target.files[0], "lesson"));
-    els.ppctFile.addEventListener("change", (e) => e.target.files[0] && readUploadedFile(e.target.files[0], "ppct"));
-    els.generateBtn.addEventListener("click", handleGenerate);
-    els.copyBtn.addEventListener("click", copyResult);
-    els.txtBtn.addEventListener("click", downloadTxt);
-    els.docxBtn.addEventListener("click", downloadDocx);
-    els.printBtn.addEventListener("click", () => window.print());
-    els.clearBtn.addEventListener("click", clearAll);
-    els.apiKeyHeader.addEventListener("input", syncApiKeyFromHeader);
-    els.openSettingsTop.addEventListener("click", openSettings);
-    els.openSettingsLink.addEventListener("click", openSettings);
-    els.closeSettings.addEventListener("click", closeSettings);
-    els.saveSettings.addEventListener("click", saveSettings);
-    els.modal.addEventListener("click", (e) => { if (e.target === els.modal) closeSettings(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
+  init();
   </script>
 </body>
 </html>
