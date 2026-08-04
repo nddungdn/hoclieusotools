@@ -120,7 +120,7 @@
   }
 
   async function loadLiveTerms() {
-    showStatus('loading', 'Đang đồng bộ dữ liệu thuật ngữ từ Google Sheet…', false);
+    showStatus('loading', 'Đang đồng bộ dữ liệu.', false);
 
     try {
       const payload = await loadGoogleSheetData();
@@ -135,7 +135,7 @@
       const liveTerms = normalizeTerms(rawTerms);
 
       if (!liveTerms.length) {
-        throw new Error('Google Apps Script không trả về danh sách thuật ngữ hợp lệ');
+        throw new Error('Không trả về danh sách thuật ngữ hợp lệ');
       }
 
       state.terms = liveTerms;
@@ -143,7 +143,7 @@
       writeLiveCache(liveTerms);
       reconcileSelection();
       renderAll();
-      showStatus('success', `Đã đồng bộ ${liveTerms.length} thuật ngữ từ Google Sheet.`, true);
+      showStatus('success', `Đã đồng bộ ${liveTerms.length} thuật ngữ.`, true);
     } catch (error) {
       showStatus('warning', 'Chưa thể kết nối dữ liệu.', false);
       console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', {
