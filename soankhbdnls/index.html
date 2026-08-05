@@ -37,7 +37,7 @@
     .card,.side-card{background:rgba(255,255,255,.94);border:1px solid var(--blue-100);border-radius:var(--radius);box-shadow:var(--shadow)}
     .card{padding:24px;margin-bottom:22px}.side-card{padding:20px;margin-bottom:18px}.side{position:sticky;top:18px}
     .section-title{display:flex;align-items:center;gap:11px;margin:0 0 20px;color:#123f8c;font-size:18px;font-weight:800}.section-title:before{content:"";width:4px;height:30px;border-radius:99px;background:var(--blue-600)}
-    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.span-2{grid-column:1/-1}
     label{display:block;margin:0 0 8px;color:var(--slate-700);font-size:14px;font-weight:700}.hint{display:block;margin-top:6px;color:var(--slate-500);font-size:12.5px;line-height:1.5}
     select,input[type="text"],input[type="password"],textarea{width:100%;border:1px solid var(--slate-200);border-radius:12px;background:var(--slate-50);color:var(--slate-800);padding:11px 13px;outline:none;transition:.16s}
     select:focus,input:focus,textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(59,130,246,.13)} textarea{resize:vertical;line-height:1.55}
@@ -47,26 +47,26 @@
     .upload-title{font-weight:800;margin-bottom:7px}.upload-sub{color:var(--slate-500);font-size:13.5px;line-height:1.45;word-break:break-word}.support{display:inline-block;margin-top:10px;padding:5px 9px;border:1px solid var(--blue-100);border-radius:8px;background:#fff;color:var(--blue-600);font-size:12px}
     .required,.optional{margin-top:9px;font-size:12.5px;line-height:1.45}.required{color:var(--red-600)}.optional{color:var(--slate-500)}
     details.manual{border:1px solid var(--blue-100);border-radius:14px;background:var(--blue-50);padding:14px 16px}details.manual summary{cursor:pointer;color:var(--blue-800);font-weight:800}details.manual textarea{min-height:160px;margin-top:14px;background:#fff}
-    .check-line{display:flex;align-items:flex-start;gap:11px;margin:0;border:1px solid var(--blue-200);border-radius:14px;background:#f2f8ff;padding:14px}.check-line input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue-600);flex:0 0 auto}.check-line strong{display:block;font-size:14px}.check-line .hint{margin-top:4px}
+    .check-line{display:flex;align-items:flex-start;gap:11px;margin:0;border:1px solid var(--blue-200);border-radius:14px;background:#f2f8ff;padding:14px}.check-line input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue-600);flex:0 0 auto}.check-line strong{display:block;font-size:14px}.check-line .hint{margin-top:4px}.conditional-panel{border:1px solid var(--blue-200);border-radius:14px;background:#f6faff;padding:15px}.conditional-panel textarea{min-height:118px;background:#fff}
     .notice{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;line-height:1.55;font-size:14px}.notice.show{display:block}.notice.error{border:1px solid var(--red-200);background:var(--red-50);color:var(--red-700)}.notice.warn{border:1px solid var(--amber-200);background:var(--amber-50);color:#92400e}.notice.success{border:1px solid #86efac;background:var(--green-50);color:var(--green-700)}
     .main-button{width:100%;border:0;border-radius:15px;background:linear-gradient(90deg,var(--blue-600),var(--indigo));color:#fff;padding:16px 20px;font-size:16px;font-weight:800;box-shadow:0 11px 24px rgba(37,99,235,.25);transition:.16s}.main-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 29px rgba(37,99,235,.3)}
     .status-card,.result-card{display:none}.status-card.show,.result-card.show{display:block}.status-wrap{display:flex;align-items:center;gap:18px}.circle{--p:0;width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--blue-600) calc(var(--p)*1%),var(--blue-100) 0);position:relative;flex:0 0 auto}.circle:before{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff}.circle strong{position:relative;color:var(--blue-700)}.status-copy{min-width:0;flex:1}.status-text{font-weight:800;color:var(--blue-800)}.bar{height:9px;margin-top:10px;border-radius:99px;background:var(--blue-100);overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue-500),var(--indigo));transition:width .3s}
     .result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.result-head .section-title{margin-bottom:5px}.tool-buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid var(--slate-200);border-radius:10px;background:#fff;color:var(--slate-700);padding:9px 12px;font-size:13px;font-weight:800}.btn:hover:not(:disabled){border-color:var(--blue-300);background:var(--blue-50)}.btn.primary{border-color:var(--blue-600);background:var(--blue-600);color:#fff}.btn.success{border-color:var(--green-600);background:var(--green-600);color:#fff}.btn.danger{border-color:var(--red-200);color:var(--red-600)}
     .summary-box{border:1px solid var(--blue-100);border-radius:14px;background:var(--blue-50);padding:14px 16px;line-height:1.55}.summary-box b{color:var(--blue-800)}
     .competency-list{display:grid;gap:10px;margin:15px 0}.competency{border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}.code{display:inline-flex;align-items:center;border-radius:8px;background:#dbeafe;color:#1e40af;padding:4px 7px;font-size:12px;font-weight:800;white-space:nowrap}.competency p{margin:1px 0 0;font-size:13.5px;line-height:1.5}
-    .insert-card{border:1px solid var(--slate-200);border-radius:14px;background:#fff;padding:16px;margin-top:12px}.insert-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.insert-title{font-weight:800;color:var(--slate-800)}.anchor{margin:7px 0 11px;color:var(--slate-500);font-size:12.5px;line-height:1.5}.insert-card textarea{min-height:104px;background:var(--slate-50)}.mini-row{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.step-grid{display:grid;gap:11px}.step-editor{border-left:3px solid var(--blue-200);padding-left:11px}.step-editor label{margin-bottom:3px;color:var(--blue-800)}.step-editor textarea{min-height:88px}.step-editor .hint{display:block;margin-bottom:6px}.warning-list{margin:14px 0 0;padding:12px 16px 12px 34px;border:1px solid var(--amber-200);border-radius:12px;background:var(--amber-50);color:#92400e;font-size:13px;line-height:1.55}
+    .insert-card{border:1px solid var(--slate-200);border-radius:14px;background:#fff;padding:16px;margin-top:12px}.insert-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.insert-title{font-weight:800;color:var(--slate-800)}.anchor{margin:7px 0 11px;color:var(--slate-500);font-size:12.5px;line-height:1.5}.insert-card textarea{min-height:104px;background:var(--slate-50)}.mini-row{display:grid;grid-template-columns:210px 1fr;gap:10px;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.step-grid{display:grid;gap:11px}.step-editor{border-left:3px solid var(--blue-200);padding-left:11px}.step-editor label{margin-bottom:3px;color:var(--blue-800)}.step-editor textarea{min-height:88px}.step-editor .hint{display:block;margin-bottom:6px}.warning-list{margin:14px 0 0;padding:12px 16px 12px 34px;border:1px solid var(--amber-200);border-radius:12px;background:var(--amber-50);color:#92400e;font-size:13px;line-height:1.55}.infographic-preview{margin-top:14px;border:1px solid var(--blue-100);border-radius:16px;background:linear-gradient(145deg,#eff6ff,#fff);padding:16px;display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:18px;align-items:center}.infographic-preview img{display:block;width:100%;aspect-ratio:9/16;object-fit:contain;border-radius:12px;background:#e2e8f0;box-shadow:0 10px 24px rgba(30,64,175,.16)}.infographic-copy h4{margin:0 0 8px;color:var(--blue-800);font-size:16px}.infographic-copy p{margin:0 0 13px;color:var(--slate-600);font-size:13.5px;line-height:1.6}
     .side-card h3{margin:0 0 14px;color:var(--blue-800);font-size:16px}.side-card ol,.side-card ul{margin:0;padding-left:20px;color:var(--slate-600);font-size:13.5px;line-height:1.65}.side-card li+li{margin-top:7px}.side-card p{margin:0;color:var(--slate-600);font-size:13px;line-height:1.6}.badge{display:inline-flex;margin-bottom:10px;border-radius:999px;background:var(--green-100);color:var(--green-700);padding:5px 9px;font-size:11.5px;font-weight:800}
     .modal-backdrop{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.55)}.modal-backdrop.show{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--slate-200)}.modal-head h2{margin:0;color:var(--blue-800);font-size:19px}.close{width:36px;height:36px;border:0;border-radius:10px;background:var(--slate-100);font-size:22px}.modal-body{padding:20px}.model-list{display:grid;gap:9px}.model-option{width:100%;border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px;text-align:left;display:flex;justify-content:space-between;gap:12px}.model-option.selected{border-color:var(--blue-500);background:var(--blue-50)}.model-name{display:block;font-weight:800;color:var(--slate-800)}.model-desc{display:block;margin-top:3px;color:var(--slate-500);font-size:12px}.model-option .tick{visibility:hidden;color:var(--blue-600);font-weight:900}.model-option.selected .tick{visibility:visible}.modal-actions{display:flex;justify-content:flex-end;margin-top:18px}
     .hidden{display:none!important}
     @media(max-width:940px){.layout{grid-template-columns:1fr}.side{position:static;order:-1}.side .guide{display:none}.header-inner{align-items:flex-start;flex-direction:column}.header-api{width:min(100%,540px)}}
-    @media(max-width:680px){.page,.header-inner{width:min(100% - 20px,1180px)}.card,.side-card{padding:17px}.grid-2,.grid-3,.upload-grid{grid-template-columns:1fr}.result-head{display:block}.tool-buttons{justify-content:flex-start;margin-top:12px}.mini-row{grid-template-columns:1fr}.status-wrap{align-items:flex-start}.brand-icon{width:46px;height:46px;font-size:24px}.header-api{min-width:0}.main-button{font-size:15px}}
+    @media(max-width:680px){.page,.header-inner{width:min(100% - 20px,1180px)}.card,.side-card{padding:17px}.grid-2,.grid-3,.upload-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.result-head{display:block}.tool-buttons{justify-content:flex-start;margin-top:12px}.mini-row,.infographic-preview{grid-template-columns:1fr}.infographic-preview img{width:min(280px,100%);margin:auto}.status-wrap{align-items:flex-start}.brand-icon{width:46px;height:46px;font-size:24px}.header-api{min-width:0}.main-button{font-size:15px}}
     @media print{.app-header,.side,.card:not(.result-card),.tool-buttons,.notice,.modal-backdrop{display:none!important}.page,.layout{width:100%;margin:0;display:block}.result-card{display:block!important;border:0;box-shadow:none}.insert-card textarea{border:0;background:#fff;resize:none}}
   </style>
 </head>
 <body>
   <header class="app-header">
     <div class="header-inner">
-      <div class="brand"><div class="brand-icon">🎓</div><div><h1>TIỆN ÍCH HỖ TRỢ BỔ SUNG NĂNG LỰC SỐ CHO KHBD</h1><p>Tiện ích được xây dựng bởi WWW.HOCLIEUSO.ID.VN</p></div></div>
+      <div class="brand"><div class="brand-icon">🎓</div><div><h1>SOẠN GIÁO ÁN TÍCH HỢP NĂNG LỰC SỐ</h1><p>Giữ nguyên mẫu DOCX gốc · Bổ sung NLS và AI đúng vị trí</p></div></div>
       <div class="header-api">
         <div class="header-api-line"><input id="apiKeyHeader" type="password" placeholder="Nhập Gemini API Key" autocomplete="off"><button id="openSettingsTop" class="icon-btn" type="button" title="Cấu hình model">⚙️</button></div>
         <a class="api-link" href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
@@ -114,6 +114,13 @@
             <div><label for="deviceMode">Điều kiện thiết bị</label><select id="deviceMode"><option value="auto">Tự xác định theo giáo án</option><option value="no-personal">Không dùng thiết bị cá nhân trên lớp</option><option value="teacher">Giáo viên thao tác/trình chiếu</option><option value="group">Học sinh dùng thiết bị theo nhóm</option><option value="lab">Học tại phòng máy</option><option value="home">Học sinh thực hiện ở nhà</option></select></div>
             <div><label for="integrationPlace">Vị trí ưu tiên</label><select id="integrationPlace"><option value="auto">AI tự chọn phù hợp</option><option value="formation">Hình thành kiến thức/Khám phá</option><option value="practice">Luyện tập</option><option value="application">Vận dụng/Mở rộng</option></select></div>
             <div><label for="studentDeviceAccess">Quyền dùng thiết bị trong giờ học</label><select id="studentDeviceAccess"><option value="allowed">Học sinh được sử dụng thiết bị công nghệ trong giờ học</option><option value="not-allowed">Học sinh không được sử dụng thiết bị công nghệ trong giờ học</option></select></div>
+            <div class="span-2"><label for="infographicOption">Tạo infographics cung cấp kiến thức NLS</label><select id="infographicOption"><option value="create">Tạo infographics</option><option value="none" selected>Không tạo infographics</option></select><span class="hint">Nếu chọn tạo, ảnh dọc 9:16 sẽ được xem trước và gắn thành phụ lục ở cuối giáo án DOCX.</span></div>
+            <div id="infographicSettings" class="span-2 conditional-panel hidden">
+              <label for="infographicSourceMode">Nguồn tạo infographic</label>
+              <select id="infographicSourceMode"><option value="ai">AI tự xây dựng từ giáo án và mã NLS</option><option value="teacher">Giáo viên cung cấp văn bản hoặc đường link</option></select>
+              <span id="infographicAiHint" class="hint">AI sẽ chọn lọc kiến thức trọng tâm, phù hợp bài học và khối lớp.</span>
+              <div id="infographicTeacherSource" class="hidden" style="margin-top:14px"><label for="infographicSourceInput">Nội dung hoặc đường link tham khảo</label><textarea id="infographicSourceInput" placeholder="Dán nội dung, đường link công khai hoặc kết hợp cả hai. Ví dụ: https://...&#10;&#10;Nội dung cần ưu tiên..."></textarea><span class="hint">Link phải truy cập công khai, không yêu cầu đăng nhập. AI chỉ dùng nguồn này để chọn lọc kiến thức cho infographic.</span></div>
+            </div>
           </div>
           <div style="height:16px"></div>
           <div class="grid-2">
@@ -172,9 +179,16 @@
     maxFileBytes: 30 * 1024 * 1024,
     maxModelAttempts: 3,
     retryDelayMs: 1200,
+    infographicWidth: 1080,
+    infographicHeight: 1920,
   };
 
   const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const RELS_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
+  const WP_NS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+  const A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main";
+  const PIC_NS = "http://schemas.openxmlformats.org/drawingml/2006/picture";
   const SUBJECTS = ["Ngữ văn","Toán","Tiếng Anh","Khoa học tự nhiên","Vật lí","Hóa học","Sinh học","Lịch sử và Địa lí","Lịch sử","Địa lí","Giáo dục công dân","Tin học","Công nghệ","Giáo dục thể chất","Nghệ thuật","Âm nhạc","Mĩ thuật","Hoạt động trải nghiệm, hướng nghiệp","Giáo dục địa phương"];
   const MODELS = [
     {id:"gemini-2.5-flash",name:"Gemini 2.5 Flash",desc:"Cân bằng tốc độ và chất lượng"},
@@ -313,7 +327,7 @@
   }
 
   const state = {
-    subject:"Ngữ văn", grade:7, lesson:null, ppctText:"", ppctName:"", plan:null, busy:false,lastModelUsed:"",recoveryCount:0,
+    subject:"Ngữ văn", grade:7, lesson:null, ppctText:"", ppctName:"", plan:null, infographic:null, infographicSourceText:"", infographicSourceWarning:"", busy:false,lastModelUsed:"",recoveryCount:0,
     apiKey:sessionStorage.getItem(APP.apiStorageKey)||localStorage.getItem(APP.apiStorageKey)||"",
     model:localStorage.getItem(APP.modelStorageKey)||"gemini-2.5-flash",
     customModel:localStorage.getItem(APP.customModelStorageKey)||"",
@@ -323,7 +337,7 @@
   const els={
     notice:$("#notice"),subject:$("#subject"),grade:$("#grade"),lessonFile:$("#lessonFile"),ppctFile:$("#ppctFile"),
     lessonBox:$("#lessonBox"),ppctBox:$("#ppctBox"),lessonTitle:$("#lessonTitle"),lessonSub:$("#lessonSub"),ppctTitle:$("#ppctTitle"),ppctSub:$("#ppctSub"),
-    manualLesson:$("#manualLesson"),nlsCount:$("#nlsCount"),deviceMode:$("#deviceMode"),integrationPlace:$("#integrationPlace"),studentDeviceAccess:$("#studentDeviceAccess"),aiOption:$("#aiOption"),highlightOption:$("#highlightOption"),safeLongOption:$("#safeLongOption"),
+    manualLesson:$("#manualLesson"),nlsCount:$("#nlsCount"),deviceMode:$("#deviceMode"),integrationPlace:$("#integrationPlace"),studentDeviceAccess:$("#studentDeviceAccess"),infographicOption:$("#infographicOption"),infographicSettings:$("#infographicSettings"),infographicSourceMode:$("#infographicSourceMode"),infographicAiHint:$("#infographicAiHint"),infographicTeacherSource:$("#infographicTeacherSource"),infographicSourceInput:$("#infographicSourceInput"),aiOption:$("#aiOption"),highlightOption:$("#highlightOption"),safeLongOption:$("#safeLongOption"),
     generateBtn:$("#generateBtn"),statusCard:$("#statusCard"),progressCircle:$("#progressCircle"),progressNumber:$("#progressNumber"),progressBar:$("#progressBar"),statusText:$("#statusText"),
     resultCard:$("#resultCard"),planView:$("#planView"),applyBtn:$("#applyBtn"),fallbackNote:$("#fallbackNote"),downloadPlanBtn:$("#downloadPlanBtn"),printBtn:$("#printBtn"),clearBtn:$("#clearBtn"),
     modal:$("#settingsModal"),modelList:$("#modelList"),customModel:$("#customModel"),apiKey:$("#apiKey"),apiKeyHeader:$("#apiKeyHeader"),rememberKey:$("#rememberKey"),
@@ -335,7 +349,7 @@
     els.subject.innerHTML=SUBJECTS.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
     els.subject.value=state.subject; els.grade.value=String(state.grade); els.apiKeyHeader.value=state.apiKey;
     els.rememberKey.checked=Boolean(localStorage.getItem(APP.apiStorageKey));
-    renderModels(); bindEvents();
+    renderModels(); bindEvents();toggleInfographicSettings();
   }
 
   function bindEvents(){
@@ -348,10 +362,15 @@
     els.downloadPlanBtn.addEventListener("click",downloadPlan);
     els.printBtn.addEventListener("click",()=>window.print());
     els.clearBtn.addEventListener("click",clearAll);
+    els.infographicOption.addEventListener("change",toggleInfographicSettings);els.infographicSourceMode.addEventListener("change",toggleInfographicSettings);
     els.apiKeyHeader.addEventListener("input",()=>{state.apiKey=els.apiKeyHeader.value.trim();sessionStorage.setItem(APP.apiStorageKey,state.apiKey);});
     els.openSettingsTop.addEventListener("click",openSettings);els.openSettingsLink.addEventListener("click",openSettings);els.closeSettings.addEventListener("click",closeSettings);els.saveSettings.addEventListener("click",saveSettings);
     els.modal.addEventListener("click",event=>{if(event.target===els.modal)closeSettings();});
     document.addEventListener("keydown",event=>{if(event.key==="Escape")closeSettings();});
+  }
+
+  function toggleInfographicSettings(){
+    const enabled=els.infographicOption.value==="create";const teacher=enabled&&els.infographicSourceMode.value==="teacher";els.infographicSettings.classList.toggle("hidden",!enabled);els.infographicTeacherSource.classList.toggle("hidden",!teacher);els.infographicAiHint.classList.toggle("hidden",teacher);
   }
 
   function renderModels(){
@@ -421,7 +440,7 @@
       serial++;if(!context.table)outsideParagraph++;
       const id=`N${String(serial).padStart(4,"0")}`;const text=normalizeText(extractParagraphText(paragraph));
       const location=context.table?`Bảng ${context.table}, hàng ${context.row}, ô ${context.cell}`:`Đoạn ${outsideParagraph}`;
-      nodes.push({id,text,location,node:paragraph,index:nodes.length,isHeading:isLikelyHeading(text)});
+      nodes.push({id,text,location,node:paragraph,index:nodes.length,isHeading:isLikelyHeading(text),table:context.table||null,row:context.row||null,cell:context.cell||null});
     };
     const walk=(element,context={})=>{
       for(const child of Array.from(element.children||[])){
@@ -471,6 +490,7 @@
     if(!/^AIzaSy|^AQ/.test(state.apiKey))return "API Key có vẻ chưa đúng định dạng.";
     if(!getActiveModel())return "Chưa chọn hoặc nhập tên model Gemini.";
     if(!source.nodes.some(node=>node.text))return "Giáo án không có nội dung văn bản để phân tích.";
+    if(els.infographicOption.value==="create"&&els.infographicSourceMode.value==="teacher"&&!els.infographicSourceInput.value.trim())return "Cần dán nội dung hoặc đường link để tạo infographic.";
     return "";
   }
 
@@ -478,7 +498,8 @@
     clearNotice();const error=validateGenerate();if(error)return showNotice(error,"error");
     const source=getLessonSource();setBusy(true);hideResult();els.statusCard.classList.add("show");
     try{
-      updateProgress(8,"Đang chuẩn hóa cấu trúc giáo án...");await sleep(180);
+      state.infographic=null;state.infographicSourceText="";state.infographicSourceWarning="";updateProgress(8,"Đang chuẩn hóa cấu trúc giáo án...");await sleep(180);
+      if(els.infographicOption.value==="create"&&els.infographicSourceMode.value==="teacher"){updateProgress(16,"Đang đọc nguồn giáo viên cung cấp cho infographic...");state.infographicSourceText=await prepareInfographicSource(els.infographicSourceInput.value.trim());}
       const structure=buildAnalysisStructure(source.nodes,els.safeLongOption.checked);
       updateProgress(25,"Đang đối chiếu mã năng lực số theo khối lớp...");await sleep(180);
       const prompt=buildPrompt(source,structure);
@@ -486,12 +507,61 @@
       state.recoveryCount=0;const response=await getStructuredPlan(prompt);
       updateProgress(78,"Đang kiểm tra mã NLS và vị trí chèn...");
       state.plan=validatePlan(response.parsed,source.nodes,structure.compacted);
+      if(state.infographicSourceWarning)state.plan.warnings.push(state.infographicSourceWarning);
+      if(els.infographicOption.value==="create"){updateProgress(86,"Đang tạo infographic kiến thức NLS tỉ lệ 9:16...");state.infographic=await generateInfographicAsset(state.plan);}
       updateProgress(94,"Đang tạo bản duyệt cho giáo viên...");renderPlan(source);await sleep(220);
       updateProgress(100,state.recoveryCount?`Đã hoàn tất bằng ${state.lastModelUsed} sau khi tự phục hồi.`:`Đã hoàn tất đề xuất bằng ${state.lastModelUsed}.`);await sleep(350);els.statusCard.classList.remove("show");els.resultCard.classList.add("show");els.resultCard.scrollIntoView({behavior:"smooth",block:"start"});
     }catch(error){
       console.error(error);els.statusCard.classList.remove("show");showNotice(`Không thể hoàn tất phân tích: ${friendlyError(error)}`,"error");
     }finally{setBusy(false);}
   }
+
+  async function prepareInfographicSource(raw){
+    const urls=Array.from(new Set(String(raw||"").match(/https?:\/\/[^\s<>"]+/gi)||[])).slice(0,5);const directText=urls.reduce((text,url)=>text.replace(url," "),String(raw||"")).replace(/\s+/g," ").trim();const parts=[];if(directText)parts.push(`Nội dung giáo viên cung cấp:\n${directText.slice(0,12000)}`);
+    if(urls.length){try{const summary=await requestUrlContext(urls);if(summary)parts.push(`Nội dung AI đọc từ liên kết:\n${summary.slice(0,12000)}`);}catch(error){console.warn(error);state.infographicSourceWarning="AI chưa đọc được một hoặc nhiều đường link; infographic sẽ ưu tiên nội dung giáo viên nhập và kiến thức NLS trong giáo án.";parts.push(`Đường link giáo viên cung cấp nhưng chưa trích xuất được nội dung: ${urls.join(" ")}`);}}
+    return parts.join("\n\n")||String(raw||"").slice(0,14000);
+  }
+
+  async function requestUrlContext(urls){
+    const endpoint=`https://generativelanguage.googleapis.com/v1beta/interactions`;const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),APP.requestTimeoutMs);const input=`Đọc các đường link công khai sau và trích xuất nội dung cần thiết để tạo infographic kiến thức năng lực số cho học sinh THCS. Chỉ tóm tắt kiến thức chính xác, ngắn gọn bằng tiếng Việt; không thêm nội dung ngoài nguồn.\n${urls.join("\n")}`;
+    try{const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":state.apiKey},body:JSON.stringify({model:"gemini-2.5-flash",input,tools:[{type:"url_context"}]}),signal:controller.signal});const data=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(data?.error?.message||`Không đọc được liên kết (HTTP ${response.status}).`);error.status=response.status;throw error;}const text=(Array.isArray(data.steps)?data.steps:[]).flatMap(step=>Array.isArray(step.content)?step.content:[]).filter(block=>block?.type==="text"&&block.text).map(block=>block.text).join("\n").trim();if(!text)throw new Error("AI không trích xuất được nội dung từ liên kết.");return text;}catch(error){if(error.name==="AbortError")throw new Error("Quá thời gian đọc đường link cho infographic.");throw error;}finally{clearTimeout(timer);}
+  }
+
+  async function generateInfographicAsset(plan){
+    try{return await requestGeminiInfographic(plan);}catch(error){console.warn("Image model fallback:",error);if(!plan.warnings.some(item=>/mẫu đồ họa ổn định/i.test(item)))plan.warnings.push("Model tạo ảnh chưa khả dụng nên tiện ích đã dựng infographic bằng mẫu đồ họa ổn định; nội dung và tỉ lệ 9:16 vẫn được giữ đúng.");return createInfographicCanvas(plan);}
+  }
+
+  async function requestGeminiInfographic(plan){
+    const info=plan.infographic;const sourceNote=els.infographicSourceMode.value==="teacher"?`Nội dung nguồn do giáo viên cung cấp đã được chọn lọc:\n${state.infographicSourceText.slice(0,7000)}`:"Nội dung được xây dựng từ giáo án và mã năng lực số đã chọn.";const prompt=`Tạo một infographic giáo dục dọc tỉ lệ 9:16 bằng TIẾNG VIỆT, dành trực tiếp cho học sinh lớp ${state.grade}, môn ${state.subject}.
+
+YÊU CẦU THIẾT KẾ
+- Phong cách hiện đại, sáng, thân thiện trường học; nền xanh lam rất nhạt, điểm nhấn xanh dương và vàng; bố cục thoáng.
+- Chữ tiếng Việt phải rõ, đúng chính tả, đủ dấu; dùng ít chữ, cỡ lớn; không tự thêm kiến thức.
+- Có tiêu đề, lời dẫn ngắn, ${info.knowledgePoints.length} thẻ kiến thức và một khung "Ghi nhớ an toàn" ở cuối.
+- Không dùng logo, không có mã QR, không có ảnh người thật, không thêm lời hướng dẫn cho giáo viên.
+
+NỘI DUNG BẮT BUỘC
+Tiêu đề: ${info.title}
+Lời dẫn: ${info.intro}
+${info.knowledgePoints.map((item,index)=>`${index+1}. ${item.heading}: ${item.content}`).join("\n")}
+Ghi nhớ an toàn: ${info.safetyNote}
+Mã NLS: ${plan.selectedCodes.join(", ")}
+${sourceNote}`;
+    const models=["gemini-3.1-flash-image","gemini-3.1-flash-lite-image","gemini-2.5-flash-image"];let lastError=null;
+    for(const model of models){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),APP.requestTimeoutMs);try{const url=APP.endpoint.replace("{MODEL}",encodeURIComponent(model)).replace("{KEY}",encodeURIComponent(state.apiKey));const imageConfig={aspectRatio:"9:16"};if(!model.startsWith("gemini-2.5"))imageConfig.imageSize="1K";const body={contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseModalities:["IMAGE"],responseFormat:{image:imageConfig}}};const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});const data=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(data?.error?.message||`Lỗi tạo ảnh HTTP ${response.status}`);error.status=response.status;throw error;}const parts=data?.candidates?.[0]?.content?.parts||[];const imagePart=parts.find(part=>(part.inlineData||part.inline_data)?.data);const inline=imagePart?.inlineData||imagePart?.inline_data;if(!inline?.data)throw new Error(`${model} không trả về dữ liệu ảnh.`);const mimeType=inline.mimeType||inline.mime_type||"image/png";return {dataUrl:`data:${mimeType};base64,${inline.data}`,mimeType,width:APP.infographicWidth,height:APP.infographicHeight,generatedBy:"ai",model};}catch(error){lastError=error;}finally{clearTimeout(timer);}}
+    throw lastError||new Error("Không tạo được infographic.");
+  }
+
+  function createInfographicCanvas(plan){
+    const canvas=document.createElement("canvas");canvas.width=APP.infographicWidth;canvas.height=APP.infographicHeight;const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Trình duyệt không hỗ trợ tạo infographic.");const w=canvas.width,h=canvas.height,info=plan.infographic;ctx.fillStyle="#eef6ff";ctx.fillRect(0,0,w,h);const gradient=ctx.createLinearGradient(0,0,w,390);gradient.addColorStop(0,"#1d4ed8");gradient.addColorStop(1,"#4f46e5");ctx.fillStyle=gradient;ctx.fillRect(0,0,w,390);
+    roundedRect(ctx,72,62,420,62,31,"rgba(255,255,255,.18)");ctx.fillStyle="#ffffff";ctx.font="700 28px Inter, Arial, sans-serif";ctx.textBaseline="middle";ctx.fillText(`NĂNG LỰC SỐ • LỚP ${state.grade}`,98,93);ctx.textBaseline="alphabetic";ctx.font="800 64px Inter, Arial, sans-serif";drawWrappedText(ctx,info.title.toUpperCase(),72,170,936,76,3,"#ffffff");ctx.font="600 27px Inter, Arial, sans-serif";ctx.fillStyle="#dbeafe";ctx.fillText(`Môn ${state.subject} • ${plan.selectedCodes.join(" • ")}`,74,350);
+    roundedRect(ctx,62,410,956,210,30,"#ffffff","#bfdbfe");ctx.font="800 29px Inter, Arial, sans-serif";ctx.fillStyle="#1e40af";ctx.fillText("VÌ SAO CẦN BIẾT?",96,468);ctx.font="500 31px Inter, Arial, sans-serif";drawWrappedText(ctx,info.intro,96,520,888,43,3,"#334155");
+    const points=info.knowledgePoints.slice(0,5);const startY=656,gap=20,available=920,cardH=Math.floor((available-gap*(points.length-1))/points.length);points.forEach((item,index)=>{const y=startY+index*(cardH+gap);roundedRect(ctx,62,y,956,cardH,28,"#ffffff","#dbeafe");ctx.beginPath();ctx.arc(122,y+cardH/2,34,0,Math.PI*2);ctx.fillStyle=index%2===0?"#2563eb":"#4f46e5";ctx.fill();ctx.fillStyle="#ffffff";ctx.font="800 29px Inter, Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(String(index+1),122,y+cardH/2);ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.font="800 31px Inter, Arial, sans-serif";ctx.fillStyle="#1e40af";ctx.fillText(shorten(item.heading,48),178,y+51);ctx.font="500 27px Inter, Arial, sans-serif";drawWrappedText(ctx,item.content,178,y+90,790,36,Math.max(2,Math.floor((cardH-86)/36)),"#334155");});
+    roundedRect(ctx,62,1616,956,230,30,"#fffbeb","#fde68a");ctx.fillStyle="#b45309";ctx.font="800 31px Inter, Arial, sans-serif";ctx.fillText("GHI NHỚ AN TOÀN",96,1673);ctx.font="600 28px Inter, Arial, sans-serif";drawWrappedText(ctx,info.safetyNote,96,1725,888,39,3,"#78350f");ctx.fillStyle="#64748b";ctx.font="600 22px Inter, Arial, sans-serif";ctx.textAlign="center";ctx.fillText("Học có mục tiêu • Dùng công nghệ có trách nhiệm",w/2,1882);ctx.textAlign="left";return {dataUrl:canvas.toDataURL("image/png"),mimeType:"image/png",width:w,height:h,generatedBy:"template",model:"local-canvas"};
+  }
+
+  function roundedRect(ctx,x,y,width,height,radius,fill,stroke=""){ctx.beginPath();ctx.roundRect(x,y,width,height,radius);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
+  function drawWrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines,color){const words=String(text||"").split(/\s+/).filter(Boolean);const lines=[];let line="";for(const word of words){const test=line?`${line} ${word}`:word;if(ctx.measureText(test).width<=maxWidth||!line)line=test;else{lines.push(line);line=word;if(lines.length===maxLines-1)break;}}if(line&&lines.length<maxLines)lines.push(line);const usedWords=lines.join(" ").split(/\s+/).filter(Boolean).length;if(usedWords<words.length&&lines.length){let last=lines[lines.length-1];while(last&&ctx.measureText(`${last}…`).width>maxWidth)last=last.replace(/\s+\S+$/,"");lines[lines.length-1]=`${last}…`;}ctx.fillStyle=color;lines.forEach((value,index)=>ctx.fillText(value,x,y+index*lineHeight));return y+lines.length*lineHeight;}
 
   function buildAnalysisStructure(nodes,safeMode){
     const usable=nodes.filter(node=>node.text);const makeLine=node=>`[${node.id}][${node.location}] ${node.text.slice(0,900)}`;
@@ -511,6 +581,7 @@
     const deviceAccessRule=els.studentDeviceAccess.value==="not-allowed"?"Trong giờ học, tuyệt đối không giao nhiệm vụ yêu cầu học sinh trực tiếp thao tác điện thoại, máy tính bảng, máy tính hoặc thiết bị công nghệ. Có thể cho giáo viên trình chiếu/thao tác; học sinh quan sát, phân tích học liệu số do giáo viên trình chiếu, làm trên phiếu giấy, hoặc thực hiện nhiệm vụ số trước/sau giờ học.":"Có thể cho học sinh trực tiếp sử dụng thiết bị công nghệ trong giờ học khi phù hợp điều kiện thiết bị; phải nêu rõ công cụ, sản phẩm và yêu cầu an toàn.";
     const reference=state.ppctText?state.ppctText.slice(0,9000):"[Không có tài liệu tham khảo]";
     const subjectHint=SUBJECT_GUIDANCE[state.subject]||"Chọn hoạt động số phù hợp đặc thù môn học, không biến tiết học thành tiết Tin học.";
+    const infographicSource=els.infographicOption.value!=="create"?"[Không tạo infographic]":els.infographicSourceMode.value==="teacher"?(state.infographicSourceText||els.infographicSourceInput.value).slice(0,14000):"[AI tự xây dựng từ giáo án, mã NLS và hoạt động đã chọn]";
     return `Bạn là chuyên gia thiết kế kế hoạch bài dạy ở Việt Nam. Nhiệm vụ duy nhất là lập KẾ HOẠCH CHÈN năng lực số vào giáo án đã có. Không viết lại giáo án, không sửa nội dung gốc.
 
 THÔNG TIN
@@ -520,6 +591,7 @@ THÔNG TIN
 - Tích hợp AI: ${els.aiOption.checked?"CÓ":"KHÔNG"}
 - Điều kiện thiết bị: ${deviceLabel}
 - Quy định sử dụng thiết bị trong giờ học: ${deviceAccessLabel}
+- Tạo infographic kiến thức NLS: ${els.infographicOption.value==="create"?"CÓ":"KHÔNG"}
 - Vị trí ưu tiên: ${placeLabel}
 - Cấu trúc đã nén do tài liệu dài: ${structure.compacted?"CÓ":"KHÔNG"}
 - Gợi ý riêng môn học: ${subjectHint}
@@ -539,14 +611,19 @@ NGUYÊN TẮC BẮT BUỘC
    - Báo cáo: học sinh nộp, trình bày, chia sẻ hoặc giải thích sản phẩm/kết quả bằng hình thức nào.
    - Đánh giá: giáo viên, học sinh hoặc nhóm đánh giá theo tiêu chí nào; cách kiểm chứng nguồn, kết quả và việc thực hiện NLS.
    Không gộp hai bước với nhau và không được bỏ trống bước nào.
-7. Tôn trọng đồng thời điều kiện thiết bị và quy định sử dụng thiết bị trong giờ học. Quy định sử dụng thiết bị trong giờ học có mức ưu tiên cao hơn nếu hai tùy chọn mâu thuẫn. ${deviceAccessRule}
-8. anchorId phải là ID có thật trong CẤU TRÚC GIÁO ÁN. Không tự tạo ID.
-9. Nội dung chèn ngắn gọn, dùng được ngay, không dùng emoji, không ghi lời giải thích ngoài giáo án.
+7. VỊ TRÍ CHÈN HOẠT ĐỘNG: anchorId phải là đoạn CUỐI CÙNG đang có trong phần/ô "Tổ chức thực hiện" của đúng hoạt động, và position phải là "after". Nếu giáo án trình bày bằng bảng hai cột, phải chọn đoạn cuối trong ô hoạt động của giáo viên (ô chứa các bước giao nhiệm vụ, thực hiện, báo cáo, đánh giá hoặc các dòng GV/HS); không chọn ô nội dung/sản phẩm của học sinh. Tuyệt đối không chọn tiêu đề "HOẠT ĐỘNG...", tên hoạt động, các dòng "Thời gian", "Mục tiêu", "Sản phẩm học tập" hoặc ô tiêu đề gộp làm anchorId.
+8. Tôn trọng đồng thời điều kiện thiết bị và quy định sử dụng thiết bị trong giờ học. Quy định sử dụng thiết bị trong giờ học có mức ưu tiên cao hơn nếu hai tùy chọn mâu thuẫn. ${deviceAccessRule}
+9. anchorId phải là ID có thật trong CẤU TRÚC GIÁO ÁN. Không tự tạo ID.
+10. Nếu Tạo infographic kiến thức NLS = CÓ, viết nội dung infographic dành trực tiếp cho học sinh: tiêu đề ngắn; lời dẫn 1 câu; 3–5 ý kiến thức rõ ràng, chính xác, phù hợp lớp ${state.grade}; một lưu ý an toàn/kiểm chứng. Không viết lời hướng dẫn dành cho giáo viên, không dùng emoji. Nếu = KHÔNG, có thể bỏ qua trường infographic.
+11. Nội dung chèn ngắn gọn, dùng được ngay, không dùng emoji, không ghi lời giải thích ngoài giáo án.
 
 VỊ TRÍ MỤC TIÊU TỰ NHẬN DIỆN (chỉ là gợi ý): ${autoGoal?`${autoGoal.id} – ${autoGoal.text}`:"Chưa nhận diện được"}
 
 TÀI LIỆU THAM KHẢO/PPCT:
 ${reference}
+
+NGUỒN RIÊNG CHO INFOGRAPHIC:
+${infographicSource}
 
 CẤU TRÚC GIÁO ÁN (mỗi đoạn/ô bảng có một anchorId):
 ${structure.text}
@@ -571,6 +648,16 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
       }
     }
   ],
+  "infographic":{
+    "title":"Tìm kiếm thông tin số hiệu quả",
+    "intro":"Thực hiện đúng quy trình giúp tìm được thông tin phù hợp và đáng tin cậy.",
+    "knowledgePoints":[
+      {"heading":"Xác định nhu cầu","content":"Nêu rõ thông tin cần tìm và mục đích sử dụng."},
+      {"heading":"Chọn từ khóa","content":"Dùng từ khóa cụ thể, thêm cụm từ hoặc bộ lọc khi cần."},
+      {"heading":"Kiểm chứng","content":"So sánh nhiều nguồn và kiểm tra tác giả, thời điểm, bằng chứng."}
+    ],
+    "safetyNote":"Không cung cấp dữ liệu cá nhân; luôn ghi nguồn thông tin đã sử dụng."
+  },
   "warnings":[]
 }`;
   }
@@ -588,6 +675,7 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
       summary:{type:"STRING"},selectedCodes:{type:"ARRAY",items:{type:"STRING"}},
       goal:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]}},required:["anchorId","position"]},
       activities:{type:"ARRAY",items:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]},activityName:{type:"STRING"},targetField:{type:"STRING"},codes:{type:"ARRAY",items:{type:"STRING"}},steps:{type:"OBJECT",properties:{assignment:{type:"ARRAY",items:{type:"STRING"},minItems:1,maxItems:3},execution:{type:"ARRAY",items:{type:"STRING"},minItems:1,maxItems:3},reporting:{type:"ARRAY",items:{type:"STRING"},minItems:1,maxItems:3},assessment:{type:"ARRAY",items:{type:"STRING"},minItems:1,maxItems:3}},required:["assignment","execution","reporting","assessment"]}},required:["anchorId","position","activityName","targetField","codes","steps"]}},
+      infographic:{type:"OBJECT",properties:{title:{type:"STRING"},intro:{type:"STRING"},knowledgePoints:{type:"ARRAY",items:{type:"OBJECT",properties:{heading:{type:"STRING"},content:{type:"STRING"}},required:["heading","content"]},minItems:3,maxItems:5},safetyNote:{type:"STRING"}},required:["title","intro","knowledgePoints","safetyNote"]},
       warnings:{type:"ARRAY",items:{type:"STRING"}},
     },
     required:["summary","selectedCodes","goal","activities","warnings"],
@@ -677,15 +765,42 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
     const autoGoal=findGoalAnchor(nodes);let goalId=raw.goal&&nodeMap.has(raw.goal.anchorId)?raw.goal.anchorId:autoGoal?.id;if(!goalId)throw new Error("Không xác định được vị trí để chèn mục Năng lực số trong phần mục tiêu.");
     const selectedSet=new Set(selected);const activities=[];
     for(const item of Array.isArray(raw.activities)?raw.activities:[]){
-      if(!item||!nodeMap.has(item.anchorId))continue;const codes=Array.from(new Set((Array.isArray(item.codes)?item.codes:[]).map(String))).filter(code=>selectedSet.has(code));const steps=normalizeActivitySteps(item);
-      if(!codes.length||!steps)continue;activities.push({anchorId:item.anchorId,anchorText:nodeMap.get(item.anchorId).text,location:nodeMap.get(item.anchorId).location,position:item.position==="before"?"before":"after",activityName:cleanShort(item.activityName,"Hoạt động học"),targetField:cleanShort(item.targetField,"Tổ chức thực hiện"),codes,steps});
+      if(!item||!nodeMap.has(item.anchorId))continue;const codes=Array.from(new Set((Array.isArray(item.codes)?item.codes:[]).map(String))).filter(code=>selectedSet.has(code));const steps=normalizeActivitySteps(item);const anchor=resolveActivityAnchor(item,nodes,nodeMap);
+      if(!codes.length||!steps||!anchor)continue;activities.push({anchorId:anchor.id,anchorText:anchor.text,location:anchor.location,position:"after",activityName:cleanShort(item.activityName,"Hoạt động học"),targetField:"Tổ chức thực hiện",codes,steps,anchorAdjusted:anchor.id!==item.anchorId});
       if(activities.length>=6)break;
     }
     if(!activities.length)throw new Error("AI chưa xây dựng được hoạt động NLS đầy đủ bốn bước: Chuyển giao nhiệm vụ, Thực hiện nhiệm vụ, Báo cáo và Đánh giá.");
     const usedCodes=new Set(activities.flatMap(item=>item.codes));const missing=selected.filter(code=>!usedCodes.has(code));const warnings=Array.isArray(raw.warnings)?raw.warnings.map(value=>cleanShort(value,"")).filter(Boolean).slice(0,6):[];
     if(missing.length){selected=selected.filter(code=>usedCodes.has(code));warnings.push(`Đã loại ${missing.join(", ")} khỏi mục tiêu vì AI chưa xác định được hoạt động triển khai cụ thể.`);}if(!selected.length)throw new Error("Không có mã NLS nào đồng thời xuất hiện trong mục tiêu và hoạt động học.");
     if(wasCompacted)warnings.push("Giáo án dài nên cấu trúc gửi cho AI đã được nén; tệp Word gốc vẫn được giữ nguyên đầy đủ.");
-    return {summary:cleanShort(raw.summary,"Đã chọn các năng lực số phù hợp và xác định vị trí tích hợp trong giáo án."),selectedCodes:selected,competencies:selected.map(code=>frameworkMap.get(code)),goal:{anchorId:goalId,anchorText:nodeMap.get(goalId).text,location:nodeMap.get(goalId).location,position:raw.goal?.position==="after"&&!/phẩm\s*chất/i.test(nodeMap.get(goalId).text)?"after":"before"},activities,warnings};
+    const competencies=selected.map(code=>frameworkMap.get(code));const infographic=normalizeInfographicData(raw.infographic,competencies,activities);
+    return {summary:cleanShort(raw.summary,"Đã chọn các năng lực số phù hợp và xác định vị trí tích hợp trong giáo án."),selectedCodes:selected,competencies,goal:{anchorId:goalId,anchorText:nodeMap.get(goalId).text,location:nodeMap.get(goalId).location,position:raw.goal?.position==="after"&&!/phẩm\s*chất/i.test(nodeMap.get(goalId).text)?"after":"before"},activities,infographic,warnings};
+  }
+
+  function resolveActivityAnchor(item,nodes,nodeMap){
+    const raw=nodeMap.get(item.anchorId);if(!raw)return null;const activityHint=normalizeMatchText(item.activityName||"");let start=Math.max(0,raw.index-18);
+    for(let index=raw.index;index>=Math.max(0,raw.index-55);index--){const text=nodes[index]?.text||"";if(/hoạt\s*động\s*(?:\d+|[ivx]+[.)])/i.test(text)&&(activityHint.length<3||normalizeMatchText(text).includes(activityHint))){start=index;break;}}
+    let end=Math.min(nodes.length,start+110);for(let index=Math.max(start+1,raw.index+1);index<Math.min(nodes.length,start+110);index++){if(/hoạt\s*động\s*(?:\d+|[ivx]+[.)])/i.test(nodes[index]?.text||"")){end=index;break;}}
+    const scoped=nodes.slice(start,end).filter(node=>node&&node.text);const groups=new Map();
+    for(const node of scoped){if(!node.table)continue;const key=`${node.table}|${node.row}|${node.cell}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(node);}
+    let best=null,bestScore=-Infinity;for(const group of groups.values()){
+      const text=normalizeMatchText(group.map(node=>node.text).join(" "));let score=0;const signals=text.match(/to chuc thuc hien|chuyen giao|thuc hien nhiem vu|bao cao|danh gia|buoc\s*[1-4]|\bgv\b|\bhs\b/g)||[];score+=Math.min(64,signals.length*9);if(/to chuc thuc hien/.test(text))score+=24;if(activityHint&&text.includes(activityHint))score+=14;if(group[0].cell===1)score+=10;if(raw.table&&group[0].table===raw.table)score+=8;if(group.length>=3)score+=8;if(group.length===1&&isForbiddenActivityAnchor(group[0].text))score-=55;if(/thoi gian|muc tieu|san pham hoc tap/.test(text))score-=10;
+      const usable=group.filter(node=>!isForbiddenActivityAnchor(node.text));const candidate=usable[usable.length-1];if(candidate&&score>bestScore){best=candidate;bestScore=score;}
+    }
+    if(best&&bestScore>=28)return best;
+    const procedural=scoped.filter(node=>!node.table&&!isForbiddenActivityAnchor(node.text)&&/(tổ chức thực hiện|chuyển giao|thực hiện nhiệm vụ|báo cáo|đánh giá|bước\s*[1-4]|\bGV\b|\bHS\b)/i.test(node.text));if(procedural.length)return procedural[procedural.length-1];
+    return isForbiddenActivityAnchor(raw.text)?null:raw;
+  }
+
+  function isForbiddenActivityAnchor(text){return /^(?:\s*[-–•]\s*)?(?:hoạt\s*động\b|[ivx]+[.)]\s*(?:khởi động|khám phá|hình thành|luyện tập|vận dụng|mở rộng)\b|(?:thời gian|mục tiêu|sản phẩm(?: học tập)?|nội dung)\s*:)/i.test(String(text||"").trim());}
+  function normalizeMatchText(value){return removeVietnameseTones(String(value||"")).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+
+  function normalizeInfographicData(value,competencies,activities){
+    const raw=value&&typeof value==="object"?value:{};const points=[];for(const item of Array.isArray(raw.knowledgePoints)?raw.knowledgePoints:[]){const heading=cleanShort(item?.heading,"").slice(0,55);const content=cleanShort(item?.content,"").slice(0,230);if(heading&&content)points.push({heading,content});if(points.length>=5)break;}
+    const fallback=[];for(const item of competencies)fallback.push({heading:item.code,content:item.criterion});const first=activities[0];if(first){fallback.push({heading:"Thực hành",content:first.steps.execution[0]||first.steps.assignment[0]});fallback.push({heading:"Kiểm chứng và đánh giá",content:first.steps.assessment[0]});}
+    for(const item of fallback){if(points.length>=3)break;if(item?.heading&&item?.content&&!points.some(point=>point.heading===item.heading))points.push({heading:cleanShort(item.heading,"").slice(0,55),content:cleanShort(item.content,"").slice(0,230)});}
+    while(points.length<3)points.push(points.length===0?{heading:"Hiểu đúng",content:"Xác định rõ yêu cầu và mục đích trước khi sử dụng công nghệ số."}:points.length===1?{heading:"Thực hiện",content:"Làm theo quy trình, lựa chọn công cụ và nguồn thông tin phù hợp."}:{heading:"Tự kiểm tra",content:"Đối chiếu kết quả, kiểm chứng thông tin và ghi nguồn đã sử dụng."});
+    return {title:cleanShort(raw.title,"Kiến thức năng lực số").slice(0,75),intro:cleanShort(raw.intro,"Nắm vững kiến thức và thực hành có trách nhiệm trong môi trường số.").slice(0,240),knowledgePoints:points.slice(0,5),safetyNote:cleanShort(raw.safetyNote,"Bảo vệ dữ liệu cá nhân, kiểm chứng thông tin và ghi nguồn khi sử dụng nội dung số.").slice(0,240)};
   }
 
   function cleanInsertionText(value){return String(value||"").replace(/```[\s\S]*?```/g,"").replace(/[🔴🟢✨]/g,"").replace(/^\s*\[?NLS\]?\s*[:\-–]?\s*/i,"").trim().slice(0,1300);}
@@ -720,14 +835,22 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
   function renderPlan(source){
     const plan=state.plan;const competencyHtml=plan.competencies.map(item=>`<div class="competency"><span class="code">${escapeHtml(item.code)}</span><p>${escapeHtml(item.criterion)}</p></div>`).join("");
     const goalText=plan.competencies.map(item=>`– ${item.code}: ${item.criterion}`).join("\n");
-    const activitiesHtml=plan.activities.map((item,index)=>{const stepEditors=ACTIVITY_STEPS.map((step,stepIndex)=>`<div class="step-editor"><label>${stepIndex+1}. ${escapeHtml(step.label)}</label><span class="hint">Mỗi dòng là một gạch đầu dòng ngắn.</span><textarea class="step-text" data-step="${step.key}" aria-label="${escapeHtml(step.label)}">${escapeHtml(item.steps[step.key].map(value=>`– ${value}`).join("\n"))}</textarea></div>`).join("");return `<div class="insert-card" data-insertion="${index}"><div class="insert-top"><div><div class="insert-title">${escapeHtml(item.activityName)} · ${escapeHtml(item.targetField)}</div><div class="anchor">${escapeHtml(item.location)} · ${escapeHtml(item.anchorId)}: “${escapeHtml(shorten(item.anchorText,180))}”</div></div><div class="chips">${item.codes.map(code=>`<span class="code">${escapeHtml(code)}</span>`).join("")}</div></div><div class="mini-row"><select class="position-select" aria-label="Vị trí chèn"><option value="after"${item.position==="after"?" selected":""}>Chèn sau vị trí này</option><option value="before"${item.position==="before"?" selected":""}>Chèn trước vị trí này</option></select><span class="hint">Nội dung NLS bắt buộc được cụ thể hóa theo đủ bốn bước tổ chức hoạt động.</span></div><div class="step-grid">${stepEditors}</div></div>`;}).join("");
+    const activitiesHtml=plan.activities.map((item,index)=>{const stepEditors=ACTIVITY_STEPS.map((step,stepIndex)=>`<div class="step-editor"><label>${stepIndex+1}. ${escapeHtml(step.label)}</label><span class="hint">Mỗi dòng là một gạch đầu dòng ngắn.</span><textarea class="step-text" data-step="${step.key}" aria-label="${escapeHtml(step.label)}">${escapeHtml(item.steps[step.key].map(value=>`– ${value}`).join("\n"))}</textarea></div>`).join("");return `<div class="insert-card" data-insertion="${index}"><div class="insert-top"><div><div class="insert-title">${escapeHtml(item.activityName)} · ${escapeHtml(item.targetField)}</div><div class="anchor">${escapeHtml(item.location)} · ${escapeHtml(item.anchorId)}: “${escapeHtml(shorten(item.anchorText,180))}”</div></div><div class="chips">${item.codes.map(code=>`<span class="code">${escapeHtml(code)}</span>`).join("")}</div></div><div class="mini-row"><select class="position-select" aria-label="Vị trí chèn"><option value="after"${item.position==="after"?" selected":""}>Chèn cuối ô Tổ chức thực hiện</option><option value="before"${item.position==="before"?" selected":""}>Chèn trước đoạn mốc</option></select><span class="hint">Mặc định chèn sau đoạn cuối trong ô hoạt động của giáo viên; không chèn sau tiêu đề hoạt động, Thời gian, Mục tiêu hoặc Sản phẩm.</span></div><div class="step-grid">${stepEditors}</div></div>`;}).join("");
+    const infographicHtml=state.infographic?`<h3 style="margin:20px 0 8px;color:#1e40af;font-size:16px">3. Infographic kiến thức NLS</h3><div class="infographic-preview"><img src="${state.infographic.dataUrl}" alt="Bản xem trước infographic kiến thức năng lực số tỉ lệ 9:16"><div class="infographic-copy"><h4>${escapeHtml(plan.infographic.title)}</h4><p>Ảnh PNG 1080 × 1920 (${state.infographic.generatedBy==="ai"?"AI tạo":"mẫu đồ họa dự phòng"}). Khi xuất DOCX, ảnh được đặt ở một trang phụ lục cuối giáo án.</p><div class="tool-buttons" style="justify-content:flex-start"><button id="downloadInfographicBtn" class="btn success" type="button">⬇️ Tải ảnh PNG</button><button id="regenerateInfographicBtn" class="btn" type="button">↻ Tạo lại infographic</button></div></div></div>`:"";
     const warnings=plan.warnings.length?`<ul class="warning-list">${plan.warnings.map(warning=>`<li>${escapeHtml(warning)}</li>`).join("")}</ul>`:"";
-    els.planView.innerHTML=`<div class="summary-box"><b>Hướng tích hợp:</b> ${escapeHtml(plan.summary)}</div><h3 style="margin:18px 0 8px;color:#1e40af;font-size:16px">1. Năng lực số đưa vào mục tiêu</h3><div class="competency-list">${competencyHtml}</div><div class="insert-card"><div class="insert-title">Chèn mục “Tích hợp năng lực số” ${plan.goal.position==="before"?"trước":"sau"} ${escapeHtml(plan.goal.anchorId)}</div><div class="anchor">${escapeHtml(plan.goal.location)}: “${escapeHtml(shorten(plan.goal.anchorText,200))}”</div><textarea readonly aria-label="Nội dung mục tiêu năng lực số">${escapeHtml(goalText)}</textarea></div><h3 style="margin:20px 0 8px;color:#1e40af;font-size:16px">2. Tích hợp trong hoạt động học</h3>${activitiesHtml}${warnings}`;
+    els.planView.innerHTML=`<div class="summary-box"><b>Hướng tích hợp:</b> ${escapeHtml(plan.summary)}</div><h3 style="margin:18px 0 8px;color:#1e40af;font-size:16px">1. Năng lực số đưa vào mục tiêu</h3><div class="competency-list">${competencyHtml}</div><div class="insert-card"><div class="insert-title">Chèn mục “Tích hợp năng lực số” ${plan.goal.position==="before"?"trước":"sau"} ${escapeHtml(plan.goal.anchorId)}</div><div class="anchor">${escapeHtml(plan.goal.location)}: “${escapeHtml(shorten(plan.goal.anchorText,200))}”</div><textarea readonly aria-label="Nội dung mục tiêu năng lực số">${escapeHtml(goalText)}</textarea></div><h3 style="margin:20px 0 8px;color:#1e40af;font-size:16px">2. Tích hợp trong hoạt động học</h3>${activitiesHtml}${infographicHtml}${warnings}`;
     els.planView.querySelectorAll(".insert-card[data-insertion]").forEach(card=>{
       const index=Number(card.dataset.insertion);card.querySelector(".position-select").addEventListener("change",event=>state.plan.activities[index].position=event.target.value);card.querySelectorAll(".step-text").forEach(textarea=>textarea.addEventListener("input",event=>state.plan.activities[index].steps[event.target.dataset.step]=normalizeBulletList(event.target.value)));
     });
+    $("#downloadInfographicBtn")?.addEventListener("click",downloadInfographic);$("#regenerateInfographicBtn")?.addEventListener("click",regenerateInfographic);
     const canApply=source.type==="docx";els.applyBtn.disabled=!canApply;els.fallbackNote.classList.toggle("show",!canApply);
     els.fallbackNote.textContent=canApply?"":source.type==="pdf"?"Giáo án đầu vào là PDF nên tiện ích chỉ có thể tải bản đề xuất. Hãy tải bản DOCX gốc để áp dụng tự động và giữ nguyên mẫu.":"Nội dung được dán thủ công nên không có tệp Word gốc để giữ định dạng. Hãy tải lên DOCX nếu muốn áp dụng tự động.";
+  }
+
+  function downloadInfographic(){if(!state.infographic)return;const anchor=document.createElement("a");anchor.href=state.infographic.dataUrl;anchor.download=`Infographic_NLS_${removeVietnameseTones(state.subject).replace(/\s+/g,"_")}_lop_${state.grade}.png`;document.body.appendChild(anchor);anchor.click();anchor.remove();}
+
+  async function regenerateInfographic(){
+    if(!state.plan)return;const button=$("#regenerateInfographicBtn");if(button){button.disabled=true;button.textContent="Đang tạo lại...";}clearNotice();try{if(els.infographicSourceMode.value==="teacher")state.infographicSourceText=await prepareInfographicSource(els.infographicSourceInput.value.trim());state.plan.warnings=state.plan.warnings.filter(item=>!/mẫu đồ họa ổn định/i.test(item));state.infographic=await generateInfographicAsset(state.plan);renderPlan(getLessonSource());showNotice("Đã tạo lại infographic. Hãy kiểm tra ảnh xem trước trước khi xuất Word.","success");}catch(error){showNotice(`Không thể tạo lại infographic: ${friendlyError(error)}`,"error");if(button){button.disabled=false;button.textContent="↻ Tạo lại infographic";}}
   }
 
   async function applyPlanToDocx(){
@@ -745,6 +868,7 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
         for(const step of ACTIVITY_STEPS){paragraphs.push(cloneParagraphWithText(parsed.xmlDoc,template,`${step.label}:`,{red:els.highlightOption.checked,bold:true,stripNumbering:true}));for(const bullet of steps[step.key])paragraphs.push(cloneParagraphWithText(parsed.xmlDoc,template,`– ${bullet}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}));}
         insertAtAnchor(anchor.node,paragraphs,insertion.position,cursors);
       }
+      if(els.infographicOption.value==="create"){if(!state.infographic)throw new Error("Chưa có infographic để gắn vào giáo án. Hãy tạo lại bản đề xuất.");await appendInfographicToDocx(parsed,state.infographic);}
       const outputNodes=indexWordDocument(parsed.xmlDoc);verifyPreservation(expectedOriginalTexts,outputNodes.map(node=>node.text).filter(Boolean));const outputText=nodesToText(outputNodes);
       for(const item of state.plan.competencies)if(!outputText.includes(item.code))throw new Error(`Không tìm thấy mã ${item.code} trong tệp sau khi chèn.`);
       const xml=new XMLSerializer().serializeToString(parsed.xmlDoc);parseXml(xml);parsed.zip.file("word/document.xml",xml);
@@ -752,6 +876,27 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
       downloadBlob(blob,makeOutputFileName(state.lesson.fileName));showNotice("Đã tạo giáo án DOCX từ chính tệp gốc. Nội dung cũ đã được kiểm tra giữ nguyên; phần NLS đã được chèn đúng các vị trí đã duyệt.","success");
     }catch(error){console.error(error);showNotice(`Không thể tạo DOCX: ${friendlyError(error)}`,"error");}finally{setBusy(false,true);updateApplyButton("📘 ÁP DỤNG VÀ TẢI GIÁO ÁN DOCX");}
   }
+
+  async function appendInfographicToDocx(parsed,asset){
+    const base64=dataUrlToBase64(asset.dataUrl);const extension=/jpe?g/i.test(asset.mimeType)?"jpg":/webp/i.test(asset.mimeType)?"webp":"png";const contentType=extension==="jpg"?"image/jpeg":extension==="webp"?"image/webp":"image/png";let fileName=`infographic_nls.${extension}`,suffix=2;while(parsed.zip.file(`word/media/${fileName}`))fileName=`infographic_nls_${suffix++}.${extension}`;parsed.zip.file(`word/media/${fileName}`,base64,{base64:true});
+    const relationshipId=await addImageRelationship(parsed.zip,fileName);await ensureImageContentType(parsed.zip,extension,contentType);const body=parsed.xmlDoc.getElementsByTagNameNS(W_NS,"body")[0];const sectPr=Array.from(body.children).find(child=>child.namespaceURI===W_NS&&child.localName==="sectPr")||null;const pageBreak=createPageBreakParagraph(parsed.xmlDoc);const imageParagraph=createImageParagraph(parsed.xmlDoc,relationshipId,fileName);body.insertBefore(pageBreak,sectPr);body.insertBefore(imageParagraph,sectPr);
+  }
+
+  function dataUrlToBase64(dataUrl){const match=String(dataUrl||"").match(/^data:[^;]+;base64,(.+)$/);if(!match)throw new Error("Dữ liệu infographic không hợp lệ.");return match[1];}
+
+  async function addImageRelationship(zip,fileName){
+    const path="word/_rels/document.xml.rels";const entry=zip.file(path);const xmlText=entry?await entry.async("string"):`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${RELS_NS}"/>`;const doc=parseXml(xmlText);const root=doc.documentElement;const used=Array.from(root.getElementsByTagNameNS(RELS_NS,"Relationship")).map(item=>item.getAttribute("Id")||"");let number=1;while(used.includes(`rId${number}`))number++;const id=`rId${number}`;const relation=doc.createElementNS(RELS_NS,"Relationship");relation.setAttribute("Id",id);relation.setAttribute("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");relation.setAttribute("Target",`media/${fileName}`);root.appendChild(relation);const output=new XMLSerializer().serializeToString(doc);parseXml(output);zip.file(path,output);return id;
+  }
+
+  async function ensureImageContentType(zip,extension,contentType){const path="[Content_Types].xml";const entry=zip.file(path);if(!entry)throw new Error("DOCX thiếu khai báo kiểu nội dung.");const doc=parseXml(await entry.async("string"));const root=doc.documentElement;const exists=Array.from(root.children).some(item=>item.localName==="Default"&&(item.getAttribute("Extension")||"").toLowerCase()===extension);if(!exists){const element=doc.createElementNS(root.namespaceURI,"Default");element.setAttribute("Extension",extension);element.setAttribute("ContentType",contentType);root.appendChild(element);const output=new XMLSerializer().serializeToString(doc);parseXml(output);zip.file(path,output);}}
+
+  function createPageBreakParagraph(doc){const paragraph=doc.createElementNS(W_NS,"w:p");const run=doc.createElementNS(W_NS,"w:r");const br=doc.createElementNS(W_NS,"w:br");br.setAttributeNS(W_NS,"w:type","page");run.appendChild(br);paragraph.appendChild(run);return paragraph;}
+
+  function createImageParagraph(doc,relationshipId,fileName){
+    const paragraph=doc.createElementNS(W_NS,"w:p");const pPr=doc.createElementNS(W_NS,"w:pPr");const jc=doc.createElementNS(W_NS,"w:jc");jc.setAttributeNS(W_NS,"w:val","center");pPr.appendChild(jc);paragraph.appendChild(pPr);const run=doc.createElementNS(W_NS,"w:r");const drawing=doc.createElementNS(W_NS,"w:drawing");const inline=doc.createElementNS(WP_NS,"wp:inline");for(const [name,value] of [["distT","0"],["distB","0"],["distL","0"],["distR","0"]])inline.setAttribute(name,value);const cx=4343400,cy=7721600;const extent=doc.createElementNS(WP_NS,"wp:extent");extent.setAttribute("cx",String(cx));extent.setAttribute("cy",String(cy));inline.appendChild(extent);const effect=doc.createElementNS(WP_NS,"wp:effectExtent");for(const name of ["l","t","r","b"])effect.setAttribute(name,"0");inline.appendChild(effect);const docPr=doc.createElementNS(WP_NS,"wp:docPr");docPr.setAttribute("id",String(nextDrawingId(doc)));docPr.setAttribute("name","Infographic kiến thức năng lực số");docPr.setAttribute("descr","Infographic kiến thức năng lực số tỉ lệ 9:16");inline.appendChild(docPr);const frame=doc.createElementNS(WP_NS,"wp:cNvGraphicFramePr");const locks=doc.createElementNS(A_NS,"a:graphicFrameLocks");locks.setAttribute("noChangeAspect","1");frame.appendChild(locks);inline.appendChild(frame);const graphic=doc.createElementNS(A_NS,"a:graphic");const graphicData=doc.createElementNS(A_NS,"a:graphicData");graphicData.setAttribute("uri",PIC_NS);const pic=doc.createElementNS(PIC_NS,"pic:pic");const nvPicPr=doc.createElementNS(PIC_NS,"pic:nvPicPr");const cNvPr=doc.createElementNS(PIC_NS,"pic:cNvPr");cNvPr.setAttribute("id","0");cNvPr.setAttribute("name",fileName);nvPicPr.appendChild(cNvPr);nvPicPr.appendChild(doc.createElementNS(PIC_NS,"pic:cNvPicPr"));pic.appendChild(nvPicPr);const blipFill=doc.createElementNS(PIC_NS,"pic:blipFill");const blip=doc.createElementNS(A_NS,"a:blip");blip.setAttributeNS(R_NS,"r:embed",relationshipId);blipFill.appendChild(blip);const stretch=doc.createElementNS(A_NS,"a:stretch");stretch.appendChild(doc.createElementNS(A_NS,"a:fillRect"));blipFill.appendChild(stretch);pic.appendChild(blipFill);const spPr=doc.createElementNS(PIC_NS,"pic:spPr");const xfrm=doc.createElementNS(A_NS,"a:xfrm");const off=doc.createElementNS(A_NS,"a:off");off.setAttribute("x","0");off.setAttribute("y","0");const ext=doc.createElementNS(A_NS,"a:ext");ext.setAttribute("cx",String(cx));ext.setAttribute("cy",String(cy));xfrm.appendChild(off);xfrm.appendChild(ext);spPr.appendChild(xfrm);const geom=doc.createElementNS(A_NS,"a:prstGeom");geom.setAttribute("prst","rect");geom.appendChild(doc.createElementNS(A_NS,"a:avLst"));spPr.appendChild(geom);pic.appendChild(spPr);graphicData.appendChild(pic);graphic.appendChild(graphicData);inline.appendChild(graphic);drawing.appendChild(inline);run.appendChild(drawing);paragraph.appendChild(run);return paragraph;
+  }
+
+  function nextDrawingId(doc){const values=Array.from(doc.getElementsByTagNameNS(WP_NS,"docPr")).map(item=>Number(item.getAttribute("id"))||0);return Math.max(0,...values)+1;}
 
   function prepareGoalHeading(anchor,expectedOriginalTexts){
     const original=anchor.text;const numeric=original.match(/^(\s*)(\d+)([.)])\s*(phẩm\s*chất\b.*)$/i);
@@ -804,7 +949,7 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
   function downloadBlob(blob,fileName){const url=URL.createObjectURL(blob);const anchor=document.createElement("a");anchor.href=url;anchor.download=fileName;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 
   function clearAll(){
-    state.lesson=null;state.ppctText="";state.ppctName="";state.plan=null;els.lessonFile.value="";els.ppctFile.value="";els.manualLesson.value="";els.nlsCount.value="3";els.studentDeviceAccess.value="allowed";els.aiOption.checked=false;
+    state.lesson=null;state.ppctText="";state.ppctName="";state.plan=null;state.infographic=null;state.infographicSourceText="";state.infographicSourceWarning="";els.lessonFile.value="";els.ppctFile.value="";els.manualLesson.value="";els.nlsCount.value="3";els.studentDeviceAccess.value="allowed";els.infographicOption.value="none";els.infographicSourceMode.value="ai";els.infographicSourceInput.value="";els.aiOption.checked=false;toggleInfographicSettings();
     resetUploadBox(els.lessonBox);resetUploadBox(els.ppctBox);els.lessonTitle.textContent="Tải lên giáo án";els.lessonSub.textContent="DOCX để giữ nguyên mẫu; PDF chỉ dùng tham khảo";els.ppctTitle.textContent="Tải lên PPCT";els.ppctSub.textContent="Giúp AI hiểu thêm bài học nếu có";hideResult();els.statusCard.classList.remove("show");clearNotice();window.scrollTo({top:0,behavior:"smooth"});
   }
   function hideResult(){els.resultCard.classList.remove("show");els.planView.innerHTML="";els.fallbackNote.classList.remove("show");}
