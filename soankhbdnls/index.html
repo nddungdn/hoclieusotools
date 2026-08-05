@@ -54,7 +54,7 @@
     .result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.result-head .section-title{margin-bottom:5px}.tool-buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid var(--slate-200);border-radius:10px;background:#fff;color:var(--slate-700);padding:9px 12px;font-size:13px;font-weight:800}.btn:hover:not(:disabled){border-color:var(--blue-300);background:var(--blue-50)}.btn.primary{border-color:var(--blue-600);background:var(--blue-600);color:#fff}.btn.success{border-color:var(--green-600);background:var(--green-600);color:#fff}.btn.danger{border-color:var(--red-200);color:var(--red-600)}
     .summary-box{border:1px solid var(--blue-100);border-radius:14px;background:var(--blue-50);padding:14px 16px;line-height:1.55}.summary-box b{color:var(--blue-800)}
     .competency-list{display:grid;gap:10px;margin:15px 0}.competency{border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}.code{display:inline-flex;align-items:center;border-radius:8px;background:#dbeafe;color:#1e40af;padding:4px 7px;font-size:12px;font-weight:800;white-space:nowrap}.competency p{margin:1px 0 0;font-size:13.5px;line-height:1.5}
-    .insert-card{border:1px solid var(--slate-200);border-radius:14px;background:#fff;padding:16px;margin-top:12px}.insert-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.insert-title{font-weight:800;color:var(--slate-800)}.anchor{margin:7px 0 11px;color:var(--slate-500);font-size:12.5px;line-height:1.5}.insert-card textarea{min-height:104px;background:var(--slate-50)}.mini-row{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.warning-list{margin:14px 0 0;padding:12px 16px 12px 34px;border:1px solid var(--amber-200);border-radius:12px;background:var(--amber-50);color:#92400e;font-size:13px;line-height:1.55}
+    .insert-card{border:1px solid var(--slate-200);border-radius:14px;background:#fff;padding:16px;margin-top:12px}.insert-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.insert-title{font-weight:800;color:var(--slate-800)}.anchor{margin:7px 0 11px;color:var(--slate-500);font-size:12.5px;line-height:1.5}.insert-card textarea{min-height:104px;background:var(--slate-50)}.mini-row{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.step-grid{display:grid;gap:11px}.step-editor{border-left:3px solid var(--blue-200);padding-left:11px}.step-editor label{margin-bottom:6px;color:var(--blue-800)}.step-editor textarea{min-height:78px}.warning-list{margin:14px 0 0;padding:12px 16px 12px 34px;border:1px solid var(--amber-200);border-radius:12px;background:var(--amber-50);color:#92400e;font-size:13px;line-height:1.55}
     .side-card h3{margin:0 0 14px;color:var(--blue-800);font-size:16px}.side-card ol,.side-card ul{margin:0;padding-left:20px;color:var(--slate-600);font-size:13.5px;line-height:1.65}.side-card li+li{margin-top:7px}.side-card p{margin:0;color:var(--slate-600);font-size:13px;line-height:1.6}.badge{display:inline-flex;margin-bottom:10px;border-radius:999px;background:var(--green-100);color:var(--green-700);padding:5px 9px;font-size:11.5px;font-weight:800}
     .modal-backdrop{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.55)}.modal-backdrop.show{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--slate-200)}.modal-head h2{margin:0;color:var(--blue-800);font-size:19px}.close{width:36px;height:36px;border:0;border-radius:10px;background:var(--slate-100);font-size:22px}.modal-body{padding:20px}.model-list{display:grid;gap:9px}.model-option{width:100%;border:1px solid var(--slate-200);border-radius:12px;background:#fff;padding:12px;text-align:left;display:flex;justify-content:space-between;gap:12px}.model-option.selected{border-color:var(--blue-500);background:var(--blue-50)}.model-name{display:block;font-weight:800;color:var(--slate-800)}.model-desc{display:block;margin-top:3px;color:var(--slate-500);font-size:12px}.model-option .tick{visibility:hidden;color:var(--blue-600);font-weight:900}.model-option.selected .tick{visibility:visible}.modal-actions{display:flex;justify-content:flex-end;margin-top:18px}
     .hidden{display:none!important}
@@ -66,7 +66,7 @@
 <body>
   <header class="app-header">
     <div class="header-inner">
-      <div class="brand"><div class="brand-icon">🎓</div><div><h1>SOẠN GIÁO ÁN TÍCH HỢP NĂNG LỰC SỐ</h1><p><b>Lưu ý: Tích hợp năng lực số cho KHBD đã có.</b></p></div></div>
+      <div class="brand"><div class="brand-icon">🎓</div><div><h1>SOẠN GIÁO ÁN TÍCH HỢP NĂNG LỰC SỐ</h1><p>Giữ nguyên mẫu DOCX gốc · Bổ sung NLS và AI đúng vị trí</p></div></div>
       <div class="header-api">
         <div class="header-api-line"><input id="apiKeyHeader" type="password" placeholder="Nhập Gemini API Key" autocomplete="off"><button id="openSettingsTop" class="icon-btn" type="button" title="Cấu hình model">⚙️</button></div>
         <a class="api-link" href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
@@ -530,7 +530,12 @@ NGUYÊN TẮC BẮT BUỘC
 3. Nếu Tích hợp AI = CÓ: ưu tiên ít nhất một mã 6.x khi phù hợp; hoạt động phải có kiểm chứng kết quả, trách nhiệm cá nhân và bảo vệ dữ liệu. Không ép dùng AI nếu bài học không phù hợp.
 4. Mỗi mã được chọn phải xuất hiện trong ít nhất một hoạt động cụ thể.
 5. Mục "Tích hợp năng lực số" phải chèn trong phần Mục tiêu/Yêu cầu cần đạt, ngay trước mục Phẩm chất nếu nhận diện được.
-6. Hoạt động tích hợp ưu tiên Hình thành kiến thức mới/Khám phá, Luyện tập hoặc Vận dụng; nêu rõ học sinh làm gì, bằng công cụ/nguồn số nào, sản phẩm hoặc minh chứng gì và cách kiểm tra.
+6. Hoạt động tích hợp ưu tiên Hình thành kiến thức mới/Khám phá, Luyện tập hoặc Vận dụng. MỖI hoạt động bắt buộc phải cụ thể hóa NLS theo đủ bốn bước riêng biệt:
+   - Chuyển giao nhiệm vụ: giáo viên giao nhiệm vụ số nào, công cụ/nguồn học liệu nào, sản phẩm và yêu cầu an toàn/trích dẫn ra sao.
+   - Thực hiện nhiệm vụ: học sinh thao tác, tìm kiếm, xử lí, hợp tác hoặc tạo sản phẩm số như thế nào.
+   - Báo cáo: học sinh nộp, trình bày, chia sẻ hoặc giải thích sản phẩm/kết quả bằng hình thức nào.
+   - Đánh giá: giáo viên, học sinh hoặc nhóm đánh giá theo tiêu chí nào; cách kiểm chứng nguồn, kết quả và việc thực hiện NLS.
+   Không gộp hai bước với nhau và không được bỏ trống bước nào.
 7. Tôn trọng điều kiện thiết bị. Nếu không dùng thiết bị cá nhân, có thể cho giáo viên trình chiếu, dùng thiết bị theo nhóm hoặc giao nhiệm vụ ở nhà.
 8. anchorId phải là ID có thật trong CẤU TRÚC GIÁO ÁN. Không tự tạo ID.
 9. Nội dung chèn ngắn gọn, dùng được ngay, không dùng emoji, không ghi lời giải thích ngoài giáo án.
@@ -555,7 +560,12 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
       "activityName":"Luyện tập",
       "targetField":"Tổ chức thực hiện",
       "codes":["${framework[0].code}"],
-      "text":"Học sinh ..."
+      "steps":{
+        "assignment":"Giáo viên chuyển giao nhiệm vụ...",
+        "execution":"Học sinh thực hiện nhiệm vụ...",
+        "reporting":"Học sinh báo cáo...",
+        "assessment":"Giáo viên và học sinh đánh giá..."
+      }
     }
   ],
   "warnings":[]
@@ -574,11 +584,18 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
     properties:{
       summary:{type:"STRING"},selectedCodes:{type:"ARRAY",items:{type:"STRING"}},
       goal:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]}},required:["anchorId","position"]},
-      activities:{type:"ARRAY",items:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]},activityName:{type:"STRING"},targetField:{type:"STRING"},codes:{type:"ARRAY",items:{type:"STRING"}},text:{type:"STRING"}},required:["anchorId","position","activityName","targetField","codes","text"]}},
+      activities:{type:"ARRAY",items:{type:"OBJECT",properties:{anchorId:{type:"STRING"},position:{type:"STRING",enum:["before","after"]},activityName:{type:"STRING"},targetField:{type:"STRING"},codes:{type:"ARRAY",items:{type:"STRING"}},steps:{type:"OBJECT",properties:{assignment:{type:"STRING"},execution:{type:"STRING"},reporting:{type:"STRING"},assessment:{type:"STRING"}},required:["assignment","execution","reporting","assessment"]}},required:["anchorId","position","activityName","targetField","codes","steps"]}},
       warnings:{type:"ARRAY",items:{type:"STRING"}},
     },
     required:["summary","selectedCodes","goal","activities","warnings"],
   };
+
+  const ACTIVITY_STEPS=[
+    {key:"assignment",label:"Chuyển giao nhiệm vụ"},
+    {key:"execution",label:"Thực hiện nhiệm vụ"},
+    {key:"reporting",label:"Báo cáo"},
+    {key:"assessment",label:"Đánh giá"},
+  ];
 
   async function getStructuredPlan(prompt){
     const first=await callGemini(prompt,{purpose:"analysis"});
@@ -657,11 +674,11 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
     const autoGoal=findGoalAnchor(nodes);let goalId=raw.goal&&nodeMap.has(raw.goal.anchorId)?raw.goal.anchorId:autoGoal?.id;if(!goalId)throw new Error("Không xác định được vị trí để chèn mục Năng lực số trong phần mục tiêu.");
     const selectedSet=new Set(selected);const activities=[];
     for(const item of Array.isArray(raw.activities)?raw.activities:[]){
-      if(!item||!nodeMap.has(item.anchorId))continue;const codes=Array.from(new Set((Array.isArray(item.codes)?item.codes:[]).map(String))).filter(code=>selectedSet.has(code));const text=cleanInsertionText(item.text);
-      if(!codes.length||!text)continue;activities.push({anchorId:item.anchorId,anchorText:nodeMap.get(item.anchorId).text,location:nodeMap.get(item.anchorId).location,position:item.position==="before"?"before":"after",activityName:cleanShort(item.activityName,"Hoạt động học"),targetField:cleanShort(item.targetField,"Tổ chức thực hiện"),codes,text});
+      if(!item||!nodeMap.has(item.anchorId))continue;const codes=Array.from(new Set((Array.isArray(item.codes)?item.codes:[]).map(String))).filter(code=>selectedSet.has(code));const steps=normalizeActivitySteps(item);
+      if(!codes.length||!steps)continue;activities.push({anchorId:item.anchorId,anchorText:nodeMap.get(item.anchorId).text,location:nodeMap.get(item.anchorId).location,position:item.position==="before"?"before":"after",activityName:cleanShort(item.activityName,"Hoạt động học"),targetField:cleanShort(item.targetField,"Tổ chức thực hiện"),codes,steps});
       if(activities.length>=6)break;
     }
-    if(!activities.length)throw new Error("AI chưa xác định được hoạt động cụ thể để triển khai các mã NLS đã chọn.");
+    if(!activities.length)throw new Error("AI chưa xây dựng được hoạt động NLS đầy đủ bốn bước: Chuyển giao nhiệm vụ, Thực hiện nhiệm vụ, Báo cáo và Đánh giá.");
     const usedCodes=new Set(activities.flatMap(item=>item.codes));const missing=selected.filter(code=>!usedCodes.has(code));const warnings=Array.isArray(raw.warnings)?raw.warnings.map(value=>cleanShort(value,"")).filter(Boolean).slice(0,6):[];
     if(missing.length){selected=selected.filter(code=>usedCodes.has(code));warnings.push(`Đã loại ${missing.join(", ")} khỏi mục tiêu vì AI chưa xác định được hoạt động triển khai cụ thể.`);}if(!selected.length)throw new Error("Không có mã NLS nào đồng thời xuất hiện trong mục tiêu và hoạt động học.");
     if(wasCompacted)warnings.push("Giáo án dài nên cấu trúc gửi cho AI đã được nén; tệp Word gốc vẫn được giữ nguyên đầy đủ.");
@@ -671,14 +688,29 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
   function cleanInsertionText(value){return String(value||"").replace(/```[\s\S]*?```/g,"").replace(/[🔴🟢✨]/g,"").replace(/^\s*\[?NLS\]?\s*[:\-–]?\s*/i,"").trim().slice(0,1300);}
   function cleanShort(value,fallback){const text=String(value||"").replace(/[\r\n]+/g," ").trim().slice(0,300);return text||fallback;}
 
+  function normalizeActivitySteps(item){
+    const source=item&&typeof item.steps==="object"&&item.steps?item.steps:{};const aliases={assignment:["assignment","transfer","chuyenGiao","chuyển giao nhiệm vụ"],execution:["execution","perform","thucHien","thực hiện nhiệm vụ"],reporting:["reporting","report","baoCao","báo cáo"],assessment:["assessment","evaluation","evaluate","danhGia","đánh giá"]};const result={};
+    for(const step of ACTIVITY_STEPS){let value="";for(const key of aliases[step.key]){if(source[key]){value=source[key];break;}}result[step.key]=cleanStepText(value);}
+    if(ACTIVITY_STEPS.some(step=>!result[step.key])&&item?.text){const legacy=parseLegacySteps(item.text);for(const step of ACTIVITY_STEPS)if(!result[step.key]&&legacy[step.key])result[step.key]=legacy[step.key];}
+    return ACTIVITY_STEPS.every(step=>result[step.key])?result:null;
+  }
+
+  function cleanStepText(value){return cleanInsertionText(value).replace(/^\s*[-–•]?\s*(chuyển giao nhiệm vụ|thực hiện nhiệm vụ|báo cáo(?:,\s*thảo luận)?|đánh giá(?:,\s*kết luận)?)\s*[:\-–]\s*/i,"").trim();}
+
+  function parseLegacySteps(value){
+    const text=String(value||"").replace(/\r\n/g,"\n");const markers=[{key:"assignment",regex:/chuyển giao nhiệm vụ\s*[:\-–]/ig},{key:"execution",regex:/thực hiện nhiệm vụ\s*[:\-–]/ig},{key:"reporting",regex:/báo cáo(?:,\s*thảo luận)?\s*[:\-–]/ig},{key:"assessment",regex:/đánh giá(?:,\s*kết luận)?\s*[:\-–]/ig}];const positions=[];
+    for(const marker of markers){const match=marker.regex.exec(text);if(match)positions.push({key:marker.key,start:match.index,end:match.index+match[0].length});}
+    positions.sort((a,b)=>a.start-b.start);const result={};positions.forEach((position,index)=>{result[position.key]=cleanStepText(text.slice(position.end,positions[index+1]?.start??text.length));});return result;
+  }
+
   function renderPlan(source){
     const plan=state.plan;const competencyHtml=plan.competencies.map(item=>`<div class="competency"><span class="code">${escapeHtml(item.code)}</span><p>${escapeHtml(item.criterion)}</p></div>`).join("");
     const goalText=plan.competencies.map(item=>`– ${item.code}: ${item.criterion}`).join("\n");
-    const activitiesHtml=plan.activities.map((item,index)=>`<div class="insert-card" data-insertion="${index}"><div class="insert-top"><div><div class="insert-title">${escapeHtml(item.activityName)} · ${escapeHtml(item.targetField)}</div><div class="anchor">${escapeHtml(item.location)} · ${escapeHtml(item.anchorId)}: “${escapeHtml(shorten(item.anchorText,180))}”</div></div><div class="chips">${item.codes.map(code=>`<span class="code">${escapeHtml(code)}</span>`).join("")}</div></div><div class="mini-row"><select class="position-select" aria-label="Vị trí chèn"><option value="after"${item.position==="after"?" selected":""}>Chèn sau vị trí này</option><option value="before"${item.position==="before"?" selected":""}>Chèn trước vị trí này</option></select><span class="hint">AI đã neo nội dung vào đúng đoạn/ô bảng của giáo án.</span></div><textarea class="insertion-text" aria-label="Nội dung NLS đề xuất">${escapeHtml(item.text)}</textarea></div>`).join("");
+    const activitiesHtml=plan.activities.map((item,index)=>{const stepEditors=ACTIVITY_STEPS.map((step,stepIndex)=>`<div class="step-editor"><label>${stepIndex+1}. ${escapeHtml(step.label)}</label><textarea class="step-text" data-step="${step.key}" aria-label="${escapeHtml(step.label)}">${escapeHtml(item.steps[step.key])}</textarea></div>`).join("");return `<div class="insert-card" data-insertion="${index}"><div class="insert-top"><div><div class="insert-title">${escapeHtml(item.activityName)} · ${escapeHtml(item.targetField)}</div><div class="anchor">${escapeHtml(item.location)} · ${escapeHtml(item.anchorId)}: “${escapeHtml(shorten(item.anchorText,180))}”</div></div><div class="chips">${item.codes.map(code=>`<span class="code">${escapeHtml(code)}</span>`).join("")}</div></div><div class="mini-row"><select class="position-select" aria-label="Vị trí chèn"><option value="after"${item.position==="after"?" selected":""}>Chèn sau vị trí này</option><option value="before"${item.position==="before"?" selected":""}>Chèn trước vị trí này</option></select><span class="hint">Nội dung NLS bắt buộc được cụ thể hóa theo đủ bốn bước tổ chức hoạt động.</span></div><div class="step-grid">${stepEditors}</div></div>`;}).join("");
     const warnings=plan.warnings.length?`<ul class="warning-list">${plan.warnings.map(warning=>`<li>${escapeHtml(warning)}</li>`).join("")}</ul>`:"";
     els.planView.innerHTML=`<div class="summary-box"><b>Hướng tích hợp:</b> ${escapeHtml(plan.summary)}</div><h3 style="margin:18px 0 8px;color:#1e40af;font-size:16px">1. Năng lực số đưa vào mục tiêu</h3><div class="competency-list">${competencyHtml}</div><div class="insert-card"><div class="insert-title">Chèn mục “Tích hợp năng lực số” ${plan.goal.position==="before"?"trước":"sau"} ${escapeHtml(plan.goal.anchorId)}</div><div class="anchor">${escapeHtml(plan.goal.location)}: “${escapeHtml(shorten(plan.goal.anchorText,200))}”</div><textarea readonly aria-label="Nội dung mục tiêu năng lực số">${escapeHtml(goalText)}</textarea></div><h3 style="margin:20px 0 8px;color:#1e40af;font-size:16px">2. Tích hợp trong hoạt động học</h3>${activitiesHtml}${warnings}`;
     els.planView.querySelectorAll(".insert-card[data-insertion]").forEach(card=>{
-      const index=Number(card.dataset.insertion);card.querySelector(".position-select").addEventListener("change",event=>state.plan.activities[index].position=event.target.value);card.querySelector(".insertion-text").addEventListener("input",event=>state.plan.activities[index].text=event.target.value.trim());
+      const index=Number(card.dataset.insertion);card.querySelector(".position-select").addEventListener("change",event=>state.plan.activities[index].position=event.target.value);card.querySelectorAll(".step-text").forEach(textarea=>textarea.addEventListener("input",event=>state.plan.activities[index].steps[event.target.dataset.step]=event.target.value.trim()));
     });
     const canApply=source.type==="docx";els.applyBtn.disabled=!canApply;els.fallbackNote.classList.toggle("show",!canApply);
     els.fallbackNote.textContent=canApply?"":source.type==="pdf"?"Giáo án đầu vào là PDF nên tiện ích chỉ có thể tải bản đề xuất. Hãy tải bản DOCX gốc để áp dụng tự động và giữ nguyên mẫu.":"Nội dung được dán thủ công nên không có tệp Word gốc để giữ định dạng. Hãy tải lên DOCX nếu muốn áp dụng tự động.";
@@ -694,8 +726,8 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
       const bodyTemplate=findBodyTemplate(parsed.nodes,goalAnchor.index)||goalAnchor.node;const goalNodes=[headingNode,...state.plan.competencies.map(item=>cloneParagraphWithText(parsed.xmlDoc,bodyTemplate,`– ${item.code}: ${item.criterion}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}))];
       insertAtAnchor(goalAnchor.node,goalNodes,state.plan.goal.position,cursors);
       for(const insertion of state.plan.activities){
-        const anchor=nodeMap.get(insertion.anchorId);if(!anchor)throw new Error(`Không tìm thấy vị trí ${insertion.anchorId}.`);const text=cleanInsertionText(insertion.text);if(!text)throw new Error(`Nội dung tại ${insertion.anchorId} đang để trống.`);
-        const prefix=`Tích hợp năng lực số (${insertion.codes.join(", ")}): `;const template=findBodyTemplate(parsed.nodes,anchor.index)||anchor.node;const paragraphs=text.split(/\n+/).map((line,index)=>cloneParagraphWithText(parsed.xmlDoc,template,`${index===0?prefix:""}${line.trim()}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}));
+        const anchor=nodeMap.get(insertion.anchorId);if(!anchor)throw new Error(`Không tìm thấy vị trí ${insertion.anchorId}.`);const steps=normalizeActivitySteps(insertion);if(!steps)throw new Error(`Hoạt động tại ${insertion.anchorId} phải có đủ bốn bước: Chuyển giao nhiệm vụ, Thực hiện nhiệm vụ, Báo cáo và Đánh giá.`);
+        const template=findBodyTemplate(parsed.nodes,anchor.index)||anchor.node;const paragraphs=[cloneParagraphWithText(parsed.xmlDoc,template,`Tích hợp năng lực số (${insertion.codes.join(", ")}):`,{red:els.highlightOption.checked,bold:true,stripNumbering:true}),...ACTIVITY_STEPS.map(step=>cloneParagraphWithText(parsed.xmlDoc,template,`– ${step.label}: ${steps[step.key]}`,{red:els.highlightOption.checked,bold:false,stripNumbering:true}))];
         insertAtAnchor(anchor.node,paragraphs,insertion.position,cursors);
       }
       const outputNodes=indexWordDocument(parsed.xmlDoc);verifyPreservation(expectedOriginalTexts,outputNodes.map(node=>node.text).filter(Boolean));const outputText=nodesToText(outputNodes);
@@ -749,7 +781,7 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
 
   function downloadPlan(){
     if(!state.plan)return;const plan=state.plan;const lines=["ĐỀ XUẤT TÍCH HỢP NĂNG LỰC SỐ",`Môn: ${state.subject} – Lớp ${state.grade}`,"",`Hướng tích hợp: ${plan.summary}`,"","1. NĂNG LỰC SỐ TRONG MỤC TIÊU",...plan.competencies.map(item=>`- ${item.code}: ${item.criterion}`),"","2. VỊ TRÍ TÍCH HỢP TRONG HOẠT ĐỘNG"];
-    plan.activities.forEach((item,index)=>lines.push(`\n${index+1}. ${item.activityName} – ${item.targetField}`,`Vị trí: ${item.position==="before"?"trước":"sau"} ${item.anchorId}: ${item.anchorText}`,`Mã: ${item.codes.join(", ")}`,`Nội dung: ${item.text}`));if(plan.warnings.length)lines.push("","LƯU Ý",...plan.warnings.map(item=>`- ${item}`));
+    plan.activities.forEach((item,index)=>lines.push(`\n${index+1}. ${item.activityName} – ${item.targetField}`,`Vị trí: ${item.position==="before"?"trước":"sau"} ${item.anchorId}: ${item.anchorText}`,`Mã: ${item.codes.join(", ")}`,...ACTIVITY_STEPS.map(step=>`${step.label}: ${item.steps[step.key]}`)));if(plan.warnings.length)lines.push("","LƯU Ý",...plan.warnings.map(item=>`- ${item}`));
     downloadBlob(new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"}),`De_xuat_NLS_${removeVietnameseTones(state.subject).replace(/\s+/g,"_")}_lop_${state.grade}.txt`);
   }
 
@@ -775,5 +807,3 @@ Chỉ trả về một đối tượng JSON hợp lệ, không Markdown, theo đ
 
   init();
   </script>
-</body>
-</html>
