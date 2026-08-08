@@ -2,188 +2,234 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' window.VAN10_API_BASE_URL = "https://luyen-thi-vao-10-secure-api.nddungdn.workers.dev"; https://generativelanguage.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com; img-src 'self' blob: data: https:; frame-src 'self' https://drive.google.com https://*.hoclieuso.id.vn https://*.hls.id.vn; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
+  <!-- Google tag (gtag.js) - Luồng Luyện thi vào lớp 10 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FPQ5J6TD9J"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FPQ5J6TD9J');
+  </script>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b5cab">
-  <meta name="description" content="Tiện ích luyện đề thi vào lớp 10 môn Ngữ văn">
+  <meta name="theme-color" content="#3a2f92">
+  <meta name="description" content="Không gian luyện đề thi vào lớp 10 môn Ngữ văn: đọc ngữ liệu và làm bài song song, tải ảnh bài viết tay, AI hỗ trợ và gửi bài cho giáo viên.">
   <title>Luyện đề vào lớp 10 môn Ngữ văn</title>
-  <link rel="stylesheet" href="./style.css?v=7.2.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css?v=12.0.0">
 </head>
-<body>
-  <header class="site-header">
+<body class="v11-app">
+  <header class="site-header app-header">
+    <div class="header-progress" aria-hidden="true"><span id="progressBar"></span></div>
     <div class="header-inner">
       <a class="brand" href="./" aria-label="Trang chủ luyện đề">
-        <span class="brand-mark">V10</span>
-        <span>
-          <strong>Luyện đề vào lớp 10</strong>
-          <small>Môn Ngữ văn</small>
-        </span>
+        <span class="brand-mark">V12</span>
+        <span class="brand-copy"><strong>Luyện thi 10</strong><small>Ngữ văn</small></span>
       </a>
-      <button id="menuBtn" class="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="headerActions">☰</button>
-      <div id="headerActions" class="header-actions">
-        <button id="fontDownBtn" class="icon-btn" type="button" title="Giảm cỡ chữ">A−</button>
-        <button id="fontUpBtn" class="icon-btn" type="button" title="Tăng cỡ chữ">A+</button>
-        <button id="themeBtn" class="icon-btn" type="button" title="Đổi chế độ sáng tối">◐</button>
+
+      <button id="changeExamBtn" class="current-exam-trigger" type="button" aria-label="Đổi đề thi">
+        <span class="current-exam-overline">Đang làm</span>
+        <strong id="headerExamTitle">Đang tải đề…</strong>
+        <span aria-hidden="true">⌄</span>
+      </button>
+
+      <div class="header-live-status" aria-label="Tiến độ làm bài">
+        <span id="saveIndicator" class="save-indicator">Đã lưu</span>
+        <strong id="progressText">0%</strong>
       </div>
+
+      <button id="menuBtn" class="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="settingsDrawer" aria-label="Mở thiết lập">☰</button>
     </div>
   </header>
 
-  <main class="page-shell">
-    <section class="hero">
-      <div>
-        <span class="eyebrow">TỔNG HỢP ĐỀ TUYỂN SINH VÀO LỚP 10 MÔN NGỮ VĂN</span>
-        <h1>TIỆN ÍCH GIÚP HỌC SINH TỰ LUYỆN ĐỀ THI VÀO LỚP 10</h1>
-        <p>Chọn đề, làm bài trực tiếp và tự đối chiếu với đáp án cùng sự hỗ trợ của AI.</p>
-      </div>
-      <div class="hero-stat">
-        <strong id="examCount">0</strong>
-        <span>đề đang hiển thị</span>
-      </div>
-    </section>
+  <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+  <aside id="settingsDrawer" class="settings-drawer" aria-hidden="true" aria-label="Thiết lập đề thi và học sinh">
+    <div class="drawer-head">
+      <div><span class="panel-kicker">THIẾT LẬP</span><h2>Đề thi và hồ sơ</h2></div>
+      <button id="closeDrawerBtn" class="drawer-close" type="button" aria-label="Đóng">×</button>
+    </div>
 
-    <section class="control-card" aria-label="Thiết lập bài làm">
-      <div class="control-grid">
-        <label>
-          <span>Tỉnh/thành</span>
-          <select id="provinceSelect">
-            <option value="">Đang tải dữ liệu…</option>
-          </select>
-        </label>
-        <label>
-          <span>Năm</span>
-          <select id="yearSelect">
-            <option value="">Tất cả</option>
-          </select>
-        </label>
-        <label>
-          <span>Loại đề</span>
-          <select id="typeSelect">
-            <option value="">Tất cả</option>
-          </select>
-        </label>
-        <label class="search-field">
-          <span>Tìm đề</span>
-          <input id="searchInput" type="search" placeholder="Nhập tên tỉnh/thành…">
-        </label>
+    <section id="examToolbarCard" class="exam-toolbar-card" aria-label="Chọn đề và thiết lập bài làm">
+      <div id="mobileExamSummary" class="mobile-exam-summary" hidden>
+        <div><span>Đang làm</span><strong id="mobileExamTitle">Đề thi</strong></div>
       </div>
 
-      <details class="student-details">
-        <summary>Thông tin học sinh <span>(không bắt buộc)</span></summary>
-        <div class="student-grid">
-          <label>
-            <span>Họ và tên</span>
-            <input id="studentName" type="text" autocomplete="name" placeholder="Nguyễn Văn A">
-          </label>
-          <label>
-            <span>Lớp</span>
-            <input id="studentClass" type="text" placeholder="9/1">
-          </label>
-          <label>
-            <span>Trường</span>
-            <input id="studentSchool" type="text" placeholder="Tên trường">
-          </label>
+      <div class="drawer-section-title"><span>01</span><strong>Chọn đề</strong></div>
+      <label class="province-search-field" for="provinceSearchInput">
+        <span>Tìm nhanh đề theo tỉnh/thành</span>
+        <div class="province-search-control">
+          <span class="province-search-icon" aria-hidden="true">⌕</span>
+          <input id="provinceSearchInput" type="search" inputmode="search" autocomplete="off" maxlength="80" placeholder="Nhập tên tỉnh/thành, ví dụ: Đà Nẵng…" aria-controls="provinceMenu" aria-autocomplete="list">
+          <button id="clearProvinceSearchBtn" class="province-search-clear" type="button" aria-label="Xóa nội dung tìm kiếm" hidden>×</button>
+        </div>
+        <small id="provinceSearchHint" class="province-search-hint">Gõ tên tỉnh/thành để lọc nhanh danh sách đề.</small>
+      </label>
+      <div class="exam-toolbar">
+        <div class="field-wrap province-wrap">
+          <span class="field-label">Tỉnh/thành đã chọn</span>
+          <button id="provinceButton" class="select-button" type="button" aria-expanded="false" aria-controls="provinceMenu">Tất cả tỉnh/thành</button>
+          <div id="provinceMenu" class="province-menu" role="listbox" aria-label="Danh sách tỉnh/thành" hidden></div>
+        </div>
+        <label><span>Năm</span><select id="yearSelect"><option value="">Tất cả</option></select></label>
+        <label><span>Loại đề</span><select id="typeSelect"><option value="">Tất cả</option></select></label>
+        <label class="exam-select-field"><span>Đề thi</span><select id="examSelect" aria-label="Chọn đề thi"><option value="">Đang tải dữ liệu…</option></select></label>
+        <div id="dataHealth" class="data-health is-loading" title="Trạng thái dữ liệu">
+          <span id="dataStatusDot" class="data-status-dot" aria-hidden="true"></span>
+          <span id="dataStatusText">Đang tải dữ liệu…</span>
+        </div>
+      </div>
+
+      <div class="drawer-section-title"><span>02</span><strong>Thông tin học sinh</strong></div>
+      <details id="utilityDetails" class="utility-details" open>
+        <summary>Hồ sơ và AI hỗ trợ</summary>
+        <div class="utility-content">
+          <div class="student-grid">
+            <label><span>Họ và tên</span><input id="studentName" type="text" autocomplete="name" maxlength="120" placeholder="Nguyễn Văn A"></label>
+            <label><span>Lớp</span><input id="studentClass" type="text" maxlength="40" placeholder="9/1"></label>
+            <label><span>Trường</span><input id="studentSchool" type="text" maxlength="160" placeholder="Tên trường"></label>
+          </div>
+          <div class="api-key-wrap">
+            <label>
+              <span>Google Gemini API Key <small>(không bắt buộc)</small></span>
+              <div class="password-field">
+                <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Dán API key của bạn…">
+                <button id="toggleApiKeyBtn" type="button">Hiện</button>
+              </div>
+            </label>
+            <button id="saveApiKeyBtn" class="secondary-btn" type="button">Lưu trong phiên</button>
+          </div>
+          <p class="api-note"><a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API Key siêu nhanh</a> · Khóa chỉ tồn tại trong phiên và được gửi trực tiếp tới Google Gemini.</p>
         </div>
       </details>
 
-      <details class="ai-settings">
-        <summary>AI hỗ trợ <span>(không bắt buộc)</span></summary>
-        <div class="api-key-wrap">
-          <label>
-            <span>Google Gemini API Key</span>
-            <div class="password-field">
-              <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Dán API key của bạn…">
-              <button id="toggleApiKeyBtn" type="button" aria-label="Hiện hoặc ẩn API key">Hiện</button>
-            </div>
-          </label>
-          <button id="saveApiKeyBtn" class="secondary-btn" type="button">Lưu trong phiên này</button>
+      <div class="drawer-section-title"><span>03</span><strong>Không gian và giao diện</strong></div>
+      <div class="drawer-layout-controls">
+        <div class="workspace-view-controls" aria-label="Điều chỉnh không gian đọc và viết">
+          <button class="split-preset-btn" type="button" data-split-preset="source">Đọc nhiều</button>
+          <button class="split-preset-btn is-active" type="button" data-split-preset="balanced">Cân bằng</button>
+          <button class="split-preset-btn" type="button" data-split-preset="answer">Viết nhiều</button>
         </div>
-        <p class="api-note">
-          Khóa chỉ được giữ trong phiên trình duyệt hiện tại, không lưu vào Google Sheets hoặc mã GitHub.
-          <a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener">Xem cách tạo API key Gemini siêu nhanh</a>
-        </p>
-      </details>
+        <div id="headerActions" class="header-actions">
+          <button id="fontDownBtn" class="icon-btn" type="button" title="Giảm cỡ chữ">A−</button>
+          <button id="fontUpBtn" class="icon-btn" type="button" title="Tăng cỡ chữ">A+</button>
+          <button id="themeBtn" class="icon-btn" type="button" title="Đổi chế độ sáng tối">◐</button>
+        </div>
+        <div class="drawer-score"><span>Điểm tự luyện hiện tại</span><strong><span id="totalScore">0</span>/<span id="maxTotalScore">10</span></strong></div>
+      </div>
     </section>
+  </aside>
 
-    <div id="statusBar" class="status-bar" role="status" aria-live="polite">Đang kết nối dữ liệu đề thi…</div>
+  <main class="page-shell app-main">
+    <div id="statusBar" class="status-bar" role="status" aria-live="polite" hidden></div>
 
     <section id="emptyState" class="empty-state" hidden>
       <div class="empty-icon">⌕</div>
       <h2>Chưa tìm thấy đề phù hợp</h2>
-      <p>Thầy/cô kiểm tra dữ liệu hoặc thay đổi bộ lọc.</p>
+      <p>Mở menu để đổi tỉnh/thành, năm hoặc loại đề.</p>
     </section>
 
-    <section id="workspace" class="workspace" hidden>
-      <article class="paper-panel">
-        <div class="panel-heading">
+    <section id="workspace" class="workspace" hidden aria-label="Không gian đọc đề và làm bài">
+      <article id="sourcePanel" class="paper-panel workspace-panel" tabindex="0" aria-label="Ngữ liệu và đề bài">
+        <div class="panel-heading panel-heading-sticky source-heading">
           <div>
-            <span class="panel-kicker">ĐỀ BÀI</span>
-            <h2 id="examTitle">Đề thi</h2>
+            <span class="panel-kicker">NGỮ LIỆU</span>
+            <h1 id="examTitle">Đề thi</h1>
+            <p id="currentExamLabel" class="current-exam-label"></p>
           </div>
-          <div class="exam-meta">
-            <span id="examYear"></span>
-            <span id="examType"></span>
+          <div class="source-heading-actions">
+            <div class="exam-meta"><span id="examYear"></span><span id="examType"></span></div>
+            <button id="sourceTopBtn" class="mini-btn" type="button" title="Cuộn về đầu ngữ liệu">↑ Đầu đề</button>
           </div>
         </div>
         <div id="examContent" class="document-content"></div>
       </article>
 
-      <aside class="answer-panel">
-        <div class="answer-sticky">
-          <div class="panel-heading">
-            <div>
-              <span class="panel-kicker">BÀI LÀM</span>
-              <h2>Phiếu trả lời</h2>
-            </div>
-            <span id="saveIndicator" class="save-indicator">Đã lưu</span>
-          </div>
+      <div id="workspaceSplitter" class="workspace-splitter" role="separator" tabindex="0" aria-label="Kéo để thay đổi kích thước vùng ngữ liệu và bài làm" aria-orientation="vertical" aria-valuemin="28" aria-valuemax="62" aria-valuenow="42">
+        <span class="splitter-grip" aria-hidden="true"></span>
+        <small id="splitterHint" class="splitter-hint" aria-hidden="true">Kéo để thay đổi không gian</small>
+      </div>
 
-          <div class="progress-wrap" aria-label="Tiến độ bài làm">
-            <div class="progress-meta">
-              <span>Tiến độ</span>
-              <strong id="progressText">0%</strong>
+      <aside id="answerPanel" class="answer-panel workspace-panel" aria-label="Bài làm của học sinh">
+        <div class="answer-shell">
+          <div class="answer-toolbar-sticky">
+            <div class="panel-heading answer-heading">
+              <div><span class="panel-kicker">BÀI LÀM</span><h2>Phiếu trả lời</h2></div>
+              <button id="answerToolsBtn" class="mini-btn compact-tools-btn" type="button">Công cụ</button>
             </div>
-            <div class="progress-track"><span id="progressBar"></span></div>
-          </div>
-
-          <div class="score-summary">
-            <span>Tổng điểm tự luyện</span>
-            <strong><span id="totalScore">0</span>/<span id="maxTotalScore">10</span></strong>
           </div>
 
           <div id="answerFields" class="answer-fields"></div>
-          <button id="addAnswerBtn" class="secondary-btn" type="button">＋ Thêm ô làm bài</button>
-
-          <div class="action-row">
+          <div class="answer-tail-tools">
+            <button id="addAnswerBtn" class="secondary-btn" type="button">＋ Thêm ô làm bài</button>
             <button id="clearBtn" class="danger-text-btn" type="button">Xóa bài làm</button>
-            <button id="finishBtn" class="primary-btn" type="button">Hoàn thành bài làm</button>
           </div>
-          <p class="local-note">Bài làm tự động lưu trên thiết bị này. Phiên bản hiện tại chưa gửi bài qua email.</p>
+          <p class="local-note">Bài làm tự động lưu trên thiết bị. Hồ sơ học sinh và API Key chỉ lưu trong phiên; ảnh viết tay chỉ tải lên Drive khi gửi bài cho giáo viên.</p>
         </div>
       </aside>
+
+      <div class="work-dock" aria-label="Điều hướng câu hỏi và hoàn thành bài">
+        <button id="restoreReadingBtn" class="dock-source-btn" type="button" title="Mở rộng vùng ngữ liệu" aria-label="Mở rộng vùng ngữ liệu">📖 <span>Đề</span></button>
+        <nav id="questionNav" class="question-nav" aria-label="Chuyển nhanh đến câu hỏi"></nav>
+        <button id="finishBtn" class="primary-btn finish-dock-btn" type="button">Hoàn thành</button>
+      </div>
     </section>
 
-    <section id="answerKeySection" class="answer-key-section" hidden>
-      <div class="answer-key-heading">
-        <div>
-          <span class="panel-kicker">ĐỐI CHIẾU</span>
-          <h2>Đáp án và hướng dẫn chấm</h2>
+    <section id="reviewSection" class="review-section" hidden>
+      <div class="review-heading">
+        <div class="review-heading-main">
+          <span class="panel-kicker">TỔNG KẾT</span>
+          <div class="review-tabs" role="tablist" aria-label="Nội dung tổng kết">
+            <button id="reviewTabAnswerKey" class="review-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="answerKeyPanel" data-tab="answerKey">Đáp án</button>
+            <button id="reviewTabAiScore" class="review-tab" type="button" role="tab" aria-selected="false" aria-controls="aiScorePanel" data-tab="aiScore">AI chấm điểm</button>
+            <button id="reviewTabReferences" class="review-tab" type="button" role="tab" aria-selected="false" aria-controls="referencesPanel" data-tab="references">Bài tham khảo</button>
+            <button id="reviewTabSendTeacher" class="review-tab" type="button" role="tab" aria-selected="false" aria-controls="sendTeacherPanel" data-tab="sendTeacher">Gửi giáo viên</button>
+          </div>
         </div>
-        <button id="backToWorkBtn" class="secondary-btn" type="button">Quay lại bài làm</button>
+        <button id="backToWorkBtn" class="secondary-btn review-back-btn" type="button">Quay lại bài làm</button>
       </div>
-      <div id="answerKeyContent" class="document-content"></div>
+      <div id="answerKeyPanel" class="review-panel is-active" role="tabpanel" aria-labelledby="reviewTabAnswerKey"><div id="answerKeyContent" class="document-content"></div></div>
+      <div id="aiScorePanel" class="review-panel" role="tabpanel" aria-labelledby="reviewTabAiScore">
+        <div class="ai-score-card">
+          <div class="ai-score-head">
+            <div><span class="panel-kicker">CHẤM TOÀN BÀI BẰNG AI</span><h3>Điểm và nhận xét tham khảo</h3><p>AI đối chiếu bài làm với yêu cầu, đáp án và hướng dẫn chấm. Kết quả không thay thế điểm của giáo viên.</p></div>
+            <button id="runAiScoreBtn" class="primary-btn" type="button">Chấm toàn bài bằng AI</button>
+          </div>
+          <div id="aiScoreStatus" class="ai-score-status" hidden></div>
+          <div id="aiScoreContent" class="ai-score-content" hidden></div>
+        </div>
+      </div>
+      <div id="referencesPanel" class="review-panel" role="tabpanel" aria-labelledby="reviewTabReferences"><div id="referenceContent" class="document-content"></div></div>
+      <div id="sendTeacherPanel" class="review-panel" role="tabpanel" aria-labelledby="reviewTabSendTeacher">
+        <div class="send-card">
+          <h3>Gửi bài làm qua email giáo viên</h3>
+          <p>Hệ thống khóa bản bài làm hiện tại, nén và tải ảnh viết tay lên Google Drive, sau đó gửi bài tới email giáo viên do học sinh nhập.</p>
+          <div class="send-grid">
+            <label><span>Email giáo viên *</span><input id="teacherEmail" type="email" autocomplete="email" maxlength="254" placeholder="giaovien@example.com"></label>
+            <label><span>Lời nhắn</span><input id="teacherMessage" type="text" maxlength="500" placeholder="Em gửi thầy/cô bài luyện đề…"></label>
+          </div>
+          <label class="confirm-line"><input id="confirmOwnWork" type="checkbox"> <span>Em xác nhận đây là bài làm của mình, email đã nhập đúng và giáo viên đồng ý nhận bài.</span></label>
+          <div class="send-summary" id="sendSummary"></div>
+          <button id="sendSubmissionBtn" class="primary-btn" type="button">Gửi bài cho giáo viên</button>
+          <div id="uploadProgress" class="upload-progress" hidden>
+            <div class="progress-meta"><span id="uploadProgressText">Đang chuẩn bị…</span><strong id="uploadProgressPercent">0%</strong></div>
+            <div class="progress-track"><span id="uploadProgressBar"></span></div>
+          </div>
+          <div id="sendResult" class="send-result" hidden></div>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <p>
-      Tiện ích học tập trên
-      <a href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener">Học liệu số</a>
-      · Phiên bản 7.2
-    </p>
-  </footer>
-
+  <div id="aiBackdrop" class="ai-backdrop" hidden></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="imageLightbox" class="lightbox" hidden><button id="closeLightboxBtn" type="button" aria-label="Đóng">×</button><img id="lightboxImage" alt="Ảnh bài viết tay phóng to"></div>
 
-  <script src="./config.js?v=7.2.0"></script>
-  <script src="./app.js?v=7.2.0"></script>
+  <footer><p>Tiện ích học tập trên <a href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener noreferrer">Học liệu số</a> · Phiên bản bảo mật 12.0</p></footer>
+  <script src="./config.js?v=12.0.0"></script>
+  <script src="./app.js?v=12.0.0"></script>
 </body>
 </html>
