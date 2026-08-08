@@ -2,16 +2,30 @@
   'use strict';
 
   var config = window.TL_APP_CONFIG || {};
+  purgeLegacyCaches();
   var state = {
-    data: [],
-    filtered: [],
+    items: [],
+    total: 0,
+    hasMore: false,
     selectedId: null,
+    selectedSummary: null,
+    selectedDetail: null,
+    related: [],
     grade: 'all',
     query: '',
-    recent: readJson(config.recentKey, []),
+    recent: normalizeRecent(readJson(config.recentKey, [])),
     mobileView: 'list',
-    isLoading: false,
-    autoRetryTimer: null
+    isSearching: false,
+    isDetailLoading: false,
+    searchSerial: 0,
+    searchTimer: null,
+    autoRetryTimer: null,
+    searchController: null,
+    detailController: null,
+    detailCache: new Map(),
+    lastAction: { type: 'search' },
+    clientId: getClientId(),
+    limit: clampNumber(config.searchLimit, 1, 40, 36)
   };
 
   var els = {
@@ -26,6 +40,7 @@
     resultCount: byId('resultCount'),
     mobileCount: byId('mobileCount'),
     termList: byId('termList'),
+    loadMoreButton: byId('loadMoreButton'),
     recentSection: byId('recentSection'),
     recentList: byId('recentList'),
     clearRecentButton: byId('clearRecentButton'),
@@ -54,7 +69,7 @@
 
   bindEvents();
   renderRecent();
-  loadData({ allowAutoRetry: true });
+  searchTerms({ reset: true, allowAutoRetry: true });
 
   function byId(id) {
     return document.getElementById(id);
@@ -68,24 +83,30 @@
       els.gradeFilter.querySelectorAll('.grade-button').forEach(function (item) {
         item.classList.toggle('active', item === button);
       });
-      applyFilters();
+      scheduleSearch(true);
     });
 
     els.searchInput.addEventListener('input', function () {
-      state.query = els.searchInput.value.trim();
+      var nextQuery = els.searchInput.value.slice(0, 100).trim();
+      if (els.searchInput.value.length > 100) els.searchInput.value = els.searchInput.value.slice(0, 100);
+      state.query = nextQuery;
       els.clearSearchButton.hidden = !state.query;
-      applyFilters();
+      scheduleSearch(false);
     });
 
     els.clearSearchButton.addEventListener('click', function () {
       els.searchInput.value = '';
       state.query = '';
       els.clearSearchButton.hidden = true;
-      applyFilters();
+      scheduleSearch(true);
       els.searchInput.focus();
     });
 
-    els.retryButton.addEventListener('click', loadData);
+    els.loadMoreButton.addEventListener('click', function () {
+      searchTerms({ reset: false });
+    });
+
+    els.retryButton.addEventListener('click', retryLastAction);
     els.closeStatusButton.addEventListener('click', function () {
       els.statusBanner.hidden = true;
     });
@@ -114,7 +135,7 @@
     });
 
     window.addEventListener('online', function () {
-      loadData({ silent: Boolean(state.data.length), allowAutoRetry: false });
+      if (!state.items.length) searchTerms({ reset: true, allowAutoRetry: false });
     });
 
     window.addEventListener('resize', function () {
@@ -129,374 +150,163 @@
     });
   }
 
-  async function loadData(options) {
+  function scheduleSearch(immediate) {
+    if (state.searchTimer) clearTimeout(state.searchTimer);
+    var delay = immediate ? 0 : clampNumber(config.searchDelay, 100, 1000, 300);
+    state.searchTimer = setTimeout(function () {
+      searchTerms({ reset: true, allowAutoRetry: false });
+    }, delay);
+  }
+
+  async function searchTerms(options) {
     options = options || {};
-    if (state.isLoading) return;
-    state.isLoading = true;
+    var reset = options.reset !== false;
+    if (!reset && (state.isSearching || !state.hasMore)) return;
 
     if (state.autoRetryTimer) {
       clearTimeout(state.autoRetryTimer);
       state.autoRetryTimer = null;
     }
+    if (reset && state.searchController) state.searchController.abort();
 
-    var cached = readJson(config.cacheKey, null);
-    var hasUsableCache = cached && Array.isArray(cached.data) && cached.data.length;
+    var serial = ++state.searchSerial;
+    var controller = new AbortController();
+    state.searchController = controller;
+    state.isSearching = true;
+    state.lastAction = { type: 'search' };
+    els.termList.setAttribute('aria-busy', 'true');
+    els.loadMoreButton.disabled = true;
 
-    // Hiển thị dữ liệu đã lưu ngay lập tức, không bắt người dùng chờ mạng.
-    if (!state.data.length && hasUsableCache) {
-      state.data = cached.data.map(function (item, index) {
-        item.id = index;
-        item.grades = Array.isArray(item.grades) ? item.grades : extractGrades(item.grade);
-        return item;
-      });
-      renderRecent();
-      applyFilters();
+    if (reset) {
+      state.items = [];
+      state.total = 0;
+      state.hasMore = false;
+      renderList();
+      updateCounts();
     }
 
-    if (!options.silent) {
-      setStatus('loading', hasUsableCache ? 'Đang cập nhật dữ liệu...' : 'Đang tải dữ liệu...', false);
-    }
-    els.retryButton.hidden = true;
+    setStatus('loading', reset ? 'Đang tìm thuật ngữ...' : 'Đang tải thêm thuật ngữ...', false);
 
     try {
-      var payload = await loadRemotePayload(config.apiUrl, Number(config.requestTimeout) || 7000);
-      var terms = normalizePayload(payload);
-      if (!terms.length) throw new Error('Dữ liệu không có thuật ngữ hợp lệ.');
+      var offset = reset ? 0 : state.items.length;
+      var params = new URLSearchParams();
+      if (state.query) params.set('q', state.query);
+      if (state.grade !== 'all') params.set('grade', state.grade);
+      params.set('offset', String(offset));
+      params.set('limit', String(state.limit));
 
-      state.data = terms.sort(function (a, b) {
-        return a.term.localeCompare(b.term, 'vi', { sensitivity: 'base' });
-      }).map(function (item, index) {
-        item.id = index;
-        return item;
-      });
+      var payload = await apiRequest('/api/terms?' + params.toString(), controller);
+      if (serial !== state.searchSerial) return;
+      var result = normalizeSearchResponse(payload);
+      state.items = reset ? result.items : mergeSummaries(state.items, result.items);
+      state.total = Math.max(result.total, state.items.length);
+      state.hasMore = result.hasMore && state.items.length < state.total;
+      state.isSearching = false;
 
-      writeJson(config.cacheKey, {
-        savedAt: new Date().toISOString(),
-        data: state.data
-      });
-
-      setStatus('success', 'Đã tải ' + state.data.length + ' thuật ngữ.', false);
+      renderList();
+      updateCounts();
       renderRecent();
-      applyFilters();
+      updateNavigation();
+      setStatus('success', state.total ? 'Tìm thấy ' + state.total + ' thuật ngữ.' : 'Không có thuật ngữ phù hợp.', false);
     } catch (error) {
-      console.warn('Không tải được dữ liệu trực tuyến:', error);
+      if (error && error.name === 'AbortError') return;
+      if (serial !== state.searchSerial) return;
+      state.isSearching = false;
+      console.warn('Không tải được danh sách thuật ngữ:', safeErrorMessage(error));
+      renderList();
+      updateCounts();
+      setStatus('error', userFacingError(error, 'Chưa thể kết nối dữ liệu.'), true);
 
-      if (state.data.length || hasUsableCache) {
-        setStatus('error', 'Chưa thể cập nhật dữ liệu. Đang dùng dữ liệu đã lưu.', true);
-        renderRecent();
-        applyFilters();
-      } else {
-        state.data = [];
-        state.filtered = [];
-        setStatus('error', 'Chưa thể kết nối dữ liệu.', true);
-        renderList();
-      }
-
-      if (options.allowAutoRetry !== false && navigator.onLine !== false) {
+      if (options.allowAutoRetry && navigator.onLine !== false) {
         state.autoRetryTimer = setTimeout(function () {
-          loadData({ silent: Boolean(state.data.length), allowAutoRetry: false });
-        }, Number(config.autoRetryDelay) || 5000);
+          searchTerms({ reset: true, allowAutoRetry: false });
+        }, 5000);
       }
     } finally {
-      state.isLoading = false;
-    }
-  }
-
-  async function loadRemotePayload(url, timeout) {
-    if (!url) throw new Error('Chưa cấu hình địa chỉ dữ liệu.');
-
-    // Apps Script Content Service chuyển hướng qua googleusercontent.com.
-    // JSONP là đường chính; fetch chạy song song làm phương án dự phòng cho API JSON thuần.
-    try {
-      return await firstSuccessful([
-        jsonpPayload(url, 'prefix', timeout),
-        delayedAttempt(function () { return fetchPayload(url, timeout); }, 700)
-      ]);
-    } catch (primaryError) {
-      try {
-        return await jsonpPayload(url, 'callback', Math.min(timeout, 5000));
-      } catch (callbackError) {
-        throw callbackError || primaryError;
+      if (serial === state.searchSerial) {
+        state.isSearching = false;
+        els.termList.setAttribute('aria-busy', 'false');
+        els.loadMoreButton.disabled = false;
+        updateLoadMoreButton();
       }
     }
   }
 
-  function firstSuccessful(promises) {
-    return new Promise(function (resolve, reject) {
-      var pending = promises.length;
-      var errors = [];
-      if (!pending) {
-        reject(new Error('Không có phương thức tải dữ liệu.'));
-        return;
-      }
-      promises.forEach(function (promise, index) {
-        Promise.resolve(promise).then(resolve).catch(function (error) {
-          errors[index] = error;
-          pending -= 1;
-          if (pending === 0) reject(errors[errors.length - 1] || new Error('Không thể tải dữ liệu.'));
-        });
-      });
-    });
-  }
+  async function selectTerm(id, switchToDetail, summary, forceReload) {
+    if (!isSafeId(id)) return;
+    var selectedSummary = normalizeSummary(summary) || state.items.find(function (item) { return item.id === id; }) || { id: id, term: 'Thuật ngữ', grade: '' };
 
-  function delayedAttempt(factory, delay) {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        Promise.resolve().then(factory).then(resolve).catch(reject);
-      }, delay);
-    });
-  }
-
-  async function fetchPayload(url, timeout) {
-    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var timer = setTimeout(function () {
-      if (controller) controller.abort();
-    }, timeout);
-
-    try {
-      var response = await fetch(url, {
-        method: 'GET',
-        cache: 'no-cache',
-        redirect: 'follow',
-        signal: controller ? controller.signal : undefined
-      });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      var text = await response.text();
-      try {
-        return JSON.parse(text);
-      } catch (error) {
-        throw new Error('Dữ liệu trả về không phải JSON hợp lệ.');
-      }
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  function jsonpPayload(url, parameterName, timeout) {
-    return new Promise(function (resolve, reject) {
-      var callbackName = '__tlCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-      var script = document.createElement('script');
-      var completed = false;
-      var timer;
-
-      function cleanup() {
-        clearTimeout(timer);
-        if (script.parentNode) script.parentNode.removeChild(script);
-        try { delete window[callbackName]; } catch (error) { window[callbackName] = undefined; }
-      }
-
-      window[callbackName] = function (payload) {
-        if (completed) return;
-        completed = true;
-        cleanup();
-        resolve(payload);
-      };
-
-      script.onerror = function () {
-        if (completed) return;
-        completed = true;
-        cleanup();
-        reject(new Error('Không tải được JSONP.'));
-      };
-
-      timer = setTimeout(function () {
-        if (completed) return;
-        completed = true;
-        cleanup();
-        reject(new Error('JSONP quá thời gian chờ.'));
-      }, timeout);
-
-      var separator = url.indexOf('?') >= 0 ? '&' : '?';
-      script.src = url + separator + encodeURIComponent(parameterName) + '=' + encodeURIComponent(callbackName);
-      script.async = true;
-      document.head.appendChild(script);
-    });
-  }
-
-  function normalizePayload(payload) {
-    if (payload && payload.success === false) {
-      throw new Error(payload.error || 'Nguồn dữ liệu báo lỗi.');
-    }
-
-    var rows = payload;
-    if (payload && !Array.isArray(payload) && typeof payload === 'object') {
-      rows = payload.terms || payload.data || payload.rows || payload.values || [];
-    }
-    if (!Array.isArray(rows)) return [];
-    if (!rows.length) return [];
-
-    if (Array.isArray(rows[0])) return normalizeArrayRows(rows);
-    if (rows[0] && typeof rows[0] === 'object') return normalizeObjectRows(rows);
-    return [];
-  }
-
-  function normalizeArrayRows(rows) {
-    var first = rows[0] || [];
-    var headerKeys = first.map(normalizeKey);
-    var hasHeader = headerKeys.some(function (key) {
-      return key.indexOf('thuatngu') >= 0 || key === 'tu' || key.indexOf('giaithich') >= 0 || key.indexOf('vidu') >= 0;
-    });
-    var startIndex = hasHeader ? 1 : 0;
-    var indexes = {
-      term: findHeaderIndex(headerKeys, ['thuatngu', 'tu', 'khainiem', 'ten']),
-      definition: findHeaderIndex(headerKeys, ['giaithich', 'noidung', 'nghia', 'dinhnghia']),
-      grade: findHeaderIndex(headerKeys, ['lop', 'khoi', 'grade']),
-      example: findHeaderIndex(headerKeys, ['vidu', 'minhhoa', 'example'])
-    };
-    if (indexes.term < 0) indexes.term = 0;
-    if (indexes.definition < 0) indexes.definition = 1;
-    if (indexes.grade < 0) indexes.grade = 2;
-    if (indexes.example < 0) indexes.example = 3;
-
-    return rows.slice(startIndex).map(function (row) {
-      return createTerm(
-        row[indexes.term],
-        row[indexes.definition],
-        row[indexes.grade],
-        row[indexes.example]
-      );
-    }).filter(Boolean);
-  }
-
-  function normalizeObjectRows(rows) {
-    return rows.map(function (row) {
-      var map = {};
-      Object.keys(row).forEach(function (key) {
-        map[normalizeKey(key)] = row[key];
-      });
-      return createTerm(
-        pickValue(map, ['term', 'thuatngu', 'tu', 'khainiem', 'ten']),
-        pickValue(map, ['definition', 'giaithich', 'noidung', 'nghia', 'dinhnghia']),
-        pickValue(map, ['grade', 'lop', 'khoi']),
-        pickValue(map, ['example', 'vidu', 'minhhoa'])
-      );
-    }).filter(Boolean);
-  }
-
-  function createTerm(term, definition, grade, example) {
-    var cleanTerm = String(term == null ? '' : term).trim();
-    if (!cleanTerm) return null;
-    var cleanDefinition = String(definition == null ? '' : definition).trim();
-    var cleanGrade = String(grade == null ? '' : grade).trim();
-    var cleanExample = String(example == null ? '' : example).trim();
-    return {
-      term: cleanTerm,
-      definition: cleanDefinition || '(Chưa có nội dung)',
-      grade: cleanGrade,
-      grades: extractGrades(cleanGrade),
-      example: cleanExample
-    };
-  }
-
-  function findHeaderIndex(keys, candidates) {
-    for (var i = 0; i < keys.length; i += 1) {
-      for (var j = 0; j < candidates.length; j += 1) {
-        if (keys[i] === candidates[j] || keys[i].indexOf(candidates[j]) >= 0) return i;
-      }
-    }
-    return -1;
-  }
-
-  function pickValue(map, candidates) {
-    for (var i = 0; i < candidates.length; i += 1) {
-      if (Object.prototype.hasOwnProperty.call(map, candidates[i])) return map[candidates[i]];
-    }
-    var keys = Object.keys(map);
-    for (var j = 0; j < keys.length; j += 1) {
-      for (var k = 0; k < candidates.length; k += 1) {
-        if (keys[j].indexOf(candidates[k]) >= 0) return map[keys[j]];
-      }
-    }
-    return '';
-  }
-
-  function extractGrades(value) {
-    var matches = String(value || '').match(/(?:^|\D)(6|7|8|9|10|11|12)(?=\D|$)/g) || [];
-    return matches.map(function (match) {
-      var number = match.match(/6|7|8|9|10|11|12/);
-      return number ? number[0] : '';
-    }).filter(function (grade, index, list) {
-      return grade && list.indexOf(grade) === index;
-    });
-  }
-
-  function normalizeKey(value) {
-    return normalizeText(value).replace(/[^a-z0-9]/g, '');
-  }
-
-  function normalizeText(value) {
-    return String(value == null ? '' : value)
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toLowerCase()
-      .trim();
-  }
-
-  function applyFilters() {
-    var query = normalizeText(state.query);
-    state.filtered = state.data.filter(function (item) {
-      var gradeMatch = state.grade === 'all' || item.grades.indexOf(state.grade) >= 0 || normalizeText(item.grade).indexOf('lop ' + state.grade) >= 0;
-      if (!gradeMatch) return false;
-      if (!query) return true;
-      return normalizeText(item.term).indexOf(query) >= 0 ||
-        normalizeText(stripHtml(item.definition)).indexOf(query) >= 0 ||
-        normalizeText(stripHtml(item.example)).indexOf(query) >= 0;
-    });
-
-    els.resultCount.textContent = state.filtered.length;
-    els.mobileCount.textContent = state.filtered.length;
+    state.selectedId = id;
+    state.selectedSummary = selectedSummary;
+    state.lastAction = { type: 'detail', id: id, summary: selectedSummary };
     renderList();
     updateNavigation();
-  }
+    showDetailLoading(selectedSummary);
+    if (switchToDetail && window.innerWidth <= 820) setMobileView('detail');
 
-  function renderList() {
-    els.termList.innerHTML = '';
-    if (!state.filtered.length) {
-      var empty = document.createElement('div');
-      empty.className = 'no-results';
-      empty.innerHTML = '<div><b>Không có kết quả phù hợp.</b><p>Thử đổi từ khóa hoặc chọn một lớp khác.</p></div>';
-      els.termList.appendChild(empty);
+    if (!forceReload && state.detailCache.has(id)) {
+      var cached = state.detailCache.get(id);
+      state.detailCache.delete(id);
+      state.detailCache.set(id, cached);
+      renderDetailPayload(cached);
       return;
     }
 
-    var fragment = document.createDocumentFragment();
-    state.filtered.forEach(function (item) {
-      var button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'term-item' + (item.id === state.selectedId ? ' active' : '');
-      button.setAttribute('role', 'option');
-      button.setAttribute('aria-selected', item.id === state.selectedId ? 'true' : 'false');
-      button.dataset.id = String(item.id);
-      var name = document.createElement('span');
-      name.className = 'term-name';
-      name.textContent = item.term;
-      button.appendChild(name);
-      button.addEventListener('click', function () { selectTerm(item.id, true); });
-      fragment.appendChild(button);
-    });
-    els.termList.appendChild(fragment);
+    if (state.detailController) state.detailController.abort();
+    var controller = new AbortController();
+    state.detailController = controller;
+    state.isDetailLoading = true;
+
+    try {
+      var payload = await apiRequest('/api/terms/' + encodeURIComponent(id), controller);
+      if (state.selectedId !== id) return;
+      var result = normalizeDetailResponse(payload);
+      cacheDetail(id, result);
+      renderDetailPayload(result);
+    } catch (error) {
+      if (error && error.name === 'AbortError') return;
+      if (state.selectedId !== id) return;
+      console.warn('Không tải được nội dung thuật ngữ:', safeErrorMessage(error));
+      els.definitionContent.textContent = 'Chưa thể tải nội dung. Vui lòng thử lại.';
+      els.exampleSection.hidden = true;
+      setStatus('error', userFacingError(error, 'Chưa thể tải nội dung thuật ngữ.'), true);
+    } finally {
+      if (state.selectedId === id) state.isDetailLoading = false;
+    }
   }
 
-  function selectTerm(id, switchToDetail) {
-    var item = state.data.find(function (term) { return term.id === id; });
-    if (!item) return;
-    state.selectedId = id;
-    renderList();
+  function showDetailLoading(summary) {
+    state.selectedDetail = null;
+    state.related = [];
+    els.emptyDetail.hidden = true;
+    els.termDetail.hidden = false;
+    els.termTitle.textContent = summary.term || 'Thuật ngữ';
+    els.definitionContent.textContent = 'Đang tải nội dung...';
+    els.exampleSection.hidden = true;
+    els.relatedSection.hidden = true;
+    if (summary.grade) {
+      els.gradeBadge.textContent = formatGrade(summary.grade);
+      els.gradeBadge.hidden = false;
+    } else {
+      els.gradeBadge.hidden = true;
+    }
+    els.detailScroll.scrollTop = 0;
+  }
+
+  function renderDetailPayload(payload) {
+    var item = payload.item;
+    state.selectedDetail = item;
+    state.selectedSummary = { id: item.id, term: item.term, grade: item.grade };
+    state.related = payload.related;
 
     els.emptyDetail.hidden = true;
     els.termDetail.hidden = false;
     els.termTitle.textContent = item.term;
     els.definitionContent.innerHTML = sanitizeHtml(item.definition);
 
-    if (item.example) {
-      els.exampleSection.hidden = false;
-      els.exampleContent.innerHTML = sanitizeHtml(item.example);
-    } else {
-      els.exampleSection.hidden = false;
-      els.exampleContent.innerHTML = '<em>(Chưa có ví dụ minh họa)</em>';
-    }
+    els.exampleSection.hidden = false;
+    if (item.example) els.exampleContent.innerHTML = sanitizeHtml(item.example);
+    else els.exampleContent.innerHTML = '<em>(Chưa có ví dụ minh họa)</em>';
 
     if (item.grade) {
       els.gradeBadge.textContent = formatGrade(item.grade);
@@ -505,36 +315,51 @@
       els.gradeBadge.hidden = true;
     }
 
-    renderRelated(item);
-    addRecent(item);
+    renderRelated(payload.related);
+    addRecent(state.selectedSummary);
     updateNavigation();
     els.detailScroll.scrollTop = 0;
-
-    if (switchToDetail && window.innerWidth <= 820) setMobileView('detail');
   }
 
-  function formatGrade(grade) {
-    var text = String(grade || '').trim();
-    if (!text) return '';
-    if (/lớp|khối/i.test(text)) return text;
-    return 'Lớp ' + text;
-  }
-
-  function renderRelated(item) {
-    var related = state.data.filter(function (candidate) {
-      if (candidate.id === item.id) return false;
-      if (!item.grades.length || !candidate.grades.length) return false;
-      return candidate.grades.some(function (grade) { return item.grades.indexOf(grade) >= 0; });
-    });
-    if (related.length < 4) {
-      var extra = state.data.filter(function (candidate) {
-        return candidate.id !== item.id && related.indexOf(candidate) < 0;
-      });
-      related = related.concat(extra);
+  function renderList() {
+    els.termList.textContent = '';
+    if (!state.items.length) {
+      var empty = document.createElement('div');
+      empty.className = 'no-results';
+      var wrapper = document.createElement('div');
+      var title = document.createElement('b');
+      var copy = document.createElement('p');
+      title.textContent = state.isSearching ? 'Đang tải dữ liệu...' : 'Không có kết quả phù hợp.';
+      copy.textContent = state.isSearching ? 'Vui lòng chờ trong giây lát.' : 'Thử đổi từ khóa hoặc chọn một lớp khác.';
+      wrapper.appendChild(title);
+      wrapper.appendChild(copy);
+      empty.appendChild(wrapper);
+      els.termList.appendChild(empty);
+      updateLoadMoreButton();
+      return;
     }
-    related = related.slice(0, 4);
 
-    els.relatedGrid.innerHTML = '';
+    var fragment = document.createDocumentFragment();
+    state.items.forEach(function (item) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'term-item' + (item.id === state.selectedId ? ' active' : '');
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', item.id === state.selectedId ? 'true' : 'false');
+      button.dataset.id = item.id;
+      var name = document.createElement('span');
+      name.className = 'term-name';
+      name.textContent = item.term;
+      button.appendChild(name);
+      button.addEventListener('click', function () { selectTerm(item.id, true, item, false); });
+      fragment.appendChild(button);
+    });
+    els.termList.appendChild(fragment);
+    updateLoadMoreButton();
+  }
+
+  function renderRelated(related) {
+    els.relatedGrid.textContent = '';
     els.relatedSection.hidden = !related.length;
     related.forEach(function (candidate) {
       var button = document.createElement('button');
@@ -546,57 +371,77 @@
       subtitle.textContent = candidate.grade ? formatGrade(candidate.grade) : 'Thuật ngữ liên quan';
       button.appendChild(title);
       button.appendChild(subtitle);
-      button.addEventListener('click', function () { selectTerm(candidate.id, true); });
+      button.addEventListener('click', function () { selectTerm(candidate.id, true, candidate, false); });
       els.relatedGrid.appendChild(button);
     });
   }
 
-  function updateNavigation() {
-    var index = state.filtered.findIndex(function (item) { return item.id === state.selectedId; });
-    if (index < 0) {
-      els.positionBadge.textContent = state.filtered.length ? '– / ' + state.filtered.length : '0 / 0';
-      els.previousButton.disabled = true;
-      els.nextButton.disabled = true;
-      return;
-    }
-    els.positionBadge.textContent = (index + 1) + ' / ' + state.filtered.length;
-    els.previousButton.disabled = index <= 0;
-    els.nextButton.disabled = index >= state.filtered.length - 1;
-  }
-
-  function moveSelection(direction) {
-    if (!state.filtered.length) return;
-    var index = state.filtered.findIndex(function (item) { return item.id === state.selectedId; });
-    if (index < 0) index = direction > 0 ? -1 : state.filtered.length;
-    var nextIndex = index + direction;
-    if (nextIndex < 0 || nextIndex >= state.filtered.length) return;
-    selectTerm(state.filtered[nextIndex].id, true);
-  }
-
-  function addRecent(item) {
-    state.recent = state.recent.filter(function (term) { return term !== item.term; });
-    state.recent.unshift(item.term);
+  function addRecent(summary) {
+    var item = normalizeSummary(summary);
+    if (!item) return;
+    state.recent = state.recent.filter(function (recent) { return recent.id !== item.id; });
+    state.recent.unshift(item);
     state.recent = state.recent.slice(0, 6);
     writeJson(config.recentKey, state.recent);
     renderRecent();
   }
 
   function renderRecent() {
-    els.recentList.innerHTML = '';
-    var available = state.recent.map(function (termName) {
-      return state.data.find(function (item) { return item.term === termName; });
-    }).filter(Boolean);
-    els.recentSection.hidden = !available.length;
-    els.clearRecentButton.hidden = !available.length;
-    available.forEach(function (item) {
+    els.recentList.textContent = '';
+    els.recentSection.hidden = !state.recent.length;
+    els.clearRecentButton.hidden = !state.recent.length;
+    state.recent.forEach(function (item) {
       var button = document.createElement('button');
       button.type = 'button';
       button.className = 'recent-button';
       button.textContent = item.term;
       button.title = item.term;
-      button.addEventListener('click', function () { selectTerm(item.id, true); });
+      button.addEventListener('click', function () { selectTerm(item.id, true, item, false); });
       els.recentList.appendChild(button);
     });
+  }
+
+  function updateCounts() {
+    els.resultCount.textContent = state.total;
+    els.mobileCount.textContent = state.total;
+    updateLoadMoreButton();
+  }
+
+  function updateLoadMoreButton() {
+    els.loadMoreButton.hidden = !state.hasMore || !state.items.length;
+    els.loadMoreButton.textContent = state.isSearching
+      ? 'Đang tải...'
+      : 'Xem thêm (' + state.items.length + ' / ' + state.total + ')';
+  }
+
+  function updateNavigation() {
+    var index = state.items.findIndex(function (item) { return item.id === state.selectedId; });
+    if (index < 0) {
+      els.positionBadge.textContent = state.total ? '– / ' + state.total : '0 / 0';
+      els.previousButton.disabled = true;
+      els.nextButton.disabled = true;
+      return;
+    }
+    els.positionBadge.textContent = (index + 1) + ' / ' + state.total;
+    els.previousButton.disabled = index <= 0;
+    els.nextButton.disabled = index >= state.items.length - 1 && !state.hasMore;
+  }
+
+  async function moveSelection(direction) {
+    if (!state.items.length || state.isDetailLoading) return;
+    var index = state.items.findIndex(function (item) { return item.id === state.selectedId; });
+    if (index < 0) index = direction > 0 ? -1 : state.items.length;
+    var nextIndex = index + direction;
+
+    if (direction > 0 && nextIndex >= state.items.length && state.hasMore) {
+      var previousLength = state.items.length;
+      await searchTerms({ reset: false });
+      if (state.items.length > previousLength) nextIndex = previousLength;
+    }
+
+    if (nextIndex < 0 || nextIndex >= state.items.length) return;
+    var next = state.items[nextIndex];
+    selectTerm(next.id, true, next, false);
   }
 
   function setMobileView(view) {
@@ -613,7 +458,7 @@
   }
 
   async function copyCurrentTerm() {
-    var item = state.data.find(function (term) { return term.id === state.selectedId; });
+    var item = state.selectedDetail;
     if (!item) return;
     var text = item.term + '\n\nGiải thích:\n' + stripHtml(item.definition);
     if (item.example) text += '\n\nVí dụ:\n' + stripHtml(item.example);
@@ -661,6 +506,144 @@
     els.fullscreenText.textContent = active ? 'Thoát toàn màn hình' : 'Toàn màn hình';
   }
 
+  function retryLastAction() {
+    if (state.lastAction && state.lastAction.type === 'detail') {
+      selectTerm(state.lastAction.id, true, state.lastAction.summary, true);
+      return;
+    }
+    searchTerms({ reset: true, allowAutoRetry: false });
+  }
+
+  async function apiRequest(path, controller) {
+    var base = String(config.apiBaseUrl || '').replace(/\/+$/, '');
+    if (!/^https:\/\//i.test(base) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(base)) {
+      throw new Error('CONFIG_ERROR');
+    }
+
+    var timeout = clampNumber(config.requestTimeout, 2000, 20000, 9000);
+    var timer = setTimeout(function () { controller.abort(); }, timeout);
+    try {
+      var response = await fetch(base + path, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store',
+        credentials: 'omit',
+        headers: {
+          Accept: 'application/json',
+          'X-TL-Client': state.clientId
+        },
+        signal: controller.signal
+      });
+
+      var payload;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        throw createHttpError(response.status, 'INVALID_RESPONSE');
+      }
+
+      if (!response.ok || !payload || payload.success !== true) {
+        throw createHttpError(response.status, payload && payload.code ? payload.code : 'REQUEST_FAILED');
+      }
+      return payload.data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function createHttpError(status, code) {
+    var error = new Error(code || 'REQUEST_FAILED');
+    error.status = Number(status) || 0;
+    error.code = code || 'REQUEST_FAILED';
+    return error;
+  }
+
+  function userFacingError(error, fallback) {
+    if (error && error.code === 'CONFIG_ERROR') return 'Chưa cấu hình địa chỉ API bảo mật.';
+    if (error && error.status === 429) return 'Bạn thao tác quá nhanh. Vui lòng chờ một lát rồi thử lại.';
+    if (error && error.status === 404) return 'Không tìm thấy thuật ngữ này.';
+    if (navigator.onLine === false) return 'Thiết bị đang ngoại tuyến. Vui lòng kiểm tra kết nối mạng.';
+    return fallback;
+  }
+
+  function safeErrorMessage(error) {
+    return error && error.message ? String(error.message).slice(0, 120) : 'Unknown error';
+  }
+
+  function normalizeSearchResponse(value) {
+    if (!value || typeof value !== 'object' || !Array.isArray(value.items)) throw new Error('INVALID_RESPONSE');
+    var items = value.items.map(normalizeSummary).filter(Boolean);
+    return {
+      items: mergeSummaries([], items),
+      total: clampNumber(value.total, 0, 100000, items.length),
+      hasMore: Boolean(value.hasMore)
+    };
+  }
+
+  function normalizeDetailResponse(value) {
+    if (!value || typeof value !== 'object') throw new Error('INVALID_RESPONSE');
+    var item = normalizeDetail(value.item);
+    if (!item) throw new Error('INVALID_RESPONSE');
+    var related = Array.isArray(value.related) ? value.related.map(normalizeSummary).filter(Boolean) : [];
+    return { item: item, related: mergeSummaries([], related).slice(0, 4) };
+  }
+
+  function normalizeSummary(value) {
+    if (!value || typeof value !== 'object') return null;
+    var id = String(value.id || '').trim();
+    var term = String(value.term || '').trim().slice(0, 200);
+    var grade = String(value.grade || '').trim().slice(0, 80);
+    if (!isSafeId(id) || !term) return null;
+    return { id: id, term: term, grade: grade };
+  }
+
+  function normalizeDetail(value) {
+    var summary = normalizeSummary(value);
+    if (!summary) return null;
+    return {
+      id: summary.id,
+      term: summary.term,
+      grade: summary.grade,
+      definition: String(value.definition || '').slice(0, 25000),
+      example: String(value.example || '').slice(0, 15000)
+    };
+  }
+
+  function mergeSummaries(existing, incoming) {
+    var seen = new Set();
+    return existing.concat(incoming).filter(function (item) {
+      if (!item || seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }
+
+  function cacheDetail(id, payload) {
+    if (state.detailCache.has(id)) state.detailCache.delete(id);
+    state.detailCache.set(id, payload);
+    var max = clampNumber(config.detailCacheLimit, 1, 30, 12);
+    while (state.detailCache.size > max) {
+      var oldest = state.detailCache.keys().next().value;
+      state.detailCache.delete(oldest);
+    }
+  }
+
+  function normalizeRecent(value) {
+    if (!Array.isArray(value)) return [];
+    return mergeSummaries([], value.map(normalizeSummary).filter(Boolean)).slice(0, 6);
+  }
+
+  function isSafeId(value) {
+    return /^[A-Za-z0-9_-]{6,100}$/.test(String(value || ''));
+  }
+
+  function formatGrade(grade) {
+    var text = String(grade || '').trim();
+    if (!text) return '';
+    if (/lớp|khối/i.test(text)) return text;
+    return 'Lớp ' + text;
+  }
+
   function setStatus(type, text, showRetry) {
     els.statusBanner.hidden = false;
     els.statusBanner.className = 'status-banner ' + type;
@@ -688,8 +671,9 @@
         return;
       }
       Array.prototype.slice.call(node.attributes).forEach(function (attribute) {
-        var keepHref = node.tagName === 'A' && attribute.name.toLowerCase() === 'href';
-        var keepTitle = node.tagName === 'A' && attribute.name.toLowerCase() === 'title';
+        var name = attribute.name.toLowerCase();
+        var keepHref = node.tagName === 'A' && name === 'href';
+        var keepTitle = node.tagName === 'A' && name === 'title';
         if (!keepHref && !keepTitle) node.removeAttribute(attribute.name);
       });
       if (node.tagName === 'A') {
@@ -717,6 +701,29 @@
     });
   }
 
+  function getClientId() {
+    var key = String(config.sessionKey || 'tl_session_v1');
+    try {
+      var existing = sessionStorage.getItem(key);
+      if (/^[A-Za-z0-9_-]{20,80}$/.test(existing || '')) return existing;
+      var bytes = new Uint8Array(18);
+      crypto.getRandomValues(bytes);
+      var generated = Array.prototype.map.call(bytes, function (byte) {
+        return byte.toString(16).padStart(2, '0');
+      }).join('');
+      sessionStorage.setItem(key, generated);
+      return generated;
+    } catch (error) {
+      return 'fallback_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 18);
+    }
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    var number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.min(max, Math.max(min, Math.floor(number)));
+  }
+
   function readJson(key, fallback) {
     if (!key) return fallback;
     try {
@@ -729,6 +736,13 @@
 
   function writeJson(key, value) {
     if (!key) return;
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) { /* ignore */ }
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) { /* Không lưu được lịch sử xem. */ }
+  }
+
+  function purgeLegacyCaches() {
+    var keys = Array.isArray(config.legacyCacheKeys) ? config.legacyCacheKeys : [];
+    keys.forEach(function (key) {
+      try { localStorage.removeItem(String(key)); } catch (error) { /* Trình duyệt chặn bộ nhớ cục bộ. */ }
+    });
   }
 })();

@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#5a23ce">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.hoclieuso.id.vn https://*.workers.dev; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
   <meta name="description" content="Tiện ích tra cứu thuật ngữ Ngữ văn dành cho học sinh lớp 6 đến lớp 12.">
   <title>Tra cứu thuật ngữ Ngữ văn</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/app.css?v=2.1">
+  <link rel="stylesheet" href="./assets/app.css?v=3.0">
 </head>
 <body>
   <div class="app-shell" id="appShell">
@@ -59,7 +61,7 @@
         <aside class="sidebar panel-visible" id="listPanel" aria-label="Danh sách thuật ngữ">
           <div class="search-wrap">
             <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
-            <input id="searchInput" type="search" autocomplete="off" placeholder="Tìm thuật ngữ hoặc nội dung..." aria-label="Tìm kiếm thuật ngữ">
+            <input id="searchInput" type="search" autocomplete="off" maxlength="100" placeholder="Tìm thuật ngữ hoặc nội dung..." aria-label="Tìm kiếm thuật ngữ">
             <button class="clear-search" id="clearSearchButton" type="button" aria-label="Xóa nội dung tìm kiếm" hidden>×</button>
           </div>
 
@@ -73,7 +75,8 @@
             <div class="recent-list" id="recentList"></div>
           </section>
 
-          <div class="term-list" id="termList" role="listbox" aria-label="Các thuật ngữ"></div>
+          <div class="term-list" id="termList" role="listbox" aria-label="Các thuật ngữ" aria-busy="false"></div>
+          <button class="load-more-button" id="loadMoreButton" type="button" hidden>Xem thêm</button>
         </aside>
 
         <article class="detail-card panel-hidden-mobile" id="detailPanel" aria-label="Nội dung thuật ngữ">
@@ -143,7 +146,7 @@
   </div>
 
   <noscript>Trình duyệt cần bật JavaScript để sử dụng tiện ích này.</noscript>
-  <script src="./assets/config.js?v=2.1"></script>
-  <script src="./assets/app.js?v=2.1" defer></script>
+  <script src="./assets/config.js?v=3.0"></script>
+  <script src="./assets/app.js?v=3.0" defer></script>
 </body>
 </html>
