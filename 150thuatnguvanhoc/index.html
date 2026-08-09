@@ -9,14 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/app.css">
+  <link rel="stylesheet" href="./assets/app.css?v=2.0">
 </head>
 <body>
   <div id="app" class="app-shell">
     <header class="site-header">
+      <a class="home-button" href="https://www.hoclieuso.id.vn/" aria-label="Trở về trang chủ Học liệu số">⌂ <span>Về trang chủ</span></a>
       <div class="header-inner">
         <h1>Tra cứu 150 thuật ngữ văn học</h1>
-        <p>Tiện ích sử dụng dữ liệu của <em>150 thuật ngữ Văn học</em> do nhà nghiên cứu văn học Lại Nguyên Ân biên soạn, NXB Văn học ấn hành năm 2017.</p>
+        <p>Tiện ích sử dụng dữ liệu của <em>150 thuật ngữ Văn học</em> do nhà nghiên cứu văn học Lại Nguyên Ân biên soạn, Nhà xuất bản Văn học ấn hành năm 2017.</p>
       </div>
     </header>
 
@@ -110,6 +111,64 @@
 
               <div id="definitionContent" class="definition-card"></div>
 
+              <section class="ai-section" id="aiSection" hidden aria-labelledby="aiTitle">
+                <div class="ai-section-heading">
+                  <div>
+                    <p class="ai-kicker">TRỢ GIẢNG VĂN HỌC</p>
+                    <h3 id="aiTitle">AI hỗ trợ tìm hiểu thêm</h3>
+                  </div>
+                  <span class="ai-byok-badge">API cá nhân</span>
+                </div>
+
+                <div class="ai-warning" role="note">
+                  <strong>⚠ Lưu ý:</strong> AI có thể trả lời sai hoặc thiếu chính xác. Em cần kiểm tra lại với nội dung thuật ngữ, sách và giáo viên.
+                </div>
+
+                <details class="ai-key-panel" id="aiKeyPanel">
+                  <summary><span>Thiết lập API key</span><strong id="aiKeyStatus">Chưa có key</strong></summary>
+                  <div class="ai-key-content">
+                    <div class="ai-provider-grid">
+                      <label><span>Nhà cung cấp AI</span><select id="aiProviderSelect" aria-label="Chọn nhà cung cấp AI"></select></label>
+                      <label><span>Mô hình</span><select id="aiModelSelect" aria-label="Chọn mô hình AI"></select></label>
+                    </div>
+                    <label class="ai-custom-model" id="aiCustomModelWrap" for="aiCustomModelInput" hidden>
+                      <span>Tên mô hình tùy chỉnh</span>
+                      <input id="aiCustomModelInput" type="text" autocomplete="off" spellcheck="false" maxlength="120" placeholder="Nhập đúng tên mô hình">
+                    </label>
+                    <label id="aiKeyLabel" for="aiKeyInput">API key cá nhân</label>
+                    <div class="ai-key-row">
+                      <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" maxlength="500" placeholder="Dán API key cá nhân...">
+                      <button id="toggleAiKeyButton" type="button">Hiện</button>
+                    </div>
+                    <div class="ai-key-actions">
+                      <button class="ai-primary-button" id="saveAiKeyButton" type="button">Lưu trong phiên</button>
+                      <button class="ai-secondary-button" id="clearAiKeyButton" type="button">Xóa key</button>
+                    </div>
+                    <p class="ai-key-note">Key chỉ lưu trong phiên trình duyệt và được gửi trực tiếp tới nhà cung cấp AI đã chọn; không gửi tới Apps Script hoặc Google Sheet. <a id="aiKeyGuideLink" href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API key</a>.</p>
+                    <p class="ai-terms-note" id="aiProviderNote">Hãy kiểm tra điều khoản, độ tuổi, chính sách dữ liệu và chi phí của nhà cung cấp trước khi sử dụng.</p>
+                  </div>
+                </details>
+
+                <div class="ai-suggestions" id="aiSuggestions" aria-label="Câu hỏi gợi ý">
+                  <button type="button" data-ai-prompt="Hãy giải thích thuật ngữ này bằng cách dễ hiểu hơn cho học sinh.">Giải thích dễ hiểu</button>
+                  <button type="button" data-ai-prompt="Hãy cho thêm hai ví dụ ngắn, chính xác về thuật ngữ này.">Thêm ví dụ</button>
+                  <button type="button" data-ai-prompt="Hãy phân biệt thuật ngữ này với một thuật ngữ gần nghĩa hoặc dễ nhầm lẫn.">Phân biệt khái niệm</button>
+                  <button type="button" data-ai-prompt="Hãy hướng dẫn cách vận dụng thuật ngữ này khi đọc hiểu hoặc phân tích tác phẩm.">Cách vận dụng</button>
+                  <button type="button" data-ai-prompt="Hãy kiểm tra em bằng ba câu hỏi ngắn về thuật ngữ này, chưa đưa đáp án ngay.">Tự kiểm tra</button>
+                </div>
+
+                <div class="ai-chat-log" id="aiChatLog" role="log" aria-live="polite" aria-label="Hội thoại với trợ giảng AI"></div>
+                <form class="ai-chat-form" id="aiChatForm">
+                  <label class="sr-only" for="aiPromptInput">Nhập câu hỏi về thuật ngữ</label>
+                  <textarea id="aiPromptInput" rows="2" maxlength="500" placeholder="Hỏi thêm về thuật ngữ đang xem..." disabled></textarea>
+                  <button id="sendAiButton" type="submit" disabled>Gửi</button>
+                </form>
+                <div class="ai-form-meta">
+                  <span id="aiPromptCount">0 / 500</span>
+                  <span>Chỉ hỗ trợ Ngữ văn; hội thoại dài sẽ tự cuộn.</span>
+                </div>
+              </section>
+
               <section id="relatedSection" class="related-section" hidden>
                 <h3>✦ Thuật ngữ có thể bạn quan tâm</h3>
                 <div id="relatedTerms" class="related-grid"></div>
@@ -129,15 +188,16 @@
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-divider"><span></span><b aria-hidden="true">◆</b><span></span></div>
-        <p class="footer-main">Công cụ được xây dựng bởi <a href="https://www.hoclieuso.id.vn" target="_blank" rel="noopener noreferrer">Học liệu số↗</a></p>
+        <p class="footer-main">Công cụ được xây dựng bởi <a href="https://www.hoclieuso.id.vn" target="_blank" rel="noopener noreferrer">Học liệu số – www.hoclieuso.id.vn ↗</a></p>
         <p>Tiện ích nhằm hỗ trợ hoạt động dạy học cho giáo viên và học sinh, không nhằm mục đích thương mại.</p>
-        <p class="copyright">© <span id="currentYear"></span> Học Liệu Số.</p>
+        <p class="copyright">© <span id="currentYear"></span> Học Liệu Số. Tất cả các quyền được bảo lưu.</p>
       </div>
     </footer>
   </div>
 
   <noscript>Tiện ích cần JavaScript để hoạt động. Vui lòng bật JavaScript trong trình duyệt.</noscript>
-  <script src="./assets/fallback-terms.js"></script>
-  <script src="./assets/app.js" defer></script>
+  <script src="./assets/config.js?v=2.0"></script>
+  <script src="./assets/fallback-terms.js?v=2.0"></script>
+  <script src="./assets/app.js?v=2.0" defer></script>
 </body>
 </html>
