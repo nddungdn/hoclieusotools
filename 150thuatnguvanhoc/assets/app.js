@@ -2,24 +2,28 @@
   'use strict';
 
   const aiConfig = window.LG_AI_CONFIG || {};
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTdkEiL9q-NQ9eRyV2B2J8QAtOP8vlfekOPMk3Huk97Odsk52u20JhhH3gubI1dQw/exec';
   const STORAGE = {
     favorites: 'hoclieuso_favorite_terms',
     recent: 'hoclieuso_recent_terms',
-    liveCache: 'hoclieuso_terms_cache_v1',
     fontSize: 'hoclieuso_term_font_size',
     selected: 'hoclieuso_selected_term'
   };
   const ALPHABET = ['Tất cả', 'A', 'B', 'C', 'D', 'Đ', 'E', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y'];
   const ALLOWED_TAGS = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'SUP', 'SUB']);
 
-  const fallbackTerms = Array.isArray(window.FALLBACK_TERMS) ? window.FALLBACK_TERMS : [];
   let pendingInitialTermName = readTermNameFromHash() || localStorage.getItem(STORAGE.selected) || '';
 
   const state = {
-    terms: normalizeTerms(fallbackTerms),
+    terms: [],
     filteredTerms: [],
     selectedTerm: null,
+    relatedTerms: [],
+    definitionSearchResults: [],
+    definitionSearchBusy: false,
+    definitionSearchTimer: null,
+    detailSerial: 0,
+    detailCache: new Map(),
+    clientId: getClientId(),
     searchQuery: '',
     selectedLetter: 'Tất cả',
     viewMode: 'all',
@@ -29,7 +33,7 @@
     mobileTab: 'list',
     fontSize: clamp(Number(localStorage.getItem(STORAGE.fontSize)) || 18, 14, 26),
     speaking: false,
-    source: 'fallback',
+    source: 'secure-api',
     aiMessages: [],
     aiTermName: '',
     aiBusy: false,
@@ -41,6 +45,7 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
+    purgeLegacyDefinitionCaches();
     bindElements();
     buildAlphabet();
     bindEvents();
@@ -48,17 +53,9 @@
     document.getElementById('currentYear').textContent = String(new Date().getFullYear());
     document.documentElement.classList.add('js-ready');
 
-    const cached = readLiveCache();
-    if (cached.length) {
-      state.terms = cached;
-      state.source = 'cache';
-    }
-
     cleanAddressBar();
-    state.selectedTerm = chooseInitialTerm(state.terms);
-    if (state.selectedTerm) localStorage.setItem(STORAGE.selected, state.selectedTerm.term);
     renderAll();
-    loadLiveTerms();
+    loadSecureTerms();
   }
 
   function bindElements() {
@@ -85,22 +82,26 @@
     el.closeStatus.addEventListener('click', () => { el.statusBanner.hidden = true; });
     el.searchInput.addEventListener('input', (event) => {
       state.searchQuery = event.target.value;
-      renderListArea();
+      handleSearchChange();
     });
     el.clearSearch.addEventListener('click', () => {
       state.searchQuery = '';
       el.searchInput.value = '';
       el.searchInput.focus();
+      state.definitionSearchResults = [];
+      clearTimeout(state.definitionSearchTimer);
       renderListArea();
     });
     el.searchDefinition.addEventListener('change', (event) => {
       state.searchInDefinition = event.target.checked;
-      renderListArea();
+      handleSearchChange();
     });
     el.resetFilters.addEventListener('click', () => {
       state.searchQuery = '';
       state.selectedLetter = 'Tất cả';
       el.searchInput.value = '';
+      state.definitionSearchResults = [];
+      clearTimeout(state.definitionSearchTimer);
       renderAll();
     });
     el.viewTabs.forEach((button) => button.addEventListener('click', () => {
@@ -154,165 +155,49 @@
     window.addEventListener('beforeunload', stopSpeech);
   }
 
-  async function loadLiveTerms() {
-    showStatus('loading', 'Đang đồng bộ dữ liệu thuật ngữ từ Google Sheet…', false);
-
+  async function loadSecureTerms() {
+    showStatus('loading', 'Đang kết nối nguồn dữ liệu bảo mật…', false);
     try {
-      const payload = await loadGoogleSheetData();
-
-      if (payload && !Array.isArray(payload) && payload.success === false) {
-        throw new Error(payload.error || 'Google Apps Script trả về trạng thái không thành công');
-      }
-
-      const rawTerms = Array.isArray(payload)
-        ? payload
-        : (Array.isArray(payload?.terms) ? payload.terms : []);
-      const liveTerms = normalizeTerms(rawTerms);
-
-      if (!liveTerms.length) {
-        throw new Error('Google Apps Script không trả về danh sách thuật ngữ hợp lệ');
-      }
-
-      state.terms = liveTerms;
-      state.source = 'live';
-      writeLiveCache(liveTerms);
-      reconcileSelection();
+      const data = await apiRequest('/api/terms', { limit: aiConfig.searchLimit || 200, offset: 0 });
+      const terms = normalizeSummaries(data?.items);
+      if (!terms.length) throw new Error('EMPTY_TERMS');
+      state.terms = terms;
+      state.selectedTerm = chooseInitialTerm(terms);
+      pendingInitialTermName = '';
+      if (state.selectedTerm) localStorage.setItem(STORAGE.selected, state.selectedTerm.term);
       renderAll();
-      showStatus('success', `Đã đồng bộ ${liveTerms.length} thuật ngữ từ Google Sheet.`, true);
+      if (state.selectedTerm) await loadTermDetail(state.selectedTerm);
+      showStatus('success', `Đã kết nối an toàn ${terms.length} thuật ngữ.`, true);
     } catch (error) {
-      showStatus('warning', 'Chưa thể kết nối dữ liệu.', false);
-      console.warn('Không thể đồng bộ dữ liệu thuật ngữ:', {
-        endpoint: GOOGLE_SCRIPT_URL,
-        error
-      });
+      console.warn('Không thể tải danh sách thuật ngữ:', safeErrorMessage(error));
+      showStatus('warning', apiUserFacingError(error), false);
     }
   }
 
-  async function loadGoogleSheetData() {
-    const errors = [];
-
-    // Cách chính thức được Google Apps Script hướng dẫn cho trang web ngoài:
-    // JSONP với tham số "prefix".
-    try {
-      return await loadJsonp(GOOGLE_SCRIPT_URL, 'prefix', 20000);
-    } catch (error) {
-      errors.push(error);
-    }
-
-    // Tương thích với các phiên bản Code.gs trước đây dùng "callback".
-    try {
-      return await loadJsonp(GOOGLE_SCRIPT_URL, 'callback', 20000);
-    } catch (error) {
-      errors.push(error);
-    }
-
-    // Phương án dự phòng khi web app đang trả JSON và cho phép CORS.
-    try {
-      return await loadJson(GOOGLE_SCRIPT_URL, 20000);
-    } catch (error) {
-      errors.push(error);
-    }
-
-    const details = errors
-      .map((error) => error instanceof Error ? error.message : String(error))
-      .join(' | ');
-    throw new Error(details || 'Không thể tải dữ liệu từ Google Apps Script');
-  }
-
-  function loadJsonp(url, parameterName = 'prefix', timeoutMs = 20000) {
-    return new Promise((resolve, reject) => {
-      const callbackName = `__hoclieusoTerms_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      const script = document.createElement('script');
-      const separator = url.includes('?') ? '&' : '?';
-      let finished = false;
-      let timeoutId;
-
-      const cleanup = () => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timeoutId);
-        script.remove();
-        try {
-          delete window[callbackName];
-        } catch {
-          window[callbackName] = undefined;
-        }
-      };
-
-      const fail = (message) => {
-        if (finished) return;
-        cleanup();
-        reject(new Error(message));
-      };
-
-      window[callbackName] = (payload) => {
-        if (finished) return;
-        cleanup();
-        resolve(payload);
-      };
-
-      script.async = true;
-      script.src = `${url}${separator}${parameterName}=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
-      script.onerror = () => {
-        fail(`Không tải được JSONP bằng tham số ${parameterName}`);
-      };
-      script.onload = () => {
-        // Nếu tệp đã tải xong nhưng callback không được gọi, web app nhiều khả năng
-        // vẫn đang trả JSON thông thường hoặc chưa cập nhật bản triển khai mới.
-        window.setTimeout(() => {
-          if (!finished) {
-            fail(`Apps Script chưa gọi callback JSONP (${parameterName})`);
-          }
-        }, 0);
-      };
-
-      timeoutId = window.setTimeout(() => {
-        fail(`Google Apps Script phản hồi quá chậm (${parameterName})`);
-      }, timeoutMs);
-
-      document.head.appendChild(script);
-    });
-  }
-
-  async function loadJson(url, timeoutMs = 20000) {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
-    const separator = url.includes('?') ? '&' : '?';
-
-    try {
-      const response = await fetch(`${url}${separator}_=${Date.now()}`, {
-        method: 'GET',
-        cache: 'no-store',
-        redirect: 'follow',
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      return await response.json();
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  function normalizeTerms(items) {
+  function normalizeSummaries(items) {
     if (!Array.isArray(items)) return [];
     const seen = new Set();
     return items
-      .map((item, index) => ({
-        id: item?.id != null ? String(item.id) : String(index + 1),
+      .map((item) => ({
+        id: typeof item?.id === 'string' ? item.id.trim() : '',
         term: typeof item?.term === 'string' ? item.term.trim() : '',
-        definition: typeof item?.definition === 'string' ? sanitizeHtml(item.definition) : ''
+        definition: ''
       }))
-      .filter((item) => item.term && item.definition)
+      .filter((item) => /^t_[A-Za-z0-9_-]{20,80}$/.test(item.id) && item.term)
       .filter((item) => {
         const key = item.term.toLocaleUpperCase('vi');
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
+  }
+
+  function normalizeDetail(item) {
+    if (!item || typeof item !== 'object') return null;
+    const id = String(item.id || '').trim();
+    const term = String(item.term || '').trim();
+    const definition = sanitizeHtml(String(item.definition || ''));
+    return /^t_[A-Za-z0-9_-]{20,80}$/.test(id) && term && definition ? { id, term, definition } : null;
   }
 
   function sanitizeHtml(html) {
@@ -381,8 +266,45 @@
     renderDetailNavigation();
   }
 
+  function handleSearchChange() {
+    clearTimeout(state.definitionSearchTimer);
+    const query = state.searchQuery.trim();
+    if (!state.searchInDefinition || !query) {
+      state.definitionSearchResults = [];
+      state.definitionSearchBusy = false;
+      renderListArea();
+      return;
+    }
+    state.definitionSearchBusy = true;
+    renderListArea();
+    state.definitionSearchTimer = setTimeout(() => searchInDefinitions(query), clamp(Number(aiConfig.definitionSearchDelay) || 350, 150, 1000));
+  }
+
+  async function searchInDefinitions(query) {
+    try {
+      const data = await apiRequest('/api/terms', {
+        q: query,
+        includeDefinition: 1,
+        limit: aiConfig.searchLimit || 200,
+        offset: 0
+      });
+      if (query !== state.searchQuery.trim() || !state.searchInDefinition) return;
+      state.definitionSearchResults = normalizeSummaries(data?.items);
+    } catch (error) {
+      if (query !== state.searchQuery.trim()) return;
+      state.definitionSearchResults = [];
+      showStatus('warning', apiUserFacingError(error), false);
+    } finally {
+      if (query === state.searchQuery.trim()) {
+        state.definitionSearchBusy = false;
+        renderListArea();
+      }
+    }
+  }
+
   function getFilteredTerms() {
-    let result = [...state.terms];
+    const query = normalizeText(state.searchQuery.trim());
+    let result = state.searchInDefinition && query ? [...state.definitionSearchResults] : [...state.terms];
     if (state.viewMode === 'favorites') {
       result = result.filter((term) => state.favorites.includes(term.term));
     } else if (state.viewMode === 'recent') {
@@ -392,12 +314,8 @@
     if (state.selectedLetter !== 'Tất cả') {
       result = result.filter((term) => firstLetterGroup(term.term) === state.selectedLetter);
     }
-    const query = normalizeText(state.searchQuery.trim());
     if (query) {
-      result = result.filter((term) => {
-        if (normalizeText(term.term).includes(query)) return true;
-        return state.searchInDefinition && normalizeText(stripHtml(term.definition)).includes(query);
-      });
+      if (!state.searchInDefinition) result = result.filter((term) => normalizeText(term.term).includes(query));
     }
     return result;
   }
@@ -408,7 +326,7 @@
       const empty = document.createElement('div');
       empty.className = 'empty-list';
       const title = state.viewMode === 'recent' ? 'Chưa có thuật ngữ nào đã tra cứu' : state.viewMode === 'favorites' ? 'Chưa lưu thuật ngữ nào' : 'Không tìm thấy thuật ngữ phù hợp';
-      const note = state.viewMode === 'recent' ? 'Khi bạn xem một thuật ngữ, nó sẽ tự động xuất hiện ở đây.' : state.viewMode === 'favorites' ? 'Nhấn biểu tượng ngôi sao để lưu thuật ngữ cần xem lại.' : 'Thử từ khóa khác hoặc chuyển bộ lọc chữ cái.';
+      const note = state.definitionSearchBusy ? 'Đang tìm trong nội dung khái niệm…' : state.viewMode === 'recent' ? 'Khi bạn xem một thuật ngữ, nó sẽ tự động xuất hiện ở đây.' : state.viewMode === 'favorites' ? 'Nhấn biểu tượng ngôi sao để lưu thuật ngữ cần xem lại.' : 'Thử từ khóa khác hoặc chuyển bộ lọc chữ cái.';
       empty.innerHTML = `<div><div style="font-size:1.8rem;color:#d6d3d1">▤</div><b>${escapeHtml(title)}</b><p>${escapeHtml(note)}</p></div>`;
       el.termList.append(empty);
       return;
@@ -456,10 +374,14 @@
     el.termList.append(fragment);
   }
 
-  function selectTerm(term, options = {}) {
+  async function selectTerm(term, options = {}) {
     if (!term) return;
     stopSpeech();
-    state.selectedTerm = term;
+    if (el.termList.contains(document.activeElement) && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    state.selectedTerm = { id: term.id, term: term.term, definition: term.definition || '' };
+    state.relatedTerms = [];
     state.recent = [term.term, ...state.recent.filter((name) => name !== term.term)].slice(0, 30);
     saveStringArray(STORAGE.recent, state.recent);
     pendingInitialTermName = '';
@@ -469,6 +391,7 @@
     if (window.innerWidth < 1024 && !options.skipScroll) {
       el.detailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    await loadTermDetail(state.selectedTerm);
   }
 
   function renderDetail() {
@@ -478,13 +401,18 @@
     if (!term) return;
 
     el.detailTerm.textContent = term.term;
-    el.definitionContent.innerHTML = term.definition;
+    const hasDefinition = Boolean(term.definition);
+    el.definitionContent.innerHTML = hasDefinition ? term.definition : '<p>Đang tải nội dung thuật ngữ qua kết nối bảo mật…</p>';
     el.definitionContent.style.fontSize = `${state.fontSize}px`;
     el.fontSizeLabel.textContent = `${state.fontSize}px`;
     el.decreaseFont.disabled = state.fontSize <= 14;
     el.increaseFont.disabled = state.fontSize >= 26;
-    el.dataSource.textContent = state.source === 'live' ? 'Dữ liệu Google Sheet' : state.source === 'cache' ? 'Dữ liệu đã lưu gần nhất' : 'Dữ liệu dự phòng';
-    ensureAiForTerm(term);
+    el.dataSource.textContent = hasDefinition ? 'Dữ liệu qua cổng bảo mật' : 'Đang tải nội dung…';
+    el.copyButton.disabled = !hasDefinition;
+    el.shareButton.disabled = !hasDefinition;
+    el.speechButton.disabled = !hasDefinition;
+    if (hasDefinition) ensureAiForTerm(term);
+    else el.aiSection.hidden = true;
     renderFavoriteButton();
     renderRelatedTerms();
     renderDetailNavigation();
@@ -499,21 +427,7 @@
   }
 
   function renderRelatedTerms() {
-    const current = state.selectedTerm;
-    if (!current) return;
-    const words = normalizeText(current.term).split(/\s+/).filter((word) => word.length > 2);
-    const related = state.terms
-      .filter((term) => term.term !== current.term)
-      .map((term) => {
-        const haystack = `${normalizeText(term.term)} ${normalizeText(stripHtml(term.definition))}`;
-        const score = words.reduce((sum, word) => sum + (haystack.includes(word) ? 1 : 0), 0);
-        return { term, score };
-      })
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score || a.term.term.localeCompare(b.term.term, 'vi'))
-      .slice(0, 3)
-      .map((item) => item.term);
-
+    const related = state.relatedTerms;
     el.relatedTerms.innerHTML = '';
     el.relatedSection.hidden = related.length === 0;
     related.forEach((term) => {
@@ -523,11 +437,44 @@
       const title = document.createElement('b');
       title.textContent = term.term;
       const summary = document.createElement('span');
-      summary.textContent = stripHtml(term.definition);
+      summary.textContent = 'Mở thuật ngữ liên quan';
       button.append(title, summary);
       button.addEventListener('click', () => selectTerm(term));
       el.relatedTerms.append(button);
     });
+  }
+
+  async function loadTermDetail(summary) {
+    if (!summary?.id) return;
+    const cached = state.detailCache.get(summary.id);
+    if (cached) {
+      applyTermDetail(cached);
+      return;
+    }
+    const serial = ++state.detailSerial;
+    try {
+      const data = await apiRequest(`/api/terms/${encodeURIComponent(summary.id)}`);
+      if (serial !== state.detailSerial || state.selectedTerm?.id !== summary.id) return;
+      const item = normalizeDetail(data?.item);
+      if (!item) throw new Error('INVALID_DETAIL');
+      const related = normalizeSummaries(data?.related);
+      const record = { item, related };
+      state.detailCache.set(item.id, record);
+      while (state.detailCache.size > 12) state.detailCache.delete(state.detailCache.keys().next().value);
+      applyTermDetail(record);
+    } catch (error) {
+      if (serial !== state.detailSerial) return;
+      console.warn('Không thể tải nội dung thuật ngữ:', safeErrorMessage(error));
+      showStatus('warning', apiUserFacingError(error), false);
+      el.definitionContent.innerHTML = '<p>Chưa thể tải nội dung. Vui lòng thử chọn lại thuật ngữ sau ít phút.</p>';
+    }
+  }
+
+  function applyTermDetail(record) {
+    if (!record?.item || state.selectedTerm?.id !== record.item.id) return;
+    state.selectedTerm = record.item;
+    state.relatedTerms = record.related || [];
+    renderDetail();
   }
 
   function initializeAi() {
@@ -739,7 +686,7 @@
   function updateAiAvailability() {
     const hasKey = Boolean(getAiKey());
     const hasModel = isValidAiModel(getSelectedAiModel());
-    const ready = hasKey && hasModel && Boolean(state.selectedTerm) && !state.aiBusy;
+    const ready = hasKey && hasModel && Boolean(state.selectedTerm?.definition) && !state.aiBusy;
     el.aiKeyPanel.classList.toggle('has-key', hasKey);
     el.aiKeyStatus.textContent = hasKey ? 'Đã lưu trong phiên' : 'Chưa có key';
     el.clearAiKeyButton.disabled = !hasKey;
@@ -796,7 +743,7 @@
   async function sendAiMessage(rawQuestion) {
     const maximum = clampNumber(aiConfig.aiMaxQuestionLength, 100, 1000, 500);
     const question = String(rawQuestion || '').trim().slice(0, maximum);
-    if (!question || state.aiBusy || !state.selectedTerm) return;
+    if (!question || state.aiBusy || !state.selectedTerm?.definition) return;
     const key = getAiKey();
     if (!key) {
       el.aiKeyPanel.open = true;
@@ -1014,8 +961,15 @@
   function handleKeyboard(event) {
     const tag = event.target?.tagName;
     if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tag)) return;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') navigateTerm(1);
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') navigateTerm(-1);
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      navigateTerm(1);
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      navigateTerm(-1);
+    }
+    // ArrowUp/ArrowDown giữ nguyên chức năng cuộn trang của trình duyệt.
   }
 
   function updateFontSize(delta) {
@@ -1025,7 +979,7 @@
   }
 
   async function copyCurrentTerm() {
-    if (!state.selectedTerm) return;
+    if (!state.selectedTerm?.definition) return;
     const text = `${state.selectedTerm.term}\n\n${stripHtml(state.selectedTerm.definition)}\n\nNguồn: 150 thuật ngữ Văn học (Lại Nguyên Ân, NXB Văn học 2017) – Tra cứu tại www.hoclieuso.id.vn`;
     try {
       if (navigator.clipboard?.writeText) {
@@ -1049,7 +1003,7 @@
   }
 
   async function shareCurrentTerm() {
-    if (!state.selectedTerm) return;
+    if (!state.selectedTerm?.definition) return;
     const shareData = {
       title: `Thuật ngữ: ${state.selectedTerm.term}`,
       text: `${state.selectedTerm.term}: ${stripHtml(state.selectedTerm.definition).slice(0, 180)}…`,
@@ -1065,7 +1019,7 @@
   }
 
   function toggleSpeech() {
-    if (!state.selectedTerm || !('speechSynthesis' in window)) return;
+    if (!state.selectedTerm?.definition || !('speechSynthesis' in window)) return;
     if (state.speaking) {
       stopSpeech();
       return;
@@ -1114,18 +1068,6 @@
       ? terms.find((term) => term.term === pendingInitialTermName)
       : null;
     return preferred || terms[0] || null;
-  }
-
-  function reconcileSelection() {
-    const preferred = pendingInitialTermName
-      ? state.terms.find((term) => term.term === pendingInitialTermName)
-      : null;
-    const current = state.selectedTerm
-      ? state.terms.find((term) => term.term === state.selectedTerm.term)
-      : null;
-    state.selectedTerm = preferred || current || state.terms[0] || null;
-    pendingInitialTermName = '';
-    if (state.selectedTerm) localStorage.setItem(STORAGE.selected, state.selectedTerm.term);
   }
 
   function readTermNameFromHash() {
@@ -1182,16 +1124,74 @@
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) { console.warn(error); }
   }
 
-  function readLiveCache() {
+  function purgeLegacyDefinitionCaches() {
+    const keys = Array.isArray(aiConfig.legacyCacheKeys) ? aiConfig.legacyCacheKeys : ['hoclieuso_terms_cache_v1'];
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE.liveCache) || 'null');
-      if (!parsed || !Array.isArray(parsed.terms)) return [];
-      return normalizeTerms(parsed.terms);
-    } catch { return []; }
+      keys.forEach((key) => localStorage.removeItem(String(key)));
+    } catch { /* Trình duyệt không cho truy cập bộ nhớ. */ }
+    try { delete window.FALLBACK_TERMS; } catch { window.FALLBACK_TERMS = undefined; }
   }
 
-  function writeLiveCache(terms) {
-    try { localStorage.setItem(STORAGE.liveCache, JSON.stringify({ savedAt: Date.now(), terms })); } catch (error) { console.warn(error); }
+  function getClientId() {
+    const key = String(aiConfig.clientSessionKey || 'hoclieuso_150tn_client_v3');
+    try {
+      const stored = String(sessionStorage.getItem(key) || '');
+      if (/^[A-Za-z0-9_-]{20,80}$/.test(stored)) return stored;
+      const generated = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, '');
+      sessionStorage.setItem(key, generated);
+      return generated;
+    } catch {
+      return `${Date.now()}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`.replace(/[^A-Za-z0-9_-]/g, '').padEnd(24, '0').slice(0, 80);
+    }
+  }
+
+  async function apiRequest(path, params = {}) {
+    const base = String(aiConfig.apiBaseUrl || '').replace(/\/+$/, '');
+    if (!/^https:\/\/[A-Za-z0-9.-]+(?:\/.*)?$/.test(base) || /script\.google\.com/i.test(base)) {
+      const error = new Error('API_NOT_CONFIGURED');
+      error.code = 'API_NOT_CONFIGURED';
+      throw error;
+    }
+    const url = new URL(`${base}${path}`);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== '' && value != null) url.searchParams.set(key, String(value));
+    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), clamp(Number(aiConfig.requestTimeout) || 10000, 3000, 20000));
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        headers: { Accept: 'application/json', 'X-VH-Client': state.clientId },
+        signal: controller.signal
+      });
+      let payload;
+      try { payload = await response.json(); }
+      catch { payload = null; }
+      if (!response.ok || payload?.success !== true) {
+        const error = new Error(payload?.code || `HTTP_${response.status}`);
+        error.status = response.status;
+        error.code = payload?.code || 'API_ERROR';
+        throw error;
+      }
+      return payload.data;
+    } finally { clearTimeout(timer); }
+  }
+
+  function apiUserFacingError(error) {
+    if (navigator.onLine === false) return 'Thiết bị đang ngoại tuyến. Hãy kiểm tra kết nối mạng.';
+    if (error?.name === 'AbortError') return 'Nguồn dữ liệu phản hồi quá chậm. Vui lòng thử lại.';
+    if (error?.code === 'API_NOT_CONFIGURED') return 'Chưa cấu hình đúng địa chỉ Cloudflare Worker.';
+    if (error?.status === 429) return 'Bạn thao tác quá nhanh. Vui lòng chờ một lát rồi thử lại.';
+    if (error?.status === 403) return 'Tên miền hiện tại chưa được phép truy cập dữ liệu.';
+    return 'Chưa thể kết nối nguồn dữ liệu bảo mật.';
+  }
+
+  function safeErrorMessage(error) {
+    return error?.message ? String(error.message).slice(0, 160) : 'Unknown error';
   }
 
   function showStatus(type, text, autoHide) {

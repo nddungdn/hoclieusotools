@@ -1,4 +1,12 @@
 window.LG_AI_CONFIG = Object.freeze({
+  // URL công khai của Cloudflare Worker; tuyệt đối không đặt URL Apps Script ở đây.
+  apiBaseUrl: 'https://thuat-ngu-van-hoc-150-api.nddungdn.workers.dev',
+  clientSessionKey: 'hoclieuso_150tn_client_v3',
+  legacyCacheKeys: ['hoclieuso_terms_cache_v1'],
+  searchLimit: 200,
+  requestTimeout: 10000,
+  definitionSearchDelay: 350,
+
   aiDefaultProvider: 'gemini',
   aiKeyStoreSessionKey: 'hoclieuso_150tn_ai_keys_v2',
   aiProviderSessionKey: 'hoclieuso_150tn_ai_provider_v2',
