@@ -7,5 +7,14 @@ window.TL_APP_CONFIG = Object.freeze({
   searchLimit: 36,
   detailCacheLimit: 12,
   requestTimeout: 9000,
-  searchDelay: 300
+  searchDelay: 300,
+
+  // AI dùng API key cá nhân. Key chỉ được app lưu trong sessionStorage.
+  aiProvider: 'gemini',
+  aiModel: 'gemini-2.5-flash',
+  aiKeySessionKey: 'hoclieuso_thuat_ngu_ai_key_v1',
+  aiMaxQuestionLength: 500,
+  aiMaxConversationTurns: 6,
+  aiMaxOutputTokens: 900,
+  aiRequestTimeout: 30000
 });

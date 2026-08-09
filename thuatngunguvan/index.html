@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#5a23ce">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.hoclieuso.id.vn https://*.workers.dev; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
-  <meta name="description" content="Tiện ích tra cứu thuật ngữ Ngữ văn dành cho học sinh lớp 6 đến lớp 12.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.hoclieuso.id.vn https://*.workers.dev https://generativelanguage.googleapis.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
+  <meta name="description" content="Tiện ích tra cứu và hỏi đáp AI về thuật ngữ Ngữ văn dành cho người học lớp 6 đến lớp 12.">
   <title>Tra cứu thuật ngữ Ngữ văn</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/app.css?v=3.0">
+  <link rel="stylesheet" href="./assets/app.css?v=4.0">
 </head>
 <body>
   <div class="app-shell" id="appShell">
     <header class="site-header">
       <div class="header-inner">
         <div class="header-copy">
-          <p class="eyebrow-light">WWW.HOCLIEUSO.ID.VN</p>
+          <p class="eyebrow-light">THƯ VIỆN SỐ NGỮ VĂN</p>
           <h1>Tra cứu thuật ngữ Ngữ văn</h1>
           <p class="header-description">Tìm hiểu khái niệm, ví dụ minh họa và hệ thống thuật ngữ trong chương trình Ngữ văn lớp 6–12.</p>
         </div>
@@ -121,6 +121,62 @@
                 <div class="example-card rich-content" id="exampleContent"></div>
               </section>
 
+              <section class="ai-section" id="aiSection" hidden aria-labelledby="aiTitle">
+                <div class="ai-section-heading">
+                  <div>
+                    <p class="ai-kicker">TRỢ GIẢNG NGỮ VĂN</p>
+                    <h3 id="aiTitle">AI hỗ trợ tìm hiểu thêm</h3>
+                  </div>
+                  <span class="ai-byok-badge">API cá nhân</span>
+                </div>
+
+                <details class="ai-key-panel" id="aiKeyPanel">
+                  <summary>
+                    <span>Thiết lập API key</span>
+                    <strong id="aiKeyStatus">Chưa có key</strong>
+                  </summary>
+                  <div class="ai-key-content">
+                    <label for="aiKeyInput">Google Gemini API key</label>
+                    <div class="ai-key-row">
+                      <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Dán API key cá nhân...">
+                      <button id="toggleAiKeyButton" type="button">Hiện</button>
+                    </div>
+                    <div class="ai-key-actions">
+                      <button class="ai-primary-button" id="saveAiKeyButton" type="button">Lưu trong phiên</button>
+                      <button class="ai-secondary-button" id="clearAiKeyButton" type="button">Xóa key</button>
+                    </div>
+                    <p class="ai-key-note">
+                      Key chỉ lưu trong phiên trình duyệt, không gửi tới Worker, Apps Script hoặc Google Sheet.
+                      <a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API Key</a>.
+                    </p>
+                    <p class="ai-terms-note">
+                      Lưu ý: điều khoản Gemini API hiện yêu cầu người dùng từ 18 tuổi và không cho phép ứng dụng hướng tới người dưới 18 tuổi.
+                      Câu hỏi và phần học liệu liên quan được gửi trực tiếp tới Google để tạo câu trả lời.
+                    </p>
+                  </div>
+                </details>
+
+                <div class="ai-suggestions" id="aiSuggestions" aria-label="Câu hỏi gợi ý">
+                  <button type="button" data-ai-prompt="Hãy giải thích thuật ngữ này bằng cách dễ hiểu hơn cho học sinh.">Giải thích dễ hiểu</button>
+                  <button type="button" data-ai-prompt="Hãy cho thêm hai ví dụ ngắn, chính xác về thuật ngữ này.">Thêm ví dụ</button>
+                  <button type="button" data-ai-prompt="Hãy phân biệt thuật ngữ này với một thuật ngữ gần nghĩa hoặc dễ nhầm lẫn.">Phân biệt khái niệm</button>
+                  <button type="button" data-ai-prompt="Hãy hướng dẫn cách vận dụng thuật ngữ này khi đọc hiểu hoặc phân tích tác phẩm.">Cách vận dụng</button>
+                  <button type="button" data-ai-prompt="Hãy kiểm tra em bằng ba câu hỏi ngắn về thuật ngữ này, chưa đưa đáp án ngay.">Tự kiểm tra</button>
+                </div>
+
+                <div class="ai-chat-log" id="aiChatLog" role="log" aria-live="polite" aria-label="Hội thoại với trợ giảng AI"></div>
+
+                <form class="ai-chat-form" id="aiChatForm">
+                  <label class="sr-only" for="aiPromptInput">Nhập câu hỏi về thuật ngữ</label>
+                  <textarea id="aiPromptInput" rows="2" maxlength="500" placeholder="Hỏi thêm về thuật ngữ đang xem..." disabled></textarea>
+                  <button id="sendAiButton" type="submit" disabled>Gửi</button>
+                </form>
+                <div class="ai-form-meta">
+                  <span id="aiPromptCount">0 / 500</span>
+                  <span>AI có thể nhầm; hãy đối chiếu nội dung học liệu.</span>
+                </div>
+              </section>
+
               <section class="related-section" id="relatedSection" hidden>
                 <h3>Khám phá thêm</h3>
                 <div class="related-grid" id="relatedGrid"></div>
@@ -146,7 +202,7 @@
   </div>
 
   <noscript>Trình duyệt cần bật JavaScript để sử dụng tiện ích này.</noscript>
-  <script src="./assets/config.js?v=3.0"></script>
-  <script src="./assets/app.js?v=3.0" defer></script>
+  <script src="./assets/config.js?v=4.0"></script>
+  <script src="./assets/app.js?v=4.0" defer></script>
 </body>
 </html>
