@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#5a23ce">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.hoclieuso.id.vn https://*.workers.dev https://generativelanguage.googleapis.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.hoclieuso.id.vn https://*.workers.dev https://generativelanguage.googleapis.com https://api.openai.com https://openrouter.ai https://api.groq.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
   <meta name="description" content="Tiện ích tra cứu và hỏi đáp AI về thuật ngữ Ngữ văn dành cho người học lớp 6 đến lớp 12.">
   <title>Tra cứu thuật ngữ Ngữ văn</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/app.css?v=4.0">
+  <link rel="stylesheet" href="./assets/app.css?v=5.0">
 </head>
 <body>
   <div class="app-shell" id="appShell">
@@ -136,23 +136,31 @@
                     <strong id="aiKeyStatus">Chưa có key</strong>
                   </summary>
                   <div class="ai-key-content">
-                    <label for="aiKeyInput">Google Gemini API key</label>
+                    <div class="ai-provider-grid">
+                      <label>
+                        <span>Nhà cung cấp AI</span>
+                        <select id="aiProviderSelect" aria-label="Chọn nhà cung cấp AI"></select>
+                      </label>
+                      <label>
+                        <span>Mô hình</span>
+                        <select id="aiModelSelect" aria-label="Chọn mô hình AI"></select>
+                      </label>
+                    </div>
+                    <label class="ai-custom-model" id="aiCustomModelWrap" for="aiCustomModelInput" hidden>
+                      <span>Tên mô hình tùy chỉnh</span>
+                      <input id="aiCustomModelInput" type="text" autocomplete="off" spellcheck="false" maxlength="120" placeholder="Ví dụ: tên-model-do-nhà-cung-cấp-công-bố">
+                    </label>
+                    <label id="aiKeyLabel" for="aiKeyInput">API key cá nhân</label>
                     <div class="ai-key-row">
-                      <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Dán API key cá nhân...">
+                      <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" maxlength="500" placeholder="Dán API key cá nhân...">
                       <button id="toggleAiKeyButton" type="button">Hiện</button>
                     </div>
                     <div class="ai-key-actions">
                       <button class="ai-primary-button" id="saveAiKeyButton" type="button">Lưu trong phiên</button>
                       <button class="ai-secondary-button" id="clearAiKeyButton" type="button">Xóa key</button>
                     </div>
-                    <p class="ai-key-note">
-                      Key chỉ lưu trong phiên trình duyệt, không gửi tới Worker, Apps Script hoặc Google Sheet.
-                      <a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API Key</a>.
-                    </p>
-                    <p class="ai-terms-note">
-                      Lưu ý: điều khoản Gemini API hiện yêu cầu người dùng từ 18 tuổi và không cho phép ứng dụng hướng tới người dưới 18 tuổi.
-                      Câu hỏi và phần học liệu liên quan được gửi trực tiếp tới Google để tạo câu trả lời.
-                    </p>
+                    <p class="ai-key-note">Key chỉ lưu trong phiên trình duyệt, không gửi tới Worker, Apps Script hoặc Google Sheet. <a id="aiKeyGuideLink" href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener noreferrer">Cách tạo API key</a>.</p>
+                    <p class="ai-terms-note" id="aiProviderNote">Câu hỏi và phần học liệu liên quan được gửi trực tiếp tới nhà cung cấp AI đã chọn. Hãy kiểm tra điều khoản, độ tuổi và chính sách dữ liệu trước khi sử dụng.</p>
                   </div>
                 </details>
 
@@ -173,7 +181,7 @@
                 </form>
                 <div class="ai-form-meta">
                   <span id="aiPromptCount">0 / 500</span>
-                  <span>AI có thể nhầm; hãy đối chiếu nội dung học liệu.</span>
+                  <span>Chỉ hỗ trợ Ngữ văn; AI có thể nhầm nên cần đối chiếu học liệu.</span>
                 </div>
               </section>
 
@@ -202,7 +210,7 @@
   </div>
 
   <noscript>Trình duyệt cần bật JavaScript để sử dụng tiện ích này.</noscript>
-  <script src="./assets/config.js?v=4.0"></script>
-  <script src="./assets/app.js?v=4.0" defer></script>
+  <script src="./assets/config.js?v=5.0"></script>
+  <script src="./assets/app.js?v=5.0" defer></script>
 </body>
 </html>
