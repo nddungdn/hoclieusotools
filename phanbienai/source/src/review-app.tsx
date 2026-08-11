@@ -906,10 +906,10 @@ export default function ReviewApp() {
         </nav>
         <div className="hero-copy">
           <div className="hero-kicker"><Scale size={16} /> {workspaceMode === "initiative" ? "Hỗ trợ một giám khảo chấm sáng kiến" : "Phản biện đa góc nhìn bằng AI"}</div>
-          <h1>HỘI ĐỒNG PHẢN BIỆN AI 360°</h1>
+          <h1>HỖ TRỢ BẢN BIỆN BẰNG AI</h1>
           <p>
             {workspaceMode === "initiative"
-              ? "Đối chiếu hồ sơ và hỗ trợ giám khảo chấm theo Quyết định 465/QĐ-SGDĐT của Sở GDĐT Đà Nẵng năm 2026."
+              ? "Đối chiếu hồ sơ và hỗ trợ giám khảo chấm theo văn văn bản hướng dẫn viết sáng kiến."
               : "Phân tích sáng kiến, giải pháp, bài luận và báo cáo từ nhiều góc nhìn; chỉ rõ căn cứ, mức độ tin cậy và hướng cải thiện."}
           </p>
           <div className="hero-trust-row">
@@ -932,7 +932,7 @@ export default function ReviewApp() {
             <header className="guide-header">
               <div>
                 <span className="guide-kicker"><CircleHelp size={16} /> Hướng dẫn nhanh</span>
-                <h2 id="guide-title">{workspaceMode === "initiative" ? "Hỗ trợ một giám khảo chấm sáng kiến" : "Sử dụng Hội đồng phản biện AI 360°"}</h2>
+                <h2 id="guide-title">{workspaceMode === "initiative" ? "Hỗ trợ một giám khảo chấm sáng kiến" : "Sử dụng Hội đồng phản biện AI"}</h2>
                 <p>{workspaceMode === "initiative" ? "AI đối chiếu hồ sơ; giám khảo tự quyết định điểm và nhận xét cuối cùng." : "Hoàn thành sáu bước dưới đây để nhận báo cáo phản biện đa góc nhìn."}</p>
               </div>
               <button className="guide-close" type="button" onClick={() => setGuideOpen(false)} aria-label="Đóng hướng dẫn">
@@ -1039,14 +1039,14 @@ export default function ReviewApp() {
           <div className="mode-card-copy">
             <span className="eyebrow">Chọn chức năng</span>
             <strong>{workspaceMode === "initiative" ? "Hỗ trợ giám khảo chấm sáng kiến" : "Phản biện tài liệu đa góc nhìn"}</strong>
-            <small>{workspaceMode === "initiative" ? "Theo Quyết định 465/QĐ-SGDĐT ngày 06/03/2026 của Sở GDĐT Đà Nẵng." : "Phù hợp với sáng kiến, giải pháp, bài luận, nghiên cứu, báo cáo và đề án."}</small>
+            <small>{workspaceMode === "initiative" ? "Theo quy định." : "Phù hợp với sáng kiến, giải pháp, bài luận, nghiên cứu, báo cáo và đề án."}</small>
           </div>
           <div className="mode-switch" role="tablist" aria-label="Chế độ làm việc">
             <button type="button" role="tab" aria-selected={workspaceMode === "review"} className={workspaceMode === "review" ? "active" : ""} onClick={() => switchWorkspaceMode("review")}>
               Phản biện AI 360°
             </button>
             <button type="button" role="tab" aria-selected={workspaceMode === "initiative"} className={workspaceMode === "initiative" ? "active" : ""} onClick={() => switchWorkspaceMode("initiative")}>
-              Chấm sáng kiến Đà Nẵng 2026
+              Chấm sáng kiến
             </button>
           </div>
         </section>
