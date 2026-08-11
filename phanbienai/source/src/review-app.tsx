@@ -909,8 +909,8 @@ export default function ReviewApp() {
           <h1>HỖ TRỢ BẢN BIỆN BẰNG AI</h1>
           <p>
             {workspaceMode === "initiative"
-              ? "Đối chiếu hồ sơ và hỗ trợ giám khảo chấm theo văn văn bản hướng dẫn viết sáng kiến."
-              : "Phân tích sáng kiến, giải pháp, bài luận và báo cáo từ nhiều góc nhìn; chỉ rõ căn cứ, mức độ tin cậy và hướng cải thiện."}
+              ? "Đối chiếu hồ sơ và hỗ trợ giám khảo chấm theo cấu trúc sáng kiến."
+              : "Phân tích sáng kiến, bài luận và báo cáo từ nhiều góc nhìn... đề xuất hướng cải thiện."}
           </p>
           <div className="hero-trust-row">
             <span><ShieldCheck size={16} /> API cá nhân</span>
