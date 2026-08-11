@@ -69,3 +69,6 @@ Sau đó commit toàn bộ thư mục `phanbienai` lên GitHub.
 - Không đổi `base: "/phanbienai/"` trong `source/vite.config.ts`.
 - GitHub Pages sử dụng `phanbienai/index.html`; mã nguồn trong `phanbienai/source` không ảnh hưởng giao diện.
 - Worker Cloudflare vẫn được duy trì tại repository `ho-tro-phan-bien-ai`.
+- Google Gemini được gọi trực tiếp từ trình duyệt đến `generativelanguage.googleapis.com` để không phụ thuộc vị trí IP của Cloudflare Worker.
+- OpenAI, Claude và OpenRouter vẫn được gọi qua Worker Cloudflare.
+- API key chỉ nằm trong bộ nhớ của tab; không ghi vào mã nguồn, GitHub, localStorage hay cơ sở dữ liệu.
