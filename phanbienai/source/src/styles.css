@@ -22,10 +22,14 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   background: #eff2f8;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Arial, Helvetica, sans-serif;
@@ -54,6 +58,8 @@ a {
 
 .site-frame {
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .site-header {
@@ -519,6 +525,8 @@ a {
 
 .workspace-grid {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   grid-template-columns: minmax(330px, 430px) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
@@ -528,11 +536,15 @@ a {
 .control-column,
 .main-column {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   gap: 20px;
 }
 
 .control-card,
 .panel-card {
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--surface);
@@ -1091,11 +1103,14 @@ select:focus {
 }
 
 .rubric-table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
 }
 
 .rubric-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 11px;
 }
@@ -1105,7 +1120,18 @@ select:focus {
   padding: 11px 12px;
   border: 1px solid #dfe4ed;
   text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
+
+.rubric-table th:nth-child(1),
+.rubric-table td:nth-child(1) { width: 42%; }
+
+.rubric-table th:nth-child(2),
+.rubric-table td:nth-child(2) { width: 18%; }
+
+.rubric-table th:nth-child(3),
+.rubric-table td:nth-child(3) { width: 40%; }
 
 .rubric-table th {
   background: #f1f3f8;
@@ -1152,12 +1178,13 @@ select:focus {
 
 .analysis-options-grid {
   display: grid;
-  grid-template-columns: 1fr 1.25fr minmax(180px, 0.75fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.75fr);
   gap: 16px;
 }
 
 .analysis-options-grid fieldset {
   display: grid;
+  min-width: 0;
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -1173,6 +1200,7 @@ select:focus {
 
 .choice-card {
   display: flex;
+  min-width: 0;
   gap: 9px;
   align-items: flex-start;
   padding: 11px;
@@ -1328,14 +1356,23 @@ select:focus {
 }
 
 .results-panel {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   scroll-margin-top: 20px;
 }
 
 .results-header {
   display: flex;
+  min-width: 0;
   gap: 15px;
   align-items: center;
   justify-content: space-between;
+}
+
+.results-header > div:first-child,
+.judge-score-heading > div:first-child {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -1434,13 +1471,19 @@ select:focus {
 }
 
 .markdown-report {
+  min-width: 0;
+  max-width: 100%;
   overflow-wrap: anywhere;
+  word-break: break-word;
   color: #263248;
   font-size: 13px;
   line-height: 1.75;
 }
 
 .printable-report {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-top: 18px;
   padding: 24px;
   border: 1px solid #e0e4ed;
@@ -1490,21 +1533,23 @@ select:focus {
 }
 
 .markdown-report table {
-  display: block;
-  overflow-x: auto;
-  width: max-content;
+  display: table;
+  width: 100%;
   max-width: 100%;
+  table-layout: fixed;
   margin: 14px 0;
   border-collapse: collapse;
 }
 
 .markdown-report th,
 .markdown-report td {
-  min-width: 120px;
+  min-width: 0;
   padding: 9px;
   border: 1px solid #dfe3eb;
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-report th {
@@ -1516,9 +1561,30 @@ select:focus {
   color: #2458b8;
   text-decoration: underline;
   text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.markdown-report pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown-report code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.markdown-report img {
+  max-width: 100%;
+  height: auto;
 }
 
 .judge-scorecard {
+  min-width: 0;
+  max-width: 100%;
   background: linear-gradient(180deg, #fafaff, #fff);
 }
 
@@ -1606,6 +1672,7 @@ select:focus {
 
 .judge-score-grid label {
   display: grid;
+  min-width: 0;
   gap: 7px;
   padding: 13px;
   border: 1px solid #dfe4ed;
@@ -1615,6 +1682,7 @@ select:focus {
 
 .judge-score-grid label > span {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
@@ -1893,6 +1961,10 @@ select:focus {
     grid-template-columns: 1fr;
   }
 
+  .analysis-options-grid {
+    grid-template-columns: 1fr;
+  }
+
   .control-column,
   .main-column {
     display: contents;
@@ -2087,6 +2159,23 @@ select:focus {
   .printable-report {
     padding: 15px;
   }
+
+  .rubric-table th,
+  .rubric-table td,
+  .markdown-report th,
+  .markdown-report td {
+    padding: 7px 6px;
+    font-size: 10px;
+  }
+
+  .rubric-table th:nth-child(1),
+  .rubric-table td:nth-child(1) { width: 40%; }
+
+  .rubric-table th:nth-child(2),
+  .rubric-table td:nth-child(2) { width: 20%; }
+
+  .rubric-table th:nth-child(3),
+  .rubric-table td:nth-child(3) { width: 40%; }
 
   .markdown-report {
     font-size: 12px;

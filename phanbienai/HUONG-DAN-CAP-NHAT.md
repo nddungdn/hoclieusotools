@@ -14,7 +14,10 @@ Chế độ chấm sáng kiến thực hiện:
 - Phân tích ba tiêu chí: tính mới 40 điểm, khả năng áp dụng 30 điểm, lợi ích thiết thực 30 điểm.
 - Đề xuất điểm và trích dẫn để giám khảo tham khảo.
 - Cho giám khảo tự nhập ba điểm thành phần; tự động cộng điểm và đối chiếu điều kiện xếp loại A, B, C.
-- Xuất phiếu hỗ trợ ra Word, Markdown hoặc in PDF.
+- Xuất phiếu hỗ trợ ra tệp DOCX thật, Markdown hoặc in PDF.
+- Tệp DOCX dùng khổ A4 dọc, phông Times New Roman, cỡ chữ thân bài 13 pt, lề 20–20–30–15 mm và số trang ở giữa phía trên (ẩn ở trang đầu), phù hợp yêu cầu trình bày tại Phụ lục I của Nghị định số 30/2020/NĐ-CP.
+- Chuyển bảng Markdown trong kết quả AI thành bảng Word thật, tự xuống dòng và nằm trong vùng lề trang.
+- Giao diện kết quả, bảng tiêu chí, phần nhập điểm và phiếu hỗ trợ tự co giãn trên máy tính, máy tính bảng và điện thoại.
 
 AI không phải giám khảo và tiện ích không phải hệ thống của Hội đồng sáng kiến. Điểm, nhận xét và quyết định cuối cùng do người sử dụng tự chịu trách nhiệm.
 
@@ -67,6 +70,7 @@ Sau đó commit toàn bộ thư mục `phanbienai` lên GitHub.
 - Không tải `source/node_modules` lên GitHub.
 - Không cần tải `source/dist` lên GitHub.
 - Không đổi `base: "/phanbienai/"` trong `source/vite.config.ts`.
+- Chức năng DOCX sử dụng gói `docx` đã khai báo trong `source/package.json`; chạy `npm install` sau khi nhận mã nguồn mới.
 - GitHub Pages sử dụng `phanbienai/index.html`; mã nguồn trong `phanbienai/source` không ảnh hưởng giao diện.
 - Worker Cloudflare vẫn được duy trì tại repository `ho-tro-phan-bien-ai`.
 - Google Gemini được gọi trực tiếp từ trình duyệt đến `generativelanguage.googleapis.com` để không phụ thuộc vị trí IP của Cloudflare Worker.

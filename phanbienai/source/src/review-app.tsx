@@ -256,15 +256,6 @@ function fileToDataUrl(file: File) {
   });
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -855,12 +846,26 @@ export default function ReviewApp() {
     window.setTimeout(() => setCopied(false), 1800);
   }
 
-  function downloadWord() {
+  async function downloadWord() {
     if (!finalReport) return;
-    const heading = workspaceMode === "initiative" ? "Phiếu hỗ trợ giám khảo chấm sáng kiến" : "Báo cáo Hội đồng phản biện AI 360°";
-    const suffix = workspaceMode === "initiative" ? "phieu-ho-tro-cham" : "phan-bien";
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${heading}</title><style>body{font-family:Arial,sans-serif;line-height:1.65;margin:42px;color:#172033}pre{white-space:pre-wrap;font:inherit}</style></head><body><h1>${heading}</h1><pre>${escapeHtml(reportForExport())}</pre><p><em>Kết quả AI chỉ mang tính hỗ trợ tham khảo; điểm cuối cùng do giám khảo quyết định.</em></p></body></html>`;
-    downloadBlob(new Blob([html], { type: "application/msword;charset=utf-8" }), `${slugFilename(title)}-${suffix}.doc`);
+    try {
+      setGlobalError("");
+      const { createReviewDocxBlob } = await import("./docx-export");
+      const suffix = workspaceMode === "initiative" ? "phieu-ho-tro-cham" : "phan-bien";
+      const blob = await createReviewDocxBlob(reportForExport(), {
+        mode: workspaceMode,
+        title: title.trim() || (workspaceMode === "initiative" ? "Sáng kiến chưa đặt tên" : "Tài liệu chưa đặt tên"),
+        field,
+        authorName,
+        unitName,
+        judgeName,
+        firstAppliedDate,
+        applicationDate,
+      });
+      downloadBlob(blob, `${slugFilename(title)}-${suffix}.docx`);
+    } catch (error) {
+      setGlobalError(error instanceof Error ? `Không thể tạo tệp DOCX: ${error.message}` : "Không thể tạo tệp DOCX.");
+    }
   }
 
   function downloadMarkdown() {
@@ -960,7 +965,7 @@ export default function ReviewApp() {
                 </li>
                 <li>
                   <span className="guide-step-number">6</span>
-                  <div><h3>Lưu phiếu hỗ trợ</h3><p>Tải Word/Markdown hoặc in PDF. Kiểm tra lại mọi trích dẫn và không dùng kết quả AI thay cho quyết định chuyên môn.</p></div>
+                  <div><h3>Lưu phiếu hỗ trợ</h3><p>Tải DOCX theo thể thức trình bày của Nghị định 30/2020/NĐ-CP, tải Markdown hoặc in PDF. Kiểm tra lại mọi trích dẫn và không dùng kết quả AI thay cho quyết định chuyên môn.</p></div>
                 </li>
               </ol>
               ) : (
@@ -987,7 +992,7 @@ export default function ReviewApp() {
                 </li>
                 <li>
                   <span className="guide-step-number">6</span>
-                  <div><h3>Lưu hoặc chia sẻ báo cáo</h3><p>Sao chép kết quả, tải Word/Markdown hoặc in thành PDF. Luôn kiểm tra lại trích dẫn, số liệu và kết luận trước khi dùng cho chấm điểm, công bố hay ra quyết định.</p></div>
+                  <div><h3>Lưu hoặc chia sẻ báo cáo</h3><p>Sao chép kết quả, tải DOCX/Markdown hoặc in thành PDF. Luôn kiểm tra lại trích dẫn, số liệu và kết luận trước khi dùng cho chấm điểm, công bố hay ra quyết định.</p></div>
                 </li>
               </ol>
               )}
@@ -1343,7 +1348,7 @@ export default function ReviewApp() {
                   {finalReport && (
                     <div className="result-actions">
                       <button type="button" onClick={copyReport}>{copied ? <Check size={16} /> : <Clipboard size={16} />}{copied ? "Đã sao chép" : "Sao chép"}</button>
-                      <button type="button" onClick={downloadWord}><Download size={16} /> Word</button>
+                      <button type="button" onClick={downloadWord}><Download size={16} /> DOCX</button>
                       <button type="button" onClick={downloadMarkdown}><Download size={16} /> Markdown</button>
                       <button type="button" onClick={() => window.print()}><Printer size={16} /> PDF/In</button>
                     </div>
