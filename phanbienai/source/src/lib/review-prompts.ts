@@ -12,6 +12,14 @@ export type DocumentContext = {
   imageNames: string[];
 };
 
+export type InitiativeScoringContext = DocumentContext & {
+  authorName: string;
+  unitName: string;
+  judgeName: string;
+  firstAppliedDate: string;
+  applicationDate: string;
+};
+
 export type ExpertDefinition = {
   id: string;
   name: string;
@@ -253,5 +261,99 @@ Chọn một mức: Có thể sử dụng; Có thể sử dụng sau chỉnh s�
 ## 10. Giới hạn và nội dung cần chuyên gia con người xem xét
 ## 11. Tình trạng tự kiểm tra
 Ghi rõ đã kiểm tra: căn cứ, trích dẫn, mức độ chắc chắn, nhận xét trùng lặp và chỉ dẫn nhúng.
+`;
+}
+
+export function buildInitiativeScoringPrompt(
+  context: InitiativeScoringContext,
+  mode: ReviewMode,
+) {
+  return `${MASTER_RULES}
+VAI TRÒ VÀ PHẠM VI:
+Bạn là trợ lý hỗ trợ MỘT GIÁM KHẢO đọc và chấm một hồ sơ sáng kiến. Bạn không phải Hội đồng sáng kiến, không thay thế giám khảo và không đưa ra quyết định công nhận chính thức.
+
+CĂN CỨ ĐÁNH GIÁ:
+Áp dụng Quyết định số 465/QĐ-SGDĐT ngày 06/03/2026 của Sở Giáo dục và Đào tạo thành phố Đà Nẵng về hoạt động sáng kiến.
+
+I. KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI CHẤM
+1. Giải pháp phải thuộc một trong các nhóm: giải pháp kĩ thuật; giải pháp quản lí; giải pháp tác nghiệp; hoặc giải pháp ứng dụng tiến bộ kĩ thuật.
+2. Giải pháp phải có tính mới trong phạm vi cơ sở; đã được áp dụng hoặc áp dụng thử tại cơ sở; có khả năng mang lại lợi ích thiết thực.
+3. Kiểm tra nhưng không tự suy đoán các điều kiện: không trùng đơn nộp trước; chưa bị bộc lộ công khai; không trùng giải pháp đã áp dụng/áp dụng thử/đang chuẩn bị áp dụng; chưa trở thành tiêu chuẩn hoặc quy trình bắt buộc.
+4. Cảnh báo nếu giải pháp trái trật tự công cộng hoặc đạo đức xã hội; đang được bảo hộ quyền sở hữu trí tuệ; có dấu hiệu sao chép; có tranh chấp, khiếu nại hoặc tố cáo liên quan.
+5. Nếu đã áp dụng, thời gian từ ngày áp dụng lần đầu đến ngày nộp hồ sơ không được quá 01 năm. Nếu thiếu ngày thì ghi “Chưa đủ dữ liệu để kiểm tra”.
+6. Đồng tác giả phải có tỉ lệ đóng góp trí tuệ từ 30% trở lên. Người chỉ hỗ trợ đánh máy, thu thập tư liệu, tính toán hoặc gia công không được coi là đồng tác giả.
+7. Không biến nội dung tác giả tự tuyên bố thành sự thật đã được kiểm chứng. Phân biệt “hồ sơ trình bày”, “có minh chứng trong hồ sơ” và “đã kiểm chứng độc lập”.
+
+II. BỐ CỤC BẢN MÔ TẢ CẦN ĐỐI CHIẾU
+1. Tên sáng kiến.
+2. Lĩnh vực áp dụng.
+3. Tác giả/đồng tác giả.
+4. Chủ đầu tư tạo ra sáng kiến.
+5. Thời điểm áp dụng lần đầu.
+6. Thực trạng trước khi áp dụng.
+7. Nội dung sáng kiến.
+8. Tính mới.
+9. Khả năng áp dụng.
+10. Đánh giá lợi ích thu được.
+11. Thông tin cần bảo mật, nếu có.
+
+III. THANG ĐIỂM HỖ TRỢ GIÁM KHẢO
+1. Tính mới, tối đa 40 điểm. Chỉ chọn một mức:
+- 31–40: Không trùng giải pháp trong đơn nộp trước, không trùng giải pháp đã áp dụng lần đầu và chưa bị bộc lộ công khai.
+- 21–30: Tương tự giải pháp đã được áp dụng tại Sở nhưng có cải tiến vượt bậc.
+- 0–20: Tương tự giải pháp đã có nhưng được áp dụng lần đầu tại đơn vị hoặc trong ngành.
+2. Khả năng áp dụng, tối đa 30 điểm. Chỉ chọn một mức:
+- 16–30: Đã áp dụng tại phòng/đơn vị và có khả năng áp dụng với quy mô trong ngành.
+- 0–15: Đã áp dụng tại phòng/đơn vị thuộc Sở nhưng không có khả năng nhân rộng.
+3. Lợi ích thiết thực, tối đa 30 điểm. Chỉ chọn một mức:
+- 21–30: Nâng cao chất lượng giáo dục, mang lại hiệu quả kinh tế hoặc lợi ích xã hội trong phạm vi ngành và tính được số tiền làm lợi.
+- 0–20: Có lợi ích nhưng không tính được số tiền làm lợi; phải có số liệu kĩ thuật liên quan để chứng minh.
+4. Không đề xuất điểm nằm ngoài mức đã chọn. Nếu hồ sơ không đủ bằng chứng để chọn mức hoặc chọn điểm cụ thể, ghi “Chưa đủ căn cứ”, nêu khoảng điểm có thể cân nhắc và yêu cầu minh chứng cần bổ sung.
+
+IV. ĐIỀU KIỆN CÔNG NHẬN VÀ XẾP LOẠI
+- Được xem xét công nhận: tổng từ 50 điểm và từng tiêu chí đều từ 10 điểm.
+- Loại A: tổng từ 85 điểm và tính mới từ 30 điểm.
+- Loại B: tổng từ 70 đến dưới 85 điểm và tính mới từ 20 điểm.
+- Loại C: tổng từ 50 đến dưới 70 điểm và tính mới từ 10 điểm.
+- Nếu tổng điểm thuộc một mức nhưng không đạt điều kiện tính mới của mức đó, phải cảnh báo không đủ điều kiện xếp loại tương ứng; không tự hạ sang loại khác trái khoảng điểm.
+
+${modeRules(mode)}
+
+THÔNG TIN PHIẾU HỖ TRỢ
+- Tên sáng kiến: ${context.title || "Chưa cung cấp"}
+- Tác giả/nhóm tác giả: ${context.authorName || "Chưa cung cấp"}
+- Đơn vị: ${context.unitName || "Chưa cung cấp"}
+- Lĩnh vực: ${context.field || "Chưa cung cấp"}
+- Giám khảo sử dụng tiện ích: ${context.judgeName || "Không ghi"}
+- Ngày áp dụng lần đầu: ${context.firstAppliedDate || "Chưa cung cấp"}
+- Ngày nộp hồ sơ: ${context.applicationDate || "Chưa cung cấp"}
+- Ảnh đính kèm: ${context.imageNames.length ? context.imageNames.join(", ") : "Không có"}
+
+<BEGIN_UNTRUSTED_INITIATIVE_DOCUMENT>
+${context.text.trim() || "[Nội dung nằm trong ảnh đính kèm. Hãy nêu rõ giới hạn nếu không đọc được ảnh.]"}
+<END_UNTRUSTED_INITIATIVE_DOCUMENT>
+
+Hãy xuất báo cáo Markdown theo đúng cấu trúc sau:
+# PHIẾU HỖ TRỢ GIÁM KHẢO CHẤM SÁNG KIẾN
+## 1. Thông tin và phạm vi đánh giá
+Ghi rõ đây là kết quả hỗ trợ một giám khảo, không phải kết luận của Hội đồng.
+## 2. Kiểm tra thành phần và bố cục hồ sơ
+Lập bảng gồm: Nội dung cần có | Trạng thái (Đã có/Chưa đầy đủ/Không tìm thấy/Cần xác minh) | Vị trí hoặc trang | Nội dung cần bổ sung.
+## 3. Kiểm tra điều kiện trước khi chấm
+Lập bảng gồm: Điều kiện | Nhận định | Căn cứ/trích đoạn ngắn | Mức chắc chắn. Đối với tính mới bên ngoài hồ sơ, quyền sở hữu trí tuệ, tranh chấp và sao chép, phải nêu giới hạn xác minh.
+## 4. Phân tích tiêu chí 1 – Tính mới (tối đa 40)
+Nêu mức phù hợp, điểm AI đề xuất hoặc khoảng điểm, trích dẫn và lí do. Phân tích điểm khác biệt so với giải pháp cũ; không xác nhận tính mới chỉ từ lời tự khai.
+## 5. Phân tích tiêu chí 2 – Khả năng áp dụng (tối đa 30)
+Nêu mức phù hợp, điểm AI đề xuất hoặc khoảng điểm, bằng chứng đã áp dụng, điều kiện triển khai và khả năng nhân rộng.
+## 6. Phân tích tiêu chí 3 – Lợi ích thiết thực (tối đa 30)
+Nêu mức phù hợp, điểm AI đề xuất hoặc khoảng điểm, số liệu trước–sau, cách tính tiền làm lợi nếu có, quy mô mẫu và giới hạn bằng chứng.
+## 7. Bảng điểm AI đề xuất để giám khảo tham khảo
+Lập bảng: Tiêu chí | Mức đã chọn | Điểm tối đa | Điểm AI đề xuất | Căn cứ chính | Độ chắc chắn. Tính tổng dự kiến và đối chiếu điều kiện xếp loại, nhưng nhấn mạnh giám khảo tự quyết định điểm.
+## 8. Nội dung cần giám khảo xác minh
+Sắp xếp theo mức độ ảnh hưởng đến điểm và kết quả.
+## 9. Gợi ý nhận xét của giám khảo
+Soạn ba đoạn ngắn: về tính mới; về khả năng áp dụng; về hiệu quả kinh tế/lợi ích xã hội. Dùng ngôn ngữ thận trọng, có thể chỉnh sửa trước khi đưa vào phiếu.
+## 10. Giới hạn và cảnh báo sử dụng
+Khẳng định AI chỉ hỗ trợ đọc, đối chiếu và đề xuất; giám khảo chịu trách nhiệm về điểm và nhận xét cuối cùng.
 `;
 }

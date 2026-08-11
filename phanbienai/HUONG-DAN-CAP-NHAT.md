@@ -1,5 +1,23 @@
 # Cấu trúc và cập nhật công cụ phanbienai
 
+## Chức năng mới: Hỗ trợ giám khảo chấm sáng kiến
+
+Tiện ích có hai chế độ độc lập:
+
+1. **Phản biện AI 360°**: giữ nguyên chức năng phản biện tài liệu đa góc nhìn.
+2. **Chấm sáng kiến Đà Nẵng 2026**: hỗ trợ một giám khảo đối chiếu hồ sơ theo Quyết định số 465/QĐ-SGDĐT ngày 06/03/2026 của Sở Giáo dục và Đào tạo thành phố Đà Nẵng.
+
+Chế độ chấm sáng kiến thực hiện:
+
+- Kiểm tra bố cục 11 phần của Bản mô tả sáng kiến.
+- Kiểm tra điều kiện, thời hạn 01 năm và các minh chứng còn thiếu.
+- Phân tích ba tiêu chí: tính mới 40 điểm, khả năng áp dụng 30 điểm, lợi ích thiết thực 30 điểm.
+- Đề xuất điểm và trích dẫn để giám khảo tham khảo.
+- Cho giám khảo tự nhập ba điểm thành phần; tự động cộng điểm và đối chiếu điều kiện xếp loại A, B, C.
+- Xuất phiếu hỗ trợ ra Word, Markdown hoặc in PDF.
+
+AI không phải giám khảo và tiện ích không phải hệ thống của Hội đồng sáng kiến. Điểm, nhận xét và quyết định cuối cùng do người sử dụng tự chịu trách nhiệm.
+
 Toàn bộ công cụ nằm trong duy nhất một thư mục:
 
 ```text
