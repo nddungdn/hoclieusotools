@@ -600,15 +600,22 @@
 
   function getTurnstileToken() {
     if (!state.turnstileRequired) return "development-bypass";
-    const liveToken =
-      state.turnstileId !== null && window.turnstile
-        ? window.turnstile.getResponse(state.turnstileId)
-        : state.turnstileToken;
-    if (!liveToken) {
+    // Callback is the authoritative source. Some Turnstile/widget versions can
+    // display a successful challenge while getResponse(widgetId) briefly
+    // returns an empty string. Keep getResponse only as a safe fallback.
+    let token = state.turnstileToken;
+    if (!token && state.turnstileId !== null && window.turnstile) {
+      try {
+        token = window.turnstile.getResponse(state.turnstileId) || "";
+      } catch {
+        token = "";
+      }
+    }
+    if (!token) {
       showError("Vui lòng hoàn tất bước xác minh bảo mật rồi thử lại.");
       return "";
     }
-    return liveToken;
+    return token;
   }
 
   function resetTurnstile() {
