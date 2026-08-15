@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Công cụ AI hỗ trợ viết và biên tập tin bài trường học theo 5W1H.">
+  <meta name="theme-color" content="#6d28d9">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com https://viet-tin-bang-ai.nddungdn.workers.dev; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Viết tin bằng AI | Học liệu số</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>
+
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span>
+          <strong>Học liệu số</strong>
+          <small>Công cụ dành cho giáo dục</small>
+        </span>
+      </a>
+      <a class="home-link" href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener">Về trang chủ</a>
+    </div>
+  </header>
+
+  <main id="main-content" class="shell page-main">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">TRỢ LÝ BIÊN TẬP 5W1H</p>
+        <h1 id="page-title">Viết tin bằng AI</h1>
+        <p class="hero-copy">Tạo tin bài trường học rõ ràng, đúng dữ kiện và phù hợp với website, Facebook hoặc Zalo.</p>
+      </div>
+      <div class="notice" role="note">
+        <span aria-hidden="true">!</span>
+        <p>AI có thể sai. Hãy kiểm tra tên riêng, thời gian, số liệu và trích dẫn trước khi đăng.</p>
+      </div>
+    </section>
+
+    <div class="mode-switch" role="tablist" aria-label="Chọn công việc">
+      <button class="mode-button is-active" type="button" role="tab" aria-selected="true" data-mode="create">Viết tin mới</button>
+      <button class="mode-button" type="button" role="tab" aria-selected="false" data-mode="revise">Biên tập bài có sẵn</button>
+    </div>
+
+    <div class="workspace">
+      <section class="panel input-panel" aria-labelledby="input-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step-label">BƯỚC 1</p>
+            <h2 id="input-title">Cung cấp thông tin</h2>
+          </div>
+          <button id="clear-form-button" class="text-button" type="button">Xóa nội dung</button>
+        </div>
+
+        <form id="writer-form" novalidate>
+          <fieldset class="ai-provider-card">
+            <legend>Kết nối AI bằng API key của bạn</legend>
+            <div class="form-grid provider-grid">
+              <div class="field">
+                <label for="ai-provider">Nhà cung cấp AI</label>
+                <select id="ai-provider" name="aiProvider">
+                  <option value="gemini" selected>Google Gemini</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="groq">Groq</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ai-model">Mô hình AI</label>
+                <select id="ai-model" name="aiModel"></select>
+              </div>
+            </div>
+            <div id="custom-model-field" class="field field-full" hidden>
+              <label for="custom-model">Mã model tùy chỉnh</label>
+              <input id="custom-model" name="customModel" type="text" maxlength="160" autocomplete="off" placeholder="Ví dụ: tên-nhà-cung-cấp/tên-model">
+              <small>Nhập đúng model ID đang được tài khoản API của bạn hỗ trợ.</small>
+            </div>
+            <div class="field field-full api-key-field">
+              <label for="user-api-key">API key <b aria-hidden="true">*</b></label>
+              <div class="secret-input">
+                <input id="user-api-key" type="password" maxlength="500" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán API key của bạn vào đây">
+                <button id="toggle-api-key" type="button" aria-label="Hiện API key" aria-pressed="false">Hiện</button>
+              </div>
+              <div class="api-help-row">
+                <a id="provider-key-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Mở trang tạo API key Gemini</a>
+                <a href="https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html" target="_blank" rel="noopener">Cách tạo API Key siêu nhanh</a>
+              </div>
+            </div>
+            <label class="check-row session-key-option">
+              <input id="remember-api-key" type="checkbox" checked>
+              <span>Chỉ nhớ API key trong phiên trình duyệt này; khóa sẽ bị xóa khi đóng tab.</span>
+            </label>
+            <p class="key-privacy-note">API key được truyền qua HTTPS để Worker gọi đúng nhà cung cấp AI, không được ghi vào mã nguồn, Cloudflare Secret, nhật ký ứng dụng hoặc bản nháp.</p>
+          </fieldset>
+
+          <fieldset class="form-section">
+            <legend>Nền tảng đăng bài</legend>
+            <div class="segmented" id="platform-options">
+              <label>
+                <input type="radio" name="platform" value="website" checked>
+                <span>Website</span>
+              </label>
+              <label>
+                <input type="radio" name="platform" value="facebook">
+                <span>Facebook</span>
+              </label>
+              <label>
+                <input type="radio" name="platform" value="zalo">
+                <span>Zalo</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div id="create-fields">
+            <div class="field field-full">
+              <label for="what">Sự kiện hoặc hoạt động <b aria-hidden="true">*</b></label>
+              <textarea id="what" name="what" rows="2" maxlength="1000" placeholder="Ví dụ: Chuyên đề Ứng dụng AI trong dạy học"></textarea>
+              <small>Nêu tên và nội dung chính của sự kiện.</small>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="who">Ai tổ chức, tham gia?</label>
+                <textarea id="who" name="who" rows="2" maxlength="1000" placeholder="Ban Giám hiệu, giáo viên, học sinh..."></textarea>
+              </div>
+              <div class="field">
+                <label for="when">Thời gian</label>
+                <input id="when" name="when" type="text" maxlength="300" placeholder="Sáng ngày 13/8/2026">
+              </div>
+              <div class="field">
+                <label for="where">Địa điểm</label>
+                <input id="where" name="where" type="text" maxlength="300" placeholder="Hội trường Trường THCS...">
+              </div>
+              <div class="field">
+                <label for="why">Mục đích, ý nghĩa</label>
+                <textarea id="why" name="why" rows="2" maxlength="1500" placeholder="Hoạt động nhằm..."></textarea>
+              </div>
+            </div>
+
+            <div class="field field-full">
+              <label for="how">Diễn biến và kết quả</label>
+              <textarea id="how" name="how" rows="5" maxlength="5000" placeholder="Các hoạt động chính, kết quả nổi bật, phản hồi của người tham gia..."></textarea>
+            </div>
+
+            <div class="field field-full">
+              <label for="extra">Số liệu, trích dẫn và thông tin bổ sung</label>
+              <textarea id="extra" name="extra" rows="3" maxlength="3000" placeholder="Ví dụ: 120 học sinh tham gia; phát biểu của Hiệu trưởng..."></textarea>
+              <small>Chỉ nhập trích dẫn khi biết chính xác người nói và nội dung.</small>
+            </div>
+          </div>
+
+          <div id="revise-fields" hidden>
+            <div class="field field-full">
+              <label for="source-article">Bài viết cần biên tập <b aria-hidden="true">*</b></label>
+              <textarea id="source-article" name="sourceArticle" rows="12" maxlength="15000" placeholder="Dán toàn bộ bài viết cũ vào đây..."></textarea>
+            </div>
+            <div class="field field-full">
+              <label for="edit-level">Mức độ biên tập</label>
+              <select id="edit-level" name="editLevel">
+                <option value="light">Biên tập nhẹ — sửa lỗi, làm câu văn rõ hơn</option>
+                <option value="standard" selected>Biên tập chuẩn — sắp xếp lại theo 5W1H</option>
+                <option value="rewrite">Viết lại toàn diện — giữ nguyên dữ kiện cốt lõi</option>
+              </select>
+            </div>
+          </div>
+
+          <details class="advanced-options">
+            <summary>Tùy chọn bài viết</summary>
+            <div class="form-grid details-content">
+              <div class="field">
+                <label for="length">Độ dài</label>
+                <select id="length" name="length">
+                  <option value="200">Ngắn — khoảng 200 chữ</option>
+                  <option value="500" selected>Vừa — khoảng 500 chữ</option>
+                  <option value="700">Dài — khoảng 700 chữ</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="style">Giọng văn</label>
+                <select id="style" name="style">
+                  <option value="journalistic" selected>Báo chí, trang trọng</option>
+                  <option value="friendly">Gần gũi</option>
+                  <option value="storytelling">Kể chuyện</option>
+                  <option value="inspiring">Truyền cảm hứng</option>
+                  <option value="concise">Ngắn gọn, trực tiếp</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="audience">Đối tượng đọc</label>
+                <select id="audience" name="audience">
+                  <option value="general" selected>Phụ huynh, học sinh và cộng đồng</option>
+                  <option value="parents">Phụ huynh</option>
+                  <option value="students">Học sinh</option>
+                  <option value="teachers">Cán bộ, giáo viên</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="keywords">Từ khóa cần ưu tiên</label>
+                <input id="keywords" name="keywords" type="text" maxlength="300" placeholder="Tên trường, tên hoạt động...">
+              </div>
+            </div>
+            <label class="check-row">
+              <input id="include-seo" name="includeSeo" type="checkbox" checked>
+              <span>Tạo thông tin SEO, hashtag và gợi ý chú thích ảnh</span>
+            </label>
+          </details>
+
+          <div class="verification-area">
+            <div id="turnstile-widget" aria-label="Xác minh người dùng"></div>
+            <p id="turnstile-message" class="microcopy">Đang tải bước xác minh bảo mật...</p>
+          </div>
+
+          <button id="generate-button" class="primary-button" type="submit">
+            <span class="button-label">Tạo bài viết</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+          <p class="privacy-note">Nội dung bản nháp chỉ được lưu trên trình duyệt này. Không nhập dữ liệu cá nhân nhạy cảm.</p>
+        </form>
+      </section>
+
+      <section class="panel result-panel" aria-labelledby="result-title">
+        <div class="panel-heading result-heading">
+          <div>
+            <p class="step-label">BƯỚC 2</p>
+            <h2 id="result-title">Bài viết hoàn chỉnh</h2>
+          </div>
+          <span id="save-status" class="save-status" aria-live="polite"></span>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon" aria-hidden="true">✦</div>
+          <h3>Chưa có bài viết</h3>
+          <p>Điền thông tin ở bên trái rồi chọn “Tạo bài viết”.</p>
+          <ul>
+            <li>AI không tự thêm dữ kiện còn thiếu.</li>
+            <li>Các điểm cần kiểm tra sẽ được liệt kê riêng.</li>
+            <li>Có thể tiếp tục yêu cầu AI chỉnh sửa bài.</li>
+          </ul>
+        </div>
+
+        <div id="result-content" hidden>
+          <div class="action-bar" aria-label="Thao tác với bài viết">
+            <button class="action-button" id="copy-text-button" type="button">Sao chép văn bản</button>
+            <button class="action-button" id="copy-html-button" type="button">Sao chép HTML</button>
+            <button class="action-button" id="download-word-button" type="button">Tải Word chuẩn NĐ 30</button>
+            <button class="action-button" id="print-button" type="button">In</button>
+          </div>
+
+          <article id="article-preview" class="article-preview">
+            <h3 id="article-title"></h3>
+            <p id="article-sapo" class="sapo"></p>
+            <div id="article-body"></div>
+            <div id="article-hashtags" class="hashtags"></div>
+          </article>
+
+          <details class="result-details" open>
+            <summary>Tiêu đề khác</summary>
+            <div id="alternative-titles" class="option-list"></div>
+          </details>
+
+          <details id="seo-details" class="result-details">
+            <summary>SEO và gợi ý hình ảnh</summary>
+            <dl class="metadata-list">
+              <div><dt>Mô tả SEO</dt><dd id="seo-description"></dd></div>
+              <div><dt>Đường dẫn gợi ý</dt><dd id="seo-slug"></dd></div>
+              <div><dt>Chú thích ảnh</dt><dd id="photo-captions"></dd></div>
+            </dl>
+          </details>
+
+          <section class="fact-check" aria-labelledby="fact-check-title">
+            <div class="fact-check-heading">
+              <h3 id="fact-check-title">Kiểm tra trước khi đăng</h3>
+              <span id="fact-check-count"></span>
+            </div>
+            <ul id="fact-check-list"></ul>
+          </section>
+
+          <section class="chat-box" aria-labelledby="chat-title">
+            <h3 id="chat-title">Yêu cầu AI chỉnh sửa</h3>
+            <div class="quick-actions" aria-label="Yêu cầu nhanh">
+              <button type="button" data-instruction="Rút gọn bài viết khoảng 20% nhưng giữ nguyên mọi dữ kiện.">Rút gọn 20%</button>
+              <button type="button" data-instruction="Rà soát và sửa lỗi chính tả, ngữ pháp; không thay đổi dữ kiện.">Sửa chính tả</button>
+              <button type="button" data-instruction="Làm giọng văn tự nhiên, gần gũi hơn nhưng vẫn phù hợp môi trường giáo dục.">Tự nhiên hơn</button>
+              <button type="button" data-instruction="Tối ưu tiêu đề, sapo và mô tả SEO; không thêm dữ kiện mới.">Tối ưu SEO</button>
+            </div>
+            <div id="chat-log" class="chat-log" aria-live="polite"></div>
+            <div class="chat-compose">
+              <label class="sr-only" for="chat-input">Yêu cầu chỉnh sửa</label>
+              <textarea id="chat-input" rows="2" maxlength="1000" placeholder="Ví dụ: Làm tiêu đề ngắn hơn, nhấn mạnh kết quả hoạt động..."></textarea>
+              <button id="chat-send-button" type="button">Gửi</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="error-dialog" class="error-dialog">
+    <form method="dialog">
+      <div class="dialog-icon" aria-hidden="true">!</div>
+      <h2>Chưa thể xử lý</h2>
+      <p id="error-message"></p>
+      <button class="primary-button" value="close">Đã hiểu</button>
+    </form>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <p>Công cụ được xây dựng bởi <a href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener">Học liệu số</a>. Kết quả chỉ mang tính chất tham khảo.</p>
+      <p>Vui lòng kiểm tra nội dung trước khi công bố. Bản quyền công cụ thuộc về Học liệu số.</p>
+    </div>
+  </footer>
+</body>
+</html>
