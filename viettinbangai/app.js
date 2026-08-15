@@ -15,8 +15,8 @@
       keyLabel: "Mở trang tạo API key Gemini",
       placeholder: "Thường bắt đầu bằng AIza...",
       models: [
-        ["gemini-2.5-flash", "Gemini 2.5 Flash — cân bằng"],
-        ["gemini-2.5-flash-lite", "Gemini 2.5 Flash-Lite — tiết kiệm"],
+        ["gemini-3.6-flash", "Gemini 3.6 Flash — cân bằng"],
+        ["gemini-3.5-flash-lite", "Gemini 3.5 Flash-Lite — tiết kiệm"],
       ],
     },
     openai: {
