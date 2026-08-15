@@ -60,6 +60,7 @@
     apiTesting: false,
     turnstileId: null,
     turnstileToken: "",
+    lastTurnstileToken: "",
     turnstileRequired: true,
     toastTimer: null,
     saveTimer: null,
@@ -610,39 +611,63 @@
   }
 
   function readTurnstileToken() {
+    if (state.turnstileId === null || !window.turnstile) return "";
+    try {
+      if (typeof window.turnstile.isExpired === "function" && window.turnstile.isExpired(state.turnstileId)) {
+        state.turnstileToken = "";
+        return "";
+      }
+    } catch {
+      state.turnstileToken = "";
+    }
+
     let token = String(state.turnstileToken || "").trim();
     if (!token) {
-      const responseField = elements.form.querySelector(
-        'input[name="cf-turnstile-response"], textarea[name="cf-turnstile-response"]'
-      );
-      token = String(responseField?.value || "").trim();
-    }
-    if (!token && state.turnstileId !== null && window.turnstile) {
       try {
         token = String(window.turnstile.getResponse(state.turnstileId) || "").trim();
       } catch {
         token = "";
       }
     }
-    if (token) state.turnstileToken = token;
+    if (!token || token === state.lastTurnstileToken) return "";
+    state.turnstileToken = token;
     return token;
+  }
+
+  function clearTurnstileResponseFields() {
+    elements.form
+      .querySelectorAll('input[name="cf-turnstile-response"], textarea[name="cf-turnstile-response"]')
+      .forEach((field) => {
+        field.value = "";
+      });
   }
 
   async function getTurnstileToken() {
     if (!state.turnstileRequired) return "development-bypass";
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
       const token = readTurnstileToken();
-      if (token) return token;
-      if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 90));
+      if (token) {
+        state.lastTurnstileToken = token;
+        state.turnstileToken = "";
+        clearTurnstileResponseFields();
+        return token;
+      }
+      if (attempt < 11) await new Promise((resolve) => window.setTimeout(resolve, 120));
     }
-    showError("Vui lòng hoàn tất bước xác minh bảo mật rồi thử lại.");
+    showError("Lượt xác minh chưa sẵn sàng hoặc đã được sử dụng. Vui lòng chờ Turnstile xác minh lại rồi nhấn Tạo bài viết.");
     return "";
   }
 
-  function resetTurnstile() {
+  function resetTurnstile(message = "Đang tạo lượt xác minh mới...") {
     state.turnstileToken = "";
+    clearTurnstileResponseFields();
     if (state.turnstileRequired && state.turnstileId !== null && window.turnstile) {
-      window.turnstile.reset(state.turnstileId);
+      try {
+        window.turnstile.reset(state.turnstileId);
+        elements.turnstileMessage.textContent = message;
+      } catch {
+        elements.turnstileMessage.textContent = "Chưa thể làm mới xác minh. Hãy tải lại trang.";
+      }
     }
   }
 
@@ -851,19 +876,33 @@
         sitekey: config.turnstileSiteKey,
         theme: "light",
         size: "flexible",
-        "response-field": true,
-        "response-field-name": "cf-turnstile-response",
+        action: "write_news",
+        "response-field": false,
+        retry: "auto",
+        "retry-interval": 5000,
         callback: (token) => {
-          state.turnstileToken = String(token || "").trim();
-          elements.turnstileMessage.textContent = "Đã xác minh.";
+          const freshToken = String(token || "").trim();
+          state.turnstileToken = freshToken === state.lastTurnstileToken ? "" : freshToken;
+          elements.turnstileMessage.textContent = state.turnstileToken
+            ? "Đã xác minh. Lượt xác minh này chỉ dùng một lần."
+            : "Đang tạo lượt xác minh mới...";
         },
         "expired-callback": () => {
           state.turnstileToken = "";
+          clearTurnstileResponseFields();
           elements.turnstileMessage.textContent = "Xác minh đã hết hạn. Vui lòng xác minh lại.";
         },
-        "error-callback": () => {
+        "timeout-callback": () => {
           state.turnstileToken = "";
-          elements.turnstileMessage.textContent = "Chưa tải được bước xác minh. Hãy tải lại trang.";
+          clearTurnstileResponseFields();
+          elements.turnstileMessage.textContent = "Xác minh đã quá thời gian. Đang thử lại...";
+          window.setTimeout(() => resetTurnstile(), 600);
+        },
+        "error-callback": (errorCode) => {
+          state.turnstileToken = "";
+          clearTurnstileResponseFields();
+          elements.turnstileMessage.textContent = `Turnstile chưa xác minh được (mã ${String(errorCode || "không rõ")}). Hãy tải lại trang.`;
+          return true;
         },
       });
       elements.turnstileMessage.textContent = "Hoàn tất xác minh trước khi dùng AI.";
