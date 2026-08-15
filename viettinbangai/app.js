@@ -5,6 +5,7 @@
   const SESSION_KEY = "hoclieuso.viettinbangai.api-session.v1";
   const WORKER_ORIGIN = "https://viet-tin-bang-ai.nddungdn.workers.dev";
   const API_URL = `${WORKER_ORIGIN}/api/write`;
+  const API_TEST_URL = `${WORKER_ORIGIN}/api/test`;
   const CONFIG_URL = `${WORKER_ORIGIN}/api/config`;
 
   const AI_PROVIDERS = {
@@ -56,6 +57,7 @@
     mode: "create",
     result: null,
     busy: false,
+    apiTesting: false,
     turnstileId: null,
     turnstileToken: "",
     turnstileRequired: true,
@@ -100,6 +102,8 @@
     customModelField: $("#custom-model-field"),
     customModel: $("#custom-model"),
     apiKey: $("#user-api-key"),
+    apiTestButton: $("#test-api-button"),
+    apiTestStatus: $("#api-test-status"),
     toggleApiKey: $("#toggle-api-key"),
     rememberApiKey: $("#remember-api-key"),
     providerKeyLink: $("#provider-key-link"),
@@ -204,6 +208,13 @@
     elements.providerKeyLink.href = config.keyUrl;
     elements.providerKeyLink.textContent = config.keyLabel;
     elements.apiKey.placeholder = config.placeholder;
+    setApiTestStatus("Chưa kiểm tra API key.");
+  }
+
+  function setApiTestStatus(message, type = "") {
+    elements.apiTestStatus.textContent = message;
+    elements.apiTestStatus.className = "api-test-status";
+    if (type) elements.apiTestStatus.classList.add(`is-${type}`);
   }
 
   function getCredentials() {
@@ -598,24 +609,34 @@
     elements.chatLog.scrollTop = elements.chatLog.scrollHeight;
   }
 
-  function getTurnstileToken() {
-    if (!state.turnstileRequired) return "development-bypass";
-    // Callback is the authoritative source. Some Turnstile/widget versions can
-    // display a successful challenge while getResponse(widgetId) briefly
-    // returns an empty string. Keep getResponse only as a safe fallback.
-    let token = state.turnstileToken;
+  function readTurnstileToken() {
+    let token = String(state.turnstileToken || "").trim();
+    if (!token) {
+      const responseField = elements.form.querySelector(
+        'input[name="cf-turnstile-response"], textarea[name="cf-turnstile-response"]'
+      );
+      token = String(responseField?.value || "").trim();
+    }
     if (!token && state.turnstileId !== null && window.turnstile) {
       try {
-        token = window.turnstile.getResponse(state.turnstileId) || "";
+        token = String(window.turnstile.getResponse(state.turnstileId) || "").trim();
       } catch {
         token = "";
       }
     }
-    if (!token) {
-      showError("Vui lòng hoàn tất bước xác minh bảo mật rồi thử lại.");
-      return "";
-    }
+    if (token) state.turnstileToken = token;
     return token;
+  }
+
+  async function getTurnstileToken() {
+    if (!state.turnstileRequired) return "development-bypass";
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const token = readTurnstileToken();
+      if (token) return token;
+      if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 90));
+    }
+    showError("Vui lòng hoàn tất bước xác minh bảo mật rồi thử lại.");
+    return "";
   }
 
   function resetTurnstile() {
@@ -628,7 +649,7 @@
   async function apiRequest(payload) {
     const credentials = getCredentials();
     if (!credentials) return null;
-    const token = getTurnstileToken();
+    const token = await getTurnstileToken();
     if (!token) return null;
     let response;
     try {
@@ -655,6 +676,37 @@
       throw error;
     }
     return data.result;
+  }
+
+  async function handleApiTest() {
+    if (state.apiTesting || state.busy) return;
+    const credentials = getCredentials();
+    if (!credentials) return;
+    state.apiTesting = true;
+    elements.apiTestButton.disabled = true;
+    elements.apiTestButton.textContent = "Đang kiểm tra...";
+    setApiTestStatus("Đang kết nối tới nhà cung cấp AI...", "testing");
+    try {
+      const response = await fetch(API_TEST_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+      if (!response.ok) throw new Error(data.message || "Chưa thể kiểm tra API key.");
+      setApiTestStatus(data.message || "API key hợp lệ và đã kết nối thành công.", "success");
+    } catch (error) {
+      setApiTestStatus(error.message || "Không thể kết nối nhà cung cấp AI.", "error");
+    } finally {
+      state.apiTesting = false;
+      elements.apiTestButton.disabled = false;
+      elements.apiTestButton.textContent = "Kiểm tra API";
+    }
   }
 
   async function handleSubmit(event) {
@@ -710,7 +762,7 @@
   function serializeDraft() {
     const fields = {};
     $$("input, textarea, select", elements.form).forEach((field) => {
-      if (!field.name) return;
+      if (!field.name || field.name === "cf-turnstile-response") return;
       if (field.type === "radio") {
         if (field.checked) fields[field.name] = field.value;
       } else if (field.type === "checkbox") {
@@ -799,8 +851,10 @@
         sitekey: config.turnstileSiteKey,
         theme: "light",
         size: "flexible",
+        "response-field": true,
+        "response-field-name": "cf-turnstile-response",
         callback: (token) => {
-          state.turnstileToken = token;
+          state.turnstileToken = String(token || "").trim();
           elements.turnstileMessage.textContent = "Đã xác minh.";
         },
         "expired-callback": () => {
@@ -835,10 +889,18 @@
       elements.customModelField.hidden = elements.aiModel.value !== "__custom__";
       if (!elements.customModelField.hidden) elements.customModel.focus();
       saveSessionCredentials();
+      setApiTestStatus("API key hoặc model đã thay đổi; vui lòng kiểm tra lại.");
     });
-    elements.customModel.addEventListener("input", saveSessionCredentials);
-    elements.apiKey.addEventListener("input", saveSessionCredentials);
+    elements.customModel.addEventListener("input", () => {
+      saveSessionCredentials();
+      setApiTestStatus("API key hoặc model đã thay đổi; vui lòng kiểm tra lại.");
+    });
+    elements.apiKey.addEventListener("input", () => {
+      saveSessionCredentials();
+      setApiTestStatus("API key hoặc model đã thay đổi; vui lòng kiểm tra lại.");
+    });
     elements.rememberApiKey.addEventListener("change", saveSessionCredentials);
+    elements.apiTestButton.addEventListener("click", handleApiTest);
     elements.toggleApiKey.addEventListener("click", () => {
       const show = elements.apiKey.type === "password";
       elements.apiKey.type = show ? "text" : "password";
