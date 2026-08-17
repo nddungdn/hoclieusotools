@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Soạn KHBD Ngữ văn</title>
+  <meta name="description" content="Hỗ trợ giáo viên Ngữ văn xây dựng Kế hoạch bài dạy và Kế hoạch dạy học theo Công văn 5512." />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js" defer></script>
+</head>
+<body>
+  <section id="loginGate" class="login-wrap">
+    <div class="login-brand">
+      <div class="logo-orb">HLS</div>
+      <div><strong>Học Liệu Số</strong><small>Soạn KHBD Ngữ văn</small></div>
+    </div>
+    <div class="login-card">
+      <div>
+        <span class="eyebrow">TRUY CẬP CÓ KIỂM SOÁT</span>
+        <h1>Đăng nhập để sử dụng tiện ích</h1>
+        <p>Tiện ích chỉ mở cho các Gmail đã được quản trị viên cấp quyền. SGK, SGV và tài liệu do chính giáo viên tải lên khi làm việc.</p>
+        <div id="googleButton" class="google-button"></div>
+        <p id="loginMessage" class="message"></p>
+      </div>
+      <div class="privacy-box">
+        <strong>Nguyên tắc bảo mật</strong>
+        <ul>
+          <li>Prompt và quy tắc chuyên môn không nằm trong GitHub công khai.</li>
+          <li>Gemini API Key thuộc người dùng và không lưu trong D1/KV.</li>
+          <li>Tài liệu không được đưa vào kho dùng chung của tiện ích.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="appRoot" class="hidden">
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <aside id="sidebar" class="sidebar" aria-label="Menu chính">
+      <div class="sidebar-brand">
+        <a href="#" id="brandHome" class="brand-link" aria-label="Trang chủ Soạn KHBD Ngữ văn">
+          <span class="logo-orb">HLS</span>
+          <span class="brand-copy"><strong>HỌC LIỆU SỐ</strong><small>Soạn KHBD Ngữ văn</small></span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">KHÔNG GIAN LÀM VIỆC</div>
+        <button class="nav-item active" type="button" data-nav="home" title="Trang chủ">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/></svg>
+          <span class="nav-text">Trang chủ</span>
+        </button>
+        <button class="nav-item" type="button" data-open="khbd" data-nav="khbd" title="Soạn Kế hoạch bài dạy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM15 3v5h5M8 12h8M8 16h8"/></svg>
+          <span class="nav-text">Soạn Kế hoạch bài dạy</span>
+        </button>
+        <button class="nav-item" type="button" data-open="khgd" data-nav="khgd" title="Tạo Kế hoạch dạy học">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16M8 13h3M13 13h3M8 17h3"/></svg>
+          <span class="nav-text">Kế hoạch dạy học</span>
+        </button>
+        <button class="nav-item future" type="button" data-future="exam" data-nav="exam" title="Ra đề kiểm tra">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v3h3v15H4V6h3zM8 12h8M8 16h5M9 3h6v4H9z"/></svg>
+          <span class="nav-text">Ra đề kiểm tra</span>
+          <span class="nav-badge">Sắp có</span>
+        </button>
+
+        <div class="nav-label nav-label-spaced">TIỆN ÍCH MỞ RỘNG</div>
+        <button class="nav-item future" type="button" data-future="grading" data-nav="grading" title="Chấm bài">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 12l2.5 2.5L16.5 8.5"/></svg>
+          <span class="nav-text">Chấm bài</span><span class="nav-badge">Sau</span>
+        </button>
+
+        <div class="nav-label nav-label-spaced">QUẢN TRỊ</div>
+        <a id="adminNav" class="nav-item hidden" href="./admin.html" title="Quản lý người dùng">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11A4 4 0 1 0 9.5 3a4 4 0 0 0 0 8zM17 8h4M19 6v4"/></svg>
+          <span class="nav-text">Quản lý người dùng</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div id="userAvatar" class="user-avatar">GV</div>
+          <div class="user-copy"><strong id="sideUserName">Giáo viên</strong><small id="sideUserEmail"></small></div>
+          <button id="sideLogoutBtn" class="icon-btn" type="button" title="Đăng xuất" aria-label="Đăng xuất">↗</button>
+        </div>
+        <button id="sidebarCollapseBtn" class="collapse-btn" type="button" aria-label="Thu gọn menu">
+          <span class="collapse-icon">«</span><span class="nav-text">Thu gọn</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Mở menu">☰</button>
+          <div><div class="title-line"><h1 id="pageTitle">Trang chủ</h1><span class="ready-pill">READY</span></div><p id="pageSubtitle">Soạn và quản lý kế hoạch Ngữ văn</p></div>
+        </div>
+        <div class="topbar-right">
+          <span id="apiStatusPill" class="status-pill">API chưa nhập</span>
+          <span id="userBadge" class="user-badge"></span>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <section id="homeView" class="page-view">
+          <section class="hero compact">
+            <div><span class="eyebrow">NGỮ VĂN · CÔNG VĂN 5512</span><h2>Chọn công việc cần thực hiện</h2><p>Không cần chọn bộ sách. SGK, SGV, mẫu riêng và tài liệu bổ sung do giáo viên tải lên khi cần.</p></div>
+          </section>
+          <div id="homeCards" class="feature-grid">
+            <button class="feature-card" data-open="khbd" type="button"><span class="feature-icon">📝</span><span><strong>Soạn Kế hoạch bài dạy</strong><small>Phụ lục IV · Soạn từng bài/tiết học</small></span><span class="arrow">→</span></button>
+            <button class="feature-card" data-open="khgd" type="button"><span class="feature-icon">📅</span><span><strong>Tạo Kế hoạch dạy học</strong><small>Phụ lục I · II · III</small></span><span class="arrow">→</span></button>
+            <button class="feature-card future-card" data-future="exam" type="button"><span class="feature-icon">🧾</span><span><strong>Ra đề kiểm tra</strong><small>Chuẩn bị kiến trúc cho ma trận · đặc tả · đề · hướng dẫn chấm</small></span><span class="soon">Sắp phát triển</span></button>
+          </div>
+        </section>
+
+        <section id="futureExam" class="page-view hidden">
+          <section class="hero compact"><div><span class="eyebrow">MODULE DỰ PHÒNG</span><h2>Ra đề kiểm tra</h2><p>Phần này đã được chừa sẵn trong menu và cấu trúc giao diện. Chưa kết nối API nên không phát sinh yêu cầu AI.</p></div></section>
+          <div class="future-grid">
+            <article class="future-module"><span>01</span><strong>Ma trận đề kiểm tra</strong><small>Phân bố chủ đề, mức độ đánh giá, số câu và tỉ lệ điểm.</small></article>
+            <article class="future-module"><span>02</span><strong>Bản đặc tả</strong><small>Yêu cầu cần đạt, đơn vị kiến thức và mức độ nhận thức.</small></article>
+            <article class="future-module"><span>03</span><strong>Đề kiểm tra</strong><small>Tạo câu hỏi theo ma trận và đặc tả đã duyệt.</small></article>
+            <article class="future-module"><span>04</span><strong>Hướng dẫn chấm</strong><small>Đáp án, biểu điểm và hướng dẫn đánh giá.</small></article>
+          </div>
+          <div class="info-banner"><strong>Không cần triển khai phần này bây giờ.</strong> Khi bổ sung chức năng ra đề, ta chỉ kích hoạt module và thêm API/skill tương ứng; không phải làm lại menu.</div>
+        </section>
+
+        <section id="futureGrading" class="page-view hidden">
+          <div class="empty-state"><div class="empty-icon">✓</div><h2>Chấm bài</h2><p>Đã dành vị trí trong menu để mở rộng sau này. Phiên bản hiện tại chưa kích hoạt chức năng này.</p><button class="btn secondary" data-nav-home type="button">Về trang chủ</button></div>
+        </section>
+
+        <section id="workspace" class="page-view workspace hidden">
+          <div class="workspace-head"><button id="backHome" class="btn ghost" type="button">← Trang chủ</button><div><h2 id="workspaceTitle">Soạn Kế hoạch bài dạy</h2><p id="workspaceSub"></p></div></div>
+
+          <div class="step-card" id="aiSettingsCard">
+            <div class="section-title"><span>1</span><div><h3>Thiết lập AI cá nhân</h3><p>API Key chỉ được giữ trong phiên trình duyệt và gửi qua HTTPS khi xử lý.</p></div></div>
+            <div class="form-grid two">
+              <label class="field full"><span>Gemini API Key</span><input id="apiKey" type="password" autocomplete="off" placeholder="Nhập API Key từ Google AI Studio" /></label>
+              <label class="field"><span>Mô hình</span><select id="model"><option value="gemini-3.5-flash">Gemini 3.5 Flash</option><option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option></select></label>
+              <div class="field"><span>&nbsp;</span><button id="testKeyBtn" class="btn secondary" type="button">Kiểm tra API Key</button></div>
+            </div><p id="keyMessage" class="message"></p>
+          </div>
+
+          <div id="typeTabs" class="tabs hidden"></div>
+          <form id="planForm" class="step-card">
+            <div class="section-title"><span>2</span><div><h3>Thông tin kế hoạch</h3><p id="formHint">Điền thông tin cần thiết. Có thể chỉnh sửa kết quả trước khi sử dụng.</p></div></div>
+            <div id="dynamicFields" class="form-grid two"></div>
+          </form>
+
+          <div class="step-card">
+            <div class="section-title"><span>3</span><div><h3>Tài liệu phục vụ soạn</h3><p>SGK là nguồn chính. Có thể thêm SGV, mẫu riêng và tài liệu bổ sung.</p></div></div>
+            <div class="upload-grid">
+              <label class="upload-box"><strong>SGK</strong><small>Ưu tiên PDF</small><input id="fileSgk" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" /></label>
+              <label class="upload-box"><strong>SGV</strong><small>Không bắt buộc</small><input id="fileSgv" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" /></label>
+              <label class="upload-box"><strong>Mẫu KHBD/KHGD riêng</strong><small>PDF hoặc DOCX</small><input id="fileTemplate" type="file" accept=".pdf,.docx,.txt" /></label>
+              <label class="upload-box"><strong>Tài liệu khác</strong><small>PDF, ảnh, DOCX, TXT</small><input id="fileExtra" type="file" multiple accept=".pdf,.docx,.png,.jpg,.jpeg,.txt" /></label>
+            </div><div id="fileList" class="file-list"></div><p class="notice">Không tải tài liệu chứa dữ liệu cá nhân nhạy cảm. Gemini Free Tier có chính sách dữ liệu riêng của Google.</p>
+          </div>
+
+          <div class="action-bar"><button id="generateBtn" class="btn primary big" type="button">✨ Tạo kế hoạch</button><span id="generateStatus" class="message"></span></div>
+          <section id="resultCard" class="result-card hidden">
+            <div class="result-head"><div><span class="eyebrow">KẾT QUẢ AI</span><h2 id="resultTitle">Bản dự thảo</h2></div><div class="result-actions"><button id="copyBtn" class="btn secondary" type="button">Sao chép</button><button id="printBtn" class="btn secondary" type="button">In / PDF</button></div></div>
+            <div id="resultEditor" class="result-editor" contenteditable="true"></div><div id="resultNotes" class="result-notes"></div><p class="ai-warning">AI có thể sai. Giáo viên cần đối chiếu SGK, chương trình và yêu cầu chuyên môn trước khi sử dụng.</p>
+          </section>
+        </section>
+      </main>
+      <footer class="app-footer">Học Liệu Số · Công cụ hỗ trợ giáo viên, không thay thế quyết định chuyên môn.</footer>
+    </div>
+  </section>
+
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>
