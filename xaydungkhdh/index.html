@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Tiện ích xây dựng Kế hoạch dạy học Ngữ văn THCS theo Phụ lục I, II, III Công văn 5512; tích hợp NLS và GDQP&AN." />
+  <title>Xây dựng KHDH Ngữ văn v1.2</title>
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.workers.dev; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob: https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <!-- Third-party libraries are pinned to exact versions. No GitHub Actions is required. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="./assets/js/vendor-init-cdn.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Xây dựng KHDH Ngữ văn</h1>
+    <p>Phụ lục I, II, III · Công văn 5512 · NLS · GDQP&AN</p>
+  </div>
+  <div class="top-actions">
+    <button id="btnSaveLocal" class="ghost">Lưu tạm</button>
+    <button id="btnDownloadProject" class="ghost">Tải dự án</button>
+    <label class="ghost file-label">Mở dự án<input id="projectFile" type="file" accept="application/json,.json" hidden></label>
+  </div>
+</header>
+
+<main class="shell">
+  <aside class="sidebar">
+    <button class="step active" data-step="1"><span>1</span>Chế độ</button>
+    <button class="step" data-step="2"><span>2</span>Thông tin</button>
+    <button class="step" data-step="3"><span>3</span>Tài liệu</button>
+    <button class="step" data-step="4"><span>4</span>API cá nhân</button>
+    <button class="step" data-step="5"><span>5</span>Dữ liệu phụ lục</button>
+    <button class="step" data-step="6"><span>6</span>PPCT & tích hợp</button>
+    <button class="step" data-step="7"><span>7</span>Kiểm tra & xuất</button>
+    <div class="privacy-badge">🔐 API cá nhân<br>🔐 Prompt ở backend<br>🔐 Không lưu khóa mặc định</div>
+  </aside>
+
+  <section class="content">
+    <div id="statusBar" class="statusbar">Sẵn sàng.</div>
+
+    <section class="panel step-panel" data-panel="1">
+      <h2>Chọn cách làm việc</h2>
+      <div class="mode-grid">
+        <button class="mode-card selected" data-mode="new"><strong>Tạo mới từ SGK</strong><small>Chỉ cần SGK; AI đề xuất PPCT rồi sinh PL1–PL3.</small></button>
+        <button class="mode-card" data-mode="integrate"><strong>Tích hợp kế hoạch đã có</strong><small>Tải PL1/2/3; giữ PPCT và bổ sung NLS, GDQP&AN.</small></button>
+        <button class="mode-card" data-mode="review"><strong>Rà soát – cập nhật</strong><small>Đối chiếu hồ sơ hiện có và đề xuất chỉnh sửa.</small></button>
+      </div>
+      <h3>Phụ lục cần tạo/xử lý</h3>
+      <div class="checks"><label><input id="apPl1" type="checkbox" checked> Phụ lục I</label><label><input id="apPl2" type="checkbox" checked> Phụ lục II</label><label><input id="apPl3" type="checkbox" checked> Phụ lục III</label></div>
+      <div class="notice info"><strong>Nguyên tắc:</strong> Nếu người dùng đã có PPCT/PL1/PL3, hệ thống không được tự ghi đè. Nếu chỉ có SGK, PPCT tạo ra ở trạng thái dự thảo để giáo viên/tổ chuyên môn rà soát.</div>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="2">
+      <h2>Thông tin dự án và trường học</h2>
+      <div class="form-grid three">
+        <label>Năm học<input id="academicYear" value="2026-2027"></label>
+        <label>Lớp<select id="grade"><option>6</option><option>7</option><option selected>8</option><option>9</option></select></label>
+        <label>Tổng tiết/năm<input id="totalPeriods" type="number" value="140"></label>
+        <label>HKI<input id="semester1Periods" type="number" value="72"></label>
+        <label>HKII<input id="semester2Periods" type="number" value="68"></label>
+        <label>Điều kiện thiết bị HS<select id="deviceMode"><option value="teacher-only">Chỉ giáo viên có thiết bị</option><option value="shared">Có thiết bị dùng chung</option><option value="student-device">Học sinh có thiết bị cá nhân</option><option value="none">Không dùng thiết bị số</option></select></label>
+      </div>
+      <hr>
+      <div class="notice warning">🔒 <strong>Quyền riêng tư:</strong> Chỉ nhập dữ liệu cần thiết. Không tải/nhập CCCD, số điện thoại, địa chỉ nhà, hồ sơ sức khỏe, tài khoản hoặc dữ liệu nhạy cảm của giáo viên, học sinh, phụ huynh.</div>
+      <div class="form-grid two">
+        <label>Tên trường<input id="schoolName" placeholder="Ví dụ: Trường THCS ..."></label>
+        <label>Tổ chuyên môn<input id="department" value="Tổ Ngữ văn"></label>
+        <label>Địa danh<input id="locality" placeholder="Ví dụ: Hải Châu"></label>
+        <label>Mô hình trường<select id="organizationMode"><option value="single">Một cơ sở</option><option value="multi">Trụ sở chính + phân hiệu/điểm trường</option></select></label>
+      </div>
+      <div class="row-head"><h3>Trụ sở / phân hiệu / điểm trường</h3><button id="btnAddSite" class="ghost">+ Thêm cơ sở</button></div>
+      <div id="sitesEditor"></div>
+      <div class="form-grid two">
+        <label>Tổng số lớp (nếu muốn nhập tay)<input id="totalClassesManual" type="number"></label>
+        <label>Tổng số học sinh (nếu muốn nhập tay)<input id="totalStudentsManual" type="number"></label>
+      </div>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="3">
+      <h2>Tài liệu</h2>
+      <div class="upload-box">
+        <input id="filesInput" type="file" multiple accept=".pdf,.docx,.txt,.md,.json,.csv">
+        <p>Chế độ tạo mới: SGK là tệp chuyên môn tối thiểu. Chế độ tích hợp/rà soát: có thể tải PL1/2/3, PPCT, SGV và tài liệu khác.</p>
+      </div>
+      <div id="fileList" class="file-list"></div>
+      <div class="notice info">v1.2 đọc PDF theo từng trang và tự chia SGK thành nhiều phần nhỏ trước khi gọi API. PDF scan thuần ảnh vẫn cần xử lý riêng; ưu tiên PDF có lớp chữ để tiết kiệm API và ổn định hơn.</div>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="4">
+      <h2>API cá nhân</h2>
+      <div class="notice warning">🔐 API Key là thông tin bí mật. Khóa được gửi qua Cloudflare Worker riêng của tiện ích để gọi đúng nhà cung cấp AI, chỉ tồn tại trong bộ nhớ trong lúc xử lý và không được ứng dụng lưu vào dự án hay cơ sở dữ liệu.</div>
+      <div class="form-grid two">
+        <label>Nhà cung cấp<select id="provider"><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
+        <label>Model<select id="model" disabled><option value="">Kiểm tra khóa để tải danh sách model</option></select></label>
+        <label class="wide">API Key<div class="input-row"><input id="apiKey" type="password" autocomplete="off" spellcheck="false"><button id="btnToggleKey" type="button" class="ghost">Hiện</button></div></label>
+      </div>
+      <label class="consent"><input id="consent" type="checkbox"> Tôi hiểu rằng phần nội dung cần thiết và API Key sẽ đi qua Worker riêng để gửi tới đúng nhà cung cấp AI tôi chọn; dữ liệu còn chịu chính sách của nhà cung cấp đó.</label>
+      <div class="input-row"><button id="btnLoadModels">1. Kiểm tra khóa & tải model</button><button id="btnTestApi" class="ghost">2. Kiểm tra model</button></div>
+      <div class="notice info">Nếu đổi API Key hoặc nhà cung cấp, hãy tải lại danh sách model. Không nhập tên model bằng tay để tránh lỗi do model đã đổi tên/ngừng hỗ trợ.</div>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="5">
+      <h2>Dữ liệu phụ lục</h2>
+      <div class="tabs"><button class="tab active" data-tab="pl1box">PL1</button><button class="tab" data-tab="pl2box">PL2</button><button class="tab" data-tab="pl3box">PL3</button></div>
+      <div id="pl1box" class="tabbox">
+        <h3>Đội ngũ</h3>
+        <div class="form-grid four" id="staffFields">
+          <label>Tổng GV<input data-staff="total" type="number"></label><label>Cao đẳng<input data-staff="college" type="number"></label><label>Đại học<input data-staff="university" type="number"></label><label>Trên ĐH<input data-staff="postgraduate" type="number"></label>
+          <label>Tốt<input data-staff="good" type="number"></label><label>Khá<input data-staff="fair" type="number"></label><label>Đạt<input data-staff="pass" type="number"></label><label>Chưa đạt<input data-staff="fail" type="number"></label>
+        </div>
+        <div class="row-head"><h3>Thiết bị thực tế</h3><button id="btnAddEquipment" class="ghost">+ Thêm</button></div><div id="equipmentEditor"></div>
+        <div class="row-head"><h3>Phòng/không gian</h3><button id="btnAddFacility" class="ghost">+ Thêm</button></div><div id="facilityEditor"></div>
+      </div>
+      <div id="pl2box" class="tabbox hidden">
+        <div class="row-head"><h3>Hoạt động giáo dục</h3><button id="btnAddActivity" class="ghost">+ Thêm hoạt động</button></div>
+        <div id="activitiesEditor"></div>
+        <p class="muted">AI có thể đề xuất chủ đề/YCCD nhưng địa điểm, chủ trì, phối hợp, điều kiện thực hiện phải do người dùng xác nhận.</p>
+      </div>
+      <div id="pl3box" class="tabbox hidden">
+        <div class="form-grid two"><label>Họ tên giáo viên<input id="teacherName"></label><label>Địa điểm mặc định<input id="defaultLocation" value="Lớp học"></label><label class="wide">Thiết bị mặc định<input id="defaultEquipment" value="Laptop; Tivi/máy chiếu; Phiếu học tập"></label><label class="wide">Nhiệm vụ khác<textarea id="otherTasks" rows="3"></textarea></label></div>
+        <div class="row-head"><h3>Lớp được phân công</h3><button id="btnAddAssignment" class="ghost">+ Thêm lớp</button></div><div id="assignmentsEditor"></div>
+      </div>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="6">
+      <h2>PPCT và tích hợp</h2>
+      <div class="checks"><label><input id="integrateNls" type="checkbox" checked> Tích hợp NLS</label><label><input id="integrateQpan" type="checkbox" checked> Tích hợp GDQP&AN</label><label><input id="reviewYccd" type="checkbox"> Rà soát YCCD</label><label><input id="reviewCurriculum" type="checkbox"> Rà soát PPCT</label><label><input id="normalizeN30" type="checkbox" checked> Chuẩn hóa NĐ30 khi xuất</label></div>
+      <div id="textbookAnalysisBox" class="analysis-box">
+        <div class="row-head"><div><h3>Phân tích SGK nhiều bước – v1.2</h3><p class="muted">SGK không được gửi toàn bộ trong một request. Hệ thống chia theo trang/phần, lưu checkpoint sau mỗi phần và có thể tiếp tục khi gặp lỗi quota/mạng.</p></div><span id="analysisState" class="pill">Chưa phân tích</span></div>
+        <div class="action-row">
+          <button id="btnAnalyzeTextbook" class="primary">1. Phân tích SGK</button>
+          <button id="btnPauseAnalysis" class="ghost">Tạm dừng</button>
+          <button id="btnResumeAnalysis" class="ghost">Tiếp tục</button>
+          <button id="btnRetryFailed" class="ghost">Chạy lại phần lỗi</button>
+          <button id="btnResetAnalysis" class="ghost">Xóa checkpoint</button>
+        </div>
+        <div class="progress-track"><div id="analysisProgress" class="progress-bar"></div></div>
+        <div id="analysisStats" class="analysis-stats"></div>
+        <div id="chunkList" class="chunk-list"></div>
+        <div class="action-row"><button id="btnBuildCurriculum" class="primary">2. Tạo PPCT & tích hợp</button></div>
+      </div>
+      <div id="existingAiBox" class="action-row"><button id="btnRunAI" class="primary">Thực hiện bằng AI</button><button id="btnValidateNow" class="ghost">Kiểm tra PPCT</button></div>
+      <div id="aiWarnings"></div>
+      <div class="row-head"><h3>Phân phối chương trình</h3><div id="periodCounter" class="counter">0/140 tiết</div></div>
+      <div class="table-wrap"><table id="curriculumTable"><thead><tr><th>STT</th><th>Bài/Chủ đề</th><th>Nội dung</th><th>Tiết</th><th>Tuần</th><th>YCCD</th><th>NLS</th><th>GDQP&AN</th><th></th></tr></thead><tbody></tbody></table></div>
+      <button id="btnAddCurriculumRow" class="ghost">+ Thêm dòng PPCT</button>
+    </section>
+
+    <section class="panel step-panel hidden" data-panel="7">
+      <h2>Kiểm tra và xuất</h2>
+      <div id="validationDashboard"></div>
+      <div class="notice info">PDF được tạo qua chế độ in của trình duyệt để giữ văn bản có thể chọn/tìm kiếm và dùng font Times New Roman có sẵn trên hệ điều hành; chọn <strong>Save as PDF / Lưu dưới dạng PDF</strong> trong hộp thoại in.</div>
+      <div class="action-row"><button id="btnExportDocx" class="primary">Tải Word (.docx)</button><button id="btnExportPdf">Xuất PDF (In/Lưu PDF)</button></div>
+      <h3>Xem trước cấu trúc</h3>
+      <div id="previewArea"></div>
+    </section>
+
+    <div class="footer-nav"><button id="btnPrev" class="ghost">← Quay lại</button><button id="btnNext">Tiếp tục →</button></div>
+  </section>
+</main>
+<script type="module" src="./assets/js/app.js"></script>
+</body>
+</html>
