@@ -13,7 +13,7 @@ function ensureJob(state){
 
 export function prepareTextbookJob(state){
   const docs=(state.documents||[]).filter(d=>d.kind==='TEXTBOOK');
-  if(!docs.length)throw new Error('Chưa có SGK để phân tích.');
+  if(!docs.length){const loaded=(state.documents||[]).length;throw new Error(loaded?'Đã tải tài liệu nhưng chưa có tệp nào được đánh dấu SGK. Quay lại bước 3, chọn loại “SGK” cho Tập 1/Tập 2 rồi phân tích lại.':'Chưa có SGK để phân tích. Hãy tải SGK ở bước 3.');}
   const scanned=docs.filter(d=>d.scanned);
   if(scanned.length)throw new Error(`Không trích đủ lớp chữ từ: ${scanned.map(x=>x.name).join(', ')}. v1.2 hiện xử lý ổn định nhất với PDF có lớp chữ/DOCX; xem phần PDF scan trong hướng dẫn.`);
   const fresh=buildTextbookChunks(docs);

@@ -22,3 +22,10 @@ Các thư viện trình duyệt bên thứ ba được ghim phiên bản cố đ
 - docx 8.5.0 — unpkg
 
 API Key của người dùng không được lưu trong GitHub và không được ghi vào `config.js`.
+
+
+## Hotfix v1.2.1 – nhận diện SGK
+- Thêm lựa chọn loại tài liệu trước khi tải.
+- Ở chế độ Tạo mới, mặc định lần tải là SGK.
+- Cho phép đổi loại từng tệp sau khi tải.
+- Không còn phụ thuộc hoàn toàn vào nhận diện tự động để bước 6 tìm thấy SGK.

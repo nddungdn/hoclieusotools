@@ -23,7 +23,7 @@ function ok(msg){setStatus(msg,'ok')}
 function fail(err){console.error(err);setStatus(err?.message||String(err),'error')}
 
 function init(){
-  bindNavigation(); bindStaticFields(); bindActions(); renderAll();
+  bindNavigation(); bindStaticFields(); bindActions(); renderAll(); setDefaultUploadKind();
   const saved=loadLocal();
   if(saved && confirm('Có dự án lưu tạm trên trình duyệt. Khôi phục?')){ state={...createDefaultState(),...saved, ai:{...createDefaultState().ai,...saved.ai,apiKey:''}}; renderAll(); ok('Đã khôi phục dự án lưu tạm.'); }
 }
@@ -32,7 +32,7 @@ function bindNavigation(){
   $$('.step').forEach(b=>b.addEventListener('click',()=>goStep(Number(b.dataset.step))));
   $('#btnNext').addEventListener('click',()=>goStep(Math.min(7,currentStep+1)));
   $('#btnPrev').addEventListener('click',()=>goStep(Math.max(1,currentStep-1)));
-  $$('.mode-card').forEach(b=>b.addEventListener('click',()=>{state.mode=b.dataset.mode;renderModes()}));
+  $$('.mode-card').forEach(b=>b.addEventListener('click',()=>{state.mode=b.dataset.mode;renderModes();setDefaultUploadKind()}));
   $$('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 }
 function goStep(n){
@@ -127,12 +127,46 @@ async function handleFiles(e){
   for(const file of files){
     try{
       const parsed=await parseUploadedFile(file);
-      const doc={id:crypto.randomUUID(),name:file.name,size:file.size,lastModified:file.lastModified||0,type:file.type,kind:parsed.kind,scanned:parsed.scanned,pageCount:parsed.pageCount||null,extractedPages:parsed.extractedPages||null,charCount:parsed.charCount||parsed.text?.length||0,parsedText:parsed.text,pages:parsed.pages||null,file};
+      const selectedKind=$('#uploadKind')?.value||'AUTO'; const resolvedKind=selectedKind==='AUTO'?resolveAutoKind(file,parsed):selectedKind; const doc={id:crypto.randomUUID(),name:file.name,size:file.size,lastModified:file.lastModified||0,type:file.type,kind:resolvedKind,detectedKind:parsed.kind,scanned:parsed.scanned,pageCount:parsed.pageCount||null,extractedPages:parsed.extractedPages||null,charCount:parsed.charCount||parsed.text?.length||0,parsedText:parsed.text,pages:parsed.pages||null,file};
       const oldIndex=state.documents.findIndex(d=>d.name===doc.name&&Number(d.size)===Number(doc.size)&&Number(d.lastModified||0)===Number(doc.lastModified||0));
       if(oldIndex>=0)state.documents[oldIndex]={...state.documents[oldIndex],...doc,id:state.documents[oldIndex].id||doc.id};else state.documents.push(doc);
     }catch(err){state.warnings.push(`${file.name}: ${err.message}`)}
   }
-  renderFiles(); renderAnalysis(); ok('Đã đọc tài liệu. Kiểm tra loại tài liệu hệ thống nhận diện.');
+  renderFiles(); renderAnalysis(); const sgkCount=state.documents.filter(d=>d.kind==='TEXTBOOK').length; ok(sgkCount?`Đã đọc tài liệu. Hiện có ${sgkCount} tệp được đánh dấu SGK.`:'Đã đọc tài liệu nhưng chưa có tệp nào được đánh dấu SGK. Hãy đổi loại tài liệu thành “Sách giáo khoa (SGK)” nếu đây là sách giáo khoa.');
+}
+
+
+function setDefaultUploadKind(){
+  const el=$('#uploadKind');
+  if(!el)return;
+  // Chế độ tạo mới ưu tiên SGK; tích hợp/rà soát ưu tiên tự nhận diện.
+  if(state.mode==='new' && (!el.dataset.userChanged || el.value==='AUTO')) el.value='TEXTBOOK';
+  else if(state.mode!=='new' && !el.dataset.userChanged) el.value='AUTO';
+  el.onchange=()=>{el.dataset.userChanged='1';};
+}
+
+function resolveAutoKind(file,parsed){
+  if(parsed.kind && parsed.kind!=='OTHER') return parsed.kind;
+  const name=String(file?.name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const looksTextbookName=/(sgk|sach.?giao.?khoa|ngu.?van|nguvan|tap.?[12]|lop.?[6-9])/.test(name);
+  const largeBookLike=(Number(parsed.pageCount)||0)>=60;
+  if(state.mode==='new' && (looksTextbookName || largeBookLike)) return 'TEXTBOOK';
+  return parsed.kind||'OTHER';
+}
+
+function changeDocumentKind(index,newKind){
+  const d=state.documents[index]; if(!d)return;
+  const oldKind=d.kind;
+  if(oldKind===newKind)return;
+  const affectsTextbook=oldKind==='TEXTBOOK'||newKind==='TEXTBOOK';
+  if(affectsTextbook && (state.analysis?.textbook?.chunks?.length||0)){
+    if(!confirm('Đổi loại SGK sẽ xóa checkpoint phân tích SGK hiện tại để tránh dùng nhầm dữ liệu. Tiếp tục?')){renderFiles();return;}
+    resetTextbookAnalysis(state);
+  }
+  d.kind=newKind;
+  renderFiles(); renderAnalysis();
+  const count=state.documents.filter(x=>x.kind==='TEXTBOOK').length;
+  ok(count?`Đã cập nhật loại tài liệu. Hiện có ${count} tệp SGK.`:'Hiện chưa có tệp nào được đánh dấu SGK.');
 }
 
 async function runAI(){
@@ -239,8 +273,10 @@ function renderSites(){
 function renderSiteSummary(){const c=state.school.sites.reduce((a,s)=>a+(Number(s.classCount)||0),0),h=state.school.sites.reduce((a,s)=>a+(Number(s.studentCount)||0),0);let x=$('#siteSummary');if(!x){x=document.createElement('div');x.id='siteSummary';x.className='site-summary';$('#sitesEditor').after(x)}x.textContent=`Tổng theo cơ sở: ${c} lớp – ${h} học sinh.`}
 
 function renderFiles(){
-  const el=$('#fileList');el.innerHTML=state.documents.map((d,i)=>`<div class="file-item"><div><strong>${esc(d.name)}</strong><div class="muted">${Math.round(d.size/1024)} KB${d.pageCount?` · ${d.pageCount} trang`:''}${d.charCount?` · ${Math.round(d.charCount/1000)}k ký tự`:''}${d.scanned?' · ⚠ Có thể là PDF scan':''}</div></div><span class="pill">${esc(d.kind)}</span><button class="ghost" data-rmfile="${i}">Xóa</button></div>`).join('');
-  $$('[data-rmfile]').forEach(b=>b.addEventListener('click',()=>{state.documents.splice(Number(b.dataset.rmfile),1);renderFiles();renderAnalysis()}));
+  const kinds=[['TEXTBOOK','SGK'],['TEACHER_BOOK','SGV'],['PPCT','PPCT'],['PL1','PL1'],['PL2','PL2'],['PL3','PL3'],['NLS','NLS'],['QPAN','GDQP&AN'],['OTHER','Khác']];
+  const el=$('#fileList');el.innerHTML=state.documents.map((d,i)=>`<div class="file-item"><div><strong>${esc(d.name)}</strong><div class="muted">${Math.round(d.size/1024)} KB${d.pageCount?` · ${d.pageCount} trang`:''}${d.charCount?` · ${Math.round(d.charCount/1000)}k ký tự`:''}${d.scanned?' · ⚠ Có thể là PDF scan':''}${d.detectedKind&&d.detectedKind!==d.kind?` · AI/heuristic nhận diện ban đầu: ${esc(d.detectedKind)}`:''}</div></div><select class="doc-kind-select" data-kindfile="${i}" aria-label="Loại tài liệu">${kinds.map(([v,l])=>`<option value="${v}"${d.kind===v?' selected':''}>${l}</option>`).join('')}</select><button class="ghost" data-rmfile="${i}">Xóa</button></div>`).join('');
+  $$('[data-kindfile]').forEach(sel=>sel.addEventListener('change',()=>changeDocumentKind(Number(sel.dataset.kindfile),sel.value)));
+  $$('[data-rmfile]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.rmfile);const wasTextbook=state.documents[i]?.kind==='TEXTBOOK';state.documents.splice(i,1);if(wasTextbook&&(state.analysis?.textbook?.chunks?.length||0))resetTextbookAnalysis(state);renderFiles();renderAnalysis()}));
 }
 
 function renderEquipment(){renderSimpleEditor('#equipmentEditor',state.pl1.equipment,['name','quantity','site','scope','note'],['Tên thiết bị','Số lượng','Cơ sở','Phạm vi','Ghi chú'],renderEquipment)}
@@ -295,7 +331,7 @@ function renderAnalysis(){
     const status=c.status==='completed'?'<span class="status-ok">✓ Xong</span>':c.status==='failed'?'<span class="status-err">✕ Lỗi</span>':c.status==='running'?'<span class="status-run">⟳ Đang xử lý</span>':'<span class="status-wait">Chờ</span>';
     const detail=c.lastError?` title="${esc(c.lastError)}"`:'';
     return `<div class="chunk-item"${detail}><span>#${i+1}</span><span>${esc(c.docName)} · ${page}</span><span>~${fmtNum(c.estimatedTokens||0)} token</span>${status}</div>`;
-  }).join(''):'<div class="muted" style="padding:10px">Tải SGK rồi nhấn “Phân tích SGK”.</div>';
+  }).join(''):(state.documents.some(d=>d.kind==='TEXTBOOK')?'<div class="muted" style="padding:10px">Đã có SGK. Nhấn “1. Phân tích SGK” để bắt đầu.</div>':(state.documents.length?'<div class="notice warning" style="margin:8px">Đã tải tài liệu nhưng chưa có tệp nào được đánh dấu <strong>SGK</strong>. Quay lại bước 3 và chọn loại <strong>SGK</strong> cho Tập 1/Tập 2.</div>':'<div class="muted" style="padding:10px">Tải SGK rồi nhấn “Phân tích SGK”.</div>'));
   $('#btnPauseAnalysis').disabled=job.status!=='running';
   $('#btnResumeAnalysis').disabled=!['paused','partial','prepared'].includes(job.status);
   $('#btnRetryFailed').disabled=!failed;

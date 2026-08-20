@@ -82,8 +82,24 @@
     <section class="panel step-panel hidden" data-panel="3">
       <h2>Tài liệu</h2>
       <div class="upload-box">
+        <div class="upload-kind-row">
+          <label>Loại tài liệu của lần tải này
+            <select id="uploadKind">
+              <option value="AUTO">Tự động nhận diện</option>
+              <option value="TEXTBOOK">Sách giáo khoa (SGK)</option>
+              <option value="TEACHER_BOOK">Sách giáo viên (SGV)</option>
+              <option value="PPCT">Phân phối chương trình (PPCT)</option>
+              <option value="PL1">Phụ lục I</option>
+              <option value="PL2">Phụ lục II</option>
+              <option value="PL3">Phụ lục III</option>
+              <option value="NLS">Tài liệu Năng lực số</option>
+              <option value="QPAN">Tài liệu GDQP&amp;AN</option>
+              <option value="OTHER">Tài liệu khác</option>
+            </select>
+          </label>
+        </div>
         <input id="filesInput" type="file" multiple accept=".pdf,.docx,.txt,.md,.json,.csv">
-        <p>Chế độ tạo mới: SGK là tệp chuyên môn tối thiểu. Chế độ tích hợp/rà soát: có thể tải PL1/2/3, PPCT, SGV và tài liệu khác.</p>
+        <p><strong>Khuyến nghị:</strong> ở chế độ tạo mới, chọn <strong>Sách giáo khoa (SGK)</strong> trước khi tải Tập 1/Tập 2. Sau khi tải, có thể đổi loại của từng tệp ngay trong danh sách bên dưới.</p>
       </div>
       <div id="fileList" class="file-list"></div>
       <div class="notice info">v1.2 đọc PDF theo từng trang và tự chia SGK thành nhiều phần nhỏ trước khi gọi API. PDF scan thuần ảnh vẫn cần xử lý riêng; ưu tiên PDF có lớp chữ để tiết kiệm API và ổn định hơn.</div>
