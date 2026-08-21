@@ -84,7 +84,7 @@ export async function callAI(state,task,payload,{onRetry}={}){
   if(!state.ai.apiKey) throw new Error('Chưa nhập API Key.');
   if(!state.ai.model) throw new Error('Chưa chọn model API.');
   const raw=JSON.stringify(payload||{});
-  if(raw.length>APP_CONFIG.requestHardMaxChars) throw new Error(`Dữ liệu một request quá lớn (${Math.round(raw.length/1000)} nghìn ký tự). v1.2 yêu cầu chia nhỏ trước khi gửi.`);
+  if(raw.length>APP_CONFIG.requestHardMaxChars) throw new Error(`Dữ liệu một request quá lớn (${Math.round(raw.length/1000)} nghìn ký tự). v1.2.2 yêu cầu chia nhỏ trước khi gửi.`);
   const data=await postWithRetry('/ai',{
     provider:state.ai.provider,apiKey:state.ai.apiKey,model:state.ai.model,task,payload
   },onRetry);
@@ -97,6 +97,38 @@ export async function analyzeTextbookChunk(state,chunk,{onRetry}={}){
     chunk:{docName:chunk.docName,pageStart:chunk.pageStart,pageEnd:chunk.pageEnd,part:chunk.part||null,charCount:chunk.charCount},
     text:chunk.text
   },{onRetry});
+}
+
+export async function analyzeNativeTextbookPdf(state,chunk,pdfSlice,{onRetry}={}){
+  if(!state.ai.provider) throw new Error('Chưa chọn nhà cung cấp AI.');
+  if(!state.ai.apiKey) throw new Error('Chưa nhập API Key.');
+  if(!state.ai.model) throw new Error('Chưa chọn model API.');
+  if(!pdfSlice?.base64) throw new Error('Không tạo được dữ liệu PDF cho phần đang xử lý.');
+  if(pdfSlice.base64.length>APP_CONFIG.nativePdfChunkHardMaxBase64Chars){
+    const err=new Error('Cụm PDF scan vượt giới hạn an toàn của tiện ích.');
+    err.category='NATIVE_PDF_CHUNK_TOO_LARGE';
+    throw err;
+  }
+  const data=await postWithRetry('/ai-pdf',{
+    provider:state.ai.provider,
+    apiKey:state.ai.apiKey,
+    model:state.ai.model,
+    task:'extract_textbook_pdf_chunk_v122',
+    payload:{
+      project:sanitizeProjectForAI(state),
+      chunk:{docName:chunk.docName,pageStart:chunk.pageStart,pageEnd:chunk.pageEnd,pageCount:chunk.pageCount},
+      document:{filename:`${safeFilename(chunk.docName)}-trang-${chunk.pageStart}-${chunk.pageEnd}.pdf`,mimeType:'application/pdf',dataBase64:pdfSlice.base64}
+    }
+  },onRetry);
+  return {result:data.result,meta:data.meta||{}};
+}
+
+export function modelSupportsNativePdf(state){
+  return state.ai?.modelInfo?.capabilities?.pdfNative!==false;
+}
+
+function safeFilename(name){
+  return String(name||'sgk').replace(/\.pdf$/i,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,90)||'sgk';
 }
 
 export async function consolidateSummaryBatch(state,summaries,batchIndex,totalBatches,{onRetry}={}){

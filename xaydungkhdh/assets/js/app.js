@@ -1,5 +1,5 @@
 import { createDefaultState } from './state.js';
-import { parseUploadedFile, combinedText } from './parsers.js';
+import { parseUploadedFile, combinedText, inferFilenameKind } from './parsers.js';
 import { loadProviderModels, testAI, integrateExistingAppendices, reviewExistingDocuments, addUsage } from './api.js';
 import { prepareTextbookJob, runTextbookAnalysis, requestPause, markFailedForRetry, resetTextbookAnalysis, buildCurriculumFromAnalysis } from './analysis-engine.js';
 import { saveLocal, loadLocal, downloadProject, importProjectFile } from './storage.js';
@@ -101,21 +101,23 @@ function bindActions(){
   $('#projectFile').addEventListener('change',async e=>{try{state=await importProjectFile(e.target.files[0]);renderAll();ok('Đã mở dự án. API Key không được nạp từ tệp.')}catch(err){fail(err)}});
 }
 function guardConsent(){if(!state.ai.consentGiven)throw new Error('Bạn cần xác nhận hiểu việc gửi phần nội dung cần thiết tới nhà cung cấp AI đã chọn.');}
-function clearModelSelection(){const el=$('#model');if(!el)return;state.ai.model='';state.ai.modelInfo=null;el.innerHTML='<option value="">Kiểm tra khóa để tải danh sách model</option>';el.disabled=true;renderAnalysis();}
+function clearModelSelection(){const el=$('#model');if(!el)return;state.ai.model='';state.ai.modelInfo=null;el.innerHTML='<option value="">Kiểm tra khóa để tải danh sách model</option>';el.disabled=true;renderAnalysis();renderModelCapability();}
 function populateModels(models){
   const el=$('#model');el.innerHTML='<option value="">-- Chọn model --</option>';
   for(const item of models){
     const info=typeof item==='string'?{id:item,displayName:item}:item;
-    const o=document.createElement('option');o.value=info.id;o.textContent=info.displayName&&info.displayName!==info.id?`${info.displayName} (${info.id})`:info.id;o.dataset.info=JSON.stringify(info);el.appendChild(o);
+    const base=info.displayName&&info.displayName!==info.id?`${info.displayName} (${info.id})`:info.id;
+    const pdf=info.capabilities?.pdfNative===true?' · PDF scan':info.capabilities?.pdfNative===false?' · không PDF scan':'';
+    const o=document.createElement('option');o.value=info.id;o.textContent=base+pdf;o.dataset.info=JSON.stringify(info);el.appendChild(o);
   }
   el.disabled=false;
-  el.onchange=()=>{state.ai.model=el.value;const o=el.selectedOptions[0];state.ai.modelInfo=o?.dataset?.info?JSON.parse(o.dataset.info):null;renderAnalysis();};
+  el.onchange=()=>{state.ai.model=el.value;const o=el.selectedOptions[0];state.ai.modelInfo=o?.dataset?.info?JSON.parse(o.dataset.info):null;renderAnalysis();renderModelCapability();};
 }
 function formatApiError(e){
   if(e?.category==='AUTH') return new Error('API Key không hợp lệ, bị hạn chế hoặc chưa có quyền dùng API. Hãy tạo/kiểm tra lại khóa của đúng nhà cung cấp.');
   if(e?.category==='QUOTA_OR_RATE_LIMIT') return new Error('API đã vượt hạn mức/tốc độ hoặc tài khoản chưa có quota/billing phù hợp. Kiểm tra quota và thanh toán của nhà cung cấp.');
   if(e?.category==='MODEL_OR_ENDPOINT') return new Error('Model không tồn tại hoặc không được tài khoản này hỗ trợ. Hãy tải lại danh sách model rồi chọn lại.');
-  if(e?.category==='PAYLOAD_TOO_LARGE') return new Error('Một phần dữ liệu vẫn quá lớn. v1.2 sẽ cần chia nhỏ hơn; hãy giảm tài liệu bổ sung hoặc chạy lại với SGK có lớp chữ.');
+  if(e?.category==='PAYLOAD_TOO_LARGE'||e?.category==='NATIVE_PDF_CHUNK_TOO_LARGE') return new Error('Một phần dữ liệu/PDF vẫn quá lớn. v1.2.2 sẽ tự chia nhỏ khi còn nhiều hơn một trang; nếu chỉ một trang vẫn lỗi, hãy giảm dung lượng PDF nguồn.');
   if(e?.category==='TIMEOUT'||e?.category==='NETWORK') return new Error('Kết nối bị gián đoạn hoặc hết thời gian chờ. Các phần đã xong vẫn được giữ; hãy bấm Tiếp tục.');
   return e;
 }
@@ -127,12 +129,12 @@ async function handleFiles(e){
   for(const file of files){
     try{
       const parsed=await parseUploadedFile(file);
-      const selectedKind=$('#uploadKind')?.value||'AUTO'; const resolvedKind=selectedKind==='AUTO'?resolveAutoKind(file,parsed):selectedKind; const doc={id:crypto.randomUUID(),name:file.name,size:file.size,lastModified:file.lastModified||0,type:file.type,kind:resolvedKind,detectedKind:parsed.kind,scanned:parsed.scanned,pageCount:parsed.pageCount||null,extractedPages:parsed.extractedPages||null,charCount:parsed.charCount||parsed.text?.length||0,parsedText:parsed.text,pages:parsed.pages||null,file};
+      const selectedKind=$('#uploadKind')?.value||'AUTO'; const resolvedKind=selectedKind==='AUTO'?resolveAutoKind(file,parsed):selectedKind; const doc={id:crypto.randomUUID(),name:file.name,size:file.size,lastModified:file.lastModified||0,type:file.type,kind:resolvedKind,detectedKind:parsed.kind,nameHintKind:parsed.nameHintKind||inferFilenameKind(file.name),kindMismatchDismissed:false,scanned:parsed.scanned,pdfMode:parsed.pdfMode||null,averageTextCharsPerPage:Number(parsed.averageTextCharsPerPage)||0,pageCount:parsed.pageCount||null,extractedPages:parsed.extractedPages||null,charCount:parsed.charCount||parsed.text?.length||0,parsedText:parsed.text,pages:parsed.pages||null,file};
       const oldIndex=state.documents.findIndex(d=>d.name===doc.name&&Number(d.size)===Number(doc.size)&&Number(d.lastModified||0)===Number(doc.lastModified||0));
       if(oldIndex>=0)state.documents[oldIndex]={...state.documents[oldIndex],...doc,id:state.documents[oldIndex].id||doc.id};else state.documents.push(doc);
     }catch(err){state.warnings.push(`${file.name}: ${err.message}`)}
   }
-  renderFiles(); renderAnalysis(); const sgkCount=state.documents.filter(d=>d.kind==='TEXTBOOK').length; ok(sgkCount?`Đã đọc tài liệu. Hiện có ${sgkCount} tệp được đánh dấu SGK.`:'Đã đọc tài liệu nhưng chưa có tệp nào được đánh dấu SGK. Hãy đổi loại tài liệu thành “Sách giáo khoa (SGK)” nếu đây là sách giáo khoa.');
+  renderFiles(); renderAnalysis(); const sgkCount=state.documents.filter(d=>d.kind==='TEXTBOOK').length; ok(sgkCount?`Đã tiếp nhận tài liệu. Hiện có ${sgkCount} tệp được gán loại SGK; hãy kiểm tra trạng thái PDF ở danh sách.`:'Đã tiếp nhận tài liệu nhưng chưa có tệp nào được gán loại SGK. Hãy đổi loại tài liệu thành “Sách giáo khoa (SGK)” nếu đây là sách giáo khoa.');
 }
 
 
@@ -146,6 +148,8 @@ function setDefaultUploadKind(){
 }
 
 function resolveAutoKind(file,parsed){
+  const filenameKind=parsed.nameHintKind||inferFilenameKind(file?.name);
+  if(filenameKind!=='OTHER')return filenameKind;
   if(parsed.kind && parsed.kind!=='OTHER') return parsed.kind;
   const name=String(file?.name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const looksTextbookName=/(sgk|sach.?giao.?khoa|ngu.?van|nguvan|tap.?[12]|lop.?[6-9])/.test(name);
@@ -164,6 +168,7 @@ function changeDocumentKind(index,newKind){
     resetTextbookAnalysis(state);
   }
   d.kind=newKind;
+  d.kindMismatchDismissed=false;
   renderFiles(); renderAnalysis();
   const count=state.documents.filter(x=>x.kind==='TEXTBOOK').length;
   ok(count?`Đã cập nhật loại tài liệu. Hiện có ${count} tệp SGK.`:'Hiện chưa có tệp nào được đánh dấu SGK.');
@@ -173,7 +178,7 @@ async function runAI(){
   try{
     guardConsent();
     if(state.mode==='new'){
-      throw new Error('Chế độ tạo mới v1.2 dùng hai nút: “1. Phân tích SGK” rồi “2. Tạo PPCT & tích hợp”.');
+      throw new Error('Chế độ tạo mới v1.2.2 dùng hai nút: “1. Phân tích SGK” rồi “2. Tạo PPCT & tích hợp”.');
     }else if(state.mode==='integrate'){
       const text=combinedText(state.documents,['PL1','PL2','PL3','PPCT','TEXTBOOK','TEACHER_BOOK']);
       if(!text)throw new Error('Chưa có tài liệu để tích hợp.');
@@ -245,7 +250,7 @@ function normalizeCurriculumRow(r){
 function calcCount(a,b){a=Number(a);b=Number(b);return a&&b&&b>=a?b-a+1:0}
 
 function renderAll(){
-  renderModes(); syncFields(); renderSites(); renderFiles(); renderEquipment();renderFacilities();renderActivities();renderAssignments();renderCurriculum();renderWarnings();renderAnalysis();validateAndRender();
+  renderModes(); syncFields(); renderSites(); renderFiles(); renderEquipment();renderFacilities();renderActivities();renderAssignments();renderCurriculum();renderWarnings();renderAnalysis();renderModelCapability();validateAndRender();
 }
 function renderModes(){
   $$('.mode-card').forEach(x=>x.classList.toggle('selected',x.dataset.mode===state.mode));
@@ -274,9 +279,29 @@ function renderSiteSummary(){const c=state.school.sites.reduce((a,s)=>a+(Number(
 
 function renderFiles(){
   const kinds=[['TEXTBOOK','SGK'],['TEACHER_BOOK','SGV'],['PPCT','PPCT'],['PL1','PL1'],['PL2','PL2'],['PL3','PL3'],['NLS','NLS'],['QPAN','GDQP&AN'],['OTHER','Khác']];
-  const el=$('#fileList');el.innerHTML=state.documents.map((d,i)=>`<div class="file-item"><div><strong>${esc(d.name)}</strong><div class="muted">${Math.round(d.size/1024)} KB${d.pageCount?` · ${d.pageCount} trang`:''}${d.charCount?` · ${Math.round(d.charCount/1000)}k ký tự`:''}${d.scanned?' · ⚠ Có thể là PDF scan':''}${d.detectedKind&&d.detectedKind!==d.kind?` · AI/heuristic nhận diện ban đầu: ${esc(d.detectedKind)}`:''}</div></div><select class="doc-kind-select" data-kindfile="${i}" aria-label="Loại tài liệu">${kinds.map(([v,l])=>`<option value="${v}"${d.kind===v?' selected':''}>${l}</option>`).join('')}</select><button class="ghost" data-rmfile="${i}">Xóa</button></div>`).join('');
+  const el=$('#fileList');el.innerHTML=state.documents.map((d,i)=>{
+    const hint=d.nameHintKind||inferFilenameKind(d.name);
+    const mismatch=hint!=='OTHER'&&hint!==d.kind&&!d.kindMismatchDismissed;
+    const pdfInfo=d.pdfMode==='SCANNED_PDF'?`<span class="tag scan">PDF scan/ảnh · ${Number(d.averageTextCharsPerPage||0).toFixed(1)} ký tự/trang</span>`:d.pdfMode==='TEXT_PDF'?`<span class="tag text">PDF có lớp chữ · ${Number(d.averageTextCharsPerPage||0).toFixed(0)} ký tự/trang</span>`:'';
+    const warning=mismatch?`<div class="file-warning">⚠ Tên tệp gợi ý <strong>${kindLabel(hint)}</strong>, nhưng đang chọn <strong>${kindLabel(d.kind)}</strong>.<div class="mini-actions"><button class="ghost" data-acceptkind="${i}" data-kind="${hint}">Đổi thành ${kindLabel(hint)}</button><button class="ghost" data-dismisskind="${i}">Vẫn giữ ${kindLabel(d.kind)}</button></div></div>`:'';
+    return `<div class="file-item"><div class="file-main"><strong>${esc(d.name)}</strong><div class="muted">${Math.round(d.size/1024)} KB${d.pageCount?` · ${d.pageCount} trang`:''} · ${fmtNum(d.charCount||0)} ký tự</div><div class="file-tags">${pdfInfo}<span class="tag">Loại đã chọn: ${kindLabel(d.kind)}</span></div>${warning}</div><select class="doc-kind-select" data-kindfile="${i}" aria-label="Loại tài liệu">${kinds.map(([v,l])=>`<option value="${v}"${d.kind===v?' selected':''}>${l}</option>`).join('')}</select><button class="ghost" data-rmfile="${i}">Xóa</button></div>`;
+  }).join('');
   $$('[data-kindfile]').forEach(sel=>sel.addEventListener('change',()=>changeDocumentKind(Number(sel.dataset.kindfile),sel.value)));
+  $$('[data-acceptkind]').forEach(b=>b.addEventListener('click',()=>changeDocumentKind(Number(b.dataset.acceptkind),b.dataset.kind)));
+  $$('[data-dismisskind]').forEach(b=>b.addEventListener('click',()=>{const d=state.documents[Number(b.dataset.dismisskind)];if(d){d.kindMismatchDismissed=true;renderFiles();}}));
   $$('[data-rmfile]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.rmfile);const wasTextbook=state.documents[i]?.kind==='TEXTBOOK';state.documents.splice(i,1);if(wasTextbook&&(state.analysis?.textbook?.chunks?.length||0))resetTextbookAnalysis(state);renderFiles();renderAnalysis()}));
+}
+
+function kindLabel(kind){return ({TEXTBOOK:'SGK',TEACHER_BOOK:'SGV',PPCT:'PPCT',PL1:'PL1',PL2:'PL2',PL3:'PL3',NLS:'NLS',QPAN:'GDQP&AN',OTHER:'Khác'})[kind]||kind||'Khác';}
+
+function renderModelCapability(){
+  const el=$('#modelCapability');if(!el)return;
+  const info=state.ai.modelInfo;
+  if(!state.ai.model||!info){el.className='notice info';el.textContent='Chưa có thông tin khả năng đọc PDF của model.';return;}
+  const cap=info.capabilities||{};
+  if(cap.pdfNative===true){el.className='notice ok';el.textContent=`✓ Model ${state.ai.model} được phép dùng Native PDF Pipeline để đọc PDF scan.`;}
+  else if(cap.pdfNative===false){el.className='notice warning';el.textContent=`⚠ Model ${state.ai.model} không được đánh dấu hỗ trợ PDF scan. Hãy chọn model khác nếu SGK là PDF ảnh.`;}
+  else{el.className='notice warning';el.textContent='Chưa xác định chắc khả năng đọc PDF scan của model này. Có thể thử với tệp nhỏ trước.';}
 }
 
 function renderEquipment(){renderSimpleEditor('#equipmentEditor',state.pl1.equipment,['name','quantity','site','scope','note'],['Tên thiết bị','Số lượng','Cơ sở','Phạm vi','Ghi chú'],renderEquipment)}
@@ -318,6 +343,7 @@ function renderAnalysis(){
   const modelInfo=state.ai.modelInfo||{};
   $('#analysisStats').innerHTML=[
     `<span>Tiến độ: <strong>${done}/${total}</strong> phần (${pct}%)</span>`,
+    job.pipeline?`<span>Pipeline: <strong>${job.pipeline==='native_pdf'?'PDF scan':job.pipeline==='mixed'?'Kết hợp':'Văn bản'}</strong></span>`:'',
     `<span>Lỗi: <strong>${failed}</strong></span>`,
     `<span>API calls: <strong>${u.requests||0}</strong></span>`,
     `<span>Input tokens thực: <strong>${fmtNum(u.inputTokens||0)}</strong></span>`,
@@ -330,7 +356,9 @@ function renderAnalysis(){
     const page=c.pageStart?`tr. ${c.pageStart}${c.pageEnd&&c.pageEnd!==c.pageStart?`–${c.pageEnd}`:''}`:`phần ${c.part||i+1}`;
     const status=c.status==='completed'?'<span class="status-ok">✓ Xong</span>':c.status==='failed'?'<span class="status-err">✕ Lỗi</span>':c.status==='running'?'<span class="status-run">⟳ Đang xử lý</span>':'<span class="status-wait">Chờ</span>';
     const detail=c.lastError?` title="${esc(c.lastError)}"`:'';
-    return `<div class="chunk-item"${detail}><span>#${i+1}</span><span>${esc(c.docName)} · ${page}</span><span>~${fmtNum(c.estimatedTokens||0)} token</span>${status}</div>`;
+    const metric=c.pipeline==='native_pdf'?`${c.pageCount||((c.pageEnd||0)-(c.pageStart||0)+1)} trang PDF`:`~${fmtNum(c.estimatedTokens||0)} token`;
+    const pipeline=c.pipeline==='native_pdf'?'<span class="chunk-pipeline">Native PDF</span>':'<span class="chunk-pipeline">Text</span>';
+    return `<div class="chunk-item"${detail}><span>#${i+1}</span><span>${esc(c.docName)} · ${page}${pipeline}</span><span>${metric}</span>${status}</div>`;
   }).join(''):(state.documents.some(d=>d.kind==='TEXTBOOK')?'<div class="muted" style="padding:10px">Đã có SGK. Nhấn “1. Phân tích SGK” để bắt đầu.</div>':(state.documents.length?'<div class="notice warning" style="margin:8px">Đã tải tài liệu nhưng chưa có tệp nào được đánh dấu <strong>SGK</strong>. Quay lại bước 3 và chọn loại <strong>SGK</strong> cho Tập 1/Tập 2.</div>':'<div class="muted" style="padding:10px">Tải SGK rồi nhấn “Phân tích SGK”.</div>'));
   $('#btnPauseAnalysis').disabled=job.status!=='running';
   $('#btnResumeAnalysis').disabled=!['paused','partial','prepared'].includes(job.status);

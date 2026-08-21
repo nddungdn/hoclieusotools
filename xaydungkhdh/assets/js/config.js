@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   name: 'Xây dựng KHDH Ngữ văn',
-  version: '1.2.0-production',
+  version: '1.2.2-production',
   basePath: '/xaydungkhdh',
   // Backend Production đã xác nhận /health; không có dấu / ở cuối.
   apiBase: 'https://xaydungkhdh-api.nddungdn.workers.dev',
@@ -10,7 +10,7 @@ export const APP_CONFIG = {
   semester1Default: 72,
   semester2Default: 68,
 
-  // v1.2: KHÔNG gửi cả SGK trong một request. Văn bản được chia theo trang/phần.
+  // v1.2.2: KHÔNG gửi cả SGK trong một request. Văn bản/PDF đều được chia theo trang/phần.
   textbookChunkTargetChars: 28000,
   textbookChunkHardMaxChars: 38000,
   textbookChunkMaxPages: 24,
@@ -19,6 +19,13 @@ export const APP_CONFIG = {
   genericChunkHardMaxChars: 36000,
   summaryBatchMaxChars: 70000,
   requestHardMaxChars: 130000,
+
+  // PDF scan được cắt cục bộ bằng pdf-lib rồi gửi từng cụm trang dưới dạng PDF native.
+  // 8 trang/cụm là mức khởi đầu cân bằng cho SGK scan; cụm quá lớn sẽ tự chia đôi.
+  nativePdfChunkMaxPages: 8,
+  nativePdfChunkHardMaxBase64Chars: 7200000,
+  nativePdfEstimatedTokensPerPage: 2000,
+  scannedPdfCharsPerPageThreshold: 30,
 
   // Ước lượng bảo thủ khi provider không có API đếm token.
   estimatedCharsPerToken: 3.0,

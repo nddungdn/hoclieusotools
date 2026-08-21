@@ -6,7 +6,7 @@ export async function parseUploadedFile(file) {
   if (ext === 'docx') return parseDocx(file);
   if (['txt','md','json','csv'].includes(ext)) {
     const text = (await file.text()).slice(0, APP_CONFIG.maxExtractedCharsPerFile);
-    return { text, pages:null, kind: classifyDocument(file.name, text), scanned:false, charCount:text.length };
+    return { text, pages:null, kind: classifyDocument(file.name, text), nameHintKind:inferFilenameKind(file.name), scanned:false, pdfMode:null, charCount:text.length };
   }
   throw new Error(`Chưa hỗ trợ định dạng .${ext}. Ưu tiên PDF, DOCX, TXT.`);
 }
@@ -27,16 +27,21 @@ async function parsePdf(file) {
     if(totalChars>=APP_CONFIG.maxExtractedCharsPerFile) break;
   }
   const text=pages.map(p=>`[TRANG ${p.page}]\n${p.text}`).join('\n');
-  const nonSpace=text.replace(/\s/g,'').length;
-  const scanned=nonSpace < Math.min(1600, Math.max(500,pdf.numPages*45));
+  const nonSpace=pages.reduce((sum,p)=>sum+String(p.text||'').replace(/\s/g,'').length,0);
+  const averageTextCharsPerPage=pages.length?nonSpace/pages.length:0;
+  const scanned=averageTextCharsPerPage<APP_CONFIG.scannedPdfCharsPerPageThreshold;
+  const pdfMode=scanned?'SCANNED_PDF':'TEXT_PDF';
   return {
     text,
     pages,
     kind:classifyDocument(file.name,text),
+    nameHintKind:inferFilenameKind(file.name),
     scanned,
+    pdfMode,
+    averageTextCharsPerPage,
     pageCount:pdf.numPages,
     extractedPages:pages.length,
-    charCount:text.length
+    charCount:nonSpace
   };
 }
 
@@ -45,7 +50,7 @@ async function parseDocx(file) {
   const arrayBuffer = await file.arrayBuffer();
   const result = await window.mammoth.extractRawText({ arrayBuffer });
   const text = (result.value || '').slice(0, APP_CONFIG.maxExtractedCharsPerFile);
-  return { text, pages:null, kind: classifyDocument(file.name, text), scanned:false, charCount:text.length };
+  return { text, pages:null, kind: classifyDocument(file.name, text), nameHintKind:inferFilenameKind(file.name), scanned:false, pdfMode:null, charCount:text.length };
 }
 
 export function classifyDocument(name, text='') {
@@ -53,11 +58,22 @@ export function classifyDocument(name, text='') {
   if (s.includes('phụ lục i') || s.includes('phu luc 1') || s.includes('kế hoạch dạy học của tổ chuyên môn')) return 'PL1';
   if (s.includes('phụ lục ii') || s.includes('phu luc 2') || s.includes('kế hoạch tổ chức các hoạt động giáo dục')) return 'PL2';
   if (s.includes('phụ lục iii') || s.includes('phu luc 3') || s.includes('kế hoạch giáo dục của giáo viên')) return 'PL3';
-  if (s.includes('sách giáo khoa') || s.includes('mục lục') || (s.includes('ngữ văn') && /(tập 1|tập 2|bài 1|bài 2)/.test(s))) return 'TEXTBOOK';
   if (s.includes('sách giáo viên') || s.includes('hướng dẫn dạy học')) return 'TEACHER_BOOK';
+  if (s.includes('sách giáo khoa') || s.includes('mục lục') || (s.includes('ngữ văn') && /(tập 1|tập 2|bài 1|bài 2)/.test(s))) return 'TEXTBOOK';
   if (s.includes('năng lực số') || s.includes('3456/bgddt') || s.includes('02/2025/tt-bgddt')) return 'NLS';
   if (s.includes('quốc phòng') || s.includes('an ninh')) return 'QPAN';
   if (s.includes('phân phối chương trình') || s.includes('ppct')) return 'PPCT';
+  return 'OTHER';
+}
+
+export function inferFilenameKind(name=''){
+  const s=String(name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+  if(/(^|[^a-z])sgv([^a-z]|$)|sach.?giao.?vien|teacher.?book/.test(s))return 'TEACHER_BOOK';
+  if(/(^|[^a-z])sgk([^a-z]|$)|sach.?giao.?khoa|textbook/.test(s))return 'TEXTBOOK';
+  if(/(^|[^a-z])ppct([^a-z]|$)|phan.?phoi.?chuong.?trinh/.test(s))return 'PPCT';
+  if(/phu.?luc.?1|phu.?luc.?i([^a-z]|$)/.test(s))return 'PL1';
+  if(/phu.?luc.?2|phu.?luc.?ii([^a-z]|$)/.test(s))return 'PL2';
+  if(/phu.?luc.?3|phu.?luc.?iii([^a-z]|$)/.test(s))return 'PL3';
   return 'OTHER';
 }
 

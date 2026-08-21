@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'xaydungkhdh_project_v12';
+const STORAGE_KEY = 'xaydungkhdh_project_v122';
+const LEGACY_STORAGE_KEY = 'xaydungkhdh_project_v12';
 
 function stripLargeRuntimeData(copy){
   copy.ai = copy.ai || {};
@@ -31,18 +32,18 @@ export function saveLocal(state) {
 }
 
 export function loadLocal() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(STORAGE_KEY)||localStorage.getItem(LEGACY_STORAGE_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
-export function clearLocal(){ localStorage.removeItem(STORAGE_KEY); }
+export function clearLocal(){ localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(LEGACY_STORAGE_KEY); }
 
 export function downloadProject(state) {
   const copy = stripLargeRuntimeData(structuredClone(state));
   const blob = new Blob([JSON.stringify(copy, null, 2)], { type: 'application/json;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `khdh-nguvan${state.project.grade}-${state.project.academicYear}-v12.json`;
+  a.download = `khdh-nguvan${state.project.grade}-${state.project.academicYear}-v122.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
@@ -54,7 +55,7 @@ export async function importProjectFile(file) {
   data.ai = data.ai || {};
   data.ai.apiKey = '';
   data.ai.modelInfo = data.ai.modelInfo || null;
-  data.documents = (data.documents || []).map(d => ({ ...d, parsedText: '', pages: undefined, file: undefined }));
+  data.documents = (data.documents || []).map(d => ({ ...d, pdfMode:d.pdfMode||(d.scanned?'SCANNED_PDF':null), parsedText: '', pages: undefined, file: undefined }));
   data.analysis = data.analysis || {textbook:{chunks:[],usage:{}},existing:{chunks:[],usage:{}}};
   return data;
 }

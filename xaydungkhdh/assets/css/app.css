@@ -3,3 +3,6 @@
 
 /* v1.2.1 hotfix: cho phép người dùng xác nhận/đổi loại tài liệu */
 .upload-kind-row{max-width:360px;margin:0 auto 12px;text-align:left}.file-item{grid-template-columns:minmax(0,1fr) minmax(135px,180px) auto}.doc-kind-select{padding:7px 9px;font-size:12px}.file-item .muted{line-height:1.45}@media(max-width:640px){.file-item{grid-template-columns:1fr}.doc-kind-select{width:100%}}
+
+/* v1.2.2: trạng thái Dual PDF Pipeline */
+.notice.ok{background:#f0fdf4;color:#166534}.file-main{min-width:0}.file-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.tag{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:11px}.tag.scan{background:#fff7ed;color:#9a3412}.tag.text{background:#ecfdf5;color:#166534}.file-warning{margin-top:9px;padding:9px;border-radius:8px;background:#fffbeb;color:#92400e;font-size:12px}.mini-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.mini-actions button{padding:6px 8px;font-size:11px}.chunk-pipeline{display:inline-block;margin-left:6px;color:#475569;font-size:11px}

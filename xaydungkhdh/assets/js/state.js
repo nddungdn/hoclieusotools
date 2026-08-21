@@ -65,10 +65,11 @@ export function createDefaultState() {
     warnings: [],
     validation: { errors: [], warnings: [], passed: [] },
 
-    // v1.2: checkpoint theo từng phần. Không lưu API key và không cần gửi lại cả SGK.
+    // v1.2.2: checkpoint dùng chung cho Text Pipeline và Native PDF Pipeline.
     analysis: {
       textbook: {
         fingerprint: '',
+        pipeline: '', // text|native_pdf|mixed
         status: 'idle', // idle|prepared|running|paused|completed|partial|failed
         pauseRequested: false,
         chunks: [],

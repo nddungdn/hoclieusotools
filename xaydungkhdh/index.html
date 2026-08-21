@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích xây dựng Kế hoạch dạy học Ngữ văn THCS theo Phụ lục I, II, III Công văn 5512; tích hợp NLS và GDQP&AN." />
-  <title>Xây dựng KHDH Ngữ văn v1.2</title>
+  <title>Xây dựng KHDH Ngữ văn v1.2.2</title>
   <link rel="stylesheet" href="./assets/css/app.css" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.workers.dev; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob: https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <!-- Third-party libraries are pinned to exact versions. No GitHub Actions is required. -->
@@ -12,6 +12,7 @@
   <script src="./assets/js/vendor-init-cdn.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -102,7 +103,7 @@
         <p><strong>Khuyến nghị:</strong> ở chế độ tạo mới, chọn <strong>Sách giáo khoa (SGK)</strong> trước khi tải Tập 1/Tập 2. Sau khi tải, có thể đổi loại của từng tệp ngay trong danh sách bên dưới.</p>
       </div>
       <div id="fileList" class="file-list"></div>
-      <div class="notice info">v1.2 đọc PDF theo từng trang và tự chia SGK thành nhiều phần nhỏ trước khi gọi API. PDF scan thuần ảnh vẫn cần xử lý riêng; ưu tiên PDF có lớp chữ để tiết kiệm API và ổn định hơn.</div>
+      <div class="notice info"><strong>Dual PDF Pipeline v1.2.2:</strong> PDF có lớp chữ được chia thành các phần văn bản; PDF scan/ảnh được cắt thành các cụm trang PDF nhỏ và đọc bằng model có hỗ trợ tài liệu. Hệ thống không gửi toàn bộ SGK trong mỗi yêu cầu.</div>
     </section>
 
     <section class="panel step-panel hidden" data-panel="4">
@@ -115,6 +116,7 @@
       </div>
       <label class="consent"><input id="consent" type="checkbox"> Tôi hiểu rằng phần nội dung cần thiết và API Key sẽ đi qua Worker riêng để gửi tới đúng nhà cung cấp AI tôi chọn; dữ liệu còn chịu chính sách của nhà cung cấp đó.</label>
       <div class="input-row"><button id="btnLoadModels">1. Kiểm tra khóa & tải model</button><button id="btnTestApi" class="ghost">2. Kiểm tra model</button></div>
+      <div id="modelCapability" class="notice info">Chưa có thông tin khả năng đọc PDF của model.</div>
       <div class="notice info">Nếu đổi API Key hoặc nhà cung cấp, hãy tải lại danh sách model. Không nhập tên model bằng tay để tránh lỗi do model đã đổi tên/ngừng hỗ trợ.</div>
     </section>
 
@@ -145,7 +147,7 @@
       <h2>PPCT và tích hợp</h2>
       <div class="checks"><label><input id="integrateNls" type="checkbox" checked> Tích hợp NLS</label><label><input id="integrateQpan" type="checkbox" checked> Tích hợp GDQP&AN</label><label><input id="reviewYccd" type="checkbox"> Rà soát YCCD</label><label><input id="reviewCurriculum" type="checkbox"> Rà soát PPCT</label><label><input id="normalizeN30" type="checkbox" checked> Chuẩn hóa NĐ30 khi xuất</label></div>
       <div id="textbookAnalysisBox" class="analysis-box">
-        <div class="row-head"><div><h3>Phân tích SGK nhiều bước – v1.2</h3><p class="muted">SGK không được gửi toàn bộ trong một request. Hệ thống chia theo trang/phần, lưu checkpoint sau mỗi phần và có thể tiếp tục khi gặp lỗi quota/mạng.</p></div><span id="analysisState" class="pill">Chưa phân tích</span></div>
+        <div class="row-head"><div><h3>Phân tích SGK nhiều bước – v1.2.2</h3><p class="muted">Hệ thống tự chọn Text Pipeline hoặc Native PDF Pipeline cho từng tệp, lưu checkpoint sau mỗi phần và có thể tiếp tục khi gặp lỗi quota/mạng.</p></div><span id="analysisState" class="pill">Chưa phân tích</span></div>
         <div class="action-row">
           <button id="btnAnalyzeTextbook" class="primary">1. Phân tích SGK</button>
           <button id="btnPauseAnalysis" class="ghost">Tạm dừng</button>
