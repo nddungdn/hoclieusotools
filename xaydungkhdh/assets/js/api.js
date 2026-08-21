@@ -84,7 +84,7 @@ export async function callAI(state,task,payload,{onRetry}={}){
   if(!state.ai.apiKey) throw new Error('Chưa nhập API Key.');
   if(!state.ai.model) throw new Error('Chưa chọn model API.');
   const raw=JSON.stringify(payload||{});
-  if(raw.length>APP_CONFIG.requestHardMaxChars) throw new Error(`Dữ liệu một request quá lớn (${Math.round(raw.length/1000)} nghìn ký tự). v1.2.2 yêu cầu chia nhỏ trước khi gửi.`);
+  if(raw.length>APP_CONFIG.requestHardMaxChars) throw new Error(`Dữ liệu một request quá lớn (${Math.round(raw.length/1000)} nghìn ký tự). v1.2.3 yêu cầu chia nhỏ trước khi gửi.`);
   const data=await postWithRetry('/ai',{
     provider:state.ai.provider,apiKey:state.ai.apiKey,model:state.ai.model,task,payload
   },onRetry);

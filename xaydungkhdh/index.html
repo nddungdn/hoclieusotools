@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích xây dựng Kế hoạch dạy học Ngữ văn THCS theo Phụ lục I, II, III Công văn 5512; tích hợp NLS và GDQP&AN." />
-  <title>Xây dựng KHDH Ngữ văn v1.2.2</title>
+  <title>Xây dựng KHDH Ngữ văn v1.2.3</title>
   <link rel="stylesheet" href="./assets/css/app.css" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.workers.dev; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob: https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <!-- Third-party libraries are pinned to exact versions. No GitHub Actions is required. -->
@@ -68,7 +68,7 @@
       <div class="notice warning">🔒 <strong>Quyền riêng tư:</strong> Chỉ nhập dữ liệu cần thiết. Không tải/nhập CCCD, số điện thoại, địa chỉ nhà, hồ sơ sức khỏe, tài khoản hoặc dữ liệu nhạy cảm của giáo viên, học sinh, phụ huynh.</div>
       <div class="form-grid two">
         <label>Tên trường<input id="schoolName" placeholder="Ví dụ: Trường THCS ..."></label>
-        <label>Tổ chuyên môn<input id="department" value="Tổ Ngữ văn"></label>
+        <label>Tổ chuyên môn<input id="department" placeholder="Chỉ nhập theo thông tin đã xác nhận"></label>
         <label>Địa danh<input id="locality" placeholder="Ví dụ: Hải Châu"></label>
         <label>Mô hình trường<select id="organizationMode"><option value="single">Một cơ sở</option><option value="multi">Trụ sở chính + phân hiệu/điểm trường</option></select></label>
       </div>
@@ -103,7 +103,7 @@
         <p><strong>Khuyến nghị:</strong> ở chế độ tạo mới, chọn <strong>Sách giáo khoa (SGK)</strong> trước khi tải Tập 1/Tập 2. Sau khi tải, có thể đổi loại của từng tệp ngay trong danh sách bên dưới.</p>
       </div>
       <div id="fileList" class="file-list"></div>
-      <div class="notice info"><strong>Dual PDF Pipeline v1.2.2:</strong> PDF có lớp chữ được chia thành các phần văn bản; PDF scan/ảnh được cắt thành các cụm trang PDF nhỏ và đọc bằng model có hỗ trợ tài liệu. Hệ thống không gửi toàn bộ SGK trong mỗi yêu cầu.</div>
+      <div class="notice info"><strong>Dual PDF Pipeline v1.2.3:</strong> PDF có lớp chữ được chia thành các phần văn bản; PDF scan/ảnh được cắt thành các cụm trang PDF nhỏ và đọc bằng model có hỗ trợ tài liệu. Hệ thống không gửi toàn bộ SGK trong mỗi yêu cầu.</div>
     </section>
 
     <section class="panel step-panel hidden" data-panel="4">
@@ -131,6 +131,7 @@
         </div>
         <div class="row-head"><h3>Thiết bị thực tế</h3><button id="btnAddEquipment" class="ghost">+ Thêm</button></div><div id="equipmentEditor"></div>
         <div class="row-head"><h3>Phòng/không gian</h3><button id="btnAddFacility" class="ghost">+ Thêm</button></div><div id="facilityEditor"></div>
+        <label class="wide">III. Các nội dung khác (nếu có)<textarea id="pl1OtherContents" rows="4" placeholder="Ví dụ: bồi dưỡng học sinh giỏi, phụ đạo học sinh chưa đạt, sinh hoạt chuyên môn..."></textarea></label>
       </div>
       <div id="pl2box" class="tabbox hidden">
         <div class="row-head"><h3>Hoạt động giáo dục</h3><button id="btnAddActivity" class="ghost">+ Thêm hoạt động</button></div>
@@ -138,8 +139,14 @@
         <p class="muted">AI có thể đề xuất chủ đề/YCCD nhưng địa điểm, chủ trì, phối hợp, điều kiện thực hiện phải do người dùng xác nhận.</p>
       </div>
       <div id="pl3box" class="tabbox hidden">
-        <div class="form-grid two"><label>Họ tên giáo viên<input id="teacherName"></label><label>Địa điểm mặc định<input id="defaultLocation" value="Lớp học"></label><label class="wide">Thiết bị mặc định<input id="defaultEquipment" value="Laptop; Tivi/máy chiếu; Phiếu học tập"></label><label class="wide">Nhiệm vụ khác<textarea id="otherTasks" rows="3"></textarea></label></div>
+        <div class="form-grid two"><label>Họ tên giáo viên<input id="teacherName"></label><label>Địa điểm mặc định<input id="defaultLocation" placeholder="Để trống nếu chưa xác nhận"></label><label class="wide">Thiết bị mặc định<input id="defaultEquipment" placeholder="Chỉ nhập thiết bị thực tế đã xác nhận"></label><label class="wide">II. Nhiệm vụ khác<textarea id="otherTasks" rows="3" placeholder="Chỉ nhập nhiệm vụ đã được phân công/xác nhận"></textarea></label></div>
         <div class="row-head"><h3>Lớp được phân công</h3><button id="btnAddAssignment" class="ghost">+ Thêm lớp</button></div><div id="assignmentsEditor"></div>
+        <label class="consent"><input id="includeFormativeAssessments" type="checkbox"> Thêm mục III. Kế hoạch kiểm tra thường xuyên theo mẫu riêng của nhà trường</label>
+        <div id="formativeAssessmentBox" class="hidden">
+          <div class="row-head"><h3>Kiểm tra thường xuyên</h3><button id="btnAddFormativeAssessment" class="ghost">+ Thêm dòng</button></div>
+          <div class="table-wrap"><table id="formativeAssessmentTable"><thead><tr><th>Bài/Chủ đề</th><th>Năng lực</th><th>Tên bài/Nội dung</th><th>Yêu cầu cần đạt</th><th>Lần</th><th>Thời gian</th><th>Hình thức</th><th>Đối tượng</th><th>Công cụ</th><th></th></tr></thead><tbody></tbody></table></div>
+          <p class="muted">Mục này là phần mở rộng theo mẫu Phụ lục III bạn cung cấp; chỉ đưa vào Word khi được chọn.</p>
+        </div>
       </div>
     </section>
 
@@ -147,7 +154,7 @@
       <h2>PPCT và tích hợp</h2>
       <div class="checks"><label><input id="integrateNls" type="checkbox" checked> Tích hợp NLS</label><label><input id="integrateQpan" type="checkbox" checked> Tích hợp GDQP&AN</label><label><input id="reviewYccd" type="checkbox"> Rà soát YCCD</label><label><input id="reviewCurriculum" type="checkbox"> Rà soát PPCT</label><label><input id="normalizeN30" type="checkbox" checked> Chuẩn hóa NĐ30 khi xuất</label></div>
       <div id="textbookAnalysisBox" class="analysis-box">
-        <div class="row-head"><div><h3>Phân tích SGK nhiều bước – v1.2.2</h3><p class="muted">Hệ thống tự chọn Text Pipeline hoặc Native PDF Pipeline cho từng tệp, lưu checkpoint sau mỗi phần và có thể tiếp tục khi gặp lỗi quota/mạng.</p></div><span id="analysisState" class="pill">Chưa phân tích</span></div>
+        <div class="row-head"><div><h3>Phân tích SGK nhiều bước – v1.2.3</h3><p class="muted">Hệ thống tự chọn Text Pipeline hoặc Native PDF Pipeline cho từng tệp, lưu checkpoint sau mỗi phần và có thể tiếp tục khi gặp lỗi quota/mạng.</p></div><span id="analysisState" class="pill">Chưa phân tích</span></div>
         <div class="action-row">
           <button id="btnAnalyzeTextbook" class="primary">1. Phân tích SGK</button>
           <button id="btnPauseAnalysis" class="ghost">Tạm dừng</button>

@@ -1,4 +1,4 @@
-# Xây dựng KHDH Ngữ văn — Frontend v1.2.2 Production
+# Xây dựng KHDH Ngữ văn — Frontend v1.2.3 Production
 
 Thư mục này được thiết kế để đặt nguyên vẹn tại:
 
@@ -25,8 +25,12 @@ Các thư viện trình duyệt bên thứ ba được ghim phiên bản cố đ
 API Key của người dùng không được lưu trong GitHub và không được ghi vào `config.js`.
 
 
-## v1.2.2 — Dual PDF Pipeline
+## v1.2.3 — Dual PDF Pipeline
 
+- Xem trước Phụ lục I/II/III có thể bấm mở, hiển thị nội dung thật thay vì chỉ đếm số khối.
+- Phụ lục III dùng A4 ngang; PPCT tách Học kỳ I/Học kỳ II và có độ rộng cột phù hợp nội dung.
+- Phụ lục I có ô “Các nội dung khác”; Phụ lục III có tùy chọn kế hoạch kiểm tra thường xuyên theo mẫu riêng.
+- AI bị ràng buộc bắt buộc không bịa dữ liệu; thông tin thiếu phải để trống và cảnh báo.
 - Tự phân biệt `TEXT_PDF` và `SCANNED_PDF` theo lượng chữ trung bình/trang.
 - PDF có lớp chữ tiếp tục dùng Text Pipeline theo từng phần.
 - PDF scan được cắt cục bộ thành cụm tối đa 8 trang rồi gửi dạng PDF native.

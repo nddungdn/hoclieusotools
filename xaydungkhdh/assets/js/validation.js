@@ -46,7 +46,14 @@ export function validateState(state) {
   if (st.total && rating && n(st.total)!==rating) warnings.push(`Tổng giáo viên (${st.total}) chưa khớp tổng theo chuẩn nghề nghiệp (${rating}).`);
 
   if (!state.school.officialName) warnings.push('Chưa nhập tên trường.');
+  if (state.appendices.pl1 && !state.school.department) warnings.push('Phụ lục I chưa có tên tổ chuyên môn; hệ thống không tự điền thay.');
   if (state.appendices.pl3 && !state.pl3.teacherName) warnings.push('Phụ lục III chưa có họ tên giáo viên.');
+  const missingEquipment=curriculum.filter(r=>!(r.equipment||state.pl3.defaultEquipment)).length;
+  const missingLocation=curriculum.filter(r=>!(r.location||state.pl3.defaultLocation)).length;
+  if(state.appendices.pl3&&missingEquipment)warnings.push(`${missingEquipment} dòng Phụ lục III chưa có thiết bị đã xác nhận; hệ thống giữ trống.`);
+  if(state.appendices.pl3&&missingLocation)warnings.push(`${missingLocation} dòng Phụ lục III chưa có địa điểm đã xác nhận; hệ thống giữ trống.`);
+  const formative=state.pl3.formativeAssessments||[];
+  if(state.appendices.pl3&&state.pl3.includeFormativeAssessments&&formative.some(row=>!row.content||!row.yccd))warnings.push('Có dòng kiểm tra thường xuyên thiếu tên bài/nội dung hoặc yêu cầu cần đạt; hệ thống không tự suy đoán.');
   if (state.appendices.pl2 && !(state.pl2.activities||[]).length) warnings.push('Phụ lục II chưa có hoạt động giáo dục; nếu không có hoạt động, cần xác nhận trước khi xuất.');
 
   if (state.meta.curriculumSource==='AI_DRAFT') warnings.push('PPCT đang ở trạng thái dự thảo do AI đề xuất; cần giáo viên/tổ chuyên môn rà soát.');

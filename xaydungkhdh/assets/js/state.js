@@ -20,27 +20,30 @@ export function createDefaultState() {
     },
     school: {
       officialName: '',
-      department: 'Tổ Ngữ văn',
+      department: '',
       locality: '',
       organizationMode: 'single',
       totalClassesManual: '',
       totalStudentsManual: '',
       sites: [
-        { id: crypto.randomUUID(), type: 'MAIN_CAMPUS', name: 'Trụ sở chính', locality: '', classCount: '', studentCount: '', note: '' }
+        { id: crypto.randomUUID(), type: 'MAIN_CAMPUS', name: '', locality: '', classCount: '', studentCount: '', note: '' }
       ]
     },
     pl1: {
       staff: { total: '', college: '', university: '', postgraduate: '', good: '', fair: '', pass: '', fail: '' },
       equipment: [],
-      facilities: []
+      facilities: [],
+      otherContents: ''
     },
     pl2: { activities: [] },
     pl3: {
       teacherName: '',
       assignments: [],
-      defaultEquipment: 'Laptop; Tivi/máy chiếu; Phiếu học tập',
-      defaultLocation: 'Lớp học',
-      otherTasks: ''
+      defaultEquipment: '',
+      defaultLocation: '',
+      otherTasks: '',
+      includeFormativeAssessments: false,
+      formativeAssessments: []
     },
     ai: {
       provider: 'gemini',
@@ -65,7 +68,7 @@ export function createDefaultState() {
     warnings: [],
     validation: { errors: [], warnings: [], passed: [] },
 
-    // v1.2.2: checkpoint dùng chung cho Text Pipeline và Native PDF Pipeline.
+    // v1.2.3: checkpoint dùng chung cho Text Pipeline và Native PDF Pipeline.
     analysis: {
       textbook: {
         fingerprint: '',

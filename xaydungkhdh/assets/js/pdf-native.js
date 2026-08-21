@@ -67,7 +67,7 @@ export async function createPdfSliceBase64(document,chunk){
   const pages=await out.copyPages(source,indexes);
   pages.forEach(page=>out.addPage(page));
   out.setTitle(`${document.name} - trang ${start}-${end}`);
-  out.setProducer('Xay dung KHDH Ngu van v1.2.2');
+  out.setProducer('Xay dung KHDH Ngu van v1.2.3');
   const bytes=await out.save({useObjectStreams:true,addDefaultPage:false,updateFieldAppearances:false});
   const base64=bytesToBase64(bytes);
   if(base64.length>APP_CONFIG.nativePdfChunkHardMaxBase64Chars){

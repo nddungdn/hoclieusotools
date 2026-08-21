@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   name: 'Xây dựng KHDH Ngữ văn',
-  version: '1.2.2-production',
+  version: '1.2.3-production',
   basePath: '/xaydungkhdh',
   // Backend Production đã xác nhận /health; không có dấu / ở cuối.
   apiBase: 'https://xaydungkhdh-api.nddungdn.workers.dev',
@@ -10,7 +10,7 @@ export const APP_CONFIG = {
   semester1Default: 72,
   semester2Default: 68,
 
-  // v1.2.2: KHÔNG gửi cả SGK trong một request. Văn bản/PDF đều được chia theo trang/phần.
+  // v1.2.3: KHÔNG gửi cả SGK trong một request. Văn bản/PDF đều được chia theo trang/phần.
   textbookChunkTargetChars: 28000,
   textbookChunkHardMaxChars: 38000,
   textbookChunkMaxPages: 24,

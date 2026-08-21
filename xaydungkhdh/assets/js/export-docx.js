@@ -35,8 +35,9 @@ function renderBlocks(D,blocks){
     else if(b.type==='title') out.push(p(D,b.text,{bold:true,size:28,align:'center',before:180,after:120}));
     else if(b.type==='subtitle') out.push(p(D,b.text,{bold:false,size:26,align:'center',after:100}));
     else if(b.type==='heading') out.push(p(D,b.text,{bold:true,size:26,align:'left',before:160,after:80}));
+    else if(b.type==='subheading') out.push(p(D,b.text,{bold:true,size:26,align:'center',before:140,after:80}));
     else if(b.type==='paragraph') out.push(p(D,b.text,{size:26,align:'justify',after:120,firstLine:mm(10)}));
-    else if(b.type==='table') out.push(table(D,b.headers,b.rows));
+    else if(b.type==='table') out.push(table(D,b.headers,b.rows,b.widths));
     else if(b.type==='signature') out.push(signature(D,b));
   }
   return out;
@@ -63,19 +64,33 @@ function twoColumnHeader(D,b){
   });
 }
 
-function table(D,headers,rows){
+function table(D,headers,rows,widths=[]){
   const all=[headers,...(rows&&rows.length?rows:[Array(headers.length).fill('')])];
+  const useWidths=Array.isArray(widths)&&widths.length===headers.length;
+  const compact=headers.length>=8;
+  const tableWidth=compact?13200:14000;
+  const columnWidths=useWidths?widths.map(value=>Math.round(tableWidth*Number(value)/100)):undefined;
   return new D.Table({
-    width:{size:100,type:D.WidthType.PERCENTAGE},
+    width:{size:tableWidth,type:D.WidthType.DXA},
+    columnWidths,
+    layout:D.TableLayoutType.FIXED,
+    borders:tableBorders(D),
     rows:all.map((row,ri)=>new D.TableRow({
       tableHeader:ri===0,
       cantSplit:true,
       children:headers.map((_,ci)=>new D.TableCell({
-        margins:{top:80,bottom:80,left:80,right:80},
-        children:String(row[ci]??'').split('\n').map(t=>p(D,t,{align:ri===0?'center':'left',bold:ri===0,size:22,after:20}))
+        width:useWidths?{size:columnWidths[ci],type:D.WidthType.DXA}:undefined,
+        borders:tableBorders(D),
+        margins:compact?{top:60,bottom:60,left:45,right:45}:{top:80,bottom:80,left:80,right:80},
+        children:String(row[ci]??'').split('\n').map(t=>p(D,t,{align:ri===0?'center':'left',bold:ri===0,size:compact?20:22,after:20}))
       }))
     }))
   });
+}
+
+function tableBorders(D){
+  const line={style:D.BorderStyle.SINGLE,size:8,color:'000000'};
+  return {top:line,bottom:line,left:line,right:line,insideHorizontal:line,insideVertical:line};
 }
 
 function signature(D,b){

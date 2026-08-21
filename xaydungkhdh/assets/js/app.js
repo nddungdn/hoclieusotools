@@ -5,6 +5,7 @@ import { prepareTextbookJob, runTextbookAnalysis, requestPause, markFailedForRet
 import { saveLocal, loadLocal, downloadProject, importProjectFile } from './storage.js';
 import { validateState } from './validation.js';
 import { buildDocumentModel } from './document-model.js';
+import { renderDocumentPreview } from './preview.js';
 import { exportDocx } from './export-docx.js';
 import { exportPdfViaPrint } from './print-pdf.js';
 
@@ -48,7 +49,7 @@ function showTab(id){
 }
 
 function bindStaticFields(){
-  const map={academicYear:['project','academicYear'],grade:['project','grade'],totalPeriods:['project','totalPeriods'],semester1Periods:['project','semester1Periods'],semester2Periods:['project','semester2Periods'],deviceMode:['project','deviceMode'],schoolName:['school','officialName'],department:['school','department'],locality:['school','locality'],organizationMode:['school','organizationMode'],totalClassesManual:['school','totalClassesManual'],totalStudentsManual:['school','totalStudentsManual'],provider:['ai','provider'],model:['ai','model'],teacherName:['pl3','teacherName'],defaultLocation:['pl3','defaultLocation'],defaultEquipment:['pl3','defaultEquipment'],otherTasks:['pl3','otherTasks']};
+  const map={academicYear:['project','academicYear'],grade:['project','grade'],totalPeriods:['project','totalPeriods'],semester1Periods:['project','semester1Periods'],semester2Periods:['project','semester2Periods'],deviceMode:['project','deviceMode'],schoolName:['school','officialName'],department:['school','department'],locality:['school','locality'],organizationMode:['school','organizationMode'],totalClassesManual:['school','totalClassesManual'],totalStudentsManual:['school','totalStudentsManual'],provider:['ai','provider'],model:['ai','model'],pl1OtherContents:['pl1','otherContents'],teacherName:['pl3','teacherName'],defaultLocation:['pl3','defaultLocation'],defaultEquipment:['pl3','defaultEquipment'],otherTasks:['pl3','otherTasks']};
   for(const [id,path] of Object.entries(map)){
     const el=$('#'+id); if(!el)continue;
     el.addEventListener('input',()=>setPath(path,el.value));
@@ -64,6 +65,7 @@ function bindStaticFields(){
   $('#reviewYccd').addEventListener('change',e=>state.options.reviewYccd=e.target.checked);
   $('#reviewCurriculum').addEventListener('change',e=>state.options.reviewCurriculum=e.target.checked);
   $('#normalizeN30').addEventListener('change',e=>state.options.normalizeNghiDinh30=e.target.checked);
+  $('#includeFormativeAssessments').addEventListener('change',e=>{state.pl3.includeFormativeAssessments=e.target.checked;renderFormativeAssessments();});
   $$('#staffFields input').forEach(el=>el.addEventListener('input',()=>state.pl1.staff[el.dataset.staff]=el.value));
 }
 function setPath(path,val){let o=state;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path.at(-1)]=val;state.meta.lastUpdated=new Date().toISOString();}
@@ -91,6 +93,7 @@ function bindActions(){
   $('#btnAddFacility').addEventListener('click',()=>{state.pl1.facilities.push({name:'',quantity:'',site:'',scope:'',note:''});renderFacilities()});
   $('#btnAddActivity').addEventListener('click',()=>{state.pl2.activities.push({topic:'',yccd:'',periods:'',time:'',location:'',lead:'',coordinate:'',conditions:''});renderActivities()});
   $('#btnAddAssignment').addEventListener('click',()=>{state.pl3.assignments.push({className:'',grade:state.project.grade,site:''});renderAssignments()});
+  $('#btnAddFormativeAssessment').addEventListener('click',()=>{state.pl3.formativeAssessments=state.pl3.formativeAssessments||[];state.pl3.formativeAssessments.push({unit:'',competency:'',content:'',yccd:'',attempt:'',time:'',form:'',target:'',tool:''});renderFormativeAssessments()});
   $('#btnAddCurriculumRow').addEventListener('click',()=>{state.curriculum.push({unit:'',lesson:'',periodStart:'',periodEnd:'',periodCount:1,week:'',yccd:'',digitalCompetency:[],defenseSecurity:[]});renderCurriculum()});
   $('#btnRunAI').addEventListener('click',runAI);
   $('#btnValidateNow').addEventListener('click',validateAndRender);
@@ -117,7 +120,7 @@ function formatApiError(e){
   if(e?.category==='AUTH') return new Error('API Key không hợp lệ, bị hạn chế hoặc chưa có quyền dùng API. Hãy tạo/kiểm tra lại khóa của đúng nhà cung cấp.');
   if(e?.category==='QUOTA_OR_RATE_LIMIT') return new Error('API đã vượt hạn mức/tốc độ hoặc tài khoản chưa có quota/billing phù hợp. Kiểm tra quota và thanh toán của nhà cung cấp.');
   if(e?.category==='MODEL_OR_ENDPOINT') return new Error('Model không tồn tại hoặc không được tài khoản này hỗ trợ. Hãy tải lại danh sách model rồi chọn lại.');
-  if(e?.category==='PAYLOAD_TOO_LARGE'||e?.category==='NATIVE_PDF_CHUNK_TOO_LARGE') return new Error('Một phần dữ liệu/PDF vẫn quá lớn. v1.2.2 sẽ tự chia nhỏ khi còn nhiều hơn một trang; nếu chỉ một trang vẫn lỗi, hãy giảm dung lượng PDF nguồn.');
+  if(e?.category==='PAYLOAD_TOO_LARGE'||e?.category==='NATIVE_PDF_CHUNK_TOO_LARGE') return new Error('Một phần dữ liệu/PDF vẫn quá lớn. v1.2.3 sẽ tự chia nhỏ khi còn nhiều hơn một trang; nếu chỉ một trang vẫn lỗi, hãy giảm dung lượng PDF nguồn.');
   if(e?.category==='TIMEOUT'||e?.category==='NETWORK') return new Error('Kết nối bị gián đoạn hoặc hết thời gian chờ. Các phần đã xong vẫn được giữ; hãy bấm Tiếp tục.');
   return e;
 }
@@ -178,7 +181,7 @@ async function runAI(){
   try{
     guardConsent();
     if(state.mode==='new'){
-      throw new Error('Chế độ tạo mới v1.2.2 dùng hai nút: “1. Phân tích SGK” rồi “2. Tạo PPCT & tích hợp”.');
+      throw new Error('Chế độ tạo mới v1.2.3 dùng hai nút: “1. Phân tích SGK” rồi “2. Tạo PPCT & tích hợp”.');
     }else if(state.mode==='integrate'){
       const text=combinedText(state.documents,['PL1','PL2','PL3','PPCT','TEXTBOOK','TEACHER_BOOK']);
       if(!text)throw new Error('Chưa có tài liệu để tích hợp.');
@@ -244,13 +247,13 @@ function normalizeCurriculumRow(r){
     periodStart:r.periodStart||'',periodEnd:r.periodEnd||'',periodCount:Number(r.periodCount)||calcCount(r.periodStart,r.periodEnd)||1,
     week:r.week||'',semester:r.semester||'',yccd:Array.isArray(r.yccd)?r.yccd.join('; '):(r.yccd||''),
     digitalCompetency:Array.isArray(r.digitalCompetency)?r.digitalCompetency:[],defenseSecurity:Array.isArray(r.defenseSecurity)?r.defenseSecurity:[],
-    equipment:r.equipment||'',location:r.location||''
+    equipment:r.equipment||'',location:r.location||'',sourceStatus:r.sourceStatus||'AI_DRAFT'
   };
 }
 function calcCount(a,b){a=Number(a);b=Number(b);return a&&b&&b>=a?b-a+1:0}
 
 function renderAll(){
-  renderModes(); syncFields(); renderSites(); renderFiles(); renderEquipment();renderFacilities();renderActivities();renderAssignments();renderCurriculum();renderWarnings();renderAnalysis();renderModelCapability();validateAndRender();
+  renderModes(); syncFields(); renderSites(); renderFiles(); renderEquipment();renderFacilities();renderActivities();renderAssignments();renderFormativeAssessments();renderCurriculum();renderWarnings();renderAnalysis();renderModelCapability();validateAndRender();
 }
 function renderModes(){
   $$('.mode-card').forEach(x=>x.classList.toggle('selected',x.dataset.mode===state.mode));
@@ -259,11 +262,12 @@ function renderModes(){
   if(b)b.classList.toggle('hidden',state.mode==='new');
 }
 function syncFields(){
-  const ids={academicYear:state.project.academicYear,grade:state.project.grade,totalPeriods:state.project.totalPeriods,semester1Periods:state.project.semester1Periods,semester2Periods:state.project.semester2Periods,deviceMode:state.project.deviceMode,schoolName:state.school.officialName,department:state.school.department,locality:state.school.locality,organizationMode:state.school.organizationMode,totalClassesManual:state.school.totalClassesManual,totalStudentsManual:state.school.totalStudentsManual,provider:state.ai.provider,model:state.ai.model,teacherName:state.pl3.teacherName,defaultLocation:state.pl3.defaultLocation,defaultEquipment:state.pl3.defaultEquipment,otherTasks:state.pl3.otherTasks};
+  const ids={academicYear:state.project.academicYear,grade:state.project.grade,totalPeriods:state.project.totalPeriods,semester1Periods:state.project.semester1Periods,semester2Periods:state.project.semester2Periods,deviceMode:state.project.deviceMode,schoolName:state.school.officialName,department:state.school.department,locality:state.school.locality,organizationMode:state.school.organizationMode,totalClassesManual:state.school.totalClassesManual,totalStudentsManual:state.school.totalStudentsManual,provider:state.ai.provider,model:state.ai.model,pl1OtherContents:state.pl1.otherContents,teacherName:state.pl3.teacherName,defaultLocation:state.pl3.defaultLocation,defaultEquipment:state.pl3.defaultEquipment,otherTasks:state.pl3.otherTasks};
   for(const [id,v] of Object.entries(ids)){const el=$('#'+id);if(!el)continue;if(id==='model'){if([...el.options].some(o=>o.value===String(v??'')))el.value=v??'';}else el.value=v??''}
   $('#apiKey').value=state.ai.apiKey||'';$('#consent').checked=!!state.ai.consentGiven;
   $('#apPl1').checked=!!state.appendices.pl1;$('#apPl2').checked=!!state.appendices.pl2;$('#apPl3').checked=!!state.appendices.pl3;
   $('#integrateNls').checked=!!state.options.integrateNls;$('#integrateQpan').checked=!!state.options.integrateQpan;$('#reviewYccd').checked=!!state.options.reviewYccd;$('#reviewCurriculum').checked=!!state.options.reviewCurriculum;$('#normalizeN30').checked=!!state.options.normalizeNghiDinh30;
+  $('#includeFormativeAssessments').checked=!!state.pl3.includeFormativeAssessments;
   $$('#staffFields input').forEach(el=>el.value=state.pl1.staff[el.dataset.staff]??'');
 }
 
@@ -313,6 +317,21 @@ function renderActivities(){
 }
 function renderAssignments(){
   const el=$('#assignmentsEditor');el.innerHTML='';state.pl3.assignments.forEach((a,i)=>{const row=document.createElement('div');row.className='editor-row small';row.innerHTML='<input data-k="className" placeholder="Lớp, ví dụ 8/1"><input data-k="grade" placeholder="Khối"><input data-k="site" placeholder="Cơ sở"><button>×</button>';['className','grade','site'].forEach(k=>{const f=row.querySelector(`[data-k="${k}"]`);f.value=a[k]??'';f.addEventListener('input',()=>a[k]=f.value)});row.querySelector('button').addEventListener('click',()=>{state.pl3.assignments.splice(i,1);renderAssignments()});el.appendChild(row)})
+}
+
+function renderFormativeAssessments(){
+  const enabled=!!state.pl3.includeFormativeAssessments;
+  $('#formativeAssessmentBox').classList.toggle('hidden',!enabled);
+  const list=state.pl3.formativeAssessments=state.pl3.formativeAssessments||[];
+  const tbody=$('#formativeAssessmentTable tbody');tbody.innerHTML='';
+  const keys=['unit','competency','content','yccd','attempt','time','form','target','tool'];
+  list.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=keys.map(k=>`<td><textarea data-k="${k}" rows="3"></textarea></td>`).join('')+'<td><button class="ghost" title="Xóa">×</button></td>';
+    keys.forEach(k=>{const input=tr.querySelector(`[data-k="${k}"]`);input.value=item[k]||'';input.addEventListener('input',()=>item[k]=input.value);});
+    tr.querySelector('button').addEventListener('click',()=>{list.splice(i,1);renderFormativeAssessments();});
+    tbody.appendChild(tr);
+  });
 }
 
 function renderCurriculum(){
@@ -377,7 +396,7 @@ function validateAndRender(){
   return v;
 }
 function renderPreview(){
-  const m=buildDocumentModel(state);$('#previewArea').innerHTML=m.sections.map(s=>`<div class="preview-section"><strong>${esc(s.title)} – ${esc(s.orientation)}</strong><div class="muted">${s.blocks.filter(b=>b.type==='table').length} bảng · ${s.blocks.length} khối nội dung</div></div>`).join('')||'<p>Chưa chọn phụ lục.</p>';
+  $('#previewArea').innerHTML=renderDocumentPreview(buildDocumentModel(state));
 }
 
 init();
