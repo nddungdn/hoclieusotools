@@ -1,29 +1,54 @@
-<div id="app-goi-ten-ngau-nhien" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #faf6f0; min-height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; overflow: hidden; position: relative; width: 100%;">
-
-    <button id="gtnn-fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to toàn màn hình">⛶ Toàn màn hình</button>
-
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#faf6f0">
+    <meta name="description" content="Tiện ích gọi tên học sinh ngẫu nhiên bằng vòng quay, hỗ trợ tải danh sách từ TXT, CSV, Excel và Word.">
+    <title>Gọi tên ngẫu nhiên | Học liệu số</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
     <style>
-        #app-goi-ten-ngau-nhien * {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background: #faf6f0;
+        }
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        button, input, textarea {
+            font: inherit;
+        }
+#app-goi-ten-ngau-nhien * {
             box-sizing: border-box;
         }
+        #gtnn-home-btn,
         #gtnn-fullscreen-btn {
             position: absolute;
             top: 5px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.75);
             color: #4f39f6;
-            border: 1px solid #4f39f6
-;
+            border: 1px solid #4f39f6;
             padding: 8px 16px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
             z-index: 100;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s;
+            text-decoration: none;
+            line-height: normal;
         }
+        #gtnn-home-btn { left: 20px; }
+        #gtnn-fullscreen-btn { right: 20px; }
+        #gtnn-home-btn:hover,
         #gtnn-fullscreen-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: #ffffff;
+            transform: translateY(-1px);
         }
         #gtnn-title {
             color: #4f39f6; /* Màu vàng */
@@ -37,18 +62,22 @@
         }
         #gtnn-main-container {
             display: flex;
-            flex-direction: column; 
+            flex-direction: row;
             align-items: center;
-            gap: 50px; 
+            justify-content: center;
+            gap: 42px;
             width: 100%;
             max-width: 1200px;
+            flex: 1 0 auto;
         }
         
         /* Chỉnh CSS khi ở chế độ Fullscreen */
         #app-goi-ten-ngau-nhien:fullscreen #gtnn-title,
         #app-goi-ten-ngau-nhien:fullscreen #gtnn-input-section,
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-footer,
         #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-title,
-        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-input-section {
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-input-section,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-footer {
             display: none !important; 
         }
         #app-goi-ten-ngau-nhien:fullscreen, 
@@ -85,39 +114,19 @@
             right: -8vmin;
         }
 
-        /* Fullscreen: Nút quay sang giữa lề căn trái */
-        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn,
-        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn {
-            left: 5vw; /* Cách lề trái 5% */
-            top: 50%;
-            bottom: auto;
-            transform: translateY(-50%); /* Căn giữa dọc */
-            font-size: clamp(24px, 3vw, 40px);
-            padding: clamp(15px, 2vw, 25px) clamp(30px, 4vw, 50px);
-        }
-
-        /* Fullscreen: Hiệu ứng active/disabled cho nút bên trái */
-        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn:active,
-        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn:active {
-            transform: translateY(calc(-50% + 4px));
-        }
-        #app-goi-ten-ngau-nhien:fullscreen #gtnn-spin-btn.disabled,
-        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-spin-btn.disabled {
-            transform: translateY(-50%);
-        }
-
         #gtnn-wheel-section {
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 80px; 
-            transition: transform 0.3s ease; 
+            margin-bottom: 0;
+            transition: transform 0.3s ease;
+            flex: 0 0 auto;
         }
         #gtnn-canvas-container {
             position: relative;
-            width: 450px;
-            height: 450px;
+            width: min(42vw, 450px);
+            height: min(42vw, 450px);
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             background: #fff;
@@ -142,34 +151,41 @@
             z-index: 10;
             filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.4));
         }
-        #gtnn-spin-btn {
+        #gtnn-center-spin {
             position: absolute;
-            bottom: -90px;
             left: 50%;
-            transform: translateX(-50%);
-            background: #ff007f;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 24px;
-            font-weight: 900;
-            border-radius: 30px;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid rgba(0,0,0,0.16);
+            background: #ffffff;
+            box-shadow: 0 3px 9px rgba(0,0,0,0.30), inset 0 0 0 5px #f3f3f3;
             cursor: pointer;
-            box-shadow: 0 6px 0 #c50062, 0 10px 10px rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            z-index: 20;
+            z-index: 30;
+            padding: 0;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s;
+            touch-action: manipulation;
         }
-        #gtnn-spin-btn:active, #gtnn-spin-btn.disabled {
-            box-shadow: 0 2px 0 #c50062, 0 4px 4px rgba(0,0,0,0.3);
-            transform: translateX(-50%) translateY(4px);
+        #gtnn-center-spin:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.35), inset 0 0 0 5px #f3f3f3;
         }
-        #gtnn-spin-btn.disabled {
-            background: #aaa;
-            box-shadow: 0 6px 0 #888;
+        #gtnn-center-spin:active {
+            transform: translate(-50%, -50%) scale(0.96);
+        }
+        #gtnn-center-spin.disabled,
+        #gtnn-center-spin:disabled {
             cursor: not-allowed;
-            transform: translateX(-50%);
+            opacity: 0.72;
+            transform: translate(-50%, -50%);
+        }
+        #app-goi-ten-ngau-nhien:fullscreen #gtnn-center-spin,
+        #app-goi-ten-ngau-nhien:-webkit-full-screen #gtnn-center-spin {
+            width: clamp(60px, 8vmin, 88px);
+            height: clamp(60px, 8vmin, 88px);
+            border-width: clamp(4px, 0.5vmin, 6px);
         }
 
         #gtnn-input-section {
@@ -178,7 +194,8 @@
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 500px;
+            max-width: 420px;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -222,6 +239,27 @@
             transition: transform 0.2s, background 0.2s;
         }
         #gtnn-update-btn:hover { background: #43a047; transform: scale(1.02); }
+
+        #gtnn-file-hint {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            margin-top: -4px;
+        }
+        #gtnn-footer {
+            width: 100%;
+            text-align: center;
+            margin-top: 18px;
+            padding: 10px 12px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        #gtnn-footer a {
+            color: #4f39f6;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        #gtnn-footer a:hover { text-decoration: underline; }
 
         #gtnn-modal {
             display: none;
@@ -279,16 +317,40 @@
         #gtnn-close-modal:hover { background: #1976d2; }
 
         @media (max-width: 768px) {
+            #app-goi-ten-ngau-nhien { padding: 48px 14px 16px !important; overflow-y: auto !important; }
+            #gtnn-home-btn, #gtnn-fullscreen-btn {
+                top: 8px;
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+            #gtnn-home-btn { left: 10px; }
+            #gtnn-fullscreen-btn { right: 10px; }
+            #gtnn-title { font-size: 2rem; margin-top: 4px; }
+            #gtnn-main-container {
+                flex-direction: column;
+                gap: 32px;
+                flex: 0 0 auto;
+            }
             #gtnn-canvas-container { width: 300px; height: 300px; }
-            #gtnn-title { font-size: 2rem; }
-            #gtnn-spin-btn { font-size: 18px; padding: 10px 30px; bottom: -50px; }
             #gtnn-pointer { border-right-width: 35px; border-top-width: 15px; border-bottom-width: 15px; right: -20px; }
-            #gtnn-main-container { gap: 60px; }
+            #gtnn-center-spin { width: 54px; height: 54px; border-width: 3px; }
+            #gtnn-input-section { max-width: 500px; min-width: 0; }
             #gtnn-winner-name { font-size: 2.2rem; }
+            #gtnn-footer { margin-top: 12px; }
+        }
+
+        @media (max-width: 360px) {
+            #gtnn-canvas-container { width: 270px; height: 270px; }
+            #gtnn-title { font-size: 1.65rem; }
         }
     </style>
+</head>
+<body>
+<div id="app-goi-ten-ngau-nhien" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #faf6f0; min-height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; overflow: hidden; position: relative; width: 100%;">
 
-    <h1 id="gtnn-title">GỌI TÊN NGẪU NHIÊN</h1>
+    <a id="gtnn-home-btn" href="https://www.hoclieuso.id.vn/" target="_top" rel="noopener" title="Về trang chủ Học liệu số">⌂ Trang chủ</a>
+    <button id="gtnn-fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to toàn màn hình">⛶ Toàn màn hình</button>
+<h1 id="gtnn-title">GỌI TÊN NGẪU NHIÊN</h1>
 
     <div id="gtnn-main-container">
         
@@ -296,15 +358,16 @@
             <div id="gtnn-canvas-container">
                 <canvas id="gtnn-canvas" width="600" height="600"></canvas>
                 <div id="gtnn-pointer"></div>
+                <button id="gtnn-center-spin" type="button" onclick="spin()" title="Nhấn để quay" aria-label="Nhấn nút giữa để quay vòng quay"></button>
             </div>
-            <button id="gtnn-spin-btn" onclick="spin()">QUAY</button>
         </div>
 
         <div id="gtnn-input-section">
-            <h3>DANH SÁCH HỌC SINH</h3>
+            <h3>TẢI LÊN DANH SÁCH</h3>
             
-            <input type="file" id="gtnn-file-upload" accept=".csv, .txt" style="display: none;" onchange="handleFileUpload(event)">
-            <button id="gtnn-upload-btn" onclick="document.getElementById('gtnn-file-upload').click()">📂 Tải file danh sách (.csv, .txt)</button>
+            <input type="file" id="gtnn-file-upload" accept=".txt,.csv,.xlsx,.xls,.docx" style="display: none;" onchange="handleFileUpload(event)">
+            <button id="gtnn-upload-btn" onclick="document.getElementById('gtnn-file-upload').click()">📂 Chọn file danh sách</button>
+            <div id="gtnn-file-hint">Hỗ trợ TXT, CSV, Excel (.xlsx/.xls) và Word (.docx)</div>
 
             <textarea id="gtnn-namelist" placeholder="Nhập tên học sinh vào đây...&#10;Ví dụ:&#10;Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C"></textarea>
             
@@ -318,6 +381,8 @@
 
     </div>
 
+    <div id="gtnn-footer">Tiện ích được phát triển bởi <a href="https://www.hoclieuso.id.vn/" target="_blank" rel="noopener noreferrer">Học liệu số</a></div>
+
     <div id="gtnn-modal">
         <div id="gtnn-modal-content">
             <h2 style="color:#ff9800; margin-top:0;">🎉 CHÚC MỪNG 🎉</h2>
@@ -326,9 +391,10 @@
             <button id="gtnn-close-modal" onclick="closeModal()">Tiếp Tục</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Xử lý chế độ Fullscreen
+<script>
+// Xử lý chế độ Fullscreen
         function toggleFullScreen() {
             const elem = document.getElementById("app-goi-ten-ngau-nhien");
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -384,31 +450,144 @@
             "💡 Em có thể 'đá' câu hỏi cho bạn khác."
         ];
 
-        function handleFileUpload(event) {
+        function cleanImportedName(value) {
+            let text = String(value ?? '').replace(/\u00a0/g, ' ').trim();
+            text = text.replace(/^['"]+|['"]+$/g, '').trim();
+            text = text.replace(/^\s*(?:\d+|[A-Za-z])\s*[.):-]\s*/, '');
+            return text.replace(/\s+/g, ' ').trim();
+        }
+
+        function normalizeForMatch(value) {
+            return cleanImportedName(value)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
+        }
+
+        function isHeaderCell(value) {
+            const text = normalizeForMatch(value);
+            return /^(stt|so thu tu|ho va ten|ho ten|ten hoc sinh|hoc sinh|student name|name)$/.test(text);
+        }
+
+        function isLikelyName(value) {
+            const text = cleanImportedName(value);
+            if (!text || isHeaderCell(text) || /^\d+(?:[.,]\d+)?$/.test(text)) return false;
+            return /[A-Za-zÀ-ỹ]/.test(text);
+        }
+
+        function extractNamesFromRows(rows) {
+            const normalizedRows = rows
+                .map(row => Array.isArray(row) ? row : [row])
+                .map(row => row.map(cleanImportedName));
+
+            let nameColumn = -1;
+            let headerRow = -1;
+            for (let r = 0; r < Math.min(normalizedRows.length, 12) && nameColumn === -1; r++) {
+                for (let c = 0; c < normalizedRows[r].length; c++) {
+                    const cell = normalizeForMatch(normalizedRows[r][c]);
+                    if (/^(ho va ten|ho ten|ten hoc sinh|hoc sinh|student name|name)$/.test(cell)) {
+                        nameColumn = c;
+                        headerRow = r;
+                        break;
+                    }
+                }
+            }
+
+            if (nameColumn === -1) {
+                const maxColumns = normalizedRows.reduce((max, row) => Math.max(max, row.length), 0);
+                let bestScore = -Infinity;
+                for (let c = 0; c < maxColumns; c++) {
+                    let score = 0;
+                    normalizedRows.slice(0, 80).forEach(row => {
+                        const value = row[c] || '';
+                        if (isLikelyName(value)) {
+                            score += value.includes(' ') ? 3 : 1;
+                            if (value.length >= 5 && value.length <= 50) score += 1;
+                        } else if (/^\d+(?:[.,]\d+)?$/.test(value)) {
+                            score -= 2;
+                        }
+                    });
+                    if (score > bestScore) {
+                        bestScore = score;
+                        nameColumn = c;
+                    }
+                }
+            }
+
+            const namesFromRows = normalizedRows
+                .slice(headerRow >= 0 ? headerRow + 1 : 0)
+                .map(row => cleanImportedName(row[nameColumn] || ''))
+                .filter(isLikelyName);
+
+            return namesFromRows;
+        }
+
+        function extractNamesFromText(text) {
+            let lines = text
+                .split(/\r?\n|\t/)
+                .map(cleanImportedName)
+                .filter(isLikelyName);
+            return lines;
+        }
+
+        function applyImportedNames(importedNames) {
+            if (importedNames.length < 2) {
+                alert('Không tìm thấy đủ tên học sinh trong file. Vui lòng kiểm tra lại nội dung file.');
+                return;
+            }
+            document.getElementById('gtnn-namelist').value = importedNames.join('\n');
+            updateWheel();
+        }
+
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                let rawNames = text.split(/\r?\n/).map(name => {
-                    name = name.trim();
-                    name = name.replace(/,/g, ''); 
-                    if(name.startsWith('"') && name.endsWith('"')) {
-                        name = name.substring(1, name.length - 1);
+            const extension = (file.name.split('.').pop() || '').toLowerCase();
+            try {
+                if (extension === 'txt') {
+                    applyImportedNames(extractNamesFromText(await file.text()));
+                } else if (extension === 'csv' || extension === 'xlsx' || extension === 'xls') {
+                    if (typeof XLSX === 'undefined') {
+                        throw new Error('Thư viện đọc Excel chưa tải được. Hãy kiểm tra kết nối Internet.');
                     }
-                    return name;
-                }).filter(n => n !== "");
+                    const data = await file.arrayBuffer();
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', raw: false });
+                    applyImportedNames(extractNamesFromRows(rows));
+                } else if (extension === 'docx') {
+                    if (typeof mammoth === 'undefined') {
+                        throw new Error('Thư viện đọc Word chưa tải được. Hãy kiểm tra kết nối Internet.');
+                    }
+                    const data = await file.arrayBuffer();
+                    const result = await mammoth.convertToHtml({ arrayBuffer: data });
+                    const doc = new DOMParser().parseFromString(result.value || '', 'text/html');
+                    const tableRows = Array.from(doc.querySelectorAll('table tr')).map(tr =>
+                        Array.from(tr.querySelectorAll('th, td')).map(cell => cell.textContent || '')
+                    );
 
-                if (rawNames.length > 0) {
-                    document.getElementById('gtnn-namelist').value = rawNames.join('\n');
-                    updateWheel();
+                    let importedNames = [];
+                    if (tableRows.length > 0) {
+                        importedNames = extractNamesFromRows(tableRows);
+                    }
+
+                    if (importedNames.length < 2) {
+                        const blocks = Array.from(doc.querySelectorAll('p, li'))
+                            .map(node => node.textContent || '')
+                            .join('\n');
+                        importedNames = extractNamesFromText(blocks);
+                    }
+                    applyImportedNames(importedNames);
                 } else {
-                    alert("File không có dữ liệu hợp lệ!");
+                    alert('Định dạng chưa được hỗ trợ. Vui lòng dùng TXT, CSV, Excel (.xlsx/.xls) hoặc Word (.docx).');
                 }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; 
+            } catch (error) {
+                console.error(error);
+                alert('Không thể đọc file: ' + (error.message || 'Lỗi không xác định'));
+            } finally {
+                event.target.value = '';
+            }
         }
 
         let names = ["Hoàng Anh",
@@ -452,7 +631,7 @@
 
         const canvas = document.getElementById("gtnn-canvas");
         const ctx = canvas.getContext("2d");
-        const btnSpin = document.getElementById("gtnn-spin-btn");
+        const centerSpinBtn = document.getElementById("gtnn-center-spin");
 
         let audioCtx;
 
@@ -549,17 +728,17 @@
             // Vẽ vòng tròn tâm
             ctx.beginPath();
             ctx.fillStyle = "#fff";
-            ctx.arc(0, 0, 40, 0, 2 * Math.PI, false);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.fillStyle = "#333";
             ctx.arc(0, 0, 30, 0, 2 * Math.PI, false);
             ctx.fill();
             
             ctx.beginPath();
+            ctx.fillStyle = "#333";
+            ctx.arc(0, 0, 23, 0, 2 * Math.PI, false);
+            ctx.fill();
+            
+            ctx.beginPath();
             ctx.fillStyle = "#e0e0e0";
-            ctx.arc(0, 0, 15, 0, 2 * Math.PI, false);
+            ctx.arc(0, 0, 11, 0, 2 * Math.PI, false);
             ctx.fill();
 
             ctx.restore();
@@ -607,7 +786,8 @@
             initAudio(); 
             
             isSpinning = true;
-            btnSpin.classList.add('disabled');
+            centerSpinBtn.classList.add('disabled');
+            centerSpinBtn.disabled = true;
             
             let timeSeconds = parseFloat(document.getElementById('gtnn-spin-time').value);
             if (isNaN(timeSeconds) || timeSeconds <= 0) timeSeconds = 6; 
@@ -640,7 +820,8 @@
                 document.getElementById('gtnn-modal').style.display = 'flex';
                 
                 isSpinning = false;
-                btnSpin.classList.remove('disabled');
+                centerSpinBtn.classList.remove('disabled');
+                centerSpinBtn.disabled = false;
             }, 300); 
         }
 
@@ -657,6 +838,6 @@
         // Khởi tạo ban đầu
         document.getElementById('gtnn-namelist').value = names.join('\n');
         drawWheel();
-
-    </script>
-</div>
+</script>
+</body>
+</html>
