@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = "13.0.0-secure-monorepo";
+  const APP_VERSION = "13.0.1-secure-auto-review";
   const MAX_IMAGES_PER_WRITING = Number(window.VAN10_MAX_IMAGES_PER_WRITING || 8);
   const MAX_IMAGE_BYTES = Number(window.VAN10_MAX_IMAGE_BYTES || 1500000);
   const MAX_IMAGE_SIDE = Number(window.VAN10_MAX_IMAGE_SIDE || 1800);
@@ -17,7 +17,8 @@
     aiOverallResult: null, aiOverallRunning: false,
     preKeyboardSplit: null, drawerOpen: false,
     provinceOptions: [], provinceSearch: "", selectionRequest: 0,
-    attemptToken: "", reviewAvailableAt: 0, questionContexts: new Map()
+    attemptToken: "", reviewAvailableAt: 0, questionContexts: new Map(),
+    reviewRetryTimer: null, reviewRetrySeq: 0
   };
 
   document.addEventListener("DOMContentLoaded", init);
@@ -580,6 +581,7 @@
   }
 
   async function selectExam(id, options = {}) {
+    cancelReviewAutoRetry_();
     const summary = state.exams.find(item => item.ID === id);
     if (!summary) return;
 
@@ -1371,6 +1373,7 @@ Yêu cầu kỹ thuật:
 
   async function finishExam() {
     if(!state.current)return;
+    cancelReviewAutoRetry_();
     saveExamData();
     const answers=collectAnswerData();
     const unanswered=answers.filter(a=>!a.BaiLam && !(state.images[a.MaCau]||[]).length).length;
@@ -1424,17 +1427,94 @@ Yêu cầu kỹ thuật:
       };
     });
     snapshot.reviewUnlocked = true;
+    cancelReviewAutoRetry_();
     renderAnswerKey();
     renderReferences();
   }
 
+  function cancelReviewAutoRetry_() {
+    if (state.reviewRetryTimer) {
+      window.clearInterval(state.reviewRetryTimer);
+      state.reviewRetryTimer = null;
+    }
+    state.reviewRetrySeq += 1;
+  }
+
   function showReviewLoadError_(error) {
-    const wait = Math.max(0, Number(error?.retryAfterSeconds || 0));
-    const detail = wait
-      ? `Đáp án sẽ sẵn sàng sau khoảng ${wait} giây.`
-      : escapeHtml(error?.message || "Chưa thể tải đáp án.");
-    els.answerKeyContent.innerHTML = `<div class="reference-note"><b>Chưa mở được đáp án.</b><br>${detail}<br><button id="retryReviewBtn" class="secondary-btn" type="button">Thử lại</button></div>`;
-    els.referenceContent.innerHTML = '<div class="reference-note">Bài tham khảo sẽ hiển thị sau khi mở đáp án thành công.</div>';
+    const wait = Math.max(0, Math.ceil(Number(error?.retryAfterSeconds || 0)));
+
+    // REVIEW_TOO_EARLY là trạng thái bảo vệ đáp án, không phải lỗi.
+    // Tự đếm ngược theo thời gian Worker trả về và tự tải lại khi đủ thời gian.
+    if (wait > 0) {
+      cancelReviewAutoRetry_();
+      const sequence = state.reviewRetrySeq;
+      const deadline = Date.now() + wait * 1000;
+
+      const renderCountdown = remaining => {
+        els.answerKeyContent.innerHTML = `
+          <div class="reference-note" role="status" aria-live="polite">
+            <b>Đáp án đang được bảo vệ.</b><br>
+            Đáp án sẽ tự động mở sau <strong id="reviewCountdown">${remaining}</strong> giây.<br>
+            <span>Bạn không cần bấm thử lại.</span>
+          </div>`;
+        els.referenceContent.innerHTML =
+          '<div class="reference-note">Bài tham khảo sẽ tự động hiển thị cùng đáp án.</div>';
+      };
+
+      const unlockReview = async () => {
+        if (sequence !== state.reviewRetrySeq) return;
+        if (state.reviewRetryTimer) {
+          window.clearInterval(state.reviewRetryTimer);
+          state.reviewRetryTimer = null;
+        }
+
+        els.answerKeyContent.innerHTML =
+          '<div class="reference-note" role="status" aria-live="polite"><b>Đang mở đáp án…</b><br>Vui lòng chờ trong giây lát.</div>';
+        els.referenceContent.innerHTML =
+          '<div class="reference-note">Đang tải bài viết tham khảo…</div>';
+
+        try {
+          await loadReviewData_();
+        } catch (nextError) {
+          showReviewLoadError_(nextError);
+        }
+      };
+
+      renderCountdown(wait);
+
+      state.reviewRetryTimer = window.setInterval(() => {
+        if (sequence !== state.reviewRetrySeq) {
+          if (state.reviewRetryTimer) window.clearInterval(state.reviewRetryTimer);
+          state.reviewRetryTimer = null;
+          return;
+        }
+
+        const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        const countdown = document.getElementById("reviewCountdown");
+
+        if (remaining > 0) {
+          if (countdown) countdown.textContent = String(remaining);
+          return;
+        }
+
+        unlockReview();
+      }, 250);
+
+      return;
+    }
+
+    // Chỉ lỗi mạng/API thực sự mới yêu cầu người dùng thử lại thủ công.
+    cancelReviewAutoRetry_();
+    const detail = escapeHtml(error?.message || "Chưa thể tải đáp án.");
+    els.answerKeyContent.innerHTML = `
+      <div class="reference-note">
+        <b>Chưa thể tải đáp án.</b><br>
+        ${detail}<br>
+        <button id="retryReviewBtn" class="secondary-btn" type="button">Thử lại</button>
+      </div>`;
+    els.referenceContent.innerHTML =
+      '<div class="reference-note">Bài tham khảo sẽ hiển thị sau khi tải đáp án thành công.</div>';
+
     document.getElementById("retryReviewBtn")?.addEventListener("click", async event => {
       event.currentTarget.disabled = true;
       event.currentTarget.textContent = "Đang thử lại…";
