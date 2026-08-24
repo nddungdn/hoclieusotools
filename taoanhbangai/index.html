@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="description" content="Tạo và chỉnh sửa ảnh chân dung bằng AI với API cá nhân, ưu tiên bảo toàn khuôn mặt." />
+  <meta name="robots" content="index,follow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.workers.dev https://*.hoclieuso.id.vn; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://tools.hoclieuso.id.vn; object-src 'none'" />
+  <title>Tạo ảnh bằng AI | Học liệu số</title>
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">HỌC LIỆU SỐ · CÔNG CỤ AI</p>
+        <h1>Tạo ảnh bằng AI</h1>
+        <p class="subtitle">Thay bối cảnh, trang phục, tư thế và hậu kỳ nhẹ — ưu tiên giữ khuôn mặt từ ảnh gốc.</p>
+      </div>
+      <span class="version" id="versionBadge">v1.0.0</span>
+    </header>
+
+    <main class="layout">
+      <section class="panel form-panel" aria-label="Thiết lập tạo ảnh">
+        <div class="section-title">
+          <span class="step">1</span>
+          <div><h2>Ảnh gốc & API cá nhân</h2><p>Ảnh không được lưu trên máy chủ. API key mặc định không lưu; nếu bật “Nhớ API key”, key chỉ được lưu trên chính trình duyệt này.</p></div>
+        </div>
+
+        <label class="upload-zone" id="uploadZone" for="sourceFile">
+          <input id="sourceFile" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          <span class="upload-icon">＋</span>
+          <strong>Chọn ảnh chân dung</strong>
+          <span>JPG, PNG hoặc WebP · tối đa <span id="maxMbText">15</span> MB</span>
+        </label>
+
+        <div class="source-preview hidden" id="sourcePreviewWrap">
+          <div class="canvas-wrap">
+            <canvas id="sourceCanvas"></canvas>
+            <div class="selection-hint hidden" id="selectionHint">Kéo để khoanh vùng khuôn mặt</div>
+          </div>
+          <div class="preview-actions">
+            <button class="btn secondary small" type="button" id="selectFaceBtn">Khoanh vùng mặt</button>
+            <button class="btn ghost small hidden" type="button" id="clearFaceBtn">Xóa vùng mặt</button>
+            <span class="face-status" id="faceStatus">Chưa khoanh vùng</span>
+          </div>
+          <p class="microcopy">Khoanh vùng mặt giúp tăng bảo toàn nhận diện: OpenAI nhận mask vùng bảo vệ; Gemini nhận thêm crop khuôn mặt làm tham chiếu chi tiết. Đây vẫn không phải khóa pixel tuyệt đối ở mọi tư thế.</p>
+        </div>
+
+        <div class="grid two">
+          <label class="field">
+            <span>Nhà cung cấp</span>
+            <select id="provider">
+              <option value="gemini">Gemini 3.1 Flash Image</option>
+              <option value="openai">OpenAI GPT Image 2</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>API key cá nhân</span>
+            <div class="key-row">
+              <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Nhập API key..." />
+              <button class="icon-btn" id="toggleKey" type="button" aria-label="Hiện hoặc ẩn API key">👁</button>
+            </div>
+          </label>
+        </div>
+        <div class="inline-row">
+          <label class="check"><input type="checkbox" id="rememberKey" /> <span>Nhớ API key trên thiết bị này</span></label>
+          <button class="btn ghost small" type="button" id="checkKeyBtn">Kiểm tra API</button>
+          <span class="api-status" id="apiStatus"></span>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-title">
+          <span class="step">2</span>
+          <div><h2>Mô tả ảnh mong muốn</h2><p>Bối cảnh là ô nhập tự do; các mục khác có thể để trống.</p></div>
+        </div>
+
+        <label class="field">
+          <span>Bối cảnh <b>*</b></span>
+          <textarea id="background" maxlength="1200" rows="4" placeholder="Ví dụ: Vườn hoa cúc lúc hoàng hôn, ánh nắng vàng nhẹ, hậu cảnh mờ, phong cách chân dung tự nhiên..."></textarea>
+          <small><span id="backgroundCount">0</span>/1200</small>
+        </label>
+
+        <div class="grid two">
+          <label class="field">
+            <span>Trang phục</span>
+            <textarea id="outfit" maxlength="700" rows="3" placeholder="Ví dụ: Váy hồng pastel thanh lịch, mũ rộng vành màu kem..."></textarea>
+          </label>
+          <label class="field">
+            <span>Tư thế / điệu bộ</span>
+            <textarea id="pose" maxlength="700" rows="3" placeholder="Ví dụ: Đứng xoay nhẹ người, tay giữ tà váy, nhìn về máy ảnh..."></textarea>
+          </label>
+        </div>
+
+        <div class="grid three">
+          <label class="field">
+            <span>Giữ khuôn mặt</span>
+            <select id="preserveMode">
+              <option value="pixel">Giữ mặt tối đa</option>
+              <option value="identity">Giữ nhận diện</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Làm đẹp da</span>
+            <select id="beauty">
+              <option value="off">Tắt</option>
+              <option value="very-light">Rất nhẹ</option>
+              <option value="light" selected>Nhẹ</option>
+              <option value="medium">Vừa phải</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Tỷ lệ ảnh</span>
+            <select id="aspectRatio">
+              <option value="4:5" selected>4:5 · Chân dung</option>
+              <option value="9:16">9:16 · Dọc</option>
+              <option value="1:1">1:1 · Vuông</option>
+              <option value="3:2">3:2 · Ngang</option>
+              <option value="2:3">2:3 · Dọc</option>
+              <option value="16:9">16:9 · Ngang</option>
+              <option value="5:4">5:4 · Ngang</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid two">
+          <label class="field">
+            <span>Độ phân giải</span>
+            <select id="resolution">
+              <option value="1K">1K · Tiết kiệm</option>
+              <option value="2K" selected>2K · Khuyến nghị</option>
+              <option value="4K">4K / tối đa · Chi phí cao hơn</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Chất lượng</span>
+            <select id="quality">
+              <option value="medium">Cân bằng</option>
+              <option value="high" selected>Cao</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mode-note" id="modeNote"></div>
+        <label class="check consent"><input type="checkbox" id="rightsConsent" /> <span>Tôi có quyền sử dụng ảnh này và đồng ý gửi ảnh tới nhà cung cấp AI đã chọn để xử lý.</span></label>
+
+        <button class="btn primary large" id="generateBtn" type="button">Tạo ảnh</button>
+        <div class="progress hidden" id="progressBox" role="status" aria-live="polite">
+          <div class="spinner"></div><div><strong id="progressTitle">Đang xử lý ảnh...</strong><p id="progressText">Thời gian phụ thuộc model, độ phân giải và API của bạn.</p></div>
+        </div>
+      </section>
+
+      <section class="panel result-panel" aria-label="Kết quả">
+        <div class="result-head"><div><h2>Kết quả</h2><p>Ảnh tạo ra không được lưu trên máy chủ của tiện ích.</p></div><span id="providerBadge" class="badge">Chưa tạo</span></div>
+        <div class="result-empty" id="resultEmpty">
+          <div class="empty-icon">✦</div><h3>Ảnh kết quả sẽ xuất hiện ở đây</h3><p>Tải ảnh gốc, mô tả bối cảnh rồi nhấn “Tạo ảnh”.</p>
+        </div>
+        <div class="result-content hidden" id="resultContent">
+          <img id="resultImage" alt="Ảnh do AI tạo" />
+          <div class="result-actions">
+            <a class="btn primary" id="downloadBtn" download="taoanh-ai.jpg">Tải ảnh</a>
+            <button class="btn secondary" type="button" id="newImageBtn">Tạo ảnh khác</button>
+          </div>
+
+          <div class="refine-box">
+            <h3>Chỉnh tiếp ảnh này</h3>
+            <p>Yêu cầu chỉnh tiếp sẽ tiếp tục ưu tiên ảnh gốc làm nguồn nhận diện.</p>
+            <div class="quick-chips" id="quickChips">
+              <button type="button" data-text="Giữ khuôn mặt giống ảnh gốc hơn; giảm mọi thay đổi ở mắt, mũi, miệng, cằm và đường viền hàm.">Giống mặt hơn</button>
+              <button type="button" data-text="Làm da tự nhiên hơn, giảm hiệu ứng da nhựa và giữ texture da thật.">Da tự nhiên hơn</button>
+              <button type="button" data-text="Làm sáng khuôn mặt rất nhẹ và cân bằng ánh sáng với bối cảnh, không làm trắng bệch.">Sáng mặt nhẹ</button>
+              <button type="button" data-text="Giảm mức làm mịn da và giữ lại chi tiết da tự nhiên.">Giảm làm mịn</button>
+              <button type="button" data-text="Sửa bàn tay và ngón tay cho tự nhiên, đúng giải phẫu; không thay đổi khuôn mặt.">Sửa bàn tay</button>
+              <button type="button" data-text="Tăng độ nét tổng thể nhẹ, ưu tiên tóc, trang phục và bối cảnh; không tái tạo thêm chi tiết khuôn mặt.">Tăng nét nhẹ</button>
+            </div>
+            <textarea id="refineText" maxlength="800" rows="3" placeholder="Mô tả điều cần chỉnh tiếp..."></textarea>
+            <button class="btn secondary" id="refineBtn" type="button">Chỉnh tiếp</button>
+          </div>
+        </div>
+        <div class="notice">
+          <strong>Lưu ý về “giữ nguyên pixel”</strong>
+          <p>AI tạo sinh không bảo đảm khóa 100% pixel khuôn mặt. Khi đổi góc đầu hoặc tư thế lớn, hệ thống sẽ ưu tiên giữ nhận diện. Chế độ “Giữ mặt tối đa” phù hợp nhất khi góc mặt gần ảnh gốc.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>© Học liệu số · API cá nhân · Không lưu ảnh và API key trên máy chủ tiện ích</footer>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>
