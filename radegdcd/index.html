@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
+  <title>Ra đề kiểm tra GDCD THCS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-mark" aria-hidden="true">GD</div>
+      <div class="brand-copy">
+        <h1>Ra đề kiểm tra GDCD THCS</h1>
+        <p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p>
+      </div>
+      <span class="version-badge" id="versionBadge">V2.0</span>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Các bước thực hiện">
+      <button class="step-btn active" data-step="setup"><span>1</span>Thiết lập</button>
+      <button class="step-btn" data-step="lessons"><span>2</span>Chọn bài</button>
+      <button class="step-btn" data-step="matrix"><span>3</span>Ma trận</button>
+      <button class="step-btn" data-step="spec"><span>4</span>Bản đặc tả</button>
+      <button class="step-btn" data-step="generate"><span>5</span>Tạo đề</button>
+      <button class="step-btn" data-step="review"><span>6</span>Kiểm tra & Xuất Word</button>
+    </aside>
+
+    <main class="main-content">
+      <section class="panel active" id="panel-setup">
+        <div class="panel-heading">
+          <div><span class="eyebrow">BƯỚC 1</span><h2>Thiết lập đề kiểm tra</h2></div>
+          <p>Thông tin này được dùng thống nhất cho ma trận, đặc tả, đề và hướng dẫn chấm.</p>
+        </div>
+
+        <div class="form-grid cols-2">
+          <label>Cơ quan chủ quản<input id="parentOrg" value="UBND PHƯỜNG HẢI CHÂU" /></label>
+          <label>Trường<input id="schoolName" value="TRƯỜNG TRUNG HỌC CƠ SỞ" /></label>
+          <label>Tên trường / dòng 2<input id="schoolLine2" value="LÊ THÁNH TÔN" /></label>
+          <label>Năm học<input id="schoolYear" value="2026 – 2027" /></label>
+          <label>Loại kiểm tra
+            <select id="examType"><option>KIỂM TRA GIỮA KÌ I</option><option>KIỂM TRA CUỐI KÌ I</option><option>KIỂM TRA GIỮA KÌ II</option><option>KIỂM TRA CUỐI KÌ II</option><option>KIỂM TRA ĐỊNH KÌ</option></select>
+          </label>
+          <label>Lớp<select id="grade"><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select></label>
+          <label>Thời gian làm bài (phút)<input id="duration" type="number" min="15" max="180" value="45" /></label>
+          <label>Số mã đề<select id="examCodes"><option value="1">1 mã</option><option value="2" selected>2 mã (A/B)</option></select></label>
+        </div>
+
+        <div class="choice-card-group">
+          <h3>Tùy chọn đầu ra</h3>
+          <label class="choice-card"><input type="checkbox" id="disabledGuide" /><span><strong>Hướng dẫn chấm dành cho học sinh khuyết tật</strong><small>Chỉ tạo khi giáo viên bật; AI không tự ý giảm yêu cầu.</small></span></label>
+        </div>
+
+        <div class="choice-card-group">
+          <h3>Cách ra đề</h3>
+          <label class="choice-card"><input type="radio" name="mode" value="normal" checked /><span><strong>Ra đề thông thường</strong><small>Ma trận 3 mức: Nhận biết – Thông hiểu – Vận dụng; mỗi mức có TNKQ và TL.</small></span></label>
+          <label class="choice-card"><input type="radio" name="mode" value="7991" /><span><strong>Ra đề theo Công văn 7991</strong><small>TNKQ được cấu hình theo các dạng phù hợp; vẫn quản lí trên 3 mức Nhận biết – Thông hiểu – Vận dụng.</small></span></label>
+        </div>
+
+        <div class="api-card">
+          <div class="api-title"><div><h3>Gemini API cá nhân</h3><p>API key chỉ được gửi qua Worker trong lúc xử lí; tiện ích không lưu key.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
+          <div class="api-row">
+            <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán Gemini API key..." /><button type="button" class="icon-btn" id="toggleKey" aria-label="Hiện/ẩn API key">👁</button></div>
+            <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra API</button>
+          </div>
+          <div class="api-row api-meta">
+            <label>Model<select id="modelSelect" disabled><option>Kiểm tra API để tải model...</option></select></label>
+            <a id="apiGuide" class="text-link" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
+          </div>
+          <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra API.</p>
+        </div>
+
+        <div class="choice-card-group">
+          <h3>Ghi chú/tài liệu bổ sung</h3>
+          <label>Thông tin giáo viên muốn AI sử dụng thêm<textarea id="extraNotes" rows="5" placeholder="Ví dụ: phạm vi tuần học; lưu ý của tổ chuyên môn; nội dung pháp luật đã cập nhật; tình huống địa phương... (không bắt buộc)"></textarea></label>
+        </div>
+
+        <div class="panel-actions"><span></span><button class="btn primary next-btn" data-next="lessons">Tiếp tục: Chọn bài →</button></div>
+      </section>
+
+      <section class="panel" id="panel-lessons">
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 2</span><h2>Chọn bài kiểm tra</h2></div><p>Danh sách lấy từ SGK. Chỉ những bài được chọn mới xuất hiện trong ma trận, đặc tả và dữ liệu gửi cho AI.</p></div>
+        <div class="toolbar"><div class="summary-chip" id="gradeChip">GDCD 6</div><button class="btn ghost" id="clearLessons">Bỏ chọn tất cả</button></div>
+        <div class="lesson-list" id="lessonList"></div>
+        <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="setup">← Quay lại</button><button class="btn primary next-btn" data-next="matrix">Tiếp tục: Lập ma trận →</button></div>
+      </section>
+
+      <section class="panel" id="panel-matrix">
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 3</span><h2>Ma trận đề kiểm tra</h2></div><p>Không có mức Vận dụng cao. Mỗi ô TNKQ/TL có thể chứa nhiều cấu hình câu và nhiều mức điểm khác nhau.</p></div>
+        <div class="legend"><span><b>NB</b> Nhận biết</span><span><b>TH</b> Thông hiểu</span><span><b>VD</b> Vận dụng</span></div>
+        <div class="table-scroll"><table class="matrix-table"><thead><tr><th rowspan="2">TT</th><th rowspan="2">Mạch nội dung</th><th rowspan="2">Bài</th><th colspan="2">Nhận biết</th><th colspan="2">Thông hiểu</th><th colspan="2">Vận dụng</th><th rowspan="2">Tổng điểm</th></tr><tr><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th></tr></thead><tbody id="matrixBody"></tbody><tfoot id="matrixFoot"></tfoot></table></div>
+        <div class="notice" id="matrixNotice">Tổng điểm đề nên bằng 10,0.</div>
+        <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="lessons">← Quay lại</button><button class="btn primary next-btn" data-next="spec">Tiếp tục: Xem đặc tả →</button></div>
+      </section>
+
+      <section class="panel" id="panel-spec">
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 4</span><h2>Bản đặc tả</h2></div><p>Nội dung đặc tả chuẩn lấy đúng theo tài liệu đính kèm và chỉ hiển thị đúng bài đã chọn. Giáo viên có thể nhập thêm đặc tả riêng ở từng mức Nhận biết – Thông hiểu – Vận dụng.</p></div>
+        <div class="table-scroll"><table class="spec-table"><thead><tr><th>TT</th><th>Mạch nội dung</th><th>Bài</th><th>Mức độ đánh giá</th><th>Nhận biết</th><th>Thông hiểu</th><th>Vận dụng</th></tr></thead><tbody id="specBody"></tbody><tfoot id="specFoot"></tfoot></table></div>
+        <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="matrix">← Quay lại</button><button class="btn primary next-btn" data-next="generate">Tiếp tục: Tạo đề →</button></div>
+      </section>
+
+      <section class="panel" id="panel-generate">
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Tạo đề bằng AI</h2></div><p>AI nhận đúng bài đã chọn, nội dung SGK tương ứng, bản đặc tả tương ứng và ma trận đã thiết lập.</p></div>
+        <div class="generate-card">
+          <div><h3>Trước khi tạo đề</h3><ul><li>API phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao.</li></ul></div>
+          <button class="btn primary large" id="generateBtn">✨ Tạo đề, đáp án và hướng dẫn chấm</button>
+        </div>
+        <div class="status-box hidden" id="generateStatus" aria-live="polite"></div>
+        <div id="examPreview" class="exam-preview empty">Chưa có đề được tạo.</div>
+        <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="spec">← Quay lại</button><button class="btn primary next-btn" data-next="review">Tiếp tục: Kiểm tra & Xuất →</button></div>
+      </section>
+
+      <section class="panel" id="panel-review">
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Kiểm tra và xuất Word</h2></div><p>File Word được dựng bằng OOXML, không giao việc định dạng Word cho AI.</p></div>
+        <div class="audit-grid" id="auditGrid"></div>
+        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm · bảng ma trận và đặc tả phân cột.</p></div><button class="btn primary large" id="exportDocxBtn">⬇ Xuất file .docx</button></div>
+        <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="generate">← Quay lại</button><span></span></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer"><div><strong>Học liệu số</strong> · Công cụ hỗ trợ giáo viên</div><div>API cá nhân · Prompt bảo mật qua Cloudflare Worker</div></footer>
+
+  <dialog id="matrixDialog" class="matrix-dialog">
+    <form method="dialog" id="matrixForm">
+      <div class="dialog-head"><div><small id="dialogLesson"></small><h3 id="dialogTitle">Cấu hình câu hỏi</h3></div><button type="button" class="icon-btn" id="closeDialog">✕</button></div>
+      <div id="configRows" class="config-rows"></div>
+      <button type="button" class="btn ghost" id="addConfigBtn">+ Thêm cấu hình</button>
+      <div class="dialog-summary" id="dialogSummary"></div>
+      <div class="dialog-actions"><button type="button" class="btn ghost" id="cancelDialog">Hủy</button><button type="submit" class="btn primary">Lưu cấu hình</button></div>
+    </form>
+  </dialog>
+
+  <script src="jszip.min.js"></script>
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
