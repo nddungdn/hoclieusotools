@@ -15,7 +15,7 @@
         <h1>Ra đề kiểm tra GDCD THCS</h1>
         <p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p>
       </div>
-      <span class="version-badge" id="versionBadge">V2.0</span>
+      <span class="version-badge" id="versionBadge">V2.1</span>
     </div>
   </header>
 
@@ -39,7 +39,7 @@
         <div class="form-grid cols-2">
           <label>Cơ quan chủ quản<input id="parentOrg" value="UBND PHƯỜNG HẢI CHÂU" /></label>
           <label>Trường<input id="schoolName" value="TRƯỜNG TRUNG HỌC CƠ SỞ" /></label>
-          <label>Tên trường / dòng 2<input id="schoolLine2" value="LÊ THÁNH TÔN" /></label>
+          <label>Tên trường / dòng 2<input id="schoolLine2" value="LÊ HỒNG PHONG" /></label>
           <label>Năm học<input id="schoolYear" value="2026 – 2027" /></label>
           <label>Loại kiểm tra
             <select id="examType"><option>KIỂM TRA GIỮA KÌ I</option><option>KIỂM TRA CUỐI KÌ I</option><option>KIỂM TRA GIỮA KÌ II</option><option>KIỂM TRA CUỐI KÌ II</option><option>KIỂM TRA ĐỊNH KÌ</option></select>
@@ -56,7 +56,7 @@
 
         <div class="choice-card-group">
           <h3>Cách ra đề</h3>
-          <label class="choice-card"><input type="radio" name="mode" value="normal" checked /><span><strong>Ra đề thông thường</strong><small>Ma trận 3 mức: Nhận biết – Thông hiểu – Vận dụng; mỗi mức có TNKQ và TL.</small></span></label>
+          <label class="choice-card"><input type="radio" name="mode" value="normal" checked /><span><strong>Ra đề thông thường</strong><small>Nhận biết và Thông hiểu có TNKQ/TL; Vận dụng chỉ sử dụng TL. Giáo viên chọn rõ kiểu trắc nghiệm và kiểu tự luận.</small></span></label>
           <label class="choice-card"><input type="radio" name="mode" value="7991" /><span><strong>Ra đề theo Công văn 7991</strong><small>TNKQ được cấu hình theo các dạng phù hợp; vẫn quản lí trên 3 mức Nhận biết – Thông hiểu – Vận dụng.</small></span></label>
         </div>
 
@@ -89,9 +89,10 @@
       </section>
 
       <section class="panel" id="panel-matrix">
-        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 3</span><h2>Ma trận đề kiểm tra</h2></div><p>Không có mức Vận dụng cao. Mỗi ô TNKQ/TL có thể chứa nhiều cấu hình câu và nhiều mức điểm khác nhau.</p></div>
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 3</span><h2>Ma trận đề kiểm tra</h2></div><p>Không có mức Vận dụng cao. Mỗi ô có thể chứa nhiều cấu hình câu và nhiều mức điểm khác nhau. Ở mức Vận dụng chỉ sử dụng Tự luận.</p></div>
         <div class="legend"><span><b>NB</b> Nhận biết</span><span><b>TH</b> Thông hiểu</span><span><b>VD</b> Vận dụng</span></div>
-        <div class="table-scroll"><table class="matrix-table"><thead><tr><th rowspan="2">TT</th><th rowspan="2">Mạch nội dung</th><th rowspan="2">Bài</th><th colspan="2">Nhận biết</th><th colspan="2">Thông hiểu</th><th colspan="2">Vận dụng</th><th rowspan="2">Tổng điểm</th></tr><tr><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th></tr></thead><tbody id="matrixBody"></tbody><tfoot id="matrixFoot"></tfoot></table></div>
+        <div class="notice compact"><strong>Cấu hình câu:</strong> TNKQ có thể chọn Một lựa chọn đúng nhất, Nhiều lựa chọn đúng, Đúng/Sai, Trả lời ngắn, Nối (tùy chế độ). Tự luận có thể chọn Câu hỏi trực tiếp hoặc Câu hỏi sử dụng tình huống; mỗi câu có thể gồm 1–4 ý và phân điểm từng ý.</div>
+        <div class="table-scroll"><table class="matrix-table"><thead><tr><th rowspan="2">TT</th><th rowspan="2">Mạch nội dung</th><th rowspan="2">Bài</th><th colspan="2">Nhận biết</th><th colspan="2">Thông hiểu</th><th>Vận dụng</th><th rowspan="2">Tổng điểm</th></tr><tr><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th><th>TL</th></tr></thead><tbody id="matrixBody"></tbody><tfoot id="matrixFoot"></tfoot></table></div>
         <div class="notice" id="matrixNotice">Tổng điểm đề nên bằng 10,0.</div>
         <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="lessons">← Quay lại</button><button class="btn primary next-btn" data-next="spec">Tiếp tục: Xem đặc tả →</button></div>
       </section>
@@ -105,7 +106,7 @@
       <section class="panel" id="panel-generate">
         <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Tạo đề bằng AI</h2></div><p>AI nhận đúng bài đã chọn, nội dung SGK tương ứng, bản đặc tả tương ứng và ma trận đã thiết lập.</p></div>
         <div class="generate-card">
-          <div><h3>Trước khi tạo đề</h3><ul><li>API phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao.</li></ul></div>
+          <div><h3>Trước khi tạo đề</h3><ul><li>API phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao; mức Vận dụng chỉ dùng tự luận.</li><li>Đề được tách thành PHẦN I. TRẮC NGHIỆM và PHẦN II. TỰ LUẬN.</li></ul></div>
           <button class="btn primary large" id="generateBtn">✨ Tạo đề, đáp án và hướng dẫn chấm</button>
         </div>
         <div class="status-box hidden" id="generateStatus" aria-live="polite"></div>
