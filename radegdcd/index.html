@@ -15,7 +15,7 @@
         <h1>Ra đề kiểm tra GDCD THCS</h1>
         <p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p>
       </div>
-      <span class="version-badge" id="versionBadge">V2.1</span>
+      <span class="version-badge" id="versionBadge">V2.2</span>
     </div>
   </header>
 
@@ -51,7 +51,28 @@
 
         <div class="choice-card-group">
           <h3>Tùy chọn đầu ra</h3>
-          <label class="choice-card"><input type="checkbox" id="disabledGuide" /><span><strong>Hướng dẫn chấm dành cho học sinh khuyết tật</strong><small>Chỉ tạo khi giáo viên bật; AI không tự ý giảm yêu cầu.</small></span></label>
+          <label class="choice-card"><input type="checkbox" id="disabledGuide" /><span><strong>Hướng dẫn chấm dành cho học sinh khuyết tật</strong><small>Chỉ áp dụng khi giáo viên xác nhận phù hợp với kế hoạch giáo dục cá nhân của học sinh.</small></span></label>
+          <div id="disabledOptions" class="disabled-options hidden">
+            <div class="form-grid cols-2">
+              <label>Đối tượng hỗ trợ
+                <select id="disabledType">
+                  <option value="intellectual" selected>Khuyết tật trí tuệ</option>
+                  <option value="language">Khó khăn về ngôn ngữ/giao tiếp</option>
+                  <option value="motor">Khuyết tật vận động</option>
+                  <option value="other">Khác</option>
+                </select>
+              </label>
+              <label>Phương án chấm
+                <select id="disabledScoring">
+                  <option value="tn_scale10" selected>Chỉ làm trắc nghiệm, quy đổi về thang 10</option>
+                  <option value="same_exam">Làm cùng đề, giáo viên điều chỉnh cách tiếp cận</option>
+                  <option value="custom">Theo hướng dẫn riêng của giáo viên</option>
+                </select>
+              </label>
+            </div>
+            <label>Ghi chú điều chỉnh riêng<textarea id="disabledNote" rows="3" placeholder="Ví dụ: kéo dài thời gian; đọc rõ yêu cầu; dùng chữ lớn; cho phép trả lời bằng lời nói..."></textarea></label>
+            <p class="tiny">Phương án “chỉ làm trắc nghiệm, quy đổi thang 10” được tính theo công thức: điểm đạt được ở phần trắc nghiệm / tổng điểm trắc nghiệm × 10.</p>
+          </div>
         </div>
 
         <div class="choice-card-group">

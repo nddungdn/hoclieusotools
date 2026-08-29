@@ -109,7 +109,7 @@ function setupValue(){
     parentOrg:$('#parentOrg').value.trim(), schoolName:$('#schoolName').value.trim(), schoolLine2:$('#schoolLine2').value.trim(),
     schoolYear:$('#schoolYear').value.trim(), examType:$('#examType').value, grade:state.grade,
     duration:nval($('#duration').value)||45, examCodes:nval($('#examCodes').value)||1,
-    mode:mode(), disabledGuide:$('#disabledGuide').checked, extraNotes:$('#extraNotes').value.trim()
+    mode:mode(), disabledGuide:$('#disabledGuide').checked, disabledType:$('#disabledType')?.value||'intellectual', disabledScoring:$('#disabledScoring')?.value||'tn_scale10', disabledNote:$('#disabledNote')?.value?.trim()||'', extraNotes:$('#extraNotes').value.trim()
   };
 }
 
@@ -321,14 +321,19 @@ function renderAudit(){
 function xesc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function wRun(text,{b=false,i=false,size=26}={}){return `<w:r><w:rPr>${b?'<w:b/>':''}${i?'<w:i/>':''}<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr><w:t xml:space="preserve">${xesc(text)}</w:t></w:r>`;}
 function wP(text='',opt={}){const {b=false,align='left',size=26,after=80,before=0,pageBreak=false}=opt;return `<w:p><w:pPr><w:jc w:val="${align}"/><w:spacing w:after="${after}" w:before="${before}"/>${pageBreak?'<w:pageBreakBefore/>':''}</w:pPr>${wRun(text,{b,size})}</w:p>`;}
+function wPParts(parts=[],opt={}){const {align='left',size=26,after=80,before=0,pageBreak=false}=opt;return `<w:p><w:pPr><w:jc w:val="${align}"/><w:spacing w:after="${after}" w:before="${before}"/>${pageBreak?'<w:pageBreakBefore/>':''}</w:pPr>${parts.map(x=>wRun(x.text||'',{b:!!x.b,i:!!x.i,size:x.size||size})).join('')}</w:p>`;}
 function wRich(lines,opt={}){return (lines||[]).map((x,i)=>wP(x.text??x,{...opt,b:x.bold??opt.b,align:x.align??opt.align,size:x.size??opt.size,after:x.after??opt.after})).join('');}
 function tc(content,{span=1,vMerge=null,width=null,align='left',fill=null}={}){return `<w:tc><w:tcPr>${span>1?`<w:gridSpan w:val="${span}"/>`:''}${vMerge===true?'<w:vMerge w:val="restart"/>':vMerge===false?'<w:vMerge/>':''}${width?`<w:tcW w:w="${width}" w:type="dxa"/>`:''}${fill?`<w:shd w:fill="${fill}"/>`:''}<w:vAlign w:val="center"/></w:tcPr>${typeof content==='string'&&content.startsWith('<w:')?content:wP(content,{align,size:20,after:20})}</w:tc>`;}
 function tr(cells,{header=false}={}){return `<w:tr>${header?'<w:trPr><w:tblHeader/></w:trPr>':''}${cells.join('')}</w:tr>`;}
 function tbl(rows,widths=[]){return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="000000"/><w:left w:val="single" w:sz="4" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:color="000000"/><w:right w:val="single" w:sz="4" w:color="000000"/><w:insideH w:val="single" w:sz="4" w:color="000000"/><w:insideV w:val="single" w:sz="4" w:color="000000"/></w:tblBorders><w:tblCellMar><w:top w:w="70" w:type="dxa"/><w:left w:w="70" w:type="dxa"/><w:bottom w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr>${widths.length?`<w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`:''}${rows.join('')}</w:tbl>`;}
-function headerDoc(setup,title,code=''){
-  const left=wP(setup.parentOrg,{align:'center',b:true,size:22})+wP(setup.schoolName,{align:'center',b:true,size:22})+wP(setup.schoolLine2,{align:'center',b:true,size:22});
-  const right=wP(title,{align:'center',b:true,size:22})+wP(`NĂM HỌC ${setup.schoolYear}`,{align:'center',b:true,size:22})+wP(`Môn: Giáo dục công dân – Lớp ${setup.grade}`,{align:'center',b:true,size:22})+(code?wP(`ĐỀ ${code}`,{align:'center',b:true,size:22}):'');
-  return tbl([tr([tc(left,{width:4700}),tc(right,{width:4700})])],[4700,4700]);
+function headerDoc(setup,title,opts={}){
+  const code=opts.code||'';
+  const examSheet=Boolean(opts.examSheet);
+  const left=wP(setup.parentOrg,{align:'center',b:true,size:22})+wP(setup.schoolName,{align:'center',b:true,size:22})+wP(setup.schoolLine2,{align:'center',b:true,size:22})+(examSheet&&code?wP(`ĐỀ ${code}`,{align:'center',b:true,size:22}):'');
+  const right=wP(title,{align:'center',b:true,size:22})+wP(`NĂM HỌC ${setup.schoolYear}`,{align:'center',b:true,size:22})+wP(`Môn: Giáo dục công dân – Lớp ${setup.grade}`,{align:'center',b:true,size:22})+(examSheet?wP(`Thời gian làm bài: ${setup.duration} phút (không kể thời gian phát đề)`,{align:'center',b:true,size:21}):'');
+  const rows=[tr([tc(left,{width:4700}),tc(right,{width:4700})])];
+  if(examSheet) rows.push(tr([tc(wPParts([{text:'Họ và tên học sinh: ',b:true},{text:'...............................................................................  '},{text:'Lớp: ',b:true},{text:'........'}],{size:21,after:15}),{span:2})]));
+  return tbl(rows,[4700,4700]);
 }
 function matrixDoc(){
   const rows=[];
@@ -370,8 +375,11 @@ function specDoc(){
   return tbl(rows);
 }
 function qDoc(q){
-  const head=q.context?`Câu ${q.number} (${fmt(q.points)} điểm): Cho tình huống: ${q.context}`:`Câu ${q.number} (${fmt(q.points)} điểm):${q.prompt?' '+q.prompt:''}`;
-  let xml=wP(head,{b:false,size:24,after:45});
+  const prefix=`Câu ${q.number} (${fmt(q.points)} điểm):`;
+  let first='';
+  if(q.context) first=` Cho tình huống: ${q.context}`;
+  else if(q.prompt) first=` ${q.prompt}`;
+  let xml=wPParts([{text:prefix,b:true},{text:first}],{size:24,after:45});
   if(q.context&&q.prompt)xml+=wP(q.prompt,{size:24,after:45});
   if(q.options?.length) q.options.forEach((x,i)=>xml+=wP(`${String.fromCharCode(65+i)}. ${stripChoiceLabel(x)}`,{size:24,after:20}));
   if(q.statements?.length){
@@ -415,39 +423,66 @@ function markingDetail(q){
   const rub=(q.rubric||[]).map(r=>`– ${r.content} (${fmt(r.points)}đ)`).join('\n');
   return [ans,rub,...partDetails].filter(Boolean).join('\n');
 }
+function disabilityGuideDoc(tnScore){
+  const setup=setupValue(); if(!setup.disabledGuide)return '';
+  let xml=wP('HƯỚNG DẪN CHẤM DÀNH CHO HỌC SINH KHUYẾT TẬT',{b:true,size:24,before:120});
+  const note=setup.disabledNote?` Ghi chú của giáo viên: ${setup.disabledNote}`:'';
+  if(setup.disabledType==='intellectual'&&setup.disabledScoring==='tn_scale10'){
+    xml+=wP('Đối tượng: học sinh khuyết tật trí tuệ khi giáo viên xác nhận phương án này phù hợp với kế hoạch giáo dục cá nhân (IEP/KHGD cá nhân) của học sinh.',{size:22});
+    xml+=wP(`Yêu cầu làm bài: chỉ thực hiện PHẦN I. TRẮC NGHIỆM của đề. Tổng điểm gốc của phần trắc nghiệm là ${fmt(tnScore)} điểm.`,{size:22});
+    xml+=wP(`Cách quy đổi: Điểm kiểm tra = (Điểm trắc nghiệm học sinh đạt được / ${fmt(tnScore)}) × 10. Kết quả làm tròn đến một chữ số thập phân.`,{b:true,size:22});
+    if(note)xml+=wP(note.trim(),{size:22});
+  }else if(setup.disabledScoring==='same_exam'){
+    xml+=wP('Học sinh làm cùng cấu trúc đề và thang điểm; giáo viên điều chỉnh cách trình bày, thời gian, phương thức tiếp nhận/trả lời theo nhu cầu giáo dục đặc biệt và kế hoạch giáo dục cá nhân.',{size:22});
+    if(note)xml+=wP(note.trim(),{size:22});
+  }else{
+    xml+=wP('Thực hiện theo hướng dẫn riêng của giáo viên và kế hoạch giáo dục cá nhân của học sinh; không tự động thay đổi chuẩn đánh giá khi chưa có căn cứ.',{size:22});
+    if(note)xml+=wP(note.trim(),{size:22});
+  }
+  return xml;
+}
+function tnAnswerTable(codes){
+  const codeQs=codes.map(c=>orderedQuestions(c).filter(q=>q.form==='TNKQ'));
+  const max=Math.max(0,...codeQs.map(x=>x.length)); if(!max)return '';
+  const rows=[];
+  const top=[tc('Câu',{fill:'EDEBFA'})];
+  for(let i=0;i<max;i++){const q=codeQs[0]?.[i];top.push(tc(q?`${q.number} (${fmt(q.points)}đ)`:String(i+1),{fill:'EDEBFA'}));}
+  rows.push(tr(top,{header:true}));
+  codes.forEach((code,ci)=>{const row=[tc(`Đề ${code.code}`,{fill:'F8F7FC'})];for(let i=0;i<max;i++){const q=codeQs[ci]?.[i];row.push(tc(q?answerText(q):''));}rows.push(tr(row));});
+  return tbl(rows);
+}
+function pairedEssayMarkingTable(codes){
+  const essays=codes.map(c=>orderedQuestions(c).filter(q=>q.form==='TL'));
+  const max=Math.max(0,...essays.map(x=>x.length)); if(!max)return '';
+  if(codes.length>=2){
+    const rows=[tr([tc('Câu',{vMerge:true,fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{span:2,fill:'EDEBFA'}),tc('Điểm',{vMerge:true,fill:'EDEBFA'})],{header:true}),tr([tc('',{vMerge:false}),tc(`ĐỀ ${codes[0].code}`,{fill:'EDEBFA'}),tc(`ĐỀ ${codes[1].code}`,{fill:'EDEBFA'}),tc('',{vMerge:false})],{header:true})];
+    for(let i=0;i<max;i++){const a=essays[0]?.[i],b=essays[1]?.[i];const no=a?.number??b?.number??'';const pts=a?.points??b?.points??'';rows.push(tr([tc(String(no)),tc(a?multiLineDoc(markingDetail(a)):''),tc(b?multiLineDoc(markingDetail(b)):''),tc(fmt(pts))]));}
+    return tbl(rows);
+  }
+  const rows=[tr([tc('Câu',{fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{fill:'EDEBFA'}),tc('Điểm',{fill:'EDEBFA'})],{header:true})];
+  essays[0].forEach(q=>rows.push(tr([tc(String(q.number)),tc(multiLineDoc(markingDetail(q))),tc(fmt(q.points))])));return tbl(rows);
+}
 function markingDoc(){
   let xml=''; const codes=state.exam.examCodes||[];
   const tnScore=codes.length?sectionScore(codes[0],'TNKQ'):0, tlScore=codes.length?sectionScore(codes[0],'TL'):0;
   xml+=wP(`PHẦN I. TRẮC NGHIỆM (${fmt(tnScore)} điểm)`,{b:true,size:24});
-  codes.forEach(code=>{
-    xml+=wP(`ĐỀ ${code.code}`,{b:true,size:23});
-    const rows=[tr([tc('Câu',{fill:'EDEBFA'}),tc('Đáp án',{fill:'EDEBFA'}),tc('Điểm',{fill:'EDEBFA'})],{header:true})];
-    orderedQuestions(code).filter(q=>q.form==='TNKQ').forEach(q=>rows.push(tr([tc(String(q.number)),tc(answerText(q)),tc(fmt(q.points))])));
-    xml+=tbl(rows);
-  });
+  xml+=tnAnswerTable(codes);
   xml+=wP(`PHẦN II. TỰ LUẬN (${fmt(tlScore)} điểm)`,{b:true,size:24,before:120});
-  codes.forEach(code=>{
-    xml+=wP(`ĐỀ ${code.code}`,{b:true,size:23});
-    const rows=[tr([tc('Câu',{fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{fill:'EDEBFA'}),tc('Điểm',{fill:'EDEBFA'})],{header:true})];
-    orderedQuestions(code).filter(q=>q.form==='TL').forEach(q=>rows.push(tr([tc(String(q.number)),tc(multiLineDoc(markingDetail(q))),tc(fmt(q.points))])));
-    xml+=tbl(rows);
-  });
-  if(setupValue().disabledGuide){xml+=wP('HƯỚNG DẪN CHẤM DÀNH CHO HỌC SINH KHUYẾT TẬT',{b:true,size:24,before:120});xml+=wP(state.exam.disabilityGuide||'Giáo viên căn cứ kế hoạch giáo dục cá nhân và quy định hiện hành để điều chỉnh yêu cầu, không tự động giảm chuẩn nếu chưa có căn cứ.',{size:24});}
+  xml+=pairedEssayMarkingTable(codes);
+  xml+=disabilityGuideDoc(tnScore);
   xml+=wP('LƯU Ý: Phần tự luận chấp nhận các câu trả lời có ý nghĩa tương đương nếu phù hợp với yêu cầu của câu hỏi, chuẩn mực đạo đức và quy định pháp luật trong nguồn được sử dụng.',{i:true,size:22,before:100});
   return xml;
 }
 async function exportDocx(){
   if(!window.JSZip) return alert('Thiếu JSZip.'); if(!state.exam?.examCodes?.length)return alert('Chưa có đề để xuất.');
   const setup=setupValue(); let body='';
-  body+=headerDoc(setup,setup.examType);body+=wP('I. MỤC TIÊU ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(`Thu thập thông tin để đánh giá mức độ đạt yêu cầu cần đạt môn Giáo dục công dân lớp ${setup.grade} theo các bài: ${selectedLessons().map(l=>l.title).join('; ')}.`,{size:24});
+  body+=headerDoc(setup,setup.examType,{});body+=wP('I. MỤC TIÊU ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(`Thu thập thông tin để đánh giá mức độ đạt yêu cầu cần đạt môn Giáo dục công dân lớp ${setup.grade} theo các bài: ${selectedLessons().map(l=>l.title).join('; ')}.`,{size:24});
   body+=wP('II. HÌNH THỨC ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(setup.mode==='7991'?'Kiểm tra theo lựa chọn “Ra đề theo Công văn 7991”, kết hợp TNKQ và tự luận theo ma trận đã thiết lập.':'Kiểm tra kết hợp TNKQ và tự luận theo ma trận đã thiết lập.',{size:24});
   body+=wP('III. THIẾT LẬP MA TRẬN, ĐẶC TẢ',{b:true,size:24,before:100});body+=wP('1. Khung ma trận',{b:true,size:24});body+=matrixDoc();body+=wP('2. Bản đặc tả',{b:true,size:24,before:100});body+=specDoc();
   body+=wP('IV. BIÊN SOẠN ĐỀ KIỂM TRA (trang sau)',{b:true,size:24,before:100});body+=wP('',{pageBreak:true});
   state.exam.examCodes.forEach((code,idx)=>{
     const qs=orderedQuestions(code), tn=qs.filter(q=>q.form==='TNKQ'), tl=qs.filter(q=>q.form==='TL');
-    body+=headerDoc(setup,setup.examType,code.code);
-    body+=wP(`Thời gian làm bài: ${setup.duration} phút (không kể thời gian phát đề)`,{align:'center',b:true,size:22});
-    body+=wP('Họ và tên học sinh: ...............................................................................  Lớp: ........',{size:22});
+    body+=headerDoc(setup,setup.examType,{code:code.code,examSheet:true});
     body+=wP(`PHẦN I. TRẮC NGHIỆM (${fmt(tn.reduce((s,q)=>s+nval(q.points),0))} điểm)`,{b:true,size:24,before:80});
     const inst=tnInstruction(tn); if(inst)body+=wP(inst,{size:22,after:60});
     tn.forEach(q=>body+=qDoc(q));
@@ -455,7 +490,7 @@ async function exportDocx(){
     tl.forEach(q=>body+=qDoc(q));
     body+=wP('----- HẾT -----',{align:'center',b:true,size:22,before:120});body+=wP('',{pageBreak:true});
   });
-  body+=headerDoc(setup,`HƯỚNG DẪN CHẤM ${setup.examType}`);body+=markingDoc();
+  body+=headerDoc(setup,`HƯỚNG DẪN CHẤM ${setup.examType}`,{});body+=markingDoc();
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="850" w:bottom="1134" w:left="1418" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="80" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults></w:styles>`;
   const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
@@ -479,6 +514,8 @@ function bind(){
   $('#closeDialog').addEventListener('click',()=>$('#matrixDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#matrixDialog').close());
   $('#matrixForm').addEventListener('submit',e=>{e.preventDefault();const d=state.dialog;if(d.form==='tl'){const err=validateEssayRows(d.rows);if(err){alert(err);return;}}ensureLessonMatrix(d.lessonId)[d.level][d.form]=d.rows.filter(r=>nval(r.count)>0&&nval(r.points)>0);$('#matrixDialog').close();renderMatrix();});
   $('#generateBtn').addEventListener('click',generateExam);$('#exportDocxBtn').addEventListener('click',exportDocx);
+  const syncDisabled=()=>$('#disabledOptions')?.classList.toggle('hidden',!$('#disabledGuide').checked);
+  $('#disabledGuide').addEventListener('change',syncDisabled); syncDisabled();
   $('#grade').value=state.grade;renderLessons();renderMatrix();renderSpec();renderAudit();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
