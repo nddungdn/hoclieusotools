@@ -8,22 +8,6 @@
   });
   const row=(section,competency,unit,cells,shared=false)=>({section,competency,unit,cells:{...emptyCells(),...cells},shared});
 
-  const officialGrade6=[
-    row("doc_hieu","Đọc hiểu","Thơ tự do",{
-      nb_mcq:{count:4,pct:20},th_mcq:{count:3,pct:15},th_essay:{count:1,pct:10},vd_essay:{count:1,pct:15}
-    }),
-    row("viet","Viết","Viết một đoạn văn ghi lại cảm xúc về một bài thơ",{
-      nb_essay:{count:1,pct:10},th_essay:{count:1,pct:15},vd_essay:{count:1,pct:15}
-    },true)
-  ];
-  const officialGrade8=[
-    row("doc_hieu","Đọc hiểu","Văn bản truyện ngắn",{
-      nb_essay:{count:2,pct:15},th_essay:{count:3,pct:30},vd_essay:{count:1,pct:15}
-    }),
-    row("viet","Viết","Viết bài văn phân tích một tác phẩm văn học (truyện)",{
-      nb_essay:{count:1,pct:10},th_essay:{count:1,pct:15},vd_essay:{count:1,pct:15}
-    },true)
-  ];
   const genericMixed=[
     row("doc_hieu","Đọc hiểu","Ngữ liệu đọc hiểu",{nb_mcq:{count:4,pct:20},th_mcq:{count:3,pct:15},th_essay:{count:1,pct:10},vd_essay:{count:1,pct:15}}),
     row("viet","Viết","Kiểu bài viết theo phạm vi kiểm tra",{nb_essay:{count:1,pct:10},th_essay:{count:1,pct:15},vd_essay:{count:1,pct:15}},true)
@@ -70,6 +54,6 @@
     },
     cellKeys:["nb_mcq","nb_essay","th_mcq","th_essay","vd_mcq","vd_essay"],
     descriptors,
-    defaults:{grade6:officialGrade6,grade8:officialGrade8,mixed:genericMixed,essay:genericEssay}
+    defaults:{mixed:genericMixed,essay:genericEssay}
   });
 })();

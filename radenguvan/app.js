@@ -5,7 +5,7 @@
   const DATA=window.RADENGUVAN_DATA;
   const $=(id)=>document.getElementById(id);
   const $$=(selector,root=document)=>Array.from(root.querySelectorAll(selector));
-  const STORAGE_KEY="radenguvan_draft_v2";
+  const STORAGE_KEY="radenguvan_draft_v3";
   const STEP_ORDER=["setup","matrix","spec","exam","answer","export"];
   const STEP_HINTS={
     setup:"Cấu hình đề và thêm nguồn tham khảo.",matrix:"Kiểm soát số câu, mức độ và tổng điểm.",
@@ -168,12 +168,6 @@
   }
 
   function bindMatrix(){
-    $("presetGrade6").addEventListener("click",()=>applyOfficialPreset("6"));
-    $("presetGrade8").addEventListener("click",()=>applyOfficialPreset("8"));
-    ["useMcq","useEssay"].forEach(id=>$(id).addEventListener("change",()=>{
-      if(!$("useMcq").checked&&!$("useEssay").checked){$(id).checked=true;return toast("Ma trận phải dùng ít nhất một dạng câu.","error");}
-      const rows=getMatrix(true);renderMatrixHeader();renderMatrixRows(rows);state.approved.matrix=false;state.approved.spec=false;updateMatrixTotals();scheduleSave();
-    }));
     $("addMatrixRow").addEventListener("click",()=>addMatrixRow({section:"doc_hieu",competency:"Đọc hiểu",unit:"",cells:emptyMatrixCells(),shared:false}));
     $("approveMatrix").addEventListener("click",()=>{
       const result=validateMatrix();
@@ -182,50 +176,55 @@
     });
   }
 
-  function applyOfficialPreset(grade){
-    $("grade").value=grade;
-    $("examMode").value=grade==="6"?"mixed":"essay";
-    $("useMcq").checked=grade==="6";$("useEssay").checked=true;
-    resetMatrix(grade==="6"?"grade6":"grade8");
-    toast(`Đã nạp cấu trúc tham chiếu từ đề chính thức lớp ${grade}.`,"success");
-  }
-
-  function resetMatrix(preset){
+  function resetMatrix(){
     $("matrixBody").innerHTML="";
-    const key=preset||($("grade").value==="6"&&$("examMode").value==="mixed"?"grade6":$("grade").value==="8"&&$("examMode").value==="essay"?"grade8":$("examMode").value);
-    if(!preset){$("useMcq").checked=$("examMode").value!=="essay";$("useEssay").checked=true;}
     renderMatrixHeader();
-    const rows=DATA.defaults[key]||DATA.defaults.mixed;
+    const rows=DATA.defaults[$("examMode").value]||DATA.defaults.essay;
     rows.forEach(row=>addMatrixRow(JSON.parse(JSON.stringify(row))));
     state.approved.matrix=false; state.approved.spec=false; updateMatrixTotals();
   }
 
   function emptyMatrixCells(){return Object.fromEntries(DATA.cellKeys.map(key=>[key,{count:0,pct:0}]));}
-  function selectedQuestionTypes(){return [$("useMcq").checked?"mcq":"",$("useEssay").checked?"essay":""].filter(Boolean);}
+  function isMixedMode(){return $("examMode").value==="mixed";}
+  function selectedQuestionTypes(){return isMixedMode()?["mcq","essay"]:["essay"];}
   function visibleCellKeys(){return ["nb","th","vd"].flatMap(level=>selectedQuestionTypes().map(type=>`${level}_${type}`));}
   function renderMatrixHeader(){
-    const types=selectedQuestionTypes(),span=types.length;
-    $("matrixHead").innerHTML=`<tr><th rowspan="2">TT</th><th rowspan="2">Năng lực</th><th rowspan="2">Đơn vị kiến thức/bài học</th>${["Nhận biết","Thông hiểu","Vận dụng"].map(level=>`<th colspan="${span}">${level}</th>`).join("")}<th rowspan="2">Tổng</th><th rowspan="2">Câu 1*</th><th rowspan="2"></th></tr><tr>${["nb","th","vd"].flatMap(()=>types.map(type=>`<th>${type==="mcq"?"TNKQ":"TL"}<small>Số câu · % điểm</small></th>`)).join("")}</tr>`;
+    if(isMixedMode()){
+      $("matrixModeTitle").textContent="Ma trận TNKQ kết hợp tự luận";
+      $("matrixModeHint").textContent="Mỗi ô nhập số câu và tỉ lệ điểm; phần Viết tự động dùng ký hiệu 1*.";
+      $("matrixHead").innerHTML=`<tr><th rowspan="3">TT</th><th rowspan="3">Năng lực</th><th rowspan="3">Đơn vị kiến thức/bài học</th><th colspan="6">Mức độ tư duy</th><th rowspan="3">Tổng số câu, % điểm</th><th rowspan="3"></th></tr><tr>${["Nhận biết","Thông hiểu","Vận dụng"].map(level=>`<th colspan="2">${level}</th>`).join("")}</tr><tr>${["nb","th","vd"].map(()=>"<th>TNKQ</th><th>TL</th>").join("")}</tr>`;
+    }else{
+      $("matrixModeTitle").textContent="Ma trận tự luận 100%";
+      $("matrixModeHint").textContent="Mỗi mức tư duy gồm hai cột Số câu và Tỉ lệ, đúng cấu trúc mẫu tự luận.";
+      $("matrixHead").innerHTML=`<tr><th rowspan="3">Phần</th><th rowspan="3">Năng lực</th><th rowspan="3">Mạch nội dung</th><th colspan="6">Mức độ tư duy</th><th rowspan="3">Tổng số câu và % điểm</th><th rowspan="3"></th></tr><tr>${["Nhận biết","Thông hiểu","Vận dụng"].map(level=>`<th colspan="2">${level}</th>`).join("")}</tr><tr>${["nb","th","vd"].map(()=>"<th>Số câu</th><th>Tỉ lệ</th>").join("")}</tr>`;
+    }
   }
-  function renderMatrixRows(rows){$("matrixBody").innerHTML="";rows.forEach(addMatrixRow);}
 
   function addMatrixRow(row){
     const tr=document.createElement("tr");
     const cells={...emptyMatrixCells(),...(row.cells||{})};
-    tr.innerHTML=`<td class="m-order"></td><td><select class="m-section">${options(DATA.labels.sections,row.section)}</select><input class="m-competency" value="${escapeHtml(row.competency||"")}" placeholder="Tên năng lực"></td><td><textarea class="m-unit" rows="2" placeholder="Nội dung">${escapeHtml(row.unit||"")}</textarea></td>${visibleCellKeys().map(key=>`<td><div class="matrix-cell-fields"><label>Số câu<input class="m-count" data-key="${key}" type="number" min="0" max="50" step="1" value="${Number(cells[key]?.count)||0}"></label><label>% điểm<input class="m-pct" data-key="${key}" type="number" min="0" max="100" step="0.5" value="${Number(cells[key]?.pct)||0}"></label></div></td>`).join("")}<td><span class="row-total">0</span></td><td><label class="star-check"><input class="m-shared" type="checkbox" ${row.shared?"checked":""}> 1*</label></td><td><button class="delete-row" type="button" aria-label="Xóa dòng">Xóa</button></td>`;
+    const sectionLabels=isMixedMode()?{doc_hieu:"1",viet:"2"}:{doc_hieu:"I",viet:"II"};
+    const cellHtml=isMixedMode()?visibleCellKeys().map(key=>compactMatrixCell(key,cells[key])).join(""):["nb","th","vd"].map(level=>splitMatrixCells(`${level}_essay`,cells[`${level}_essay`])).join("");
+    tr.innerHTML=`<td><select class="m-section" aria-label="Phần">${options(sectionLabels,row.section)}</select></td><td><input class="m-competency" value="${escapeHtml(row.competency||"")}" placeholder="Đọc hiểu/Viết"></td><td><textarea class="m-unit" rows="2" placeholder="Mạch nội dung">${escapeHtml(row.unit||"")}</textarea></td>${cellHtml}<td><span class="row-total">0</span></td><td><button class="delete-row" type="button" aria-label="Xóa dòng">Xóa</button></td>`;
     tr._allCells=cells;
     tr.querySelectorAll("input,select,textarea").forEach(el=>el.addEventListener("input",()=>{state.approved.matrix=false;state.approved.spec=false;updateMatrixTotals();scheduleSave();}));
+    tr.querySelector(".m-section").addEventListener("change",()=>updateMatrixStar(tr));
     tr.querySelector(".delete-row").addEventListener("click",()=>{tr.remove();state.approved.matrix=false;state.approved.spec=false;updateMatrixOrder();updateMatrixTotals();scheduleSave();});
-    $("matrixBody").appendChild(tr);updateMatrixOrder();updateMatrixTotals();
+    $("matrixBody").appendChild(tr);updateMatrixStar(tr);updateMatrixOrder();updateMatrixTotals();
   }
 
-  function updateMatrixOrder(){$$("#matrixBody tr").forEach((tr,index)=>tr.querySelector(".m-order").textContent=index+1);}
-  function getMatrix(includeHidden=false){return $$("#matrixBody tr").map(tr=>{
+  function compactMatrixCell(key,cell){return `<td><div class="matrix-compact-cell"><span class="matrix-count-wrap"><input class="m-count" data-key="${key}" type="number" min="0" max="50" step="1" value="${Number(cell?.count)||0}" aria-label="Số câu"><sup class="matrix-star">*</sup></span><span>/</span><input class="m-pct" data-key="${key}" type="number" min="0" max="100" step="0.5" value="${Number(cell?.pct)||0}" aria-label="Tỉ lệ điểm"><span>%</span></div></td>`;}
+  function splitMatrixCells(key,cell){return `<td><span class="matrix-count-wrap"><input class="m-count matrix-number" data-key="${key}" type="number" min="0" max="50" step="1" value="${Number(cell?.count)||0}" aria-label="Số câu"><sup class="matrix-star">*</sup></span></td><td><div class="matrix-percent"><input class="m-pct matrix-number" data-key="${key}" type="number" min="0" max="100" step="0.5" value="${Number(cell?.pct)||0}" aria-label="Tỉ lệ"><span>%</span></div></td>`;}
+  function updateMatrixStar(tr){const show=tr.querySelector(".m-section").value==="viet";tr.querySelectorAll(".matrix-star").forEach(star=>star.hidden=!show);}
+
+  function updateMatrixOrder(){/* Số phần hiển thị bằng select I/II hoặc 1/2. */}
+  function getMatrix(){return $$("#matrixBody tr").map(tr=>{
     const cells={...emptyMatrixCells(),...(tr._allCells||{})};
     tr.querySelectorAll(".m-count").forEach(input=>{cells[input.dataset.key]={...(cells[input.dataset.key]||{}),count:Number(input.value)||0};});
     tr.querySelectorAll(".m-pct").forEach(input=>{cells[input.dataset.key]={...(cells[input.dataset.key]||{}),pct:Number(input.value)||0};});
-    if(!includeHidden){if(!$("useMcq").checked) ["nb_mcq","th_mcq","vd_mcq"].forEach(key=>cells[key]={count:0,pct:0});if(!$("useEssay").checked) ["nb_essay","th_essay","vd_essay"].forEach(key=>cells[key]={count:0,pct:0});}
-    return {section:tr.querySelector(".m-section").value,competency:tr.querySelector(".m-competency").value.trim(),unit:tr.querySelector(".m-unit").value.trim(),cells,shared:tr.querySelector(".m-shared").checked};
+    if(!isMixedMode()) ["nb_mcq","th_mcq","vd_mcq"].forEach(key=>cells[key]={count:0,pct:0});
+    const section=tr.querySelector(".m-section").value;
+    return {section,competency:tr.querySelector(".m-competency").value.trim(),unit:tr.querySelector(".m-unit").value.trim(),cells,shared:section==="viet"};
   });}
   function matrixRowCount(row){const values=visibleCellKeys().map(key=>Number(row.cells[key]?.count)||0);return row.shared?Math.max(0,...values):values.reduce((sum,value)=>sum+value,0);}
   function matrixRowPct(row){return visibleCellKeys().reduce((sum,key)=>sum+(Number(row.cells[key]?.pct)||0),0);}
@@ -233,8 +232,18 @@
     const rows=getMatrix(),pct=rows.reduce((sum,row)=>sum+matrixRowPct(row),0),questions=rows.reduce((sum,row)=>sum+matrixRowCount(row),0);
     $$("#matrixBody tr").forEach((tr,index)=>tr.querySelector(".row-total").textContent=`${matrixRowCount(rows[index])} câu · ${formatScore(matrixRowPct(rows[index]))}%`);
     $("matrixTotal").textContent=formatScore(pct)+"%";$("matrixTarget").textContent=`· ${questions} câu · ${formatScore((Number($("totalScore").value)||0)*pct/100)} điểm`;
-    updateMatrixOrder();
+    renderMatrixFooter(rows);
     const result=validateMatrix();const box=$("matrixValidation");box.className="validation-box "+(result.ok?"ok":pct>100?"bad":"warning");box.innerHTML=result.messages.map(message=>`<div>${result.ok?"✓":"•"} ${escapeHtml(message)}</div>`).join("");
+  }
+
+  function renderMatrixFooter(rows){
+    const keys=visibleCellKeys(),questions=rows.reduce((sum,row)=>sum+matrixRowCount(row),0),pct=rows.reduce((sum,row)=>sum+matrixRowPct(row),0);
+    const cellPct=key=>rows.reduce((sum,row)=>sum+Number(row.cells[key]?.pct||0),0),levelPct=level=>keys.filter(key=>key.startsWith(level+"_")).reduce((sum,key)=>sum+cellPct(key),0);
+    if(isMixedMode()){
+      $("matrixFoot").innerHTML=`<tr><th colspan="3">Tổng</th>${keys.map(key=>`<th>${formatScore(cellPct(key))}%</th>`).join("")}<th>${questions} câu<br>${formatScore(pct)}%</th><th></th></tr><tr><th colspan="3">Tỉ lệ %</th><th colspan="2">${formatScore(levelPct("nb"))}%</th><th colspan="2">${formatScore(levelPct("th"))}%</th><th colspan="2">${formatScore(levelPct("vd"))}%</th><th>100%</th><th></th></tr><tr><th colspan="3">Tỉ lệ chung</th><th colspan="4">${formatScore(levelPct("nb")+levelPct("th"))}%</th><th colspan="2">${formatScore(levelPct("vd"))}%</th><th>100%</th><th></th></tr>`;
+    }else{
+      $("matrixFoot").innerHTML=`<tr><th colspan="3">Tỉ lệ %</th><th colspan="2">${formatScore(levelPct("nb"))}%</th><th colspan="2">${formatScore(levelPct("th"))}%</th><th colspan="2">${formatScore(levelPct("vd"))}%</th><th>${questions} câu<br>${formatScore(pct)}%</th><th></th></tr><tr><th colspan="3">Tỉ lệ chung</th><th colspan="4">${formatScore(levelPct("nb")+levelPct("th"))}%</th><th colspan="2">${formatScore(levelPct("vd"))}%</th><th>100%</th><th></th></tr>`;
+    }
   }
 
   function validateMatrix(){
@@ -244,9 +253,8 @@
     if(rows.some(row=>visibleCellKeys().some(key=>{const cell=row.cells[key];return !Number.isInteger(cell.count)||cell.count<0||cell.pct<0||(cell.count===0)!==(cell.pct===0);}))) messages.push("Mỗi ô phải có đồng thời số câu nguyên không âm và % điểm; cùng bằng 0 nếu không sử dụng.");
     if(!rows.some(r=>r.section==="doc_hieu")) messages.push("Thiếu phần Đọc hiểu.");
     if(!rows.some(r=>r.section==="viet")) messages.push("Thiếu phần Viết.");
-    if(!$("useEssay").checked) messages.push("Cần bật TL vì hồ sơ Ngữ văn có PHẦN II. VIẾT; TNKQ là phần có thể bật hoặc tắt theo quy định của trường.");
     const writingRows=rows.filter(r=>r.section==="viet");
-    if(writingRows.length!==1||!writingRows[0]?.shared) messages.push("Phần Viết phải là một dòng có đánh dấu 1* để chỉ tính một câu xuyên ba mức nhận thức.");
+    if(writingRows.length!==1) messages.push("Phần Viết phải có đúng một dòng; hệ thống tự tính đây là câu 1* xuyên ba mức nhận thức.");
     if(Math.abs(pctTotal-100)>0.001) messages.push(`Tổng tỉ lệ là ${formatScore(pctTotal)}%, phải bằng 100%.`);
     const levelPct=level=>rows.reduce((sum,row)=>sum+visibleCellKeys().filter(key=>key.startsWith(level+"_")).reduce((s,key)=>s+Number(row.cells[key].pct||0),0),0);
     const questions=rows.reduce((sum,row)=>sum+matrixRowCount(row),0),nb=levelPct("nb"),th=levelPct("th"),vd=levelPct("vd");
@@ -268,27 +276,52 @@
     getMatrix().forEach(row=>{
       ["nb","th","vd"].forEach(level=>{
         const parts=[],mcq=row.cells[`${level}_mcq`],essay=row.cells[`${level}_essay`];
-        if(mcq.count)parts.push(`${mcq.count}${row.shared?"*":""} TN`);
-        if(essay.count)parts.push(`${essay.count}${row.shared?"*":""} TL`);
+        if(mcq.count)parts.push(`${mcq.count}${row.shared?"*":""} TN (${formatScore(target*mcq.pct/100)}đ)`);
+        if(essay.count)parts.push(`${essay.count}${row.shared?"*":""} TL (${formatScore(target*essay.pct/100)}đ)`);
         const pct=Number(mcq.pct||0)+Number(essay.pct||0);if(!parts.length&&!pct)return;
         const mapped=levelMap[level],descriptor=DATA.descriptors[grade]?.[row.section]?.[mapped]||"Giáo viên nhập yêu cầu cần đạt theo chương trình và nguồn chính thức.";
         addSpecRow({section:row.section,unit:row.unit,level:mapped,descriptor,allocation:parts.join(" + "),score:round(target*pct/100),shared:row.shared});
       });
     });
+    renderSpecFooter();
   }
 
   function addSpecRow(row){
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="s-order"></td><td><select class="s-section">${options(DATA.labels.sections,row.section)}</select></td><td><textarea class="s-unit" rows="2">${escapeHtml(row.unit||"")}</textarea></td><td><select class="s-level">${options(DATA.labels.levels,row.level)}</select></td><td><textarea class="s-descriptor" rows="6" placeholder="Nhập từng yêu cầu cần đạt, mỗi ý một dòng">${escapeHtml(row.descriptor||"")}</textarea></td><td><input class="s-allocation" value="${escapeHtml(row.allocation||"—")}" placeholder="VD: 3 TN + 1 TL"></td><td><input class="s-score" type="number" min="0" step="0.25" value="${Number(row.score)||0}"></td><td><input class="s-shared" type="checkbox" ${row.shared?"checked":""} aria-label="Một câu dùng chung ba mức"></td><td><div class="row-actions"><button class="duplicate-row" type="button">Nhân bản</button><button class="delete-row" type="button">Xóa</button></div></td>`;
-    tr.querySelectorAll("input,select,textarea").forEach(el=>el.addEventListener("input",()=>{state.approved.spec=false;setChip("specStatus","Đã chỉnh sửa – cần duyệt lại","neutral");scheduleSave();}));
-    tr.querySelector(".duplicate-row").addEventListener("click",()=>{const item=getSpecRow(tr);addSpecRow({...item,allocation:"—",score:0});state.approved.spec=false;scheduleSave();});
-    tr.querySelector(".delete-row").addEventListener("click",()=>{tr.remove();updateSpecOrder();state.approved.spec=false;scheduleSave();});
-    $("specBody").appendChild(tr);updateSpecOrder();
+    tr.innerHTML=`<td class="s-order"></td><td class="s-section-cell"><select class="s-section">${options(DATA.labels.sections,row.section)}</select></td><td class="s-unit-cell"><textarea class="s-unit" rows="3">${escapeHtml(row.unit||"")}</textarea></td><td><select class="s-level">${options(DATA.labels.levels,row.level)}</select><textarea class="s-descriptor" rows="7" placeholder="Nhập các yêu cầu cần đạt, mỗi ý một dòng">${escapeHtml(row.descriptor||"")}</textarea><input class="s-allocation" type="hidden" value="${escapeHtml(row.allocation||"—")}"><input class="s-score" type="hidden" value="${Number(row.score)||0}"><input class="s-shared" type="hidden" value="${row.shared?"1":"0"}"></td><td class="s-view s-view-nhan_biet"></td><td class="s-view s-view-thong_hieu"></td><td class="s-view s-view-van_dung"></td><td><button class="delete-row" type="button">Xóa</button></td>`;
+    tr.querySelectorAll("input,select,textarea").forEach(el=>el.addEventListener("input",()=>{updateSpecAllocationView(tr);updateSpecOrder();state.approved.spec=false;setChip("specStatus","Đã chỉnh sửa – cần duyệt lại","neutral");scheduleSave();}));
+    tr.querySelector(".delete-row").addEventListener("click",()=>{tr.remove();updateSpecOrder();renderSpecFooter();state.approved.spec=false;scheduleSave();});
+    $("specBody").appendChild(tr);updateSpecAllocationView(tr);updateSpecOrder();renderSpecFooter();
   }
 
-  function updateSpecOrder(){$$("#specBody tr").forEach((tr,index)=>tr.querySelector(".s-order").textContent=index+1);}
-  function getSpecRow(tr){return {section:tr.querySelector(".s-section").value,unit:tr.querySelector(".s-unit").value.trim(),level:tr.querySelector(".s-level").value,descriptor:tr.querySelector(".s-descriptor").value.trim(),allocation:tr.querySelector(".s-allocation").value.trim(),score:Number(tr.querySelector(".s-score").value)||0,shared:tr.querySelector(".s-shared").checked};}
+  function updateSpecAllocationView(tr){
+    tr.querySelectorAll(".s-view").forEach(cell=>cell.textContent="");
+    const level=tr.querySelector(".s-level").value,allocation=tr.querySelector(".s-allocation").value.trim();
+    tr.querySelector(`.s-view-${level}`).textContent=allocation==="—"?"—":allocation;
+  }
+  function updateSpecOrder(){
+    const groups=new Map();let order=0;
+    $$("#specBody tr").forEach(tr=>{const key=tr.querySelector(".s-section").value+"|"+tr.querySelector(".s-unit").value.trim();if(!groups.has(key))groups.set(key,++order);tr.querySelector(".s-order").textContent=groups.get(key);});
+    groupSpecRows();
+  }
+  function groupSpecRows(){
+    const rows=$$("#specBody tr");
+    rows.forEach(tr=>[tr.querySelector(".s-order"),tr.querySelector(".s-section-cell"),tr.querySelector(".s-unit-cell")].forEach(cell=>{cell.style.display="";cell.rowSpan=1;}));
+    for(let start=0;start<rows.length;){
+      const key=rows[start].querySelector(".s-section").value+"|"+rows[start].querySelector(".s-unit").value.trim();let end=start+1;
+      while(end<rows.length&&(rows[end].querySelector(".s-section").value+"|"+rows[end].querySelector(".s-unit").value.trim())===key)end++;
+      const span=end-start;if(span>1){[rows[start].querySelector(".s-order"),rows[start].querySelector(".s-section-cell"),rows[start].querySelector(".s-unit-cell")].forEach(cell=>cell.rowSpan=span);for(let index=start+1;index<end;index++)[rows[index].querySelector(".s-order"),rows[index].querySelector(".s-section-cell"),rows[index].querySelector(".s-unit-cell")].forEach(cell=>cell.style.display="none");}
+      start=end;
+    }
+  }
+  function getSpecRow(tr){return {section:tr.querySelector(".s-section").value,unit:tr.querySelector(".s-unit").value.trim(),level:tr.querySelector(".s-level").value,descriptor:tr.querySelector(".s-descriptor").value.trim(),allocation:tr.querySelector(".s-allocation").value.trim(),score:Number(tr.querySelector(".s-score").value)||0,shared:tr.querySelector(".s-shared").value==="1"};}
   function getSpec(){return $$("#specBody tr").map(getSpecRow);}
+  function renderSpecFooter(){
+    if(!$("specFoot"))return;
+    const matrix=getMatrix(),keys=visibleCellKeys(),matrixResult=validateMatrix();
+    const countLabel=prefix=>{let normal=0,shared=0;matrix.forEach(row=>{const counts=keys.filter(key=>key.startsWith(prefix+"_")).map(key=>Number(row.cells[key]?.count||0));if(row.shared)shared+=Math.max(0,...counts);else normal+=counts.reduce((sum,value)=>sum+value,0);});return `${normal||0}${shared?`+${shared}*`:""}`;};
+    $("specFoot").innerHTML=`<tr><th colspan="4">Tổng số câu hỏi</th><th>${countLabel("nb")}</th><th>${countLabel("th")}</th><th>${countLabel("vd")}</th><th></th></tr><tr><th colspan="4">Tỉ lệ %</th><th>${formatScore(matrixResult.levelPct.nb)}%</th><th>${formatScore(matrixResult.levelPct.th)}%</th><th>${formatScore(matrixResult.levelPct.vd)}%</th><th></th></tr><tr><th colspan="4">Tỉ lệ chung</th><th colspan="2">${formatScore(matrixResult.levelPct.nb+matrixResult.levelPct.th)}%</th><th>${formatScore(matrixResult.levelPct.vd)}%</th><th></th></tr>`;
+  }
   function validateSpec(){
     const rows=getSpec(); if(!rows.length) return {ok:false,message:"Bản đặc tả chưa có dữ liệu."};
     if(rows.some(r=>!r.unit||!r.descriptor||!r.allocation||r.score<0)) return {ok:false,message:"Bản đặc tả còn dòng thiếu đơn vị kiến thức, yêu cầu cần đạt hoặc số lượng/dạng câu."};
@@ -430,7 +463,7 @@
     }
     return {
       appVersion:CFG.APP_VERSION,
-      config:{schoolName:$("schoolName").value.trim(),grade:$("grade").value,schoolYear:$("schoolYear").value.trim(),examType:$("examType").value,duration:Number($("duration").value),totalScore:Number($("totalScore").value),examMode:$("examMode").value,questionTypes:{mcq:$("useMcq").checked,essay:$("useEssay").checked},scope:$("scope").value.trim(),extraRequirements:$("extraRequirements").value.trim()},
+      config:{schoolName:$("schoolName").value.trim(),grade:$("grade").value,schoolYear:$("schoolYear").value.trim(),examType:$("examType").value,duration:Number($("duration").value),totalScore:Number($("totalScore").value),examMode:$("examMode").value,questionTypes:{mcq:isMixedMode(),essay:true},scope:$("scope").value.trim(),extraRequirements:$("extraRequirements").value.trim()},
       matrix:getMatrix(),spec:getSpec(),readingText:$("readingText").value.trim(),writingText:$("writingText").value.trim(),sources
     };
   }
@@ -480,15 +513,14 @@
     parts.push(wPara(`Thời gian: ${$("duration").value} phút · Tổng điểm: ${formatScore(Number($("totalScore").value))}`,false,"center",26));
     parts.push(wPara("I. MA TRẬN ĐỀ KIỂM TRA",true,"left",26));
     const keys=visibleCellKeys(),matrix=getMatrix(),levelName={nb:"Nhận biết",th:"Thông hiểu",vd:"Vận dụng"},typeName={mcq:"TNKQ",essay:"TL"};
-    const matrixHeaders=["TT","Năng lực","Đơn vị kiến thức/bài học",...keys.map(key=>{const [level,type]=key.split("_");return `${levelName[level]}\n${typeName[type]}`;}),"Tổng số câu, % điểm"];
-    const matrixRows=matrix.map((r,index)=>[String(index+1),r.competency,r.unit,...keys.map(key=>{const cell=r.cells[key];return cell.count?`${cell.count}${r.shared?"*":""}\n${formatScore(cell.pct)}%`:"0";}),`${matrixRowCount(r)}\n${formatScore(matrixRowPct(r))}%`]);
+    const matrixHeaders=isMixedMode()?["TT","Năng lực","Đơn vị kiến thức/bài học",...keys.map(key=>{const [level,type]=key.split("_");return `${levelName[level]} – ${typeName[type]}`;}),"Tổng số câu, % điểm"]:["Phần","Năng lực","Mạch nội dung","NB – Số câu","NB – Tỉ lệ","TH – Số câu","TH – Tỉ lệ","VD – Số câu","VD – Tỉ lệ","Tổng số câu, % điểm"];
+    const matrixRows=matrix.map((r,index)=>isMixedMode()?[String(index+1),r.competency,r.unit,...keys.map(key=>{const cell=r.cells[key];return cell.count?`${cell.count}${r.shared?"*":""} / ${formatScore(cell.pct)}%`:"0";}),`${matrixRowCount(r)} / ${formatScore(matrixRowPct(r))}%`]:[roman(index+1),r.competency,r.unit,...["nb","th","vd"].flatMap(level=>{const cell=r.cells[`${level}_essay`];return [`${cell.count}${r.shared&&cell.count?"*":""}`,`${formatScore(cell.pct)}%`];}),`${matrixRowCount(r)} / ${formatScore(matrixRowPct(r))}%`]);
     const levelTotals=prefix=>matrix.reduce((sum,row)=>sum+keys.filter(key=>key.startsWith(prefix+"_")).reduce((s,key)=>s+Number(row.cells[key].pct||0),0),0);
-    matrixRows.push(["","Tổng","",...keys.map(key=>`${formatScore(matrix.reduce((sum,row)=>sum+Number(row.cells[key].pct||0),0))}%`),`${validateMatrix().questions}\n100%`]);
-    matrixRows.push(["","Tỉ lệ %","",...keys.map(key=>`${formatScore(levelTotals(key.split("_")[0]))}%`),"100%"]);
-    matrixRows.push(["","Tỉ lệ chung","",...keys.map(key=>key.startsWith("vd_")?`${formatScore(levelTotals("vd"))}%`:`${formatScore(levelTotals("nb")+levelTotals("th"))}%`),"100%"]);
+    if(isMixedMode())matrixRows.push(["","Tỉ lệ %","",...keys.map(key=>`${formatScore(levelTotals(key.split("_")[0]))}%`),"100%"]);
+    else matrixRows.push(["","Tỉ lệ %","",`${formatScore(levelTotals("nb"))}%`,"",`${formatScore(levelTotals("th"))}%`,"",`${formatScore(levelTotals("vd"))}%`,"",`${validateMatrix().questions} / 100%`]);
     parts.push(wTable(matrixHeaders,matrixRows));
     parts.push(pageBreak(),wPara("II. BẢN ĐẶC TẢ ĐỀ KIỂM TRA",true,"left",26));
-    parts.push(wTable(["TT","Kĩ năng","Đơn vị kiến thức/kĩ năng","Mức độ nhận thức","Yêu cầu cần đạt","Số lượng/dạng câu","Điểm"],getSpec().map((r,index)=>[String(index+1),DATA.labels.sections[r.section],r.unit,DATA.labels.levels[r.level],r.descriptor,r.allocation,formatScore(r.score)])));
+    parts.push(wTable(["TT","Năng lực","Đơn vị kiến thức/kĩ năng","Mức độ nhận thức","Nhận biết","Thông hiểu","Vận dụng"],getSpec().map((r,index)=>[String(index+1),DATA.labels.sections[r.section],r.unit,`${DATA.labels.levels[r.level]}:\n${r.descriptor}`,r.level==="nhan_biet"?r.allocation:"",r.level==="thong_hieu"?r.allocation:"",r.level==="van_dung"?r.allocation:""])));
     parts.push(pageBreak(),wPara("III. ĐỀ KIỂM TRA",true,"left",26));
     parts.push(...editorToWordBlocks($("examEditor")));
     parts.push(pageBreak(),wPara("IV. HƯỚNG DẪN CHẤM, ĐÁP ÁN VÀ BIỂU ĐIỂM",true,"left",26));
@@ -519,7 +551,7 @@
   function documentRelsXml(){return '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';}
   function stylesXml(){return '<?xml version="1.0" encoding="UTF-8"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr></w:pPrDefault></w:docDefaults></w:styles>';}
   function coreXml(){const now=new Date().toISOString();return `<?xml version="1.0" encoding="UTF-8"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Bộ hồ sơ đề kiểm tra Ngữ văn THCS</dc:title><dc:creator>Học liệu số</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created></cp:coreProperties>`;}
-  function appXml(){return '<?xml version="1.0" encoding="UTF-8"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Radenguvan</Application><AppVersion>1.0</AppVersion></Properties>';}
+  function appXml(){return '<?xml version="1.0" encoding="UTF-8"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Radenguvan</Application><AppVersion>1.2</AppVersion></Properties>';}
 
   function exportJson(){const blob=new Blob([JSON.stringify(collectDraft(true),null,2)],{type:"application/json;charset=utf-8"});downloadBlob(blob,`radenguvan-lop-${$("grade").value}-${Date.now()}.json`);}
   async function importJson(event){
@@ -535,7 +567,7 @@
   }
 
   function collectDraft(includeSources=false){return {
-    version:2,step:state.step,approved:state.approved,review:state.review,questionTypes:{mcq:$("useMcq").checked,essay:$("useEssay").checked},
+    version:3,step:state.step,approved:state.approved,review:state.review,
     fields:Object.fromEntries(["schoolName","grade","schoolYear","examType","duration","totalScore","examMode","scope","extraRequirements","provider","model","readingText","writingText"].map(id=>[id,$(id).value])),
     matrix:getMatrix(),spec:getSpec(),examHtml:hasEditorContent($("examEditor"))?$("examEditor").innerHTML:"",answerHtml:hasEditorContent($("answerEditor"))?$("answerEditor").innerHTML:"",sources:includeSources?state.sources:[]
   };}
@@ -545,7 +577,7 @@
     if(!data||typeof data!=="object")throw new Error("Invalid draft");
     Object.entries(data.fields||{}).forEach(([id,value])=>{if($(id)&&id!=="apiKey")$(id).value=value;});
     state.step=data.step||"setup";state.approved={matrix:false,spec:false,exam:false,answer:false,...data.approved};state.review=data.review||"";state.sources=Array.isArray(data.sources)?data.sources:[];
-    if(data.questionTypes){$("useMcq").checked=Boolean(data.questionTypes.mcq);$("useEssay").checked=Boolean(data.questionTypes.essay);}renderMatrixHeader();
+    renderMatrixHeader();
     $("matrixBody").innerHTML="";(data.matrix||[]).forEach(addMatrixRow);
     $("specBody").innerHTML="";(data.spec||[]).forEach(addSpecRow);
     if(data.examHtml)$("examEditor").innerHTML=data.examHtml;if(data.answerHtml)$("answerEditor").innerHTML=data.answerHtml;if(state.review)$("reviewOutput").textContent=state.review;

@@ -16,7 +16,7 @@
         <div class="brand-mark" aria-hidden="true">V</div>
         <div>
           <strong>RA ĐỀ NGỮ VĂN</strong>
-          <span>THCS · Phiên bản 1.1</span>
+          <span>THCS · Phiên bản 1.2</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@
               <label class="field"><span>Kì kiểm tra</span><select id="examType"><option>Giữa học kì I</option><option>Cuối học kì I</option><option>Giữa học kì II</option><option>Cuối học kì II</option><option>Kiểm tra định kì khác</option></select></label>
               <label class="field"><span>Thời gian (phút)</span><input id="duration" type="number" min="15" max="180" step="5" value="90"></label>
               <label class="field"><span>Tổng điểm</span><input id="totalScore" type="number" min="1" max="100" step="0.25" value="10"></label>
-              <label class="field"><span>Gợi ý cấu trúc ban đầu</span><select id="examMode"><option value="mixed">Có TNKQ và TL</option><option value="essay" selected>Chỉ TL</option></select><small>Không phụ thuộc khối lớp; có thể đổi lại TNKQ/TL tại bước Ma trận.</small></label>
+              <label class="field"><span>Hình thức kiểm tra</span><select id="examMode"><option value="mixed">TNKQ kết hợp tự luận</option><option value="essay" selected>Tự luận 100%</option></select><small>Lựa chọn này quyết định cấu trúc ma trận và bản đặc tả.</small></label>
               <label class="field span-2"><span>Phạm vi kiến thức/kĩ năng</span><textarea id="scope" rows="3" placeholder="Ghi rõ bài, chủ đề, thể loại, kiến thức tiếng Việt, kiểu bài viết..."></textarea></label>
               <label class="field span-2"><span>Yêu cầu riêng</span><textarea id="extraRequirements" rows="2" placeholder="Ví dụ: ngữ liệu ngoài SGK; câu hỏi rõ lệnh; không vượt chương trình..."></textarea></label>
             </div>
@@ -100,20 +100,20 @@
       </section>
 
       <section class="step-panel" data-panel="matrix">
-        <div class="section-heading"><div><span class="eyebrow">BƯỚC 2</span><h2>Ma trận đề kiểm tra</h2><p>Bảng chéo ba mức tư duy; đề kết hợp tách TNKQ/TL, đề tự luận tách số câu/tỉ lệ.</p></div><div class="score-ring"><strong id="matrixTotal">0%</strong><span id="matrixTarget">· 0 câu</span></div></div>
+        <div class="section-heading"><div><span class="eyebrow">BƯỚC 2</span><h2>Ma trận đề kiểm tra</h2><p>Bảng tự chuyển đúng cấu trúc theo hình thức kiểm tra đã chọn ở bước 1.</p></div><div class="score-ring"><strong id="matrixTotal">0%</strong><span id="matrixTarget">· 0 câu</span></div></div>
         <article class="card">
-          <div class="card-head"><div><h3>Phân bố câu hỏi và tỉ lệ điểm</h3><p>Ký hiệu 1* là một câu viết được đánh giá xuyên ba mức, chỉ tính một lần trong tổng số câu.</p></div><div class="inline-actions"><label class="choice-chip"><input id="useMcq" type="checkbox" checked> TNKQ</label><label class="choice-chip"><input id="useEssay" type="checkbox" checked> TL</label><button class="button ghost" id="presetGrade6" type="button">Mẫu chính thức lớp 6</button><button class="button ghost" id="presetGrade8" type="button">Mẫu chính thức lớp 8</button><button class="button secondary" id="addMatrixRow" type="button">+ Thêm dòng</button></div></div>
-          <div class="table-wrap"><table class="data-table matrix-table"><thead id="matrixHead"></thead><tbody id="matrixBody"></tbody></table></div>
+          <div class="card-head"><div><h3 id="matrixModeTitle">Ma trận</h3><p id="matrixModeHint">Ký hiệu 1* là một câu viết được đánh giá xuyên ba mức, chỉ tính một lần.</p></div><button class="button secondary" id="addMatrixRow" type="button">+ Thêm mạch nội dung</button></div>
+          <div class="table-wrap"><table class="data-table matrix-table"><thead id="matrixHead"></thead><tbody id="matrixBody"></tbody><tfoot id="matrixFoot"></tfoot></table></div>
           <div class="validation-box" id="matrixValidation"></div>
         </article>
         <div class="panel-actions split"><button class="button ghost prev-step" data-prev="setup" type="button">← Quay lại</button><button class="button primary" id="approveMatrix" type="button">Duyệt ma trận và tạo đặc tả →</button></div>
       </section>
 
       <section class="step-panel" data-panel="spec">
-        <div class="section-heading"><div><span class="eyebrow">BƯỚC 3</span><h2>Bản đặc tả đề kiểm tra</h2><p>Mỗi dòng là một mức nhận thức của một kĩ năng; giáo viên được nhập, sửa, nhân bản hoặc xóa trực tiếp.</p></div><div class="status-chip neutral" id="specStatus">Chưa duyệt</div></div>
+        <div class="section-heading"><div><span class="eyebrow">BƯỚC 3</span><h2>Bản đặc tả đề kiểm tra</h2><p>Tự sinh từ ma trận; giáo viên chỉ cần hiệu chỉnh yêu cầu cần đạt hoặc thêm, xóa dòng.</p></div><div class="status-chip neutral" id="specStatus">Chưa duyệt</div></div>
         <article class="card">
-          <div class="card-head"><div><h3>Nội dung đặc tả</h3><p>Cột “Số lượng/dạng câu” cho phép nhập đúng dạng 4 TN, 3 TN + 1 TL hoặc 1* TL.</p></div><button class="button secondary" id="addSpecRow" type="button">+ Nhập thêm đặc tả</button></div>
-          <div class="table-wrap"><table class="data-table spec-table"><thead><tr><th>TT</th><th>Kĩ năng</th><th>Đơn vị kiến thức/kĩ năng</th><th>Mức độ</th><th>Yêu cầu cần đạt</th><th>Số lượng/dạng câu</th><th>Điểm</th><th>Câu 1*</th><th>Thao tác</th></tr></thead><tbody id="specBody"></tbody></table></div>
+          <div class="card-head"><div><h3>Bảng đặc tả</h3><p>Số lượng, dạng câu và điểm được lấy tự động từ ma trận.</p></div><button class="button secondary" id="addSpecRow" type="button">+ Thêm đặc tả</button></div>
+          <div class="table-wrap"><table class="data-table spec-table"><thead><tr><th rowspan="2">TT</th><th rowspan="2">Năng lực</th><th rowspan="2">Đơn vị kiến thức/kĩ năng</th><th rowspan="2">Mức độ nhận thức</th><th colspan="3">Số lượng câu hỏi theo mức độ nhận thức</th><th rowspan="2">Thao tác</th></tr><tr><th>Nhận biết</th><th>Thông hiểu</th><th>Vận dụng</th></tr></thead><tbody id="specBody"></tbody><tfoot id="specFoot"></tfoot></table></div>
           <div class="notice warning"><strong>Kiểm soát nguồn:</strong> Nếu tài liệu không đủ căn cứ, hãy sửa hoặc bổ sung yêu cầu cần đạt; không để AI tự suy đoán phạm vi chương trình.</div>
         </article>
         <div class="panel-actions split"><button class="button ghost prev-step" data-prev="matrix" type="button">← Quay lại</button><button class="button primary" id="approveSpec" type="button">Duyệt đặc tả và tạo đề →</button></div>
