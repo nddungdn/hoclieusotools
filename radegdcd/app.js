@@ -411,34 +411,68 @@ function answerText(q){
   if(q.answer&&typeof q.answer==='object')return Object.entries(q.answer).map(([k,v])=>`${k}: ${typeof v==='boolean'?(v?'Đ':'S'):v}`).join('; ');
   return '';
 }
-function cleanMarkingText(text=''){
-  let out = String(text||'').replace(/\r/g,'').trim();
-  out = out.split('\n').map(s=>s.trim()).filter(Boolean).filter(s=>!/^Hướng dẫn chấm:?$/i.test(s)).join('\n');
-  out = out.replace(/^Hướng dẫn chấm:\s*/i,'').trim();
-  return out;
+function splitInlineMarking(raw=''){
+  const text=String(raw||'').replace(/\r/g,'').trim();
+  if(!text)return {answer:'',rubric:[]};
+  const m=text.match(/Hướng\s*dẫn\s*chấm\s*:/i);
+  if(!m)return {answer:text,rubric:[]};
+  const answer=text.slice(0,m.index).trim();
+  const after=text.slice((m.index||0)+m[0].length).trim();
+  return {answer,rubric:splitRubricLines(after)};
 }
-function cleanRubricText(text=''){
-  return cleanMarkingText(text).replace(/^[-–•]\s*/, '').trim();
+function splitRubricLines(raw=''){
+  let text=String(raw||'').replace(/\r/g,'').trim();
+  if(!text)return [];
+  text=text
+    .replace(/\s+(?=[–—•]\s+)/g,'\n')
+    .replace(/\s+(?=-\s+)/g,'\n')
+    .replace(/\n{2,}/g,'\n');
+  return text.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>x.replace(/^[–—•-]\s*/,'').trim()).filter(Boolean);
+}
+function answerParagraphs(raw=''){
+  let text=String(raw||'').replace(/\r/g,'').trim();
+  if(!text)return [];
+  // Nếu dữ liệu cũ gộp a., b., c. trong một chuỗi, tách thành các đoạn rõ ràng.
+  text=text.replace(/\s+(?=([a-dA-D])[\.)]\s+)/g,'\n');
+  return text.split('\n').map(x=>x.trim()).filter(Boolean);
+}
+function scoreLineText(content,points){
+  let line=String(content||'').replace(/\r/g,'').trim().replace(/^Hướng\s*dẫn\s*chấm\s*:\s*/i,'').replace(/^[–—•-]\s*/,'').trim();
+  // Tránh lặp điểm nếu AI đã chèn điểm ở cuối content.
+  line=line.replace(/\s*\((?:\d+[\.,]?\d*)\s*(?:đ|điểm)\)\s*$/i,'').trim();
+  return line?`– ${line} (${fmt(points)}đ)`:'';
 }
 function markingCellDoc(q){
   let xml='';
   if(q.parts?.length){
     q.parts.forEach((p,i)=>{
       const label=String(p.label||String.fromCharCode(97+i)).replace(/[\.)]$/,'');
-      const ans=cleanMarkingText(p.answer||'');
-      if(ans) xml += wP(`${label}. ${ans}`,{size:20,after:18});
-      (p.rubric||[]).forEach(r=>{
-        const line=cleanRubricText(r.content||'');
-        if(line) xml += wP(`– ${line} (${fmt(r.points)}đ)`,{size:20,after:18});
+      const inline=splitInlineMarking(p.answer||'');
+      const ansParas=answerParagraphs(inline.answer);
+      if(ansParas.length){
+        ansParas.forEach((para,j)=>xml+=wP(`${j===0?label+'. ':''}${para}`,{size:20,after:18}));
+      }else{
+        xml+=wP(`${label}.`,{size:20,after:18});
+      }
+      const rubric=Array.isArray(p.rubric)&&p.rubric.length
+        ? p.rubric.map(r=>({content:r.content,points:r.points}))
+        : inline.rubric.map(line=>({content:line,points:''}));
+      rubric.forEach(r=>{
+        const line=r.points===''?`– ${String(r.content||'').replace(/^[–—•-]\s*/,'').trim()}`:scoreLineText(r.content,r.points);
+        if(line && line!=='– ') xml+=wP(line,{size:20,after:18});
       });
     });
     return xml || wP('',{size:20,after:18});
   }
-  const ans=cleanMarkingText(answerText(q));
-  if(ans) xml += wP(ans,{size:20,after:18});
-  (q.rubric||[]).forEach(r=>{
-    const line=cleanRubricText(r.content||'');
-    if(line) xml += wP(`– ${line} (${fmt(r.points)}đ)`,{size:20,after:18});
+
+  const inline=splitInlineMarking(answerText(q));
+  answerParagraphs(inline.answer).forEach(para=>xml+=wP(para,{size:20,after:18}));
+  const rubric=Array.isArray(q.rubric)&&q.rubric.length
+    ? q.rubric.map(r=>({content:r.content,points:r.points}))
+    : inline.rubric.map(line=>({content:line,points:''}));
+  rubric.forEach(r=>{
+    const line=r.points===''?`– ${String(r.content||'').replace(/^[–—•-]\s*/,'').trim()}`:scoreLineText(r.content,r.points);
+    if(line && line!=='– ') xml+=wP(line,{size:20,after:18});
   });
   return xml || wP('',{size:20,after:18});
 }
