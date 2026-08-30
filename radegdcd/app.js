@@ -411,17 +411,36 @@ function answerText(q){
   if(q.answer&&typeof q.answer==='object')return Object.entries(q.answer).map(([k,v])=>`${k}: ${typeof v==='boolean'?(v?'Đ':'S'):v}`).join('; ');
   return '';
 }
-function markingDetail(q){
-  let ans=answerText(q); const partDetails=[];
+function cleanMarkingText(text=''){
+  let out = String(text||'').replace(/\r/g,'').trim();
+  out = out.split('\n').map(s=>s.trim()).filter(Boolean).filter(s=>!/^Hướng dẫn chấm:?$/i.test(s)).join('\n');
+  out = out.replace(/^Hướng dẫn chấm:\s*/i,'').trim();
+  return out;
+}
+function cleanRubricText(text=''){
+  return cleanMarkingText(text).replace(/^[-–•]\s*/, '').trim();
+}
+function markingCellDoc(q){
+  let xml='';
   if(q.parts?.length){
     q.parts.forEach((p,i)=>{
-      const pa=p.answer?`${p.label||String.fromCharCode(97+i)}. ${p.answer}`:'';
-      const rub=(p.rubric||[]).map(r=>`– ${r.content} (${fmt(r.points)}đ)`).join('\n');
-      partDetails.push([pa,rub].filter(Boolean).join('\n'));
+      const label=String(p.label||String.fromCharCode(97+i)).replace(/[\.)]$/,'');
+      const ans=cleanMarkingText(p.answer||'');
+      if(ans) xml += wP(`${label}. ${ans}`,{size:20,after:18});
+      (p.rubric||[]).forEach(r=>{
+        const line=cleanRubricText(r.content||'');
+        if(line) xml += wP(`– ${line} (${fmt(r.points)}đ)`,{size:20,after:18});
+      });
     });
+    return xml || wP('',{size:20,after:18});
   }
-  const rub=(q.rubric||[]).map(r=>`– ${r.content} (${fmt(r.points)}đ)`).join('\n');
-  return [ans,rub,...partDetails].filter(Boolean).join('\n');
+  const ans=cleanMarkingText(answerText(q));
+  if(ans) xml += wP(ans,{size:20,after:18});
+  (q.rubric||[]).forEach(r=>{
+    const line=cleanRubricText(r.content||'');
+    if(line) xml += wP(`– ${line} (${fmt(r.points)}đ)`,{size:20,after:18});
+  });
+  return xml || wP('',{size:20,after:18});
 }
 function disabilityGuideDoc(tnScore){
   const setup=setupValue(); if(!setup.disabledGuide)return '';
@@ -456,11 +475,11 @@ function pairedEssayMarkingTable(codes){
   const max=Math.max(0,...essays.map(x=>x.length)); if(!max)return '';
   if(codes.length>=2){
     const rows=[tr([tc('Câu',{vMerge:true,fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{span:2,fill:'EDEBFA'}),tc('Điểm',{vMerge:true,fill:'EDEBFA'})],{header:true}),tr([tc('',{vMerge:false}),tc(`ĐỀ ${codes[0].code}`,{fill:'EDEBFA'}),tc(`ĐỀ ${codes[1].code}`,{fill:'EDEBFA'}),tc('',{vMerge:false})],{header:true})];
-    for(let i=0;i<max;i++){const a=essays[0]?.[i],b=essays[1]?.[i];const no=a?.number??b?.number??'';const pts=a?.points??b?.points??'';rows.push(tr([tc(String(no)),tc(a?multiLineDoc(markingDetail(a)):''),tc(b?multiLineDoc(markingDetail(b)):''),tc(fmt(pts))]));}
+    for(let i=0;i<max;i++){const a=essays[0]?.[i],b=essays[1]?.[i];const no=a?.number??b?.number??'';const pts=a?.points??b?.points??'';rows.push(tr([tc(String(no)),tc(a?markingCellDoc(a):''),tc(b?markingCellDoc(b):''),tc(fmt(pts))]));}
     return tbl(rows);
   }
   const rows=[tr([tc('Câu',{fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{fill:'EDEBFA'}),tc('Điểm',{fill:'EDEBFA'})],{header:true})];
-  essays[0].forEach(q=>rows.push(tr([tc(String(q.number)),tc(multiLineDoc(markingDetail(q))),tc(fmt(q.points))])));return tbl(rows);
+  essays[0].forEach(q=>rows.push(tr([tc(String(q.number)),tc(markingCellDoc(q)),tc(fmt(q.points))])));return tbl(rows);
 }
 function markingDoc(){
   let xml=''; const codes=state.exam.examCodes||[];
