@@ -18,7 +18,7 @@ const SUBTYPES_7991 = [
 const ESSAY_TYPES = [['direct','Câu hỏi trực tiếp'],['situation','Câu hỏi sử dụng tình huống']];
 const state = {
   grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, apiOk:false,
-  models:[], model:'', exam:null, dialog:null
+  models:[], model:'', exam:null, dialog:null, reviewTab:'matrix', reviewProposal:null, editHistory:[], aiReview:null
 };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -134,7 +134,7 @@ function showPanel(name){
   if(name==='lessons') renderLessons();
   if(name==='matrix') renderMatrix();
   if(name==='spec') renderSpec();
-  if(name==='review') renderAudit();
+  if(name==='review'){ renderAudit(); renderReviewWorkspace(); }
 }
 function setApiStatus(text,kind='neutral'){
   $('#apiStatus').textContent=text;
@@ -312,7 +312,7 @@ async function generateExam(){
   const btn=$('#generateBtn'), box=$('#generateStatus');btn.disabled=true;box.classList.remove('hidden');box.textContent='Đang tạo đề từ đúng bài, đặc tả và ma trận đã chọn…';
   try{
     const data=await post('/api/generate',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload()});
-    state.exam=balanceSingleChoiceAnswers(data); renderExam(); box.textContent='✓ Đã tạo đề. Hãy kiểm tra nội dung trước khi xuất Word.';
+    state.exam=balanceSingleChoiceAnswers(data); state.editHistory=[]; state.reviewProposal=null; state.aiReview=null; renderExam(); renderAudit(); renderReviewWorkspace(); resetReviewConfirmation(); box.textContent='✓ Đã tạo đề. Hãy kiểm tra nội dung trước khi xuất Word.';
   }catch(e){box.textContent='✕ '+e.message;}
   finally{btn.disabled=false;}
 }
@@ -348,16 +348,109 @@ function questionHtml(q){
 }
 function examScore(code){return (code?.questions||[]).reduce((s,q)=>s+nval(q.points),0);}
 function renderAudit(){
+  const safety=localSafetyFlags();
   const audits=[
     [state.apiOk,'API Gemini','Đã kiểm tra API cá nhân'],
     [state.selected.size>0,'Phạm vi bài',`${state.selected.size} bài được chọn`],
     [Math.abs(totalPoints()-10)<.001,'Tổng điểm ma trận',`${fmt(totalPoints())}/10,0 điểm`],
     [allConfigs().every(x=>{const l=lessonById(x.lessonId),lev=LEVELS.find(y=>y.id===x.level);return Boolean(l?.descriptor?.[lev.key]||ensureTeacherSpec(x.lessonId)[x.level]);}),'Đặc tả theo bài','Mọi ô ma trận đều có nguồn đặc tả tương ứng'],
     [Boolean(state.exam?.examCodes?.length),'Đề kiểm tra',state.exam?.examCodes?.length?`${state.exam.examCodes.length} mã đề`:'Chưa tạo đề'],
-    [Boolean(state.exam?.examCodes?.length)&&state.exam.examCodes.every(c=>Math.abs(examScore(c)-10)<.01),'Điểm đề AI',state.exam?.examCodes?.length?state.exam.examCodes.map(c=>`${c.code}: ${fmt(examScore(c))}`).join(' · '):'Chưa có']
+    [Boolean(state.exam?.examCodes?.length)&&state.exam.examCodes.every(c=>Math.abs(examScore(c)-10)<.01),'Điểm đề AI',state.exam?.examCodes?.length?state.exam.examCodes.map(c=>`${c.code}: ${fmt(examScore(c))}`).join(' · '):'Chưa có'],
+    [!safety.some(x=>x.severity==='block'),'An toàn nội dung',safety.length?`${safety.length} cảnh báo cần giáo viên xem`:'Chưa phát hiện cảnh báo tự động']
   ];
   $('#auditGrid').innerHTML=audits.map(([ok,t,d])=>`<div class="audit-item ${ok?'ok':'bad'}"><div class="audit-icon">${ok?'✓':'!'}</div><div><strong>${esc(t)}</strong><div class="tiny">${esc(d)}</div></div></div>`).join('');
 }
+
+
+// ===== V2.3 ONLINE REVIEW + GUARDED AI EDITOR =====
+function deepClone(x){return JSON.parse(JSON.stringify(x));}
+function examQuestionRefs(){
+  const out=[];
+  (state.exam?.examCodes||[]).forEach((code,ci)=>(code.questions||[]).forEach((q,qi)=>out.push({code,ci,q,qi})));
+  return out;
+}
+function questionPlainText(q){
+  return [q?.context,q?.prompt,...(q?.options||[]),(q?.statements||[]).map(x=>x?.text||x),...(q?.pairsLeft||[]),...(q?.pairsRight||[]),q?.answer,
+    ...(q?.rubric||[]).map(x=>x?.content||''),...(q?.parts||[]).flatMap(p=>[p?.prompt,p?.answer,...(p?.rubric||[]).map(x=>x?.content||'')])].filter(Boolean).join(' ');
+}
+function localSafetyFlags(){
+  if(!state.exam?.examCodes?.length)return [];
+  const flags=[]; const seen=new Set();
+  const add=(severity,category,message,code='',questionNumber='')=>{const k=[severity,category,message,code,questionNumber].join('|');if(!seen.has(k)){seen.add(k);flags.push({severity,category,message,code,questionNumber,source:'local'});}};
+  const obscene=/\b(địt|đụ|đéo|lồn|cặc|buồi|fuck|shit)\b/iu;
+  const explicit=/\b(khiêu\s*dâm|nội\s*dung\s*khiêu\s*dâm|quan\s*hệ\s*tình\s*dục\s*chi\s*tiết)\b/iu;
+  const operationalIllegal=/(?:cách|hướng\s*dẫn|các\s*bước).{0,45}(?:chế\s*tạo|làm|pha|chế).{0,35}(?:bom|chất\s*nổ|vũ\s*khí)|(?:cách|hướng\s*dẫn).{0,45}(?:hack|xâm\s*nhập|trộm|gian\s*lận|trốn\s*thuế|mua\s*bán\s*ma\s*túy)/iu;
+  const political=/\b(Đảng|Quốc\s*hội|Chính\s*phủ|Chủ\s*tịch\s*nước|bầu\s*cử|chủ\s*quyền|lãnh\s*thổ|Biển\s*Đông|hệ\s*thống\s*chính\s*trị)\b/iu;
+  const legal=/(?:\bLuật\b|\bHiến\s*pháp\b|\bNghị\s*định\b|\bThông\s*tư\b|\bCông\s*ước\b|\bĐiều\s+\d+)/iu;
+  examQuestionRefs().forEach(({code,q})=>{
+    const text=questionPlainText(q);
+    if(obscene.test(text)||explicit.test(text))add('block','Ngôn ngữ/thuần phong mỹ tục','Phát hiện từ ngữ hoặc nội dung có nguy cơ phản cảm/tục tĩu, không phù hợp học sinh THCS.',code.code,q.number);
+    if(operationalIllegal.test(text))add('block','Pháp luật/an toàn','Nội dung có dấu hiệu mô tả cách thực hiện hành vi nguy hiểm hoặc vi phạm pháp luật. Chỉ nên đặt theo hướng nhận diện, phòng ngừa hoặc đánh giá.',code.code,q.number);
+    if(political.test(text))add('warning','Chính trị – xã hội','Câu có yếu tố chính trị – xã hội. Cần đối chiếu đúng nguồn, giữ diễn đạt trung lập và tránh suy diễn ngoài phạm vi bài học.',code.code,q.number);
+    if(legal.test(text))add('warning','Pháp luật','Câu có dẫn chiếu/nội dung pháp luật. Cần đối chiếu nguồn đang dùng và kiểm tra tính chính xác, cập nhật.',code.code,q.number);
+  });
+  return flags;
+}
+function resetReviewConfirmation(){
+  const cb=$('#reviewConfirm'); if(cb)cb.checked=false; updateExportGate();
+}
+function updateExportGate(){
+  const btn=$('#exportDocxBtn'); if(!btn)return;
+  const hard=localSafetyFlags().some(x=>x.severity==='block');
+  btn.disabled=!state.exam?.examCodes?.length || !$('#reviewConfirm')?.checked || hard;
+}
+function reviewMatrixHtml(){
+  const lessons=selectedLessons(); if(!lessons.length)return '<div class="notice">Chưa có ma trận.</div>';
+  const rows=lessons.map((l,i)=>{const m=ensureLessonMatrix(l.id);return `<tr><td>${i+1}</td><td>${esc(l.track)}</td><td><b>Bài ${l.num}.</b> ${esc(l.title)}</td><td>${esc(cellCompact(m.nb.tn,'tn')||'—')}</td><td>${esc(cellCompact(m.nb.tl,'tl')||'—')}</td><td>${esc(cellCompact(m.th.tn,'tn')||'—')}</td><td>${esc(cellCompact(m.th.tl,'tl')||'—')}</td><td>${esc(cellCompact(m.vd.tl,'tl')||'—')}</td><td><b>${fmt(lessonPoints(l.id))}</b></td></tr>`;}).join('');
+  const total=totalPoints(),pct=LEVELS.map(x=>total?levelPoints(x.id)/total*100:0);
+  return `<div class="table-scroll"><table class="matrix-table"><thead><tr><th rowspan="2">TT</th><th rowspan="2">Mạch nội dung</th><th rowspan="2">Bài</th><th colspan="2">Nhận biết</th><th colspan="2">Thông hiểu</th><th>Vận dụng</th><th rowspan="2">Tổng điểm</th></tr><tr><th>TNKQ</th><th>TL</th><th>TNKQ</th><th>TL</th><th>TL</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3"><b>Tổng số câu</b></td><td colspan="2">${countFmt(levelCount('nb'))}</td><td colspan="2">${countFmt(levelCount('th'))}</td><td>${countFmt(levelCount('vd'))}</td><td><b>${fmt(total)}</b></td></tr><tr><td colspan="3"><b>Tỉ lệ %</b></td><td colspan="2">${fmt(pct[0])}%</td><td colspan="2">${fmt(pct[1])}%</td><td>${fmt(pct[2])}%</td><td>${total?'100%':'0%'}</td></tr></tfoot></table></div>`;
+}
+function reviewSpecHtml(){
+  const lessons=selectedLessons(); if(!lessons.length)return '<div class="notice">Chưa có bản đặc tả.</div>';
+  const rows=lessons.map((l,i)=>{const m=ensureLessonMatrix(l.id),t=ensureTeacherSpec(l.id);const desc=LEVELS.map(lev=>`<div class="spec-source-block"><b>${lev.label}:</b>${descriptorHtml(l.descriptor?.[lev.key]||'')}${t[lev.id]?`<div class="teacher-added"><b>Bổ sung của GV:</b>${descriptorHtml(t[lev.id])}</div>`:''}</div>`).join('');return `<tr><td>${i+1}</td><td>${esc(l.track)}</td><td><b>Bài ${l.num}.</b> ${esc(l.title)}</td><td>${desc}</td><td>${formsForLevel('nb').map(f=>esc(cellCompact(m.nb[f],f))).filter(Boolean).join('<br>')||'—'}</td><td>${formsForLevel('th').map(f=>esc(cellCompact(m.th[f],f))).filter(Boolean).join('<br>')||'—'}</td><td>${esc(cellCompact(m.vd.tl,'tl')||'—')}</td></tr>`;}).join('');
+  return `<div class="table-scroll"><table class="spec-table"><thead><tr><th>TT</th><th>Mạch nội dung</th><th>Bài</th><th>Mức độ đánh giá</th><th>Nhận biết</th><th>Thông hiểu</th><th>Vận dụng</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function reviewExamHtml(){
+  if(!state.exam?.examCodes?.length)return '<div class="notice">Chưa tạo đề.</div>';
+  return state.exam.examCodes.map(code=>{const qs=orderedQuestions(code),tn=qs.filter(q=>q.form==='TNKQ'),tl=qs.filter(q=>q.form==='TL');return `<div class="preview-code"><h3>ĐỀ ${esc(code.code||'A')}</h3><div class="part-heading">PHẦN I. TRẮC NGHIỆM (${fmt(sectionScore(code,'TNKQ'))} điểm)</div>${tnInstruction(tn)?`<p class="tiny">${esc(tnInstruction(tn))}</p>`:''}${tn.map(questionHtml).join('')}<div class="part-heading">PHẦN II. TỰ LUẬN (${fmt(sectionScore(code,'TL'))} điểm)</div>${tl.map(questionHtml).join('')}</div>`;}).join('');
+}
+function rubricHtml(rubric=[]){return (rubric||[]).map(r=>`<div class="marking-rubric">– ${esc(cleanScoreContent(r.content||''))}${r.points!==undefined&&r.points!==null?` (${fmt(r.points)}đ)`:''}</div>`).join('');}
+function markingUnitHtml(q,part=null,index=0){
+  if(part){const inline=splitInlineMarking(part.answer||''),rub=normalizedRubric(part.rubric,inline.rubric),label=String(part.label||String.fromCharCode(97+index)).replace(/[\.)]$/,'');return `<div><b>${esc(label)}.</b> ${esc(inline.answer||'')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;}
+  const inline=splitInlineMarking(answerText(q)),rub=normalizedRubric(q?.rubric,inline.rubric);return `<div>${esc(inline.answer||'')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;
+}
+function reviewMarkingHtml(){
+  const codes=state.exam?.examCodes||[]; if(!codes.length)return '<div class="notice">Chưa có hướng dẫn chấm.</div>';
+  const firstTN=orderedQuestions(codes[0]).filter(q=>q.form==='TNKQ'),notes=[];const groups=new Map();firstTN.forEach(q=>{const k=`${q.subtype}|${q.points}`;if(!groups.has(k))groups.set(k,{type:q.subtype,points:q.points});});groups.forEach(g=>notes.push(`${formLabel(g.type)}: Mỗi câu đúng được ${fmt(g.points)} điểm.`));
+  const maxTN=Math.max(...codes.map(c=>orderedQuestions(c).filter(q=>q.form==='TNKQ').length),0);let tnTable='';if(maxTN){const headers=Array.from({length:maxTN},(_,i)=>`<th>${i+1}</th>`).join('');const rows=codes.map(c=>{const qs=orderedQuestions(c).filter(q=>q.form==='TNKQ');return `<tr><th>Đề ${esc(c.code)}</th>${Array.from({length:maxTN},(_,i)=>`<td>${esc(qs[i]?answerText(qs[i]):'')}</td>`).join('')}</tr>`;}).join('');tnTable=`<p class="marking-preview-note">${notes.map(esc).join('<br>')}</p><div class="table-scroll"><table class="review-marking-table"><thead><tr><th>Câu</th>${headers}</tr></thead><tbody>${rows}</tbody></table></div>`;}
+  const essays=codes.map(c=>orderedQuestions(c).filter(q=>q.form==='TL')),max=Math.max(...essays.map(x=>x.length),0);let tlRows='';for(let i=0;i<max;i++){const a=essays[0]?.[i],b=essays[1]?.[i];const parts=Math.max(a?.parts?.length||1,b?.parts?.length||1);for(let j=0;j<parts;j++){tlRows+=`<tr>${j===0?`<td rowspan="${parts}">${esc(a?.number??b?.number??'')}</td>`:''}<td>${a?(a.parts?.length?markingUnitHtml(a,a.parts[j],j):j===0?markingUnitHtml(a):''):''}</td>${codes.length>1?`<td>${b?(b.parts?.length?markingUnitHtml(b,b.parts[j],j):j===0?markingUnitHtml(b):''):''}</td>`:''}${j===0?`<td rowspan="${parts}">${fmt(a?.points??b?.points??0)}</td>`:''}</tr>`;}}
+  const h=codes.length>1?'<th>ĐỀ A</th><th>ĐỀ B</th>':'<th>Yêu cầu cần đạt / Hướng dẫn chấm</th>';
+  return `<h3>PHẦN I. TRẮC NGHIỆM (${fmt(sectionScore(codes[0],'TNKQ'))} điểm)</h3>${tnTable}<h3>PHẦN II. TỰ LUẬN (${fmt(sectionScore(codes[0],'TL'))} điểm)</h3><div class="table-scroll"><table class="review-marking-table"><thead><tr><th>Câu</th>${h}<th>Điểm</th></tr></thead><tbody>${tlRows}</tbody></table></div>`;
+}
+function renderReviewWorkspace(){
+  if(!$('#reviewPreview'))return;
+  $$('.review-tab').forEach(b=>b.classList.toggle('active',b.dataset.reviewTab===state.reviewTab));
+  const titles={matrix:'Ma trận',spec:'Bản đặc tả',exam:'Đề kiểm tra',marking:'Hướng dẫn chấm'};$('#reviewPreviewTitle').textContent=titles[state.reviewTab]||'Xem trước';
+  $('#reviewPreview').innerHTML=state.reviewTab==='matrix'?reviewMatrixHtml():state.reviewTab==='spec'?reviewSpecHtml():state.reviewTab==='exam'?reviewExamHtml():reviewMarkingHtml();
+  renderAiScopeOptions();renderSafetyReport();updateExportGate();
+}
+function renderAiScopeOptions(){
+  const sel=$('#aiScope');if(!sel)return;const current=sel.value;let opts='<option value="">Chọn câu/ý cần chỉnh...</option>';
+  (state.exam?.examCodes||[]).forEach((code,ci)=>(code.questions||[]).forEach((q,qi)=>{const n=q.number||qi+1;opts+=`<optgroup label="Đề ${esc(code.code)} · Câu ${n}"><option value="${ci}|${qi}|whole">Toàn câu ${n}</option>${q.context?`<option value="${ci}|${qi}|context">Tình huống câu ${n}</option>`:''}<option value="${ci}|${qi}|marking">Đáp án/Hướng dẫn chấm câu ${n}</option>${(q.parts||[]).map((p,pi)=>`<option value="${ci}|${qi}|partMarking|${pi}">Hướng dẫn chấm ý ${esc(p.label||String.fromCharCode(97+pi))} câu ${n}</option>`).join('')}</optgroup>`;}));sel.innerHTML=opts;if([...sel.options].some(o=>o.value===current))sel.value=current;
+}
+function parseScopeValue(v){const [ci,qi,field,pi]=String(v||'').split('|');if(ci===''||qi===''||!field)return null;const code=state.exam?.examCodes?.[Number(ci)],q=code?.questions?.[Number(qi)];if(!q)return null;return {ci:Number(ci),qi:Number(qi),field,pi:pi===undefined?null:Number(pi),code,question:q};}
+function appendChat(kind,text){const log=$('#aiChatLog');if(!log)return;const d=document.createElement('div');d.className=kind==='user'?'chat-user':kind==='ai'?'chat-ai':'chat-system';d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight;}
+function proposalPlainText(q){if(!q)return '';let out=[];if(q.context)out.push('Tình huống: '+q.context);if(q.prompt)out.push('Câu hỏi: '+q.prompt);if(q.options?.length)out.push(q.options.map((x,i)=>`${String.fromCharCode(65+i)}. ${stripChoiceLabel(x)}`).join('\n'));if(q.parts?.length)q.parts.forEach((p,i)=>{out.push(`${p.label||String.fromCharCode(97+i)}. ${p.prompt||''}`);if(p.answer)out.push('Đáp án: '+p.answer);(p.rubric||[]).forEach(r=>out.push(`– ${r.content} (${fmt(r.points)}đ)`));});else{if(q.answer)out.push('Đáp án: '+answerText(q));(q.rubric||[]).forEach(r=>out.push(`– ${r.content} (${fmt(r.points)}đ)`));}return out.join('\n');}
+function renderProposal(data){const box=$('#aiProposal');if(!box)return;if(!data?.proposal?.question){box.classList.add('hidden');box.innerHTML='';return;}const warns=(data.warnings||[]).map(x=>`<li>${esc(x)}</li>`).join('');box.classList.remove('hidden');box.innerHTML=`<strong>Đề xuất của AI</strong><p class="tiny">${esc(data.summary||'')}</p>${warns?`<ul class="tiny">${warns}</ul>`:''}<div class="proposal-preview">${esc(proposalPlainText(data.proposal.question))}</div><div class="proposal-actions"><button type="button" class="btn primary" id="applyAiProposal">Áp dụng</button><button type="button" class="btn ghost" id="discardAiProposal">Bỏ qua</button></div>`;$('#applyAiProposal').addEventListener('click',applyAiProposal);$('#discardAiProposal').addEventListener('click',()=>{state.reviewProposal=null;renderProposal(null);});}
+async function sendAiEdit(){
+  if(!state.apiOk)return alert('Hãy kiểm tra API trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để chỉnh.');const target=parseScopeValue($('#aiScope').value);if(!target)return alert('Hãy chọn phạm vi chỉnh sửa.');const req=$('#aiEditRequest').value.trim();if(!req)return alert('Hãy nhập yêu cầu điều chỉnh.');
+  const btn=$('#aiEditBtn');btn.disabled=true;$('#editAiDot').className='status-dot neutral';appendChat('user',req);
+  try{const data=await post('/api/refine',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload(),target:{codeIndex:target.ci,questionIndex:target.qi,field:target.field,partIndex:target.pi,code:target.code.code,question:deepClone(target.question)},teacherRequest:req});state.reviewProposal={...data,target:{ci:target.ci,qi:target.qi}};renderProposal(state.reviewProposal);appendChat('ai',data.summary||'AI đã tạo một phương án chỉnh sửa. Hãy xem và bấm Áp dụng nếu phù hợp.');$('#editAiDot').className='status-dot ok';}catch(e){appendChat('ai','Không thể tạo đề xuất: '+e.message);$('#editAiDot').className='status-dot bad';}finally{btn.disabled=false;}
+}
+function applyAiProposal(){const d=state.reviewProposal;if(!d?.proposal?.question||!d.target)return;state.editHistory.push(deepClone(state.exam));if(state.editHistory.length>10)state.editHistory.shift();state.exam.examCodes[d.target.ci].questions[d.target.qi]=deepClone(d.proposal.question);state.exam=balanceSingleChoiceAnswers(state.exam);state.reviewProposal=null;state.aiReview=null;renderProposal(null);renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();$('#undoEditBtn').disabled=false;appendChat('ai','Đã áp dụng đề xuất. Hãy kiểm tra lại câu, đáp án và hướng dẫn chấm.');}
+function undoAiEdit(){if(!state.editHistory.length)return;state.exam=state.editHistory.pop();state.reviewProposal=null;state.aiReview=null;renderProposal(null);renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();$('#undoEditBtn').disabled=!state.editHistory.length;appendChat('ai','Đã hoàn tác lần chỉnh sửa gần nhất.');}
+function renderSafetyReport(){const root=$('#safetyReport');if(!root)return;const local=localSafetyFlags(),worker=state.exam?.safetyFlags||[],ai=state.aiReview?.issues||[],items=[...local,...worker,...ai];if(!items.length){root.classList.remove('hidden');root.innerHTML='<h3>Rà soát an toàn & chuyên môn</h3><div class="safety-issue"><span class="safety-badge info">THÔNG TIN</span><div>Chưa phát hiện cảnh báo. Kết quả tự động không thay thế việc giáo viên kiểm tra.</div></div>';return;}root.classList.remove('hidden');root.innerHTML=`<h3>Rà soát an toàn & chuyên môn (${items.length})</h3>${items.map(x=>`<div class="safety-issue"><span class="safety-badge ${esc(x.severity||'warning')}">${x.severity==='block'?'CẦN SỬA':x.severity==='info'?'THÔNG TIN':'KIỂM TRA'}</span><div><b>${esc(x.category||'Cảnh báo')}${x.code?` · Đề ${esc(x.code)}`:''}${x.questionNumber?` · Câu ${esc(x.questionNumber)}`:''}</b><div>${esc(x.message||'')}</div>${x.suggestion?`<div class="tiny"><b>Gợi ý:</b> ${esc(x.suggestion)}</div>`:''}</div></div>`).join('')}${local.some(x=>x.severity==='block')?'<div class="local-block-notice"><b>Chưa thể xuất Word</b> cho đến khi các cảnh báo nghiêm trọng tự động được xử lí.</div>':''}`;}
+async function runAiReview(){if(!state.apiOk)return alert('Hãy kiểm tra API trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để rà soát.');const btn=$('#aiReviewBtn');btn.disabled=true;btn.textContent='Đang rà soát…';try{state.aiReview=await post('/api/review',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload(),exam:state.exam});renderSafetyReport();appendChat('ai',state.aiReview.summary||`Đã rà soát: ${(state.aiReview.issues||[]).length} điểm cần chú ý.`);}catch(e){appendChat('ai','Rà soát thất bại: '+e.message);}finally{btn.disabled=false;btn.textContent='🔍 AI rà soát toàn bộ';}}
 
 // ===== DOCX (OOXML) =====
 function xesc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -632,6 +725,8 @@ function markingDoc(){
 }
 async function exportDocx(){
   if(!window.JSZip) return alert('Thiếu JSZip.'); if(!state.exam?.examCodes?.length)return alert('Chưa có đề để xuất.');
+  if(!$('#reviewConfirm')?.checked)return alert('Hãy xác nhận đã kiểm tra bản cuối trước khi xuất Word.');
+  const hardFlags=localSafetyFlags().filter(x=>x.severity==='block'); if(hardFlags.length)return alert('Chưa thể xuất Word vì còn cảnh báo an toàn nghiêm trọng. Hãy xem mục Kiểm tra & Xuất Word và chỉnh lại nội dung.');
   const setup=setupValue(); let body='';
   body+=headerDoc(setup,setup.examType,{});body+=wP('I. MỤC TIÊU ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(`Thu thập thông tin để đánh giá mức độ đạt yêu cầu cần đạt môn Giáo dục công dân lớp ${setup.grade} theo các bài: ${selectedLessons().map(l=>l.title).join('; ')}.`,{size:24});
   body+=wP('II. HÌNH THỨC ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(setup.mode==='7991'?'Kiểm tra theo lựa chọn “Ra đề theo Công văn 7991”, kết hợp TNKQ và tự luận theo ma trận đã thiết lập.':'Kiểm tra kết hợp TNKQ và tự luận theo ma trận đã thiết lập.',{size:24});
@@ -662,7 +757,7 @@ function bind(){
   $$('.step-btn').forEach(b=>b.addEventListener('click',()=>showPanel(b.dataset.step)));
   $$('.next-btn').forEach(b=>b.addEventListener('click',()=>showPanel(b.dataset.next)));
   $$('.prev-btn').forEach(b=>b.addEventListener('click',()=>showPanel(b.dataset.prev)));
-  $('#grade').addEventListener('change',e=>{state.grade=e.target.value;state.selected.clear();state.matrix={};state.teacherSpec={};state.exam=null;renderLessons();});
+  $('#grade').addEventListener('change',e=>{state.grade=e.target.value;state.selected.clear();state.matrix={};state.teacherSpec={};state.exam=null;state.editHistory=[];state.reviewProposal=null;state.aiReview=null;renderLessons();resetReviewConfirmation();});
   $('#clearLessons').addEventListener('click',()=>{state.selected.clear();renderLessons();});
   $('#toggleKey').addEventListener('click',()=>{$('#apiKey').type=$('#apiKey').type==='password'?'text':'password';});
   $('#testApiBtn').addEventListener('click',testApi);$('#modelSelect').addEventListener('change',e=>state.model=e.target.value);
@@ -673,7 +768,13 @@ function bind(){
   $('#generateBtn').addEventListener('click',generateExam);$('#exportDocxBtn').addEventListener('click',exportDocx);
   const syncDisabled=()=>$('#disabledOptions')?.classList.toggle('hidden',!$('#disabledGuide').checked);
   $('#disabledGuide').addEventListener('change',syncDisabled); syncDisabled();
-  $('#grade').value=state.grade;renderLessons();renderMatrix();renderSpec();renderAudit();
+  $$('.review-tab').forEach(b=>b.addEventListener('click',()=>{state.reviewTab=b.dataset.reviewTab;renderReviewWorkspace();}));
+  $('#aiReviewBtn')?.addEventListener('click',runAiReview);
+  $('#aiEditBtn')?.addEventListener('click',sendAiEdit);
+  $('#undoEditBtn')?.addEventListener('click',undoAiEdit);
+  $('#reviewConfirm')?.addEventListener('change',updateExportGate);
+  $$('.chip-btn[data-ai-quick]').forEach(b=>b.addEventListener('click',()=>{$('#aiEditRequest').value=b.dataset.aiQuick||'';}));
+  $('#grade').value=state.grade;renderLessons();renderMatrix();renderSpec();renderAudit();renderReviewWorkspace();updateExportGate();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();

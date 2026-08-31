@@ -126,6 +126,7 @@
 
       <section class="panel" id="panel-generate">
         <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Tạo đề bằng AI</h2></div><p>AI nhận đúng bài đã chọn, nội dung SGK tương ứng, bản đặc tả tương ứng và ma trận đã thiết lập.</p></div>
+        <div class="ai-risk-banner"><strong>⚠ AI có thể sai.</strong> Giáo viên cần kiểm tra kĩ toàn bộ câu hỏi, đáp án và hướng dẫn chấm trước khi sử dụng. Đặc biệt chú ý nội dung phản cảm/tục tĩu, dấu hiệu hướng dẫn hành vi vi phạm pháp luật, chuẩn mực đạo đức – thuần phong mỹ tục, và các nội dung chính trị – xã hội; những nội dung nhạy cảm phải bám nguồn, diễn đạt trung lập và phù hợp học sinh THCS.</div>
         <div class="generate-card">
           <div><h3>Trước khi tạo đề</h3><ul><li>API phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao; mức Vận dụng chỉ dùng tự luận.</li><li>Đề được tách thành PHẦN I. TRẮC NGHIỆM và PHẦN II. TỰ LUẬN.</li></ul></div>
           <button class="btn primary large" id="generateBtn">✨ Tạo đề, đáp án và hướng dẫn chấm</button>
@@ -136,9 +137,49 @@
       </section>
 
       <section class="panel" id="panel-review">
-        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Kiểm tra và xuất Word</h2></div><p>File Word được dựng bằng OOXML, không giao việc định dạng Word cho AI.</p></div>
-        <div class="audit-grid" id="auditGrid"></div>
-        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm · bảng ma trận và đặc tả phân cột.</p></div><button class="btn primary large" id="exportDocxBtn">⬇ Xuất file .docx</button></div>
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Kiểm tra, điều chỉnh & xuất Word</h2></div><p>Xem trước toàn bộ sản phẩm, rà soát bằng AI và điều chỉnh có kiểm soát trước khi xuất file.</p></div>
+
+        <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai — giáo viên chịu trách nhiệm kiểm tra bản cuối.</strong><ul><li>Không sử dụng câu hỏi tục tĩu, phản cảm, xúc phạm, phân biệt đối xử hoặc trái chuẩn mực đạo đức và thuần phong mỹ tục.</li><li>Nội dung về hành vi vi phạm pháp luật chỉ được dùng theo hướng nhận diện/phòng ngừa/đánh giá; không biến thành hướng dẫn thực hiện hành vi sai trái.</li><li>Nội dung pháp luật phải đối chiếu nguồn đang dùng. Nội dung chính trị – xã hội phải bám tài liệu, trung lập, không suy diễn hoặc tuyên truyền ngoài phạm vi bài học.</li><li>Luôn kiểm tra lại độ chính xác, độ tuổi phù hợp, đáp án và tổng điểm sau khi AI chỉnh sửa.</li></ul></div>
+
+        <div class="review-topbar">
+          <div class="review-tabs" role="tablist" aria-label="Xem trước sản phẩm">
+            <button class="review-tab active" data-review-tab="matrix" type="button">Ma trận</button>
+            <button class="review-tab" data-review-tab="spec" type="button">Bản đặc tả</button>
+            <button class="review-tab" data-review-tab="exam" type="button">Đề kiểm tra</button>
+            <button class="review-tab" data-review-tab="marking" type="button">Hướng dẫn chấm</button>
+          </div>
+          <button type="button" class="btn secondary" id="aiReviewBtn">🔍 AI rà soát toàn bộ</button>
+        </div>
+
+        <div id="safetyReport" class="safety-report hidden" aria-live="polite"></div>
+        <div class="audit-grid compact-audit" id="auditGrid"></div>
+
+        <div class="review-workspace">
+          <div class="review-preview-card">
+            <div class="review-preview-head"><strong id="reviewPreviewTitle">Ma trận</strong><span class="tiny">Bản xem trước online</span></div>
+            <div id="reviewPreview" class="review-preview-body"></div>
+          </div>
+
+          <aside class="ai-editor-card">
+            <div class="ai-editor-head"><div><span class="eyebrow">TRỢ LÝ AI</span><h3>Điều chỉnh có kiểm soát</h3></div><span class="status-dot neutral" id="editAiDot"></span></div>
+            <p class="tiny">AI chỉ đề xuất. Nội dung không thay đổi cho đến khi giáo viên bấm <strong>Áp dụng</strong>.</p>
+            <label>Phạm vi chỉnh sửa<select id="aiScope"><option value="">Hãy tạo đề trước...</option></select></label>
+            <div class="quick-prompts">
+              <button type="button" class="chip-btn" data-ai-quick="Rút gọn tình huống nhưng giữ nguyên vấn đề, mức độ và đáp án.">Rút gọn tình huống</button>
+              <button type="button" class="chip-btn" data-ai-quick="Làm tình huống rõ, thực tế hơn và phù hợp học sinh THCS; không làm thay đổi kiến thức cần kiểm tra.">Làm rõ tình huống</button>
+              <button type="button" class="chip-btn" data-ai-quick="Chỉnh hướng dẫn chấm thành các tiêu chí cụ thể, không trùng ý và tổng điểm phải giữ nguyên.">Sửa hướng dẫn chấm</button>
+              <button type="button" class="chip-btn" data-ai-quick="Kiểm tra và chỉnh câu chữ để ngắn gọn, trong sáng, không mơ hồ và phù hợp học sinh THCS.">Sửa diễn đạt</button>
+            </div>
+            <label>Yêu cầu của giáo viên<textarea id="aiEditRequest" rows="5" placeholder="Ví dụ: Rút tình huống còn khoảng 60 từ; chia hướng dẫn chấm ý b thành 2 tiêu chí, mỗi tiêu chí 0,5 điểm..."></textarea></label>
+            <div class="ai-editor-actions"><button type="button" class="btn primary" id="aiEditBtn">✨ Gửi yêu cầu</button><button type="button" class="btn ghost" id="undoEditBtn" disabled>↶ Hoàn tác</button></div>
+            <div id="aiChatLog" class="ai-chat-log"><div class="chat-system">Chọn một câu/ý ở “Phạm vi chỉnh sửa”, nhập yêu cầu rồi gửi. AI không được đổi bài, mức độ, dạng câu hoặc điểm nếu giáo viên không quay lại ma trận.</div></div>
+            <div id="aiProposal" class="ai-proposal hidden"></div>
+          </aside>
+        </div>
+
+        <label class="review-confirm"><input type="checkbox" id="reviewConfirm"/><span><strong>Tôi đã kiểm tra bản cuối.</strong><small>Tôi đã xem ma trận, đặc tả, đề, đáp án/hướng dẫn chấm và các cảnh báo an toàn trước khi xuất Word.</small></span></label>
+
+        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm · chỉ xuất sau khi giáo viên xác nhận đã kiểm tra.</p></div><button class="btn primary large" id="exportDocxBtn" disabled>⬇ Xuất file .docx</button></div>
         <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="generate">← Quay lại</button><span></span></div>
       </section>
     </main>
@@ -157,8 +198,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.2.4"></script>
+  <script src="config.js?v=2.3.0"></script>
   <script src="data.js"></script>
-  <script src="app.js?v=2.2.4"></script>
+  <script src="app.js?v=2.3.0"></script>
 </body>
 </html>
