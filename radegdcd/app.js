@@ -414,7 +414,7 @@ function answerText(q){
 function splitInlineMarking(raw=''){
   const text=String(raw||'').replace(/\r/g,'').trim();
   if(!text)return {answer:'',rubric:[]};
-  const m=text.match(/Hướng\s*dẫn\s*chấm\s*:/i);
+  const m=text.match(/\*{0,2}_*\s*Hướng\s*dẫn\s*chấm\s*:?\s*_?\*{0,2}/i);
   if(!m)return {answer:text,rubric:[]};
   const answer=text.slice(0,m.index).trim();
   const after=text.slice((m.index||0)+m[0].length).trim();
@@ -432,49 +432,62 @@ function splitRubricLines(raw=''){
 function answerParagraphs(raw=''){
   let text=String(raw||'').replace(/\r/g,'').trim();
   if(!text)return [];
-  // Nếu dữ liệu cũ gộp a., b., c. trong một chuỗi, tách thành các đoạn rõ ràng.
-  text=text.replace(/\s+(?=([a-dA-D])[\.)]\s+)/g,'\n');
-  return text.split('\n').map(x=>x.trim()).filter(Boolean);
+  return text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
 }
-function scoreLineText(content,points){
-  let line=String(content||'').replace(/\r/g,'').trim().replace(/^Hướng\s*dẫn\s*chấm\s*:\s*/i,'').replace(/^[–—•-]\s*/,'').trim();
-  // Tránh lặp điểm nếu AI đã chèn điểm ở cuối content.
-  line=line.replace(/\s*\((?:\d+[\.,]?\d*)\s*(?:đ|điểm)\)\s*$/i,'').trim();
-  return line?`– ${line} (${fmt(points)}đ)`:'';
+function cleanScoreContent(content=''){
+  return String(content||'')
+    .replace(/\r/g,'')
+    .replace(/^\s*Hướng\s*dẫn\s*chấm\s*:?\s*/i,'')
+    .replace(/^[–—•-]\s*/,'')
+    .replace(/\s*\((?:\d+[\.,]?\d*)\s*(?:đ|điểm)\)\s*$/i,'')
+    .trim();
 }
-function markingCellDoc(q){
-  let xml='';
-  if(q.parts?.length){
-    q.parts.forEach((p,i)=>{
-      const label=String(p.label||String.fromCharCode(97+i)).replace(/[\.)]$/,'');
-      const inline=splitInlineMarking(p.answer||'');
-      const ansParas=answerParagraphs(inline.answer);
-      if(ansParas.length){
-        ansParas.forEach((para,j)=>xml+=wP(`${j===0?label+'. ':''}${para}`,{size:20,after:18}));
-      }else{
-        xml+=wP(`${label}.`,{size:20,after:18});
-      }
-      const rubric=Array.isArray(p.rubric)&&p.rubric.length
-        ? p.rubric.map(r=>({content:r.content,points:r.points}))
-        : inline.rubric.map(line=>({content:line,points:''}));
-      rubric.forEach(r=>{
-        const line=r.points===''?`– ${String(r.content||'').replace(/^[–—•-]\s*/,'').trim()}`:scoreLineText(r.content,r.points);
-        if(line && line!=='– ') xml+=wP(line,{size:20,after:18});
-      });
-    });
-    return xml || wP('',{size:20,after:18});
+function normalizedRubric(rawRubric, inlineRubric=[]){
+  if(Array.isArray(rawRubric)&&rawRubric.length){
+    return rawRubric.map(r=>({content:cleanScoreContent(r?.content||''),points:r?.points})).filter(r=>r.content);
   }
-
-  const inline=splitInlineMarking(answerText(q));
-  answerParagraphs(inline.answer).forEach(para=>xml+=wP(para,{size:20,after:18}));
-  const rubric=Array.isArray(q.rubric)&&q.rubric.length
-    ? q.rubric.map(r=>({content:r.content,points:r.points}))
-    : inline.rubric.map(line=>({content:line,points:''}));
-  rubric.forEach(r=>{
-    const line=r.points===''?`– ${String(r.content||'').replace(/^[–—•-]\s*/,'').trim()}`:scoreLineText(r.content,r.points);
-    if(line && line!=='– ') xml+=wP(line,{size:20,after:18});
+  return (inlineRubric||[]).map(line=>{
+    const m=String(line||'').match(/\((\d+(?:[\.,]\d+)?)\s*(?:đ|điểm)\)\s*$/i);
+    return {content:cleanScoreContent(line),points:m?Number(m[1].replace(',','.')):''};
+  }).filter(r=>r.content);
+}
+function markingGuideTitleDoc(){
+  return wPParts([{text:'Hướng dẫn chấm:',b:true,i:true}],{size:20,after:18,before:8});
+}
+function rubricDoc(rubric=[]){
+  let xml='';
+  (rubric||[]).forEach(r=>{
+    const content=cleanScoreContent(r.content||'');
+    if(!content)return;
+    const suffix=(r.points!==''&&r.points!==undefined&&r.points!==null)?` (${fmt(r.points)}đ)`:'';
+    xml+=wPParts([{text:`– ${content}${suffix}`,i:true}],{size:20,after:18});
   });
-  return xml || wP('',{size:20,after:18});
+  return xml;
+}
+function partMarkingCellDoc(part,index){
+  if(!part)return wP('',{size:20,after:18});
+  const label=String(part.label||String.fromCharCode(97+index)).replace(/[\.)]$/,'');
+  const inline=splitInlineMarking(part.answer||'');
+  const rubric=normalizedRubric(part.rubric,inline.rubric);
+  let xml='';
+  const paras=answerParagraphs(inline.answer);
+  if(paras.length){
+    paras.forEach((para,j)=>{
+      const cleaned=j===0?para.replace(new RegExp(`^\\s*${label}[\\.)]\\s*`,'i'),''):para;
+      xml+=wP(`${j===0?label+'. ':''}${cleaned}`,{size:20,after:18});
+    });
+  }else xml+=wP(`${label}.`,{size:20,after:18});
+  if(rubric.length){xml+=markingGuideTitleDoc();xml+=rubricDoc(rubric);}
+  return xml;
+}
+function questionMarkingCellDoc(q){
+  if(!q)return wP('',{size:20,after:18});
+  const inline=splitInlineMarking(answerText(q));
+  const rubric=normalizedRubric(q.rubric,inline.rubric);
+  let xml='';
+  answerParagraphs(inline.answer).forEach(para=>xml+=wP(para,{size:20,after:18}));
+  if(rubric.length){xml+=markingGuideTitleDoc();xml+=rubricDoc(rubric);}
+  return xml||wP('',{size:20,after:18});
 }
 function disabilityGuideDoc(tnScore){
   const setup=setupValue(); if(!setup.disabledGuide)return '';
@@ -507,13 +520,47 @@ function tnAnswerTable(codes){
 function pairedEssayMarkingTable(codes){
   const essays=codes.map(c=>orderedQuestions(c).filter(q=>q.form==='TL'));
   const max=Math.max(0,...essays.map(x=>x.length)); if(!max)return '';
+  const headCau=wP('Câu',{b:true,align:'center',size:20,after:20});
+  const headTitle=wP('Yêu cầu cần đạt / Hướng dẫn chấm',{b:true,align:'center',size:20,after:20});
+  const headDiem=wP('Điểm',{b:true,align:'center',size:20,after:20});
   if(codes.length>=2){
-    const rows=[tr([tc('Câu',{vMerge:true,fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{span:2,fill:'EDEBFA'}),tc('Điểm',{vMerge:true,fill:'EDEBFA'})],{header:true}),tr([tc('',{vMerge:false}),tc(`ĐỀ ${codes[0].code}`,{fill:'EDEBFA'}),tc(`ĐỀ ${codes[1].code}`,{fill:'EDEBFA'}),tc('',{vMerge:false})],{header:true})];
-    for(let i=0;i<max;i++){const a=essays[0]?.[i],b=essays[1]?.[i];const no=a?.number??b?.number??'';const pts=a?.points??b?.points??'';rows.push(tr([tc(String(no)),tc(a?markingCellDoc(a):''),tc(b?markingCellDoc(b):''),tc(fmt(pts))]));}
-    return tbl(rows);
+    const rows=[
+      tr([tc(headCau,{vMerge:true,fill:'EDEBFA',align:'center'}),tc(headTitle,{span:2,fill:'EDEBFA',align:'center'}),tc(headDiem,{vMerge:true,fill:'EDEBFA',align:'center'})],{header:true}),
+      tr([tc('',{vMerge:false}),tc(wP(`ĐỀ ${codes[0].code}`,{b:true,align:'center',size:20,after:20}),{fill:'EDEBFA',align:'center'}),tc(wP(`ĐỀ ${codes[1].code}`,{b:true,align:'center',size:20,after:20}),{fill:'EDEBFA',align:'center'}),tc('',{vMerge:false})],{header:true})
+    ];
+    for(let i=0;i<max;i++){
+      const a=essays[0]?.[i], b=essays[1]?.[i];
+      const no=a?.number??b?.number??'';
+      const pts=a?.points??b?.points??'';
+      const ap=a?.parts?.length?a.parts:null;
+      const bp=b?.parts?.length?b.parts:null;
+      const subrows=Math.max(ap?.length||1,bp?.length||1);
+      for(let j=0;j<subrows;j++){
+        const aDoc=ap?partMarkingCellDoc(ap[j],j):(j===0?questionMarkingCellDoc(a):wP('',{size:20,after:18}));
+        const bDoc=bp?partMarkingCellDoc(bp[j],j):(j===0?questionMarkingCellDoc(b):wP('',{size:20,after:18}));
+        if(subrows===1){
+          rows.push(tr([tc(String(no),{align:'center'}),tc(aDoc),tc(bDoc),tc(fmt(pts),{align:'center'})]));
+        }else if(j===0){
+          rows.push(tr([tc(String(no),{vMerge:true,align:'center'}),tc(aDoc),tc(bDoc),tc(fmt(pts),{vMerge:true,align:'center'})]));
+        }else{
+          rows.push(tr([tc('',{vMerge:false,align:'center'}),tc(aDoc),tc(bDoc),tc('',{vMerge:false,align:'center'})]));
+        }
+      }
+    }
+    return tbl(rows,[650,4100,4100,650]);
   }
-  const rows=[tr([tc('Câu',{fill:'EDEBFA'}),tc('Yêu cầu cần đạt / Hướng dẫn chấm',{fill:'EDEBFA'}),tc('Điểm',{fill:'EDEBFA'})],{header:true})];
-  essays[0].forEach(q=>rows.push(tr([tc(String(q.number)),tc(markingCellDoc(q)),tc(fmt(q.points))])));return tbl(rows);
+  const rows=[tr([tc(headCau,{fill:'EDEBFA',align:'center'}),tc(headTitle,{fill:'EDEBFA',align:'center'}),tc(headDiem,{fill:'EDEBFA',align:'center'})],{header:true})];
+  essays[0].forEach(q=>{
+    const parts=q?.parts?.length?q.parts:null;
+    const subrows=parts?.length||1;
+    for(let j=0;j<subrows;j++){
+      const cell=parts?partMarkingCellDoc(parts[j],j):questionMarkingCellDoc(q);
+      if(subrows===1)rows.push(tr([tc(String(q.number),{align:'center'}),tc(cell),tc(fmt(q.points),{align:'center'})]));
+      else if(j===0)rows.push(tr([tc(String(q.number),{vMerge:true,align:'center'}),tc(cell),tc(fmt(q.points),{vMerge:true,align:'center'})]));
+      else rows.push(tr([tc('',{vMerge:false,align:'center'}),tc(cell),tc('',{vMerge:false,align:'center'})]));
+    }
+  });
+  return tbl(rows,[650,8200,650]);
 }
 function markingDoc(){
   let xml=''; const codes=state.exam.examCodes||[];
