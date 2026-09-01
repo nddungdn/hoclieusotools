@@ -268,7 +268,7 @@ label{
 }
 input,select,textarea{
   width:100%;
-  min-height:44px;
+  min-height:25px;
   margin-top:6px;
   padding:10px 12px;
   outline:none;
