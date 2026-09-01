@@ -1046,3 +1046,13 @@ tfoot td{
 .marking-preview-note{font-style:italic;color:#555;margin:4px 0 10px}.review-marking-table th{background:#eeeeff}.review-marking-table td{vertical-align:top}.marking-label{font-weight:700;font-style:italic;margin-top:8px}.marking-rubric{font-style:italic;margin:4px 0}.local-block-notice{border:1px solid #efb4b4;background:#fff5f5;color:#991b1b;padding:10px;border-radius:12px;margin-top:10px}
 @media(max-width:1000px){.review-workspace{grid-template-columns:1fr}.ai-editor-card{position:static}.review-preview-body{min-height:300px}}
 @media(max-width:620px){.review-tab{flex:1 1 calc(50% - 8px);text-align:center}.review-preview-body{padding:10px}.ai-editor-actions,.proposal-actions{flex-direction:column}.ai-editor-actions .btn,.proposal-actions .btn{width:100%}}
+
+
+/* V2.4 - Nhà cung cấp AI */
+.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.provider-card{display:flex;gap:10px;align-items:flex-start;padding:13px 14px;border:1px solid var(--border,#d8deea);border-radius:14px;background:#fff;cursor:pointer;transition:.18s ease}
+.provider-card:has(input:checked){border-color:#6366f1;background:#f5f6ff;box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+.provider-card input{margin-top:3px;accent-color:#4f46e5}
+.provider-card span{display:grid;gap:4px}.provider-card small{color:#667085;line-height:1.4}
+.provider-panel{margin:10px 0}.provider-note{padding:11px 13px;border-radius:12px;background:#ecfeff;border:1px solid #a5f3fc;color:#155e75;font-size:14px;line-height:1.5}
+@media(max-width:720px){.provider-grid{grid-template-columns:1fr}}

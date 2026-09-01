@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2.4.0" />
 </head>
 <body>
   <header class="site-header">
@@ -15,7 +15,7 @@
         <h1>Ra đề kiểm tra GDCD THCS</h1>
         <p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p>
       </div>
-      <span class="version-badge" id="versionBadge">V2.2</span>
+      <span class="version-badge" id="versionBadge">V2.4</span>
     </div>
   </header>
 
@@ -82,16 +82,25 @@
         </div>
 
         <div class="api-card">
-          <div class="api-title"><div><h3>Gemini API cá nhân</h3><p>API key chỉ được gửi qua Worker trong lúc xử lí; tiện ích không lưu key.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
-          <div class="api-row">
-            <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán Gemini API key..." /><button type="button" class="icon-btn" id="toggleKey" aria-label="Hiện/ẩn API key">👁</button></div>
-            <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra API</button>
+          <div class="api-title"><div><h3>Nhà cung cấp AI</h3><p>Cloudflare Workers AI dùng mặc định, không cần API key. Gemini API cá nhân được giữ làm phương án dự phòng.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
+          <div class="provider-grid">
+            <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare" checked /><span><strong>Cloudflare Workers AI</strong><small>Mặc định · chạy qua Worker · không cần API key cá nhân.</small></span></label>
+            <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" /><span><strong>Gemini API cá nhân</strong><small>Dự phòng khi Cloudflare hết hạn mức hoặc giáo viên muốn dùng Gemini.</small></span></label>
           </div>
-          <div class="api-row api-meta">
-            <label>Model<select id="modelSelect" disabled><option>Kiểm tra API để tải model...</option></select></label>
+          <div id="cloudflareAiPanel" class="provider-panel">
+            <div class="provider-note"><strong>Không cần nhập API key.</strong> Yêu cầu AI được thực thi trực tiếp bằng Workers AI binding trên Cloudflare.</div>
+          </div>
+          <div id="geminiAiPanel" class="provider-panel hidden">
+            <div class="api-row">
+              <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán Gemini API key..." /><button type="button" class="icon-btn" id="toggleKey" aria-label="Hiện/ẩn API key">👁</button></div>
+            </div>
             <a id="apiGuide" class="text-link" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
           </div>
-          <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra API.</p>
+          <div class="api-row api-meta">
+            <label>Model<select id="modelSelect"><option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B A4B · khuyến nghị</option><option value="@cf/zai-org/glm-4.7-flash">GLM-4.7-Flash · nhanh, đa ngôn ngữ</option></select></label>
+            <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra AI</button>
+          </div>
+          <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra Cloudflare Workers AI.</p>
         </div>
 
         <div class="choice-card-group">
@@ -128,7 +137,7 @@
         <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Tạo đề bằng AI</h2></div><p>AI nhận đúng bài đã chọn, nội dung SGK tương ứng, bản đặc tả tương ứng và ma trận đã thiết lập.</p></div>
         <div class="ai-risk-banner"><strong>⚠ AI có thể sai.</strong> Giáo viên cần kiểm tra kĩ toàn bộ câu hỏi, đáp án và hướng dẫn chấm trước khi sử dụng. Đặc biệt chú ý nội dung phản cảm/tục tĩu, dấu hiệu hướng dẫn hành vi vi phạm pháp luật, chuẩn mực đạo đức – thuần phong mỹ tục, và các nội dung chính trị – xã hội; những nội dung nhạy cảm phải bám nguồn, diễn đạt trung lập và phù hợp học sinh THCS.</div>
         <div class="generate-card">
-          <div><h3>Trước khi tạo đề</h3><ul><li>API phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao; mức Vận dụng chỉ dùng tự luận.</li><li>Đề được tách thành PHẦN I. TRẮC NGHIỆM và PHẦN II. TỰ LUẬN.</li></ul></div>
+          <div><h3>Trước khi tạo đề</h3><ul><li>Nhà cung cấp AI phải kiểm tra thành công.</li><li>Tổng điểm ma trận phải bằng 10,0.</li><li>Không tạo kiến thức hoặc yêu cầu ngoài nguồn.</li><li>Không có mức Vận dụng cao; mức Vận dụng chỉ dùng tự luận.</li><li>Đề được tách thành PHẦN I. TRẮC NGHIỆM và PHẦN II. TỰ LUẬN.</li></ul></div>
           <button class="btn primary large" id="generateBtn">✨ Tạo đề, đáp án và hướng dẫn chấm</button>
         </div>
         <div class="status-box hidden" id="generateStatus" aria-live="polite"></div>
@@ -185,7 +194,7 @@
     </main>
   </div>
 
-  <footer class="site-footer"><div><strong>Học liệu số</strong> · Công cụ hỗ trợ giáo viên</div><div>API cá nhân · Prompt bảo mật qua Cloudflare Worker</div></footer>
+  <footer class="site-footer"><div><strong>Học liệu số</strong> · Công cụ hỗ trợ giáo viên</div><div>Cloudflare Workers AI mặc định · Gemini dự phòng · Prompt bảo mật qua Worker</div></footer>
 
   <dialog id="matrixDialog" class="matrix-dialog">
     <form method="dialog" id="matrixForm">
@@ -198,8 +207,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.3.0"></script>
-  <script src="data.js"></script>
-  <script src="app.js?v=2.3.0"></script>
+  <script src="config.js?v=2.4.0"></script>
+  <script src="data.js?v=2.4.0"></script>
+  <script src="app.js?v=2.4.0"></script>
 </body>
 </html>

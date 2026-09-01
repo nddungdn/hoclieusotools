@@ -16,9 +16,10 @@ const SUBTYPES_7991 = [
   ['single','Một lựa chọn đúng nhất'],['truefalse','Đúng / Sai'],['short','Trả lời ngắn']
 ];
 const ESSAY_TYPES = [['direct','Câu hỏi trực tiếp'],['situation','Câu hỏi sử dụng tình huống']];
+const CF_MODELS=[['@cf/google/gemma-4-26b-a4b-it','Gemma 4 26B A4B · khuyến nghị'],['@cf/zai-org/glm-4.7-flash','GLM-4.7-Flash · nhanh, đa ngôn ngữ']];
 const state = {
-  grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, apiOk:false,
-  models:[], model:'', exam:null, dialog:null, reviewTab:'matrix', reviewProposal:null, editHistory:[], aiReview:null
+  grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, apiOk:false, provider:'cloudflare',
+  models:CF_MODELS.map(x=>x[0]), model:CF_MODELS[0][0], exam:null, dialog:null, reviewTab:'matrix', reviewProposal:null, editHistory:[], aiReview:null
 };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -28,6 +29,9 @@ const nval = v => Number(String(v ?? '').replace(',','.')) || 0;
 const countFmt = n => { n=nval(n); const i=Math.floor(n), f=n-i; if(Math.abs(f-.5)<1e-9) return i?`${i} + ½`:'½'; return fmt(n); };
 const mode = () => ($('input[name="mode"]:checked')||{}).value || 'normal';
 const apiBase = () => String(CFG.API_BASE||'').replace(/\/$/,'');
+const aiProvider=()=>($('input[name="aiProvider"]:checked')||{}).value||'cloudflare';
+function aiRequestParams(){const p=aiProvider();return {provider:p,apiKey:p==='gemini'?($('#apiKey')?.value||'').trim():'',model:$('#modelSelect')?.value||state.model};}
+function modelLabel(id){return Object.fromEntries(CF_MODELS)[id]||id;}
 
 function currentLessons(){ return (DATA.grades?.[state.grade]?.lessons || []); }
 function lessonById(id){ return currentLessons().find(x=>x.id===id) || Object.values(DATA.grades||{}).flatMap(x=>x.lessons||[]).find(x=>x.id===id); }
@@ -287,16 +291,33 @@ async function post(path,body){
   const text=await r.text(); let data={}; try{data=JSON.parse(text)}catch{data={error:text||'Phản hồi không hợp lệ'}};
   if(!r.ok) throw new Error(data.error||`HTTP ${r.status}`); return data;
 }
+function renderModelSelect(models=[],labels={},recommended=''){
+  state.models=models.slice();state.model=recommended||models[0]||'';
+  const sel=$('#modelSelect');if(!sel)return;sel.disabled=!models.length;
+  sel.innerHTML=models.length?models.map(m=>`<option value="${esc(m)}" ${m===state.model?'selected':''}>${esc(labels[m]||modelLabel(m))}</option>`).join(''):'<option>Chưa có model...</option>';
+}
+function syncAiProviderUI(){
+  const p=aiProvider();state.provider=p;state.apiOk=false;
+  $('#cloudflareAiPanel')?.classList.toggle('hidden',p!=='cloudflare');
+  $('#geminiAiPanel')?.classList.toggle('hidden',p!=='gemini');
+  if(p==='cloudflare'){
+    const labels=Object.fromEntries(CF_MODELS);renderModelSelect(CF_MODELS.map(x=>x[0]),labels,state.model?.startsWith('@cf/')?state.model:CF_MODELS[0][0]);
+    setApiStatus('Chưa kiểm tra Cloudflare Workers AI.','neutral');
+  }else{
+    state.models=[];state.model='';const sel=$('#modelSelect');if(sel){sel.disabled=true;sel.innerHTML='<option>Kiểm tra Gemini API để tải model...</option>';}
+    setApiStatus('Chưa kiểm tra Gemini API cá nhân.','neutral');
+  }
+}
 async function testApi(){
-  const key=$('#apiKey').value.trim(); if(!key){setApiStatus('Vui lòng nhập API key.','bad');return;}
+  const p=aiProvider(),key=p==='gemini'?($('#apiKey').value||'').trim():'';
+  if(p==='gemini'&&!key){setApiStatus('Vui lòng nhập Gemini API key.','bad');return;}
   const btn=$('#testApiBtn');btn.disabled=true;btn.textContent='Đang kiểm tra…';state.apiOk=false;
   try{
-    const data=await post('/api/test-key',{apiKey:key});
-    state.models=data.models||[]; state.model=data.recommended||state.models[0]||'';
-    $('#modelSelect').disabled=false; $('#modelSelect').innerHTML=state.models.map(m=>`<option value="${esc(m)}" ${m===state.model?'selected':''}>${esc(m)}</option>`).join('');
-    state.apiOk=true; setApiStatus(`✓ API hoạt động. ${state.models.length} model có thể dùng.`,'ok');
-  }catch(e){setApiStatus(`✕ ${e.message}`,'bad');$('#modelSelect').disabled=true;}
-  finally{btn.disabled=false;btn.textContent='Kiểm tra API';}
+    const data=await post('/api/test-provider',{provider:p,apiKey:key,model:$('#modelSelect')?.value||state.model});
+    renderModelSelect(data.models||[],data.modelLabels||{},data.recommended||'');
+    state.apiOk=true;state.provider=p;setApiStatus(`✓ ${data.message||'AI hoạt động.'}`,'ok');
+  }catch(e){setApiStatus(`✕ ${e.message}`,'bad');if(p==='gemini')$('#modelSelect').disabled=true;}
+  finally{btn.disabled=false;btn.textContent='Kiểm tra AI';}
 }
 function buildPayload(){
   return {
@@ -306,12 +327,12 @@ function buildPayload(){
   };
 }
 async function generateExam(){
-  if(!state.apiOk) return alert('Hãy kiểm tra API thành công trước.');
+  if(!state.apiOk) return alert('Hãy kiểm tra nhà cung cấp AI thành công trước.');
   if(!state.selected.size) return alert('Chưa chọn bài.');
   if(Math.abs(totalPoints()-10)>.001) return alert(`Tổng điểm ma trận hiện là ${fmt(totalPoints())}; cần bằng 10,0.`);
   const btn=$('#generateBtn'), box=$('#generateStatus');btn.disabled=true;box.classList.remove('hidden');box.textContent='Đang tạo đề từ đúng bài, đặc tả và ma trận đã chọn…';
   try{
-    const data=await post('/api/generate',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload()});
+    const data=await post('/api/generate',{...aiRequestParams(),payload:buildPayload()});
     state.exam=balanceSingleChoiceAnswers(data); state.editHistory=[]; state.reviewProposal=null; state.aiReview=null; renderExam(); renderAudit(); renderReviewWorkspace(); resetReviewConfirmation(); box.textContent='✓ Đã tạo đề. Hãy kiểm tra nội dung trước khi xuất Word.';
   }catch(e){box.textContent='✕ '+e.message;}
   finally{btn.disabled=false;}
@@ -443,14 +464,14 @@ function appendChat(kind,text){const log=$('#aiChatLog');if(!log)return;const d=
 function proposalPlainText(q){if(!q)return '';let out=[];if(q.context)out.push('Tình huống: '+q.context);if(q.prompt)out.push('Câu hỏi: '+q.prompt);if(q.options?.length)out.push(q.options.map((x,i)=>`${String.fromCharCode(65+i)}. ${stripChoiceLabel(x)}`).join('\n'));if(q.parts?.length)q.parts.forEach((p,i)=>{out.push(`${p.label||String.fromCharCode(97+i)}. ${p.prompt||''}`);if(p.answer)out.push('Đáp án: '+p.answer);(p.rubric||[]).forEach(r=>out.push(`– ${r.content} (${fmt(r.points)}đ)`));});else{if(q.answer)out.push('Đáp án: '+answerText(q));(q.rubric||[]).forEach(r=>out.push(`– ${r.content} (${fmt(r.points)}đ)`));}return out.join('\n');}
 function renderProposal(data){const box=$('#aiProposal');if(!box)return;if(!data?.proposal?.question){box.classList.add('hidden');box.innerHTML='';return;}const warns=(data.warnings||[]).map(x=>`<li>${esc(x)}</li>`).join('');box.classList.remove('hidden');box.innerHTML=`<strong>Đề xuất của AI</strong><p class="tiny">${esc(data.summary||'')}</p>${warns?`<ul class="tiny">${warns}</ul>`:''}<div class="proposal-preview">${esc(proposalPlainText(data.proposal.question))}</div><div class="proposal-actions"><button type="button" class="btn primary" id="applyAiProposal">Áp dụng</button><button type="button" class="btn ghost" id="discardAiProposal">Bỏ qua</button></div>`;$('#applyAiProposal').addEventListener('click',applyAiProposal);$('#discardAiProposal').addEventListener('click',()=>{state.reviewProposal=null;renderProposal(null);});}
 async function sendAiEdit(){
-  if(!state.apiOk)return alert('Hãy kiểm tra API trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để chỉnh.');const target=parseScopeValue($('#aiScope').value);if(!target)return alert('Hãy chọn phạm vi chỉnh sửa.');const req=$('#aiEditRequest').value.trim();if(!req)return alert('Hãy nhập yêu cầu điều chỉnh.');
+  if(!state.apiOk)return alert('Hãy kiểm tra nhà cung cấp AI trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để chỉnh.');const target=parseScopeValue($('#aiScope').value);if(!target)return alert('Hãy chọn phạm vi chỉnh sửa.');const req=$('#aiEditRequest').value.trim();if(!req)return alert('Hãy nhập yêu cầu điều chỉnh.');
   const btn=$('#aiEditBtn');btn.disabled=true;$('#editAiDot').className='status-dot neutral';appendChat('user',req);
-  try{const data=await post('/api/refine',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload(),target:{codeIndex:target.ci,questionIndex:target.qi,field:target.field,partIndex:target.pi,code:target.code.code,question:deepClone(target.question)},teacherRequest:req});state.reviewProposal={...data,target:{ci:target.ci,qi:target.qi}};renderProposal(state.reviewProposal);appendChat('ai',data.summary||'AI đã tạo một phương án chỉnh sửa. Hãy xem và bấm Áp dụng nếu phù hợp.');$('#editAiDot').className='status-dot ok';}catch(e){appendChat('ai','Không thể tạo đề xuất: '+e.message);$('#editAiDot').className='status-dot bad';}finally{btn.disabled=false;}
+  try{const data=await post('/api/refine',{...aiRequestParams(),payload:buildPayload(),target:{codeIndex:target.ci,questionIndex:target.qi,field:target.field,partIndex:target.pi,code:target.code.code,question:deepClone(target.question)},teacherRequest:req});state.reviewProposal={...data,target:{ci:target.ci,qi:target.qi}};renderProposal(state.reviewProposal);appendChat('ai',data.summary||'AI đã tạo một phương án chỉnh sửa. Hãy xem và bấm Áp dụng nếu phù hợp.');$('#editAiDot').className='status-dot ok';}catch(e){appendChat('ai','Không thể tạo đề xuất: '+e.message);$('#editAiDot').className='status-dot bad';}finally{btn.disabled=false;}
 }
 function applyAiProposal(){const d=state.reviewProposal;if(!d?.proposal?.question||!d.target)return;state.editHistory.push(deepClone(state.exam));if(state.editHistory.length>10)state.editHistory.shift();state.exam.examCodes[d.target.ci].questions[d.target.qi]=deepClone(d.proposal.question);state.exam=balanceSingleChoiceAnswers(state.exam);state.reviewProposal=null;state.aiReview=null;renderProposal(null);renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();$('#undoEditBtn').disabled=false;appendChat('ai','Đã áp dụng đề xuất. Hãy kiểm tra lại câu, đáp án và hướng dẫn chấm.');}
 function undoAiEdit(){if(!state.editHistory.length)return;state.exam=state.editHistory.pop();state.reviewProposal=null;state.aiReview=null;renderProposal(null);renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();$('#undoEditBtn').disabled=!state.editHistory.length;appendChat('ai','Đã hoàn tác lần chỉnh sửa gần nhất.');}
 function renderSafetyReport(){const root=$('#safetyReport');if(!root)return;const local=localSafetyFlags(),worker=state.exam?.safetyFlags||[],ai=state.aiReview?.issues||[],items=[...local,...worker,...ai];if(!items.length){root.classList.remove('hidden');root.innerHTML='<h3>Rà soát an toàn & chuyên môn</h3><div class="safety-issue"><span class="safety-badge info">THÔNG TIN</span><div>Chưa phát hiện cảnh báo. Kết quả tự động không thay thế việc giáo viên kiểm tra.</div></div>';return;}root.classList.remove('hidden');root.innerHTML=`<h3>Rà soát an toàn & chuyên môn (${items.length})</h3>${items.map(x=>`<div class="safety-issue"><span class="safety-badge ${esc(x.severity||'warning')}">${x.severity==='block'?'CẦN SỬA':x.severity==='info'?'THÔNG TIN':'KIỂM TRA'}</span><div><b>${esc(x.category||'Cảnh báo')}${x.code?` · Đề ${esc(x.code)}`:''}${x.questionNumber?` · Câu ${esc(x.questionNumber)}`:''}</b><div>${esc(x.message||'')}</div>${x.suggestion?`<div class="tiny"><b>Gợi ý:</b> ${esc(x.suggestion)}</div>`:''}</div></div>`).join('')}${local.some(x=>x.severity==='block')?'<div class="local-block-notice"><b>Chưa thể xuất Word</b> cho đến khi các cảnh báo nghiêm trọng tự động được xử lí.</div>':''}`;}
-async function runAiReview(){if(!state.apiOk)return alert('Hãy kiểm tra API trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để rà soát.');const btn=$('#aiReviewBtn');btn.disabled=true;btn.textContent='Đang rà soát…';try{state.aiReview=await post('/api/review',{apiKey:$('#apiKey').value.trim(),model:$('#modelSelect').value||state.model,payload:buildPayload(),exam:state.exam});renderSafetyReport();appendChat('ai',state.aiReview.summary||`Đã rà soát: ${(state.aiReview.issues||[]).length} điểm cần chú ý.`);}catch(e){appendChat('ai','Rà soát thất bại: '+e.message);}finally{btn.disabled=false;btn.textContent='🔍 AI rà soát toàn bộ';}}
+async function runAiReview(){if(!state.apiOk)return alert('Hãy kiểm tra nhà cung cấp AI trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để rà soát.');const btn=$('#aiReviewBtn');btn.disabled=true;btn.textContent='Đang rà soát…';try{state.aiReview=await post('/api/review',{...aiRequestParams(),payload:buildPayload(),exam:state.exam});renderSafetyReport();appendChat('ai',state.aiReview.summary||`Đã rà soát: ${(state.aiReview.issues||[]).length} điểm cần chú ý.`);}catch(e){appendChat('ai','Rà soát thất bại: '+e.message);}finally{btn.disabled=false;btn.textContent='🔍 AI rà soát toàn bộ';}}
 
 // ===== DOCX (OOXML) =====
 function xesc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -760,7 +781,7 @@ function bind(){
   $('#grade').addEventListener('change',e=>{state.grade=e.target.value;state.selected.clear();state.matrix={};state.teacherSpec={};state.exam=null;state.editHistory=[];state.reviewProposal=null;state.aiReview=null;renderLessons();resetReviewConfirmation();});
   $('#clearLessons').addEventListener('click',()=>{state.selected.clear();renderLessons();});
   $('#toggleKey').addEventListener('click',()=>{$('#apiKey').type=$('#apiKey').type==='password'?'text':'password';});
-  $('#testApiBtn').addEventListener('click',testApi);$('#modelSelect').addEventListener('change',e=>state.model=e.target.value);
+  $('#testApiBtn').addEventListener('click',testApi);$('#modelSelect').addEventListener('change',e=>state.model=e.target.value);$$('input[name="aiProvider"]').forEach(r=>r.addEventListener('change',syncAiProviderUI));
   $('input[name="mode"][value="7991"]').addEventListener('change',()=>{renderMatrix();});$('input[name="mode"][value="normal"]').addEventListener('change',()=>{renderMatrix();});
   $('#addConfigBtn').addEventListener('click',()=>{state.dialog.rows.push(state.dialog.form==='tn'?{subtype:'single',count:1,points:.25}:{essayType:'direct',count:1,points:1,partsCount:1,partPoints:[1]});renderConfigRows();});
   $('#closeDialog').addEventListener('click',()=>$('#matrixDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#matrixDialog').close());
@@ -774,7 +795,7 @@ function bind(){
   $('#undoEditBtn')?.addEventListener('click',undoAiEdit);
   $('#reviewConfirm')?.addEventListener('change',updateExportGate);
   $$('.chip-btn[data-ai-quick]').forEach(b=>b.addEventListener('click',()=>{$('#aiEditRequest').value=b.dataset.aiQuick||'';}));
-  $('#grade').value=state.grade;renderLessons();renderMatrix();renderSpec();renderAudit();renderReviewWorkspace();updateExportGate();
+  $('#grade').value=state.grade;syncAiProviderUI();renderLessons();renderMatrix();renderSpec();renderAudit();renderReviewWorkspace();updateExportGate();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
