@@ -346,7 +346,7 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}
 .choice-card span{display:flex;flex-direction:column}
 .choice-card strong{color:#343b4d;font-size:13.5px}
 .choice-card small{
-  margin-top:3px;
+  margin-top:20px;
   color:var(--muted);
   font-size:12px;
   font-weight:450;
