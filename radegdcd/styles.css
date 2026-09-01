@@ -1056,3 +1056,302 @@ tfoot td{
 .provider-card span{display:grid;gap:4px}.provider-card small{color:#667085;line-height:1.4}
 .provider-panel{margin:10px 0}.provider-note{padding:11px 13px;border-radius:12px;background:#ecfeff;border:1px solid #a5f3fc;color:#155e75;font-size:14px;line-height:1.5}
 @media(max-width:720px){.provider-grid{grid-template-columns:1fr}}
+
+
+/* =========================================================
+   V2.4.1 — HOC LIEU SO MULTI-COLOR THEME
+   Trục thương hiệu: xanh tím. Điểm nhấn: xanh dương, xanh ngọc,
+   vàng cam, xanh lá. Header và footer dùng cùng brand gradient.
+   ========================================================= */
+:root{
+  --brand-indigo:#4338ca;
+  --brand-purple:#5b21b6;
+  --brand-blue:#2563eb;
+  --brand-cyan:#0284c7;
+  --brand-teal:#0f766e;
+  --brand-green:#15803d;
+  --brand-amber:#d97706;
+  --brand-rose:#be185d;
+  --brand-gradient:linear-gradient(112deg,#312e81 0%,#4338ca 38%,#2563eb 100%);
+
+  --page-bg:#eef4ff;
+  --page-bg-2:#f6f2ff;
+  --page-bg-3:#eefbf8;
+  --surface:#ffffff;
+  --surface-soft:#f8faff;
+  --text:#172033;
+  --text-strong:#101828;
+  --muted:#5f6b7d;
+  --border:#d5ddec;
+  --border-strong:#c0cce0;
+  --border-soft:#e6ebf3;
+
+  --accent:var(--brand-indigo);
+  --accent-dark:#3730a3;
+  --accent-deep:#312e81;
+  --accent-soft:#eef2ff;
+  --accent-soft-2:#f7f7ff;
+  --accent-border:#bcc6ff;
+  --shadow:0 14px 38px rgba(43,54,96,.10);
+  --shadow-soft:0 7px 20px rgba(43,54,96,.075);
+}
+
+body{
+  background:
+    radial-gradient(circle at 5% 2%,rgba(67,56,202,.14),transparent 25rem),
+    radial-gradient(circle at 96% 10%,rgba(2,132,199,.11),transparent 23rem),
+    radial-gradient(circle at 12% 92%,rgba(15,118,110,.10),transparent 22rem),
+    radial-gradient(circle at 88% 84%,rgba(217,119,6,.075),transparent 20rem),
+    linear-gradient(135deg,var(--page-bg) 0%,var(--page-bg-2) 48%,var(--page-bg-3) 100%);
+  color:var(--text);
+}
+
+/* Header + Footer: cùng một màu thương hiệu */
+.site-header{
+  background:var(--brand-gradient);
+  border-bottom:1px solid rgba(255,255,255,.2);
+  box-shadow:0 8px 26px rgba(49,46,129,.24);
+  backdrop-filter:none;
+}
+.brand-mark{
+  background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.28);
+  color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 20px rgba(17,24,39,.18);
+}
+.brand-copy h1{color:#fff}
+.brand-copy p{color:#dbeafe}
+.version-badge{
+  border-color:rgba(255,255,255,.32);
+  background:rgba(255,255,255,.14);
+  color:#fff;
+  box-shadow:none;
+}
+.site-footer{
+  background:var(--brand-gradient);
+  border-color:rgba(255,255,255,.15);
+  color:#e0e7ff;
+  box-shadow:0 10px 28px rgba(49,46,129,.20);
+  backdrop-filter:none;
+}
+.site-footer strong{color:#fff}
+
+/* Sidebar có màu theo từng bước */
+.sidebar{
+  background:rgba(255,255,255,.88);
+  border-color:#cbd6e8;
+  box-shadow:0 12px 30px rgba(43,54,96,.10);
+}
+.step-btn:nth-child(1){--step-color:#4f46e5;--step-soft:#eef2ff}
+.step-btn:nth-child(2){--step-color:#0f766e;--step-soft:#ecfdf5}
+.step-btn:nth-child(3){--step-color:#2563eb;--step-soft:#eff6ff}
+.step-btn:nth-child(4){--step-color:#d97706;--step-soft:#fff7ed}
+.step-btn:nth-child(5){--step-color:#7c3aed;--step-soft:#f5f3ff}
+.step-btn:nth-child(6){--step-color:#15803d;--step-soft:#f0fdf4}
+.step-btn:hover{background:var(--step-soft,#f8f9fd);border-color:color-mix(in srgb,var(--step-color,#64748b) 20%,white);color:var(--step-color,#334155)}
+.step-btn.active{
+  background:linear-gradient(90deg,var(--step-soft,#eef2ff),#fff);
+  border-color:color-mix(in srgb,var(--step-color,#4f46e5) 36%,white);
+  color:var(--step-color,#4f46e5);
+  box-shadow:inset 4px 0 0 var(--step-color,#4f46e5);
+}
+.step-btn.active span{
+  border-color:var(--step-color,#4f46e5);
+  background:var(--step-color,#4f46e5);
+  color:#fff;
+}
+
+/* Mỗi khu vực có một màu chức năng, nhưng nội dung vẫn sáng */
+#panel-setup{--panel-accent:#4f46e5;--panel-soft:#f3f2ff;--panel-border:#c9c7ff}
+#panel-lessons{--panel-accent:#0f766e;--panel-soft:#effbf8;--panel-border:#bfe8dd}
+#panel-matrix{--panel-accent:#2563eb;--panel-soft:#f0f6ff;--panel-border:#bdd5ff}
+#panel-spec{--panel-accent:#d97706;--panel-soft:#fff8eb;--panel-border:#f2d39c}
+#panel-generate{--panel-accent:#7c3aed;--panel-soft:#f7f2ff;--panel-border:#d9c3ff}
+#panel-review{--panel-accent:#15803d;--panel-soft:#f0fbf3;--panel-border:#bde3c7}
+
+.panel.active{
+  background:linear-gradient(180deg,#fff 0%,color-mix(in srgb,var(--panel-soft,#f8faff) 58%,white) 100%);
+  border-color:var(--panel-border,#d5ddec);
+  box-shadow:0 15px 40px rgba(43,54,96,.10);
+  position:relative;
+  overflow:hidden;
+}
+.panel.active::before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;height:5px;
+  background:linear-gradient(90deg,var(--panel-accent,#4f46e5),color-mix(in srgb,var(--panel-accent,#4f46e5) 55%,#22d3ee));
+}
+.panel-heading{border-bottom-color:color-mix(in srgb,var(--panel-accent,#4f46e5) 18%,white)}
+.panel-heading h2{color:var(--text-strong)}
+.panel .eyebrow{color:var(--panel-accent,#4f46e5)}
+.panel .eyebrow::before{background:var(--panel-accent,#4f46e5)}
+.panel input:focus,.panel select:focus,.panel textarea:focus{
+  border-color:var(--panel-accent,#4f46e5);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--panel-accent,#4f46e5) 14%,transparent);
+}
+
+/* Form và box có chiều sâu màu rõ hơn */
+input,select,textarea{background:#fff;border-color:#c7d2e3;color:#172033}
+label{color:#3f4a5f}
+.choice-card-group{
+  background:linear-gradient(135deg,#fff 0%,var(--panel-soft,#f8faff) 100%);
+  border-color:var(--panel-border,#d5ddec);
+}
+.choice-card{border-color:#d5deea}
+.choice-card:has(input:checked){
+  border-color:var(--panel-accent,#4f46e5);
+  background:linear-gradient(100deg,var(--panel-soft,#eef2ff),#fff);
+  box-shadow:inset 4px 0 0 var(--panel-accent,#4f46e5),0 7px 18px rgba(43,54,96,.08);
+}
+
+/* Provider/API: xanh dương + xanh ngọc */
+.api-card{
+  border-color:#a9d8ea;
+  background:linear-gradient(135deg,#f0fbff 0%,#f0fdfa 55%,#fff 100%);
+}
+.api-card::before{width:5px;background:linear-gradient(180deg,#0284c7,#0f766e)}
+.provider-card:first-child{border-color:#a7ddd8;background:linear-gradient(135deg,#effcf9,#fff)}
+.provider-card:first-child:has(input:checked){border-color:#0f766e;background:#eafaf5;box-shadow:0 0 0 3px rgba(15,118,110,.10)}
+.provider-card:nth-child(2){border-color:#c5cdfa;background:linear-gradient(135deg,#f3f4ff,#fff)}
+.provider-card:nth-child(2):has(input:checked){border-color:#4f46e5;background:#eff1ff;box-shadow:0 0 0 3px rgba(79,70,229,.10)}
+.provider-note{background:linear-gradient(90deg,#e6fbff,#edfff7);border-color:#91dfdb;color:#155e75}
+
+/* Hệ nút: không đơn sắc */
+.btn{box-shadow:0 4px 10px rgba(43,54,96,.05)}
+.btn.primary{
+  border-color:#4338ca;
+  background:linear-gradient(135deg,#5b21b6 0%,#4f46e5 48%,#2563eb 100%);
+  color:#fff;
+  box-shadow:0 8px 18px rgba(67,56,202,.22);
+}
+.btn.primary:hover{background:linear-gradient(135deg,#4c1d95,#4338ca 50%,#1d4ed8)}
+.btn.secondary{
+  border-color:#67c7d4;
+  background:linear-gradient(135deg,#ecfeff,#e9fbf6);
+  color:#0f6570;
+}
+.btn.secondary:hover{background:linear-gradient(135deg,#cffafe,#d1fae5);color:#0f5f59}
+.btn.ghost{border-color:#c8d3e2;background:#fff;color:#475569}
+.btn.ghost:hover{border-color:#9fb0c8;background:#f5f8fc;color:#334155}
+
+#testApiBtn{border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff,#ecfeff);color:#075985}
+#generateBtn{border-color:#6d28d9;background:linear-gradient(135deg,#7c3aed,#4f46e5 55%,#2563eb);box-shadow:0 9px 22px rgba(109,40,217,.22)}
+#aiReviewBtn{border-color:#f0b45b;background:linear-gradient(135deg,#fff7ed,#fffbeb);color:#a45308}
+#aiEditBtn{border-color:#0f766e;background:linear-gradient(135deg,#0f766e,#0891b2);box-shadow:0 8px 18px rgba(15,118,110,.20)}
+#exportDocxBtn{border-color:#15803d;background:linear-gradient(135deg,#15803d,#059669);box-shadow:0 8px 18px rgba(21,128,61,.22)}
+#clearLessons{border-color:#f0b8c7;color:#a61b4d;background:#fff7fa}
+#clearLessons:hover{background:#fce7f3;border-color:#e98baa;color:#9d174d}
+
+#panel-setup .next-btn{background:linear-gradient(135deg,#5b21b6,#4f46e5)}
+#panel-lessons .next-btn{border-color:#0f766e;background:linear-gradient(135deg,#0f766e,#0891b2)}
+#panel-matrix .next-btn{border-color:#2563eb;background:linear-gradient(135deg,#2563eb,#0284c7)}
+#panel-spec .next-btn{border-color:#d97706;background:linear-gradient(135deg,#d97706,#ea580c)}
+#panel-generate .next-btn{border-color:#7c3aed;background:linear-gradient(135deg,#7c3aed,#4f46e5)}
+
+/* Chọn bài: xanh ngọc */
+.summary-chip{border-color:#9bd9cf;background:#eafaf5;color:#0f766e}
+.lesson-card{border-color:#d0dae8}
+.lesson-card:hover{border-color:#8fcfc4}
+.lesson-card.selected{
+  border-color:#63bbae;
+  background:linear-gradient(135deg,#eafaf5 0%,#f6fffc 72%);
+  box-shadow:inset 4px 0 0 #0f766e,0 8px 20px rgba(15,118,110,.10);
+}
+.lesson-card .track{border-color:#b8e0d9;background:#effbf8;color:#0f766e}
+
+/* Ma trận và đặc tả: 3 màu nhận thức nổi bật, nhất quán */
+.legend span:nth-child(1){border-color:#b8ccff;background:#eef5ff;color:#1d4ed8}
+.legend span:nth-child(2){border-color:#9bd9cf;background:#eafaf5;color:#0f766e}
+.legend span:nth-child(3){border-color:#f1ca83;background:#fff6df;color:#b45309}
+.matrix-table thead tr:first-child th:nth-child(4),.spec-table thead th:nth-child(5){background:#dbeafe;color:#1e40af}
+.matrix-table thead tr:first-child th:nth-child(5),.spec-table thead th:nth-child(6){background:#d1fae5;color:#065f46}
+.matrix-table thead tr:first-child th:nth-child(6),.spec-table thead th:nth-child(7){background:#ffedd5;color:#9a3412}
+.matrix-table thead tr:nth-child(2) th:nth-child(-n+2){background:#eff6ff;color:#1d4ed8}
+.matrix-table thead tr:nth-child(2) th:nth-child(n+3):nth-child(-n+4){background:#ecfdf5;color:#047857}
+.matrix-table thead tr:nth-child(2) th:nth-child(5){background:#fff7ed;color:#c2410c}
+.matrix-cell-btn.has-data{border-color:#8fb4ff;background:linear-gradient(180deg,#eff6ff,#e8f1ff);color:#1d4ed8}
+.matrix-table tbody td:nth-child(6) .matrix-cell-btn.has-data,
+.matrix-table tbody td:nth-child(7) .matrix-cell-btn.has-data{border-color:#86d8c7;background:linear-gradient(180deg,#ecfdf5,#e2f9f2);color:#0f766e}
+.matrix-table tbody td:nth-child(8) .matrix-cell-btn.has-data{border-color:#efc16f;background:linear-gradient(180deg,#fff7ed,#fff1d6);color:#b45309}
+.matrix-foot strong,.spec-foot strong{color:#3730a3}
+
+/* Đặc tả nguồn: xanh dương / xanh ngọc / cam */
+.spec-source-block{border-color:#b9ceff;background:#eef5ff}
+.spec-source-block strong{color:#1d4ed8}
+.spec-source-block:nth-child(2){border-color:#9bd9cf;background:#eafaf5}
+.spec-source-block:nth-child(2)>strong{color:#0f766e}
+.spec-source-block:nth-child(3){border-color:#f1ca83;background:#fff7e6}
+.spec-source-block:nth-child(3)>strong{color:#b45309}
+.teacher-tag{border-color:#edb86d;background:#fff4df;color:#a45308}
+
+/* Tạo đề: tím + cyan */
+.generate-card{
+  border-color:#cdb7f7;
+  background:linear-gradient(120deg,#f6f1ff 0%,#eef8ff 55%,#fff 100%);
+  box-shadow:0 9px 24px rgba(93,52,170,.09);
+}
+.status-box{border-color:#c5d8ec;background:linear-gradient(90deg,#f6f9ff,#f1fbfb);color:#40516a}
+
+/* Review: xanh lá + nhiều màu chức năng */
+.review-tabs{padding:4px;border-radius:999px;background:#f3f6fb;border:1px solid #dce4f0}
+.review-tab:nth-child(1){--tab:#2563eb;--tabsoft:#eff6ff}
+.review-tab:nth-child(2){--tab:#d97706;--tabsoft:#fff7ed}
+.review-tab:nth-child(3){--tab:#7c3aed;--tabsoft:#f5f3ff}
+.review-tab:nth-child(4){--tab:#0f766e;--tabsoft:#ecfdf5}
+.review-tab:hover{border-color:var(--tab);background:var(--tabsoft);color:var(--tab)}
+.review-tab.active{background:var(--tab);border-color:var(--tab);color:#fff;box-shadow:0 7px 18px color-mix(in srgb,var(--tab) 22%,transparent)}
+.review-preview-card{border-color:#c9d8ea;background:#fff}
+.review-preview-head{background:linear-gradient(90deg,#f2f6ff,#f1fbf8);border-bottom-color:#d8e4ef}
+.ai-editor-card{border-color:#9bd9cf;background:linear-gradient(180deg,#f2fffb,#fff 42%)}
+.ai-editor-head h3{color:#0f5f59}
+.chip-btn:nth-child(4n+1){border-color:#b8ccff;background:#eef5ff;color:#1d4ed8}
+.chip-btn:nth-child(4n+2){border-color:#9bd9cf;background:#eafaf5;color:#0f766e}
+.chip-btn:nth-child(4n+3){border-color:#f1ca83;background:#fff7e6;color:#b45309}
+.chip-btn:nth-child(4n+4){border-color:#d6c1ff;background:#f6f1ff;color:#6d28d9}
+.chat-system{background:#f1f5f9;color:#475569}
+.chat-user{background:#eef2ff;color:#3730a3;border-left:3px solid #4f46e5}
+.chat-ai{background:#ecfdf5;color:#166534;border-left:3px solid #10b981}
+.ai-proposal{border-color:#a7c7ee;background:linear-gradient(135deg,#f3f7ff,#f2fffb)}
+.review-confirm{border-color:#8fd0a3;background:linear-gradient(90deg,#ecfdf3,#f5fff8)}
+.export-card{border-color:#9bd4aa;background:linear-gradient(110deg,#effcf3,#fff 68%)}
+
+/* Cảnh báo: vàng/cam/đỏ rõ ràng, không lẫn với brand */
+.notice{border-color:#f0c36d;border-left-color:#d97706;background:#fff8e8;color:#7c4a03}
+.notice.compact{border-color:#b9c9ff;border-left-color:#4f46e5;background:#f2f5ff;color:#373a70}
+.ai-risk-banner{border-color:#e9b75b;background:linear-gradient(135deg,#fff9e8,#fff3dc);color:#6f4305}
+.safety-report{border-color:#d2ddea;background:#fff}
+.safety-badge.block{background:#fee2e2;color:#991b1b}
+.safety-badge.warning{background:#ffedd5;color:#9a3412}
+.safety-badge.info{background:#dbeafe;color:#1e40af}
+.local-block-notice{border-color:#f1a6a6;background:#fff1f2;color:#991b1b}
+
+/* Preview đề: giấy trắng, tiêu đề từng phần có màu */
+.exam-preview{border-color:#c8d5e5;box-shadow:0 10px 28px rgba(43,54,96,.09)}
+.preview-code h3{border-color:#b9c9ff;background:linear-gradient(90deg,#eef2ff,#eff6ff);color:#3730a3}
+.part-heading{border-left-color:#2563eb;background:#eff6ff;color:#1e3a8a}
+.preview-section:nth-of-type(3) .part-heading{border-left-color:#0f766e;background:#ecfdf5;color:#065f46}
+.preview-context{border-color:#c7d7f1;border-left-color:#7c3aed;background:linear-gradient(90deg,#faf7ff,#f8fbff);color:#35405a}
+
+/* Dialog */
+.matrix-dialog{border-color:#b9c6dc;box-shadow:0 34px 100px rgba(30,41,90,.30)}
+.dialog-head{background:linear-gradient(90deg,#f5f2ff,#f0f8ff);margin:-19px -19px 0;padding:18px 19px 14px;border-radius:20px 20px 0 0}
+.config-row:nth-child(odd){background:#f6f8ff;border-color:#dce3f2}
+.config-row:nth-child(even){background:#f2fbf8;border-color:#d4ebe4}
+.dialog-summary{border-color:#b9c9ff;background:linear-gradient(90deg,#f1f3ff,#f0f9ff);color:#3730a3}
+
+/* Bảng tổng quát */
+.table-scroll{border-color:#c9d4e4;box-shadow:0 7px 20px rgba(43,54,96,.06)}
+thead tr:first-child th{background:#e8eef8;color:#26344d}
+thead th{background:#f1f5fb;color:#334155}
+tbody tr:nth-child(even) td{background:#fbfcff}
+tbody tr:hover td{background:#f5f8ff}
+
+/* Mobile: vẫn giữ màu nhưng giảm hiệu ứng */
+@media(max-width:560px){
+  body{background:linear-gradient(160deg,#eef4ff 0%,#f7f3ff 52%,#effaf7 100%)}
+  .site-header{box-shadow:0 5px 18px rgba(49,46,129,.22)}
+  .site-footer{box-shadow:0 6px 18px rgba(49,46,129,.18)}
+  .panel.active{box-shadow:0 8px 22px rgba(43,54,96,.08)}
+  .review-tabs{border-radius:16px}
+}
