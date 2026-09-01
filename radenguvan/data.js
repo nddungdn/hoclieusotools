@@ -1,59 +1,117 @@
-(function(){
-  "use strict";
-
-  const emptyCells=()=>({
-    nb_mcq:{count:0,pct:0},nb_essay:{count:0,pct:0},
-    th_mcq:{count:0,pct:0},th_essay:{count:0,pct:0},
-    vd_mcq:{count:0,pct:0},vd_essay:{count:0,pct:0}
-  });
-  const row=(section,competency,unit,cells,shared=false)=>({section,competency,unit,cells:{...emptyCells(),...cells},shared});
-
-  const genericMixed=[
-    row("doc_hieu","Đọc hiểu","Ngữ liệu đọc hiểu",{nb_mcq:{count:4,pct:20},th_mcq:{count:3,pct:15},th_essay:{count:1,pct:10},vd_essay:{count:1,pct:15}}),
-    row("viet","Viết","Kiểu bài viết theo phạm vi kiểm tra",{nb_essay:{count:1,pct:10},th_essay:{count:1,pct:15},vd_essay:{count:1,pct:15}},true)
-  ];
-  const genericEssay=[
-    row("doc_hieu","Đọc hiểu","Ngữ liệu đọc hiểu",{nb_essay:{count:2,pct:15},th_essay:{count:3,pct:30},vd_essay:{count:1,pct:15}}),
-    row("viet","Viết","Kiểu bài viết theo phạm vi kiểm tra",{nb_essay:{count:1,pct:10},th_essay:{count:1,pct:15},vd_essay:{count:1,pct:15}},true)
-  ];
-
-  const descriptors={
-    "6":{
-      doc_hieu:{
-        nhan_biet:"- Nhận biết được đặc điểm hình thức của thể thơ tự do.\n- Nhận biết được các yếu tố tự sự và miêu tả trong thơ.\n- Nhận biết được tình cảm, cảm xúc của người viết thể hiện qua ngôn ngữ thơ.\n- Nhận ra từ đa nghĩa và từ đồng âm.",
-        thong_hieu:"- Nêu được chủ đề của bài thơ.\n- Nhận xét được nét độc đáo của bài thơ qua từ ngữ, hình ảnh, biện pháp tu từ.\n- Chỉ ra tác dụng của các yếu tố tự sự, miêu tả trong thơ.\n- Nhận xét tác dụng của từ đa nghĩa, từ đồng âm.",
-        van_dung:"- Trình bày được bài học về cách nghĩ và cách ứng xử gợi ra từ văn bản.\n- Đánh giá được giá trị của các yếu tố vần, nhịp."
-      },
-      viet:{
-        nhan_biet:"- Xác định đúng kiểu bài viết đoạn văn ghi lại cảm xúc về một bài thơ/đoạn thơ.\n- Bố cục bảo đảm ba phần: mở đoạn, thân đoạn, kết đoạn.\n- Sử dụng ngôi thứ nhất để nêu cảm xúc chung về bài thơ.",
-        thong_hieu:"- Trình bày được cảm xúc về nội dung và nghệ thuật của bài thơ.\n- Chỉ ra và nêu tác dụng của từ ngữ, hình ảnh, biện pháp nghệ thuật; các yếu tố tự sự, miêu tả.",
-        van_dung:"- Đánh giá được ý nghĩa của văn bản.\n- Trình bày được thay đổi trong suy nghĩ, tình cảm, nhận thức của bản thân sau khi đọc.\n- Bảo đảm chính tả, ngữ pháp; diễn đạt sáng tạo, hợp logic; giọng văn chân thật, giàu cảm xúc."
-      }
+window.NV_DATA = {
+  meta: {
+    version: '1.0.0',
+    program: 'Chương trình GDPT 2018 môn Ngữ văn (Thông tư 32/2018/TT-BGDĐT)',
+    descriptor: '31.8.2023 – Xây dựng ma trận, đặc tả, đề kiểm tra định kì môn Ngữ văn THCS',
+    sample6: 'Đề kiểm tra giữa kì II Ngữ văn 6, năm học 2025–2026',
+    sample8: 'Đề kiểm tra giữa kì II Ngữ văn 8, năm học 2025–2026',
+    note: 'Không dùng mức Vận dụng cao. Nội dung thuộc Vận dụng cao trong tài liệu cũ được gộp vào Vận dụng.'
+  },
+  grades: {
+    '6': {
+      read: [
+        {
+          id:'g6_folk', label:'Truyện dân gian (truyền thuyết, cổ tích)',
+          source:'Bộ đặc tả lớp 6',
+          vi:['Từ đơn và từ phức (từ ghép, từ láy)','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt thông dụng','Biện pháp tu từ ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
+          nb:['Nhận biết chi tiết tiêu biểu, nhân vật, đề tài, cốt truyện, lời người kể chuyện và lời nhân vật.','Nhận biết người kể chuyện ngôi thứ nhất và ngôi thứ ba.','Nhận biết tình cảm, cảm xúc của người viết thể hiện qua ngôn ngữ văn bản.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
+          th:['Tóm tắt được cốt truyện.','Phân tích đặc điểm nhân vật qua ngoại hình, cử chỉ, hành động, ngôn ngữ, ý nghĩ.','Nêu được chủ đề của văn bản.','Giải thích được nghĩa/tác dụng của tri thức tiếng Việt được chọn trong ngữ liệu.'],
+          vd:['Trình bày bài học về cách nghĩ, cách ứng xử từ văn bản gợi ra.','Trình bày điểm giống và khác nhau giữa hai nhân vật/văn bản khi ngữ liệu cho phép.']
+        },
+        {
+          id:'g6_story', label:'Truyện đồng thoại, truyện ngắn', source:'Bộ đặc tả lớp 6',
+          vi:['Từ đơn và từ phức (từ ghép, từ láy)','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt thông dụng','Biện pháp tu từ ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
+          nb:['Nhận biết chi tiết tiêu biểu, nhân vật, đề tài, cốt truyện, lời người kể chuyện và lời nhân vật.','Nhận biết người kể chuyện ngôi thứ nhất và ngôi thứ ba.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
+          th:['Tóm tắt được cốt truyện.','Nêu được chủ đề của văn bản.','Phân tích tình cảm, thái độ của người kể chuyện qua ngôn ngữ, giọng điệu.','Phân tích tác dụng của việc lựa chọn ngôi kể, cách kể chuyện.','Phân tích đặc điểm nhân vật qua hình dáng, cử chỉ, hành động, ngôn ngữ, ý nghĩ.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn trong ngữ liệu.'],
+          vd:['Trình bày bài học về cách nghĩ, cách ứng xử do văn bản gợi ra.','Chỉ ra điểm giống và khác nhau giữa hai nhân vật trong hai văn bản khi ngữ liệu cho phép.']
+        },
+        {
+          id:'g6_memoir', label:'Hồi kí hoặc du kí', source:'Bộ đặc tả lớp 6',
+          vi:['Từ đơn và từ phức','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt thông dụng','Ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
+          nb:['Chỉ ra hình thức ghi chép, cách kể sự việc, dựng chân dung con người trong kí.','Nhận biết người kể chuyện ngôi thứ nhất.','Nhận biết tình cảm, cảm xúc của người viết qua ngôn ngữ văn bản.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
+          th:['Nêu được chủ đề của văn bản.','Phân tích tác dụng của giọng kể, ngôi kể, cách ghi chép về con người, sự việc.','Phân tích vai trò của người kể chuyện/người quan sát trong hồi kí hoặc du kí.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],
+          vd:['Trình bày bài học về cách nghĩ và cách ứng xử được gợi ra từ văn bản.']
+        },
+        {
+          id:'g6_poetry', label:'Thơ (thơ tự do, thơ lục bát và các dạng thơ phù hợp lớp 6)', source:'Bộ đặc tả lớp 6 + đề tham khảo lớp 6',
+          vi:['Từ đa nghĩa và từ đồng âm','Từ đơn và từ phức','Ẩn dụ, hoán dụ','Yếu tố tự sự và miêu tả trong thơ','Thành ngữ/Yếu tố Hán Việt khi phù hợp'],
+          nb:['Nhận biết dấu hiệu hình thức của thể thơ (số tiếng, số dòng, vần, nhịp khi có).','Nhận diện yếu tố tự sự và miêu tả trong thơ.','Nhận biết tình cảm, cảm xúc của người viết thể hiện qua ngôn ngữ thơ.','Nhận biết hiện tượng tiếng Việt được chọn trong ngữ liệu.'],
+          th:['Nêu được chủ đề bài thơ và cảm xúc chủ đạo.','Nhận xét nét độc đáo của bài thơ qua từ ngữ, hình ảnh, biện pháp tu từ.','Chỉ ra tác dụng của yếu tố tự sự, miêu tả trong thơ.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],
+          vd:['Trình bày bài học về cách nghĩ, cách ứng xử được gợi ra từ văn bản.','Đánh giá giá trị/tác dụng của vần, nhịp hoặc yếu tố nghệ thuật phù hợp với ngữ liệu.']
+        },
+        {
+          id:'g6_argument', label:'Văn bản nghị luận', source:'Bộ đặc tả lớp 6',
+          vi:['Từ đơn và từ phức','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt','Ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
+          nb:['Nhận biết ý kiến, lí lẽ, bằng chứng trong văn bản.','Nhận biết đặc điểm nổi bật của văn bản nghị luận.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
+          th:['Tóm tắt nội dung chính của văn bản nghị luận có nhiều đoạn.','Chỉ ra mối liên hệ giữa ý kiến, lí lẽ và bằng chứng.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn trong ngữ liệu.'],
+          vd:['Rút ra bài học về cách nghĩ, cách ứng xử từ nội dung văn bản.','Thể hiện sự đồng tình/không đồng tình/đồng tình một phần với vấn đề được đặt ra và lí giải phù hợp.']
+        },
+        {
+          id:'g6_info', label:'Văn bản thông tin', source:'Bộ đặc tả lớp 6',
+          vi:['Từ đơn và từ phức','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ/Yếu tố Hán Việt','Dấu chấm phẩy, dấu ngoặc kép','Phương tiện giao tiếp phi ngôn ngữ'],
+          nb:['Nhận biết các chi tiết trong văn bản.','Nhận biết cách mô tả vấn đề, tường thuật sự kiện.','Nhận biết cách triển khai theo thời gian hoặc quan hệ nhân quả.','Nhận biết hiện tượng tiếng Việt phù hợp.'],
+          th:['Chỉ ra mối liên hệ giữa chi tiết, dữ liệu với thông tin cơ bản.','Tóm tắt ý chính của các đoạn.','Trình bày tác dụng của nhan đề, sa-pô, đề mục, chữ đậm, số thứ tự, dấu đầu dòng khi có.','Giải thích vai trò của phương tiện phi ngôn ngữ khi có.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],
+          vd:['Rút ra bài học từ nội dung văn bản.','Đánh giá giá trị thông tin hoặc cách truyền tải thông tin.']
+        }
+      ],
+      write:[
+        {id:'g6_exp',label:'Kể lại một trải nghiệm của bản thân',needsText:false,nb:['Xác định đúng kiểu bài và yêu cầu của bài văn kể trải nghiệm.','Đảm bảo cấu trúc phù hợp.'],th:['Kể lại được trải nghiệm theo trình tự hợp lí, có sự việc và chi tiết phù hợp.'],vd:['Thể hiện cảm xúc, ý nghĩa/bài học của trải nghiệm; diễn đạt đúng chính tả, ngữ pháp.','Sử dụng ngôi kể thứ nhất và có cách kể phù hợp, sáng tạo.']},
+        {id:'g6_retell',label:'Kể lại một truyền thuyết hoặc truyện cổ tích',needsText:true,nb:['Xác định đúng kiểu bài kể lại truyện.','Đảm bảo cấu trúc phù hợp.'],th:['Kể lại cốt truyện bằng ngôn ngữ của mình, tôn trọng cốt truyện cơ bản.'],vd:['Sử dụng ngôi kể phù hợp; diễn đạt đúng chính tả, ngữ pháp.','Có cách kể sáng tạo nhưng không làm sai cốt truyện.']},
+        {id:'g6_desc',label:'Viết bài văn tả cảnh sinh hoạt',needsText:false,nb:['Xác định đúng kiểu bài miêu tả và đối tượng/cảnh sinh hoạt.','Đảm bảo cấu trúc phù hợp.'],th:['Tái hiện chân thực, sinh động khung cảnh và các hoạt động chính.'],vd:['Nêu được ý nghĩa/ấn tượng về cảnh sinh hoạt; diễn đạt đúng chính tả, ngữ pháp.','Lựa chọn chi tiết, cách miêu tả phù hợp, có cảm xúc.']},
+        {id:'g6_opinion',label:'Trình bày ý kiến về một hiện tượng/vấn đề đời sống',needsText:false,nb:['Xác định đúng kiểu bài và vấn đề cần trình bày ý kiến.','Đảm bảo cấu trúc phù hợp.'],th:['Nêu rõ ý kiến, kết hợp lí lẽ và bằng chứng phù hợp.'],vd:['Nêu ý nghĩa/ảnh hưởng của vấn đề đối với bản thân hoặc đời sống; diễn đạt đúng chính tả, ngữ pháp.','Lập luận chặt chẽ, diễn đạt sáng tạo.']},
+        {id:'g6_event',label:'Thuyết minh thuật lại một sự kiện',needsText:false,nb:['Xác định đúng kiểu bài thuyết minh và sự kiện cần thuật lại.','Đảm bảo cấu trúc phù hợp.'],th:['Nêu rõ tên sự kiện, tái hiện khách quan, chân thực quá trình và kết quả.'],vd:['Nêu tác động/ý nghĩa của sự kiện; diễn đạt đúng chính tả, ngữ pháp.','Lựa chọn thông tin và cách trình bày mạch lạc, hấp dẫn.']},
+        {id:'g6_poemfeel',label:'Viết đoạn văn ghi lại cảm xúc về một đoạn thơ/bài thơ',needsText:true,source:'Đề tham khảo lớp 6',nb:['Xác định đúng kiểu đoạn văn ghi lại cảm xúc về thơ.','Đảm bảo bố cục/dung lượng theo yêu cầu.','Sử dụng ngôi thứ nhất để nêu cảm xúc chung.'],th:['Trình bày cảm xúc về nội dung và nghệ thuật của bài thơ.','Chỉ ra và nêu tác dụng của từ ngữ, hình ảnh, biện pháp nghệ thuật; yếu tố tự sự, miêu tả khi có.'],vd:['Đánh giá ý nghĩa của văn bản và nêu thay đổi trong suy nghĩ, tình cảm, nhận thức.','Đảm bảo chính tả, ngữ pháp; diễn đạt giàu cảm xúc, hợp logic và có nét riêng.']}
+      ]
     },
-    "8":{
-      doc_hieu:{
-        nhan_biet:"- Nhận biết được một số yếu tố của truyện ngắn: cốt truyện, nhân vật, lời người kể chuyện và lời nhân vật.\n- Nhận biết được trợ từ, thán từ trong ngữ cảnh.",
-        thong_hieu:"- Phân tích được tình cảm, thái độ của người kể chuyện qua ngôn ngữ và giọng điệu.\n- Phân tích được chủ đề, tư tưởng, thông điệp qua hình thức nghệ thuật.\n- Giải thích được tác dụng của trợ từ, thán từ trong ngữ cảnh.",
-        van_dung:"- Nêu được thay đổi trong suy nghĩ, tình cảm hoặc cách sống sau khi đọc tác phẩm.\n- Vận dụng trải nghiệm để đánh giá vấn đề đặt ra trong văn bản."
-      },
-      viet:{
-        nhan_biet:"- Xác định đúng kiểu bài nghị luận phân tích một tác phẩm văn học (truyện).\n- Bảo đảm bố cục ba phần và dung lượng theo yêu cầu.",
-        thong_hieu:"- Phân tích được chủ đề của truyện.\n- Phân tích được tác dụng của một số nét đặc sắc nghệ thuật của tác phẩm.",
-        van_dung:"- Vận dụng kĩ năng nghị luận để triển khai luận điểm, lí lẽ và bằng chứng phù hợp.\n- Bảo đảm chính tả, ngữ pháp; diễn đạt sáng tạo, có cảm xúc và dấu ấn cá nhân."
-      }
+    '7': {
+      read: [
+        {id:'g7_fable',label:'Truyện ngụ ngôn',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành phần chính, trạng ngữ mở rộng bằng cụm từ','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Nghĩa của từ trong ngữ cảnh','Dấu chấm lửng','Nói quá, nói giảm nói tránh','Liên kết và mạch lạc'],nb:['Nhận biết đề tài, chi tiết tiêu biểu, ngôi kể, lời kể, nhân vật, tình huống, cốt truyện, không gian, thời gian.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Tóm tắt cốt truyện.','Nêu chủ đề, thông điệp.','Phân tích ý nghĩa/tác dụng của chi tiết tiêu biểu.','Trình bày tính cách nhân vật qua cử chỉ, hành động, lời thoại, lời kể.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],vd:['Rút ra bài học cho bản thân.','Thể hiện thái độ đồng tình/không đồng tình/đồng tình một phần với bài học của tác phẩm.']},
+        {id:'g7_story',label:'Truyện ngắn',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Biện pháp tu từ','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Dấu chấm lửng','Liên kết và mạch lạc'],nb:['Nhận biết chi tiết tiêu biểu, ngôi kể, lời kể, tình huống, cốt truyện, không gian, thời gian.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Tóm tắt cốt truyện.','Phân tích tính cách nhân vật qua cử chỉ, hành động, lời thoại, lời kể.','Nêu chủ đề, thông điệp.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],vd:['Thể hiện thái độ đối với vấn đề đặt ra trong tác phẩm.','Nêu trải nghiệm trong cuộc sống giúp hiểu thêm nhân vật/sự việc.']},
+        {id:'g7_scifi',label:'Truyện khoa học viễn tưởng',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành phần câu','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Dấu chấm lửng','Nói quá, nói giảm nói tránh','Liên kết và mạch lạc'],nb:['Nhận biết đề tài, chi tiết tiêu biểu, yếu tố viễn tưởng, ngôi kể, tình huống, cốt truyện, không gian, thời gian.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Tóm tắt cốt truyện.','Nêu chủ đề, thông điệp, điều mơ tưởng/dự báo về tương lai.','Phân tích tính cách nhân vật qua cử chỉ, hành động, lời thoại, lời kể.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],vd:['Thể hiện thái độ với vấn đề đặt ra.','Nêu trải nghiệm giúp hiểu thêm nhân vật/sự việc.']},
+        {id:'g7_poetry',label:'Thơ (thơ bốn chữ, năm chữ và dạng thơ phù hợp lớp 7)',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Nghĩa từ trong ngữ cảnh','Dấu chấm lửng','Biện pháp tu từ'],nb:['Nhận biết từ ngữ, vần, nhịp, biện pháp tu từ, bố cục, hình ảnh tiêu biểu, yếu tố tự sự/miêu tả.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Lí giải tình cảm, cảm xúc của nhân vật trữ tình.','Rút ra chủ đề, thông điệp.','Phân tích giá trị biểu đạt của từ ngữ, hình ảnh, vần, nhịp, biện pháp tu từ.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Trình bày cảm nhận sâu sắc và bài học ứng xử.','Đánh giá nét độc đáo của bài thơ qua cách nhìn, từ ngữ, hình ảnh, giọng điệu.']},
+        {id:'g7_essay',label:'Tùy bút, tản văn',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành phần câu','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Nghĩa từ trong ngữ cảnh','Dấu chấm lửng','Liên kết và mạch lạc'],nb:['Nhận biết chi tiết tiêu biểu, đề tài, cảnh vật, con người, sự kiện; cái tôi và sự kết hợp tự sự, trữ tình, nghị luận.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Phân tích nét riêng về cảnh vật, con người.','Lí giải trạng thái tình cảm, cảm xúc của người viết.','Nêu chủ đề, thông điệp.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Nêu trải nghiệm giúp hiểu thêm nhân vật/sự việc.','Thể hiện thái độ đồng tình hoặc không đồng tình với thái độ, tình cảm, thông điệp của tác giả.']},
+        {id:'g7_argument',label:'Văn bản nghị luận',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành phần câu','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Nói quá, nói giảm nói tránh','Dấu chấm lửng','Liên kết và mạch lạc'],nb:['Nhận biết ý kiến, lí lẽ, bằng chứng; đặc điểm nghị luận về vấn đề đời sống và nghị luận phân tích tác phẩm.','Nhận biết hiện tượng tiếng Việt phù hợp.'],th:['Xác định mục đích, nội dung chính.','Chỉ ra mối liên hệ giữa ý kiến, lí lẽ, bằng chứng.','Chỉ ra quan hệ giữa đặc điểm văn bản với mục đích.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Rút ra bài học cho bản thân.','Thể hiện thái độ đồng tình hoặc không đồng tình với vấn đề đặt ra.']},
+        {id:'g7_info',label:'Văn bản thông tin',source:'Bộ đặc tả lớp 7',vi:['Số từ, phó từ','Thành phần câu','Thành ngữ, tục ngữ','Yếu tố Hán Việt','Dấu chấm lửng','Liên kết và mạch lạc','Phương tiện phi ngôn ngữ'],nb:['Nhận biết thông tin cơ bản; đặc điểm văn bản giới thiệu quy tắc/luật lệ; hiện tượng tiếng Việt.'],th:['Chỉ ra quan hệ giữa đặc điểm và mục đích văn bản.','Chỉ ra vai trò chi tiết, tác dụng cước chú/tài liệu tham khảo, cách triển khai ý tưởng/thông tin.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Đánh giá tác dụng biểu đạt của phương tiện phi ngôn ngữ.','Rút ra bài học cho bản thân.']}
+      ],
+      write:[
+        {id:'g7_history',label:'Kể lại sự việc có thật liên quan đến nhân vật hoặc sự kiện lịch sử',needsText:false,nb:['Đảm bảo cấu trúc bài văn tự sự.','Xác định yêu cầu về nội dung và hình thức.'],th:['Kể diễn biến sự việc theo trình tự hợp lí.'],vd:['Nêu ý nghĩa của sự việc/nhân vật, ấn tượng của người viết; đảm bảo chính tả, ngữ pháp.','Sử dụng yếu tố miêu tả và cách kể sáng tạo, truyền cảm hứng.']},
+        {id:'g7_feel',label:'Phát biểu cảm nghĩ về con người hoặc sự việc',needsText:false,nb:['Đảm bảo cấu trúc bài văn biểu cảm.','Xác định đúng kiểu bài.'],th:['Nêu đặc điểm nổi bật và bày tỏ tình cảm chân thực; sử dụng ngôi thứ nhất.'],vd:['Thể hiện thái độ/tình cảm và vai trò của con người/sự việc đối với bản thân; nêu bài học; đúng chính tả, ngữ pháp.','Kết hợp miêu tả và tự sự để hỗ trợ biểu cảm.']},
+        {id:'g7_rules',label:'Giải thích quy tắc hay luật lệ trong một trò chơi/hoạt động',needsText:false,nb:['Đảm bảo cấu trúc bài văn thuyết minh.','Xác định yêu cầu nội dung và hình thức.'],th:['Giải thích rõ quy định/hướng dẫn theo quy trình hợp lí.'],vd:['Nêu tác dụng/ý nghĩa; đúng chính tả, ngữ pháp.','Lồng ghép miêu tả hợp lí để tăng sức hấp dẫn.']},
+        {id:'g7_argument',label:'Nghị luận về một vấn đề trong đời sống',needsText:false,nb:['Đảm bảo cấu trúc bài văn nghị luận.','Xác định vấn đề nghị luận.'],th:['Kết hợp lí lẽ và bằng chứng để tạo tính chặt chẽ, logic; thể hiện ý kiến rõ.'],vd:['Nêu ý nghĩa/ảnh hưởng của vấn đề; đúng chính tả, ngữ pháp.','Lập luận chặt chẽ, diễn đạt sáng tạo.']},
+        {id:'g7_character',label:'Phân tích nhân vật trong một tác phẩm văn học',needsText:true,nb:['Đảm bảo cấu trúc bài văn nghị luận.','Xác định vấn đề nghị luận.'],th:['Phân tích đặc điểm nhân vật dựa trên lời kể, ngôn ngữ, hành động và chi tiết.','Nhận xét nghệ thuật xây dựng nhân vật.'],vd:['Đánh giá khái quát nhân vật/chủ đề; nêu trải nghiệm giúp hiểu thêm nhân vật; đúng chính tả, ngữ pháp.','Diễn đạt sáng tạo, độc đáo, hợp logic.']}
+      ]
+    },
+    '8': {
+      read:[
+        {id:'g8_comedy_story',label:'Truyện cười',source:'Bộ đặc tả lớp 8',vi:['Trợ từ, thán từ','Thành phần biệt lập','Kiểu câu theo mục đích giao tiếp','Thành ngữ','Sắc thái nghĩa và lựa chọn từ ngữ','Từ tượng thanh, từ tượng hình','Đảo ngữ, câu hỏi tu từ','Nghĩa tường minh và hàm ý','Yếu tố Hán Việt'],nb:['Nhận biết đề tài, bối cảnh, cốt truyện, tình huống, nhân vật, chi tiết tiêu biểu.','Nhận biết yếu tố gây cười, đối tượng trào phúng/châm biếm.','Nhận biết tri thức tiếng Việt phù hợp.'],th:['Phân tích tình cảm, thái độ của tác giả với đối tượng trào phúng.','Phân tích tác dụng chi tiết/tình huống gây cười.','Khái quát chủ đề, tư tưởng, thông điệp.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],vd:['Nhận xét nội dung phản ánh và cách nhìn cuộc sống, con người.','Nêu thay đổi trong suy nghĩ, tình cảm, nhận thức.','Vận dụng hiểu biết về tưởng tượng trong tiếp nhận văn học để đánh giá giá trị tác phẩm.']},
+        {id:'g8_story',label:'Truyện ngắn, truyện lịch sử',source:'Bộ đặc tả lớp 8 + đề tham khảo lớp 8',vi:['Trợ từ, thán từ','Thành phần biệt lập','Kiểu câu theo mục đích giao tiếp','Thành ngữ','Sắc thái nghĩa và lựa chọn từ ngữ','Từ tượng thanh, từ tượng hình','Đảo ngữ, câu hỏi tu từ','Nghĩa tường minh và hàm ý','Yếu tố Hán Việt'],nb:['Nhận biết đề tài, bối cảnh, chi tiết tiêu biểu.','Nhận biết nhân vật, cốt truyện, tình huống, biện pháp xây dựng nhân vật.','Nhận biết tri thức tiếng Việt phù hợp trong ngữ liệu.'],th:['Phân tích tình cảm, thái độ của người kể chuyện.','Phân tích vai trò/tác dụng của cốt truyện đơn tuyến, đa tuyến khi phù hợp.','Lí giải chủ đề, tư tưởng, thông điệp qua hình thức nghệ thuật.','Giải thích chức năng/nghĩa/tác dụng của tri thức tiếng Việt được chọn.'],vd:['Nhận xét nội dung phản ánh và cách nhìn cuộc sống, con người của tác giả.','Nêu thay đổi trong suy nghĩ, tình cảm, nhận thức sau khi đọc.','Vận dụng hiểu biết về tưởng tượng trong tiếp nhận văn học để đánh giá giá trị tác phẩm.']},
+        {id:'g8_poetry',label:'Thơ (thơ Đường luật, thơ sáu chữ, bảy chữ và dạng thơ phù hợp lớp 8)',source:'Bộ đặc tả lớp 8',vi:['Trợ từ, thán từ','Thành phần biệt lập','Thành ngữ','Sắc thái nghĩa','Từ tượng thanh, từ tượng hình','Biện pháp tu từ','Nghĩa tường minh và hàm ý','Yếu tố Hán Việt'],nb:['Nhận biết dấu hiệu hình thức thể thơ; thủ pháp trào phúng khi có.','Nhận biết đặc điểm ngôn ngữ, đề tài, giọng điệu, nhịp điệu; hình ảnh, biểu tượng, nhân vật trữ tình.','Nhận biết tri thức tiếng Việt phù hợp.'],th:['Phân tích tình cảm, cảm xúc của nhân vật trữ tình/cảm hứng chủ đạo.','Nêu chủ đề, tư tưởng, thông điệp dựa trên hình thức nghệ thuật.','Phân tích vai trò yếu tố hình thức, thủ pháp thơ.','Phân tích nét độc đáo qua từ ngữ, hình ảnh, bố cục.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Nhận xét nội dung phản ánh và cách nhìn cuộc sống, con người.','Nêu thay đổi trong suy nghĩ, tình cảm, nhận thức.','Thể hiện thái độ tôn trọng/học hỏi cách tiếp nhận khác có căn cứ.']},
+        {id:'g8_drama',label:'Hài kịch',source:'Bộ đặc tả lớp 8',vi:['Trợ từ, thán từ','Thành phần biệt lập','Kiểu câu theo mục đích giao tiếp','Sắc thái nghĩa','Từ tượng thanh, từ tượng hình','Đảo ngữ'],nb:['Nhận biết xung đột, hành động, lời thoại, thủ pháp trào phúng; cách phân cảnh/hồi, cốt truyện, nhân vật.','Nhận biết tri thức tiếng Việt phù hợp.'],th:['Tóm tắt cốt truyện.','Phân tích vai trò/tác dụng xung đột, hành động, lời thoại, thủ pháp trào phúng.','Phân tích đặc điểm nhân vật kịch qua hành động, ngôn ngữ, xung đột.','Lí giải chủ đề, tư tưởng, thông điệp.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Nhận xét nội dung phản ánh và cách nhìn cuộc sống, con người.','Nêu thay đổi trong suy nghĩ, tình cảm hoặc cách sống sau khi đọc/xem kịch.']},
+        {id:'g8_argument',label:'Văn bản nghị luận',source:'Bộ đặc tả lớp 8',vi:['Trợ từ, thán từ','Thành phần biệt lập','Kiểu câu theo mục đích giao tiếp','Thành ngữ','Yếu tố Hán Việt','Sắc thái nghĩa','Từ tượng thanh, từ tượng hình','Đảo ngữ'],nb:['Xác định luận đề, luận điểm, lí lẽ, bằng chứng tiêu biểu.','Nhận biết tri thức tiếng Việt phù hợp.'],th:['Nêu nội dung bao quát.','Phân tích mối liên hệ giữa luận đề, luận điểm, lí lẽ, bằng chứng và vai trò của chúng.','Phân biệt lí lẽ/bằng chứng khách quan với ý kiến, đánh giá chủ quan.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Rút ra bài học cho bản thân.','Liên hệ nội dung với vấn đề xã hội đương đại.','Thể hiện thái độ đồng tình/không đồng tình/đồng tình một phần với quan điểm tác giả và lí giải.']},
+        {id:'g8_info',label:'Văn bản thông tin',source:'Bộ đặc tả lớp 8',vi:['Trợ từ','Thành phần biệt lập','Kiểu câu theo mục đích giao tiếp','Thành ngữ','Yếu tố Hán Việt','Phương tiện phi ngôn ngữ'],nb:['Nhận biết đặc điểm văn bản giải thích hiện tượng tự nhiên; văn bản giới thiệu sách/phim.','Nhận biết cách trình bày thông tin theo thời gian, nhân quả, mức độ quan trọng, so sánh/đối chiếu.','Nhận biết tri thức tiếng Việt phù hợp.'],th:['Phân tích thông tin cơ bản.','Phân tích đặc điểm kiểu văn bản và quan hệ giữa đặc điểm với mục đích.','Phân tích cách trình bày thông tin.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Liên hệ thông tin với vấn đề xã hội đương đại.','Đánh giá hiệu quả biểu đạt của phương tiện phi ngôn ngữ khi có.']}
+      ],
+      write:[
+        {id:'g8_trip',label:'Kể lại một chuyến đi hay một hoạt động xã hội để lại ấn tượng sâu sắc',needsText:false,nb:['Xác định đúng kiểu bài, đối tượng và cấu trúc.'],th:['Kể lại chuyến đi/hoạt động theo trình tự hợp lí, nêu được những sự việc/chi tiết tiêu biểu.'],vd:['Thể hiện ấn tượng, suy nghĩ, tình cảm sâu sắc; sử dụng hiệu quả miêu tả, biểu cảm; diễn đạt đúng và có nét riêng.']},
+        {id:'g8_life',label:'Nghị luận về một vấn đề của đời sống',needsText:false,nb:['Xác định đúng kiểu bài, vấn đề nghị luận, bố cục/dung lượng.'],th:['Triển khai hệ thống luận điểm, lí lẽ, bằng chứng thuyết phục; thể hiện rõ ý kiến.'],vd:['Liên hệ/đánh giá ý nghĩa của vấn đề; diễn đạt đúng chính tả, ngữ pháp; lập luận chặt chẽ, có nét sáng tạo.']},
+        {id:'g8_lit',label:'Viết bài văn phân tích một tác phẩm văn học',needsText:true,source:'Bộ đặc tả lớp 8 + đề tham khảo lớp 8',nb:['Xác định đúng kiểu bài phân tích tác phẩm văn học.','Đảm bảo bố cục, dung lượng và xác định đúng vấn đề nghị luận.'],th:['Triển khai hệ thống luận điểm, lí lẽ, bằng chứng.','Nêu chủ đề của tác phẩm.','Chỉ ra và phân tích tác dụng của một số nét đặc sắc về hình thức nghệ thuật.'],vd:['Sử dụng kiến thức tiếng Việt để diễn đạt đúng, trong sáng.','Kết hợp lí lẽ và bằng chứng làm sáng tỏ luận điểm; đánh giá giá trị tác phẩm; có cách diễn đạt phù hợp, sáng tạo.']},
+        {id:'g8_explain',label:'Thuyết minh giải thích một hiện tượng tự nhiên hoặc giới thiệu một cuốn sách',needsText:false,nb:['Xác định đúng kiểu bài, đối tượng thuyết minh, bố cục/dung lượng.'],th:['Nêu được các thông tin quan trọng; giải thích/giới thiệu mạch lạc, có tổ chức.'],vd:['Đánh giá ý nghĩa/tác động phù hợp; diễn đạt chính xác, thuyết phục và có cách trình bày hiệu quả.']}
+      ]
+    },
+    '9': {
+      read:[
+        {id:'g9_story',label:'Truyện truyền kì, truyện trinh thám',source:'Bộ đặc tả lớp 9',vi:['Dẫn trực tiếp và gián tiếp','Yếu tố Hán Việt dễ nhầm','Điển tích, điển cố','Biến đổi và mở rộng cấu trúc câu','Kiểu câu theo cấu tạo ngữ pháp'],nb:['Nhận biết không gian, thời gian, chi tiết, cốt truyện, nhân vật chính.','Xác định lời người kể chuyện/lời nhân vật; đối thoại/độc thoại.','Nhận biết dẫn trực tiếp và gián tiếp.'],th:['Nêu nội dung bao quát.','Phân tích quan hệ giữa nội dung và hình thức.','Phân tích yếu tố thể loại, chủ đề, tư tưởng, thông điệp và căn cứ xác định chủ đề.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Rút ra bài học và thể hiện thái độ với vấn đề đặt ra.','Nêu thay đổi trong suy nghĩ, tình cảm, lối sống/cách thưởng thức.','Vận dụng hiểu biết lịch sử văn học khi phù hợp.']},
+        {id:'g9_nom',label:'Truyện thơ Nôm',source:'Bộ đặc tả lớp 9',vi:['Dẫn trực tiếp và gián tiếp','Yếu tố Hán Việt','Điển tích, điển cố','Biến đổi/mở rộng cấu trúc câu','Kiểu câu theo cấu tạo ngữ pháp'],nb:['Nhận biết cốt truyện, nhân vật, lời thoại; sự kết hợp yếu tố quy phạm và bình dân; dẫn trực tiếp/gián tiếp.'],th:['Nêu nội dung bao quát.','Phân tích quan hệ nội dung-hình thức; cốt truyện, nhân vật, lời thoại, miêu tả nội tâm.','Lí giải chủ đề, tư tưởng, thông điệp.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Rút ra bài học, thể hiện thái độ.','Nêu thay đổi trong suy nghĩ, tình cảm, cách thưởng thức.','Vận dụng hiểu biết lịch sử văn học khi phù hợp.']},
+        {id:'g9_poetry',label:'Thơ song thất lục bát, thơ tám chữ',source:'Bộ đặc tả lớp 9',vi:['Yếu tố Hán Việt','Điển tích, điển cố','Biện pháp tu từ','Đặc điểm cấu trúc câu khi phù hợp'],nb:['Nhận biết vần, nhịp, số chữ, số dòng; nét độc đáo về bố cục, kết cấu, ngôn ngữ, biện pháp tu từ.'],th:['Phân tích quan hệ nội dung-hình thức.','Phân tích chủ đề, tư tưởng, thông điệp; tình cảm, cảm xúc, cảm hứng chủ đạo.','Lí giải nét độc đáo về hình thức.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Nêu thay đổi trong suy nghĩ, tình cảm, lối sống/cách thưởng thức.','Vận dụng hiểu biết lịch sử văn học.','Phân biệt với thể thơ gần gũi khi phù hợp.']},
+        {id:'g9_tragedy',label:'Bi kịch',source:'Bộ đặc tả lớp 9',vi:['Yếu tố Hán Việt','Điển tích, điển cố','Biến đổi/mở rộng cấu trúc câu','Kiểu câu theo cấu tạo ngữ pháp'],nb:['Nhận biết nhân vật và lời thoại trong bi kịch.'],th:['Nêu nội dung bao quát.','Phân tích quan hệ nội dung-hình thức; xung đột, hành động, cốt truyện, lời thoại.','Phân tích chủ đề, tư tưởng, thông điệp.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Nêu thay đổi trong suy nghĩ, tình cảm, lối sống/cách thưởng thức.','Vận dụng hiểu biết lịch sử văn học.','Phân biệt bi kịch với hài kịch khi phù hợp.']},
+        {id:'g9_argument',label:'Văn bản nghị luận',source:'Bộ đặc tả lớp 9',vi:['Dẫn trực tiếp và gián tiếp','Biến đổi/mở rộng cấu trúc câu','Kiểu câu theo cấu tạo ngữ pháp','Yếu tố Hán Việt'],nb:['Nhận biết luận đề, luận điểm, lí lẽ, bằng chứng tiêu biểu.','Nhận biết dẫn trực tiếp và gián tiếp.'],th:['Nêu nội dung bao quát.','Phân tích mối liên hệ và vai trò của luận đề, luận điểm, lí lẽ, bằng chứng.','Phân biệt trình bày khách quan và chủ quan.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Liên hệ ý tưởng/thông điệp với bối cảnh lịch sử, văn hóa, xã hội.','Nhận xét, đánh giá vấn đề và chấp nhận khả năng có cách tiếp nhận khác nhau.']},
+        {id:'g9_info',label:'Văn bản thông tin',source:'Bộ đặc tả lớp 9',vi:['Dẫn trực tiếp và gián tiếp','Tên viết tắt tổ chức quốc tế','Biến đổi/mở rộng cấu trúc câu','Kiểu câu theo cấu tạo ngữ pháp','Yếu tố Hán Việt','Phương tiện phi ngôn ngữ'],nb:['Nhận biết đặc điểm văn bản giới thiệu danh lam thắng cảnh/di tích lịch sử, bài phỏng vấn.','Nhận biết cách trình bày thông tin và phương tiện phi ngôn ngữ.','Nhận biết dẫn trực tiếp/gián tiếp và tri thức tiếng Việt phù hợp.'],th:['Phân tích thông tin cơ bản và ý nghĩa nhan đề.','Phân tích đặc điểm kiểu văn bản, cách trình bày thông tin và quan hệ giữa ngôn ngữ với phương tiện phi ngôn ngữ.','Giải thích tri thức tiếng Việt được chọn.'],vd:['Đánh giá vai trò chi tiết quan trọng.','Liên hệ, vận dụng điều đã đọc để giải quyết một vấn đề trong cuộc sống.']}
+      ],
+      write:[
+        {id:'g9_creative',label:'Tập sáng tác truyện hoặc mô phỏng một truyện kể',needsText:false,nb:['Xác định đúng yêu cầu kiểu bài và cấu trúc truyện.'],th:['Tạo được cốt truyện, nhân vật, tình huống phù hợp; triển khai mạch kể rõ.'],vd:['Sử dụng miêu tả, biểu cảm và các yếu tố nghệ thuật phù hợp; diễn đạt đúng, có sáng tạo.']},
+        {id:'g9_problem',label:'Nghị luận về một vấn đề cần giải quyết',needsText:false,nb:['Xác định đúng kiểu bài, vấn đề nghị luận, bố cục.'],th:['Phân tích vấn đề, triển khai luận điểm, lí lẽ, bằng chứng và giải pháp khả thi.'],vd:['Đánh giá ý nghĩa/ảnh hưởng; đề xuất giải pháp thuyết phục; diễn đạt đúng, lập luận chặt chẽ và có nét sáng tạo.']},
+        {id:'g9_lit',label:'Phân tích một tác phẩm văn học',needsText:true,nb:['Xác định đúng kiểu bài, tác phẩm/vấn đề nghị luận, bố cục.'],th:['Phân tích nội dung/chủ đề và những nét đặc sắc về hình thức nghệ thuật; sử dụng lí lẽ, bằng chứng phù hợp.'],vd:['Đánh giá hiệu quả thẩm mĩ/giá trị tác phẩm; diễn đạt đúng, lập luận chặt chẽ, có cách cảm nhận và diễn đạt phù hợp.']},
+        {id:'g9_place',label:'Thuyết minh về một danh lam thắng cảnh hay một di tích lịch sử',needsText:false,nb:['Xác định đúng kiểu bài, đối tượng và bố cục.'],th:['Trình bày thông tin chính xác, có tổ chức về đối tượng.'],vd:['Sử dụng sơ đồ/bảng biểu/hình ảnh khi phù hợp; đánh giá ý nghĩa, giá trị; diễn đạt rõ, thuyết phục.']}
+      ]
     }
-  };
-
-  window.RADENGUVAN_DATA=Object.freeze({
-    providers:{gemini:"gemini-2.5-flash",openrouter:"google/gemini-2.5-flash",openai:"gpt-4.1-mini"},
-    labels:{
-      levels:{nhan_biet:"Nhận biết",thong_hieu:"Thông hiểu",van_dung:"Vận dụng"},
-      sections:{doc_hieu:"Đọc",viet:"Viết"},
-      cellLevels:{nb:"Nhận biết",th:"Thông hiểu",vd:"Vận dụng"},
-      questionTypes:{mcq:"TNKQ",essay:"TL"}
-    },
-    cellKeys:["nb_mcq","nb_essay","th_mcq","th_essay","vd_mcq","vd_essay"],
-    descriptors,
-    defaults:{mixed:genericMixed,essay:genericEssay}
-  });
-})();
+  }
+};

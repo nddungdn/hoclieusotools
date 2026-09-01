@@ -1,8 +1,5 @@
-window.RADENGUVAN_CONFIG = Object.freeze({
-  API_BASE: "https://radenguvan-secure-api.nddungdn.workers.dev",
-  MAX_FILES: 10,
-  MAX_FILE_SIZE_MB: 15,
-  MAX_SOURCE_CHARS: 80000,
-  REQUEST_TIMEOUT_MS: 120000,
-  APP_VERSION: "1.2.0"
-});
+window.APP_CONFIG={
+  API_BASE:'https://radenguvan-secure-api.nddungdn.workers.dev',
+  GEMINI_GUIDE_URL:'https://www.hoclieuso.id.vn/2026/06/cach-tao-api-key-google-ai-studio.html',
+  APP_VERSION:'1.0.0'
+};
