@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#4338ca" />
   <title>Ra đề kiểm tra Ngữ văn THCS</title>
-  <link rel="stylesheet" href="styles.css?v=1.0.0" />
+  <link rel="stylesheet" href="styles.css?v=1.2.0" />
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
     <div class="brand-mark">NV</div>
     <div class="brand-copy"><h1>Ra đề kiểm tra Ngữ văn THCS</h1><p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p></div>
-    <span class="version-badge" id="versionBadge">V1.0.0</span>
+    <span class="version-badge" id="versionBadge">V1.2.0</span>
   </div>
 </header>
 
@@ -39,6 +39,7 @@
         <label>Lớp<select id="grade"><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="9">9</option></select></label>
         <label>Thời gian làm bài (phút)<input id="duration" type="number" min="15" step="5" value="90" /></label>
         <label>Số mã đề<select id="examCodes"><option value="1">1 mã (A)</option><option value="2" selected>2 mã (A/B)</option></select></label>
+        <label>Số trang đề (dự kiến)<input id="examPages" inputmode="numeric" value="02" placeholder="Ví dụ: 02" /></label>
       </div>
 
       <div class="choice-card-group">
@@ -51,6 +52,15 @@
           <label>Điểm phần Đọc<input id="readScore" type="number" min="0" max="10" step="0.25" value="6" /></label>
           <label>Điểm phần Viết<input id="writeScore" type="number" min="0" max="10" step="0.25" value="4" /></label>
           <div class="score-check" id="scoreSplitStatus">Tổng: 10,0 điểm</div>
+        </div>
+        <div class="hskt-box">
+          <label class="confirm-row"><input id="includeHskt" type="checkbox"/><span><strong>Bổ sung hướng dẫn chấm cho học sinh khuyết tật</strong><small>Chỉ sử dụng khi phù hợp với kế hoạch giáo dục cá nhân và quy định của đơn vị.</small></span></label>
+          <label>Phương án quy đổi
+            <select id="hsktMode">
+              <option value="read10" selected>Chỉ làm phần Đọc – quy đổi thành thang 10</option>
+              <option value="tn10">Chỉ làm TNKQ phần Đọc – quy đổi thành thang 10</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -108,6 +118,16 @@
         <label>Ghi chú của giáo viên cho phần Viết (không bắt buộc)<textarea id="writeNote" rows="3" placeholder="Ví dụ: dung lượng khoảng 600 chữ; ưu tiên một yêu cầu cụ thể..."></textarea></label>
       </div>
       <div class="source-validation" id="sourceValidation"></div>
+
+      <div class="objective-ai-box">
+        <div class="objective-ai-head">
+          <div><span class="eyebrow">MỤC TIÊU ĐỀ KIỂM TRA</span><h3>AI tạo Năng lực & Phẩm chất</h3><p>AI sử dụng đúng mạch Đọc, tri thức tiếng Việt, kiểu bài Viết và ngữ liệu giáo viên đã cung cấp. Ba phạm vi trong dấu móc được khóa theo lựa chọn của giáo viên; AI không được tự đổi hoặc tự thêm.</p></div>
+          <button class="btn secondary" id="generateObjectivesBtn" type="button">✨ AI tạo mục tiêu</button>
+        </div>
+        <div id="objectiveStatus" class="status-line">Chưa tạo mục tiêu.</div>
+        <div id="objectivePreview" class="objective-preview empty-state">Sau khi nhập đủ ngữ liệu và kiểm tra API, bấm “AI tạo mục tiêu”.</div>
+      </div>
+
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="scope">← Quay lại</button><button class="btn primary next-btn" data-next="matrix">Tiếp tục →</button></div>
     </section>
 
@@ -152,9 +172,9 @@
 
 <div class="modal-backdrop hidden" id="matrixModalBackdrop"><div class="matrix-dialog" role="dialog" aria-modal="true"><div class="dialog-head"><div><span class="eyebrow" id="dialogLevel">Cấu hình</span><h3 id="dialogTitle">Thiết lập ô ma trận</h3></div><button class="icon-btn" id="closeMatrixDialog">✕</button></div><div id="configRows"></div><button class="btn secondary" id="addConfigBtn">+ Thêm cấu hình</button><div class="dialog-summary" id="dialogSummary"></div><div class="dialog-actions"><button class="btn ghost" id="cancelDialog">Hủy</button><button class="btn primary" id="saveDialog">Lưu cấu hình</button></div></div></div>
 
-<script src="config.js?v=1.0.0"></script>
-<script src="data.js?v=1.0.0"></script>
+<script src="config.js?v=1.2.0"></script>
+<script src="data.js?v=1.2.0"></script>
 <script src="jszip.min.js"></script>
-<script src="app.js?v=1.0.0"></script>
+<script src="app.js?v=1.2.0"></script>
 </body>
 </html>
