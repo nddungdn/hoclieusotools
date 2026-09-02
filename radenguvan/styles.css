@@ -26,3 +26,10 @@
 @media(max-width:720px){.objective-ai-head{flex-direction:column}.objective-ai-head .btn{width:100%}.objective-lines{margin-left:8px}}
 
 .objective-ai-box .success-text{color:#15803d}.objective-ai-box .warning-text{color:#b45309}.objective-ai-box .danger-text{color:#b91c1c}
+
+/* V1.3 - bảng đáp án/HDC giữ tỉ lệ cột hợp lí */
+.review-marking-table{table-layout:fixed;min-width:760px}
+.review-marking-table th:first-child,.review-marking-table td:first-child{width:8%;text-align:center}
+.review-marking-table th:last-child,.review-marking-table td:last-child{width:10%;text-align:center}
+.review-marking-table td{overflow-wrap:break-word;word-break:normal}
+.marking-answer-line{display:block;margin:0 0 6px;text-align:justify}
