@@ -1,0 +1,19 @@
+{
+  "name": "Thời khóa biểu - THCS Lê Hồng Phong",
+  "short_name": "TKB LHP",
+  "description": "Tra cứu thời khóa biểu học sinh và giáo viên.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef4fb",
+  "theme_color": "#0649a7",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
