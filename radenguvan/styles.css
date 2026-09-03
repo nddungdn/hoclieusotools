@@ -33,3 +33,6 @@
 .review-marking-table th:last-child,.review-marking-table td:last-child{width:10%;text-align:center}
 .review-marking-table td{overflow-wrap:break-word;word-break:normal}
 .marking-answer-line{display:block;margin:0 0 6px;text-align:justify}
+
+/* V1.5 resilient AI */
+.fallback-toggle{display:flex!important;gap:10px;align-items:flex-start;margin-top:12px;padding:11px 13px;border:1px solid #b7d7cf;border-radius:13px;background:#f0fdf8}.fallback-toggle input{margin-top:4px;accent-color:#0f766e}.fallback-toggle span{display:flex;flex-direction:column;gap:2px}.fallback-toggle small{font-weight:400;color:#5d6c68;line-height:1.4}

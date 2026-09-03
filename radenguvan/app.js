@@ -22,8 +22,8 @@ async function post(path,body){
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function transientAiError(e){return [429,500,502,503,504,520,522,523,524].includes(Number(e?.status))||/524|502|503|504|429|phản hồi quá lâu|timeout|tạm thời chậm|gián đoạn|AI trả sai số câu|thiếu hướng dẫn chấm|tiêu chí chấm|tổng hướng dẫn chấm|độ dài phương án|đáp án .* không hợp lệ|thiếu nội dung\/tiêu chí|tổng điểm HDC Viết/i.test(String(e?.message||''));}
-async function postGeneratePart(path,body,label){let last;for(let attempt=1;attempt<=3;attempt++){try{return await post(path,body)}catch(e){last=e;if(!transientAiError(e)||attempt===3)throw e;const wait=Math.min(7000,1800*attempt);$('#generateStatus').textContent=`⚠ ${label}: AI phản hồi chậm. Tự thử lại lần ${attempt+1}/3 sau ${Math.round(wait/1000)} giây...`;await sleep(wait)}}throw last;}
-function aiParams(){const p=provider();return {provider:p,apiKey:p==='cloudflare'?'':($('#apiKey')?.value||'').trim(),model:$('#modelSelect')?.value||state.model};}
+async function postGeneratePart(path,body,label){let last;for(let attempt=1;attempt<=2;attempt++){try{return await post(path,body)}catch(e){last=e;if(!transientAiError(e)||attempt===2)throw e;const wait=4500+Math.floor(Math.random()*1500);$('#generateStatus').textContent=`⚠ ${label}: các model dự phòng vẫn bận. Chờ ${Math.round(wait/1000)} giây rồi thử lại lần cuối...`;await sleep(wait)}}throw last;}
+function aiParams(){const p=provider();return {provider:p,apiKey:p==='cloudflare'?'':($('#apiKey')?.value||'').trim(),model:$('#modelSelect')?.value||state.model,modelCandidates:state.models||[],autoFallback:$('#autoFallbackAi')?.checked!==false};}
 function showStep(name){$$('.panel').forEach(x=>x.classList.toggle('active',x.id===`panel-${name}`));$$('.step-btn').forEach(x=>x.classList.toggle('active',x.dataset.step===name));if(name==='matrix')renderMatrix();if(name==='spec')renderSpec();if(name==='generate'){renderGenerateSummary();renderExam();}if(name==='review')renderReview();window.scrollTo({top:0,behavior:'smooth'});}
 function resetDerived(){state.matrix={read:{nb:[],th:[],vd:[]},write:{nb:[],th:[],vd:[]}};state.hiddenSpec={read:{nb:new Set(),th:new Set(),vd:new Set()},write:{nb:new Set(),th:new Set(),vd:new Set()}};state.teacherSpec={read:{nb:[],th:[],vd:[]},write:{nb:[],th:[],vd:[]}};state.objectives=null;state.exam=null;state.history=[];state.proposal=null;state.aiReview=null;renderObjectivePreview();const os=$('#objectiveStatus');if(os){os.textContent='Chưa tạo mục tiêu.';os.className='status-line'}resetConfirm();}
 function setApiStatus(msg,kind='neutral'){const el=$('#apiStatus');el.textContent=msg;el.className=`status-line ${kind==='neutral'?'':kind}`;$('#apiDot').className=`status-dot ${kind}`;}
@@ -100,28 +100,22 @@ function renderGenerateSummary(){$('#generateSummary').textContent=`Lớp ${stat
 function distributeSingleAnswers(exam){(exam?.examCodes||[]).forEach(code=>{const qs=(code.readQuestions||[]).filter(q=>q.form==='TNKQ'&&q.subtype==='single'&&Array.isArray(q.options)&&q.options.length===4);qs.forEach((q,i)=>{const target=['A','B','C','D'][i%4],cur=String(q.answer||'A').toUpperCase();const ci=cur.charCodeAt(0)-65,ti=target.charCodeAt(0)-65;if(ci>=0&&ci<4&&ti>=0&&ti<4&&ci!==ti){[q.options[ci],q.options[ti]]=[q.options[ti],q.options[ci]];if(q.distractor===cur)q.distractor=target;else if(q.distractor===target)q.distractor=cur;q.answer=target;}})});return exam}
 async function generateExam(){
   if(!state.apiOk)return alert('Hãy kiểm tra API/nhà cung cấp AI trước.');if(!validateSources(true)||!validateMatrix(true))return;
-  const btn=$('#generateBtn');btn.disabled=true;const status=$('#generateStatus'),payload=buildPayload(),readCfg=payload.matrix.filter(x=>x.ability==='Đọc'),codeCount=Number(payload.setup.examCodes||1),totalJobs=codeCount*(readCfg.length+1)+1;let done=0;
-  const progress=msg=>{status.textContent=`Đang tạo ${done}/${totalJobs}: ${msg}`};
+  const btn=$('#generateBtn');btn.disabled=true;const status=$('#generateStatus'),payload=buildPayload(),codeCount=Number(payload.setup.examCodes||1),totalJobs=codeCount*2+1;let done=0;
+  const progress=(msg,meta)=>{const used=meta?.model?` · ${meta.provider==='cloudflare-fallback'?'dự phòng Cloudflare · ':''}${meta.model}`:'';status.textContent=`Đang tạo ${done}/${totalJobs}: ${msg}${used}`};
   try{
     const examCodes=[];
     for(let ci=0;ci<codeCount;ci++){
-      const code=String.fromCharCode(65+ci),readQuestions=[];
-      for(const cfg of readCfg){
-        const avoidPrompts=examCodes.flatMap(c=>(c.readQuestions||[]).filter(q=>q.configId===cfg.id).map(q=>q.prompt)).filter(Boolean);
-        progress(`Đề ${code} · Đọc · ${cfg.levelName||cfg.level} · ${cfg.form==='TNKQ'?tnName(cfg.subtype):'Tự luận'}`);
-        const part=await postGeneratePart('/api/generate-read-chunk',{...aiParams(),payload,code,configId:cfg.id,avoidPrompts},`Đề ${code} · ${cfg.levelName||cfg.level}`);
-        readQuestions.push(...(part.questions||[]));done++;
-      }
-      readQuestions.forEach((q,i)=>q.number=i+1);
-      progress(`Đề ${code} · Phần Viết`);
-      const avoidPrompt=examCodes.map(c=>c.write?.prompt||'').filter(Boolean).join('\n');
-      const w=await postGeneratePart('/api/generate-write-chunk',{...aiParams(),payload,code,avoidPrompt},`Đề ${code} · Phần Viết`);done++;
+      const code=String.fromCharCode(65+ci),avoidPrompts=examCodes.flatMap(c=>(c.readQuestions||[]).map(q=>q.prompt)).filter(Boolean);
+      progress(`Đề ${code} · toàn bộ phần Đọc`);
+      const pack=await postGeneratePart('/api/generate-read-pack',{...aiParams(),payload,code,avoidPrompts},`Đề ${code} · phần Đọc`);done++;progress(`Đề ${code} · đã xong phần Đọc`,pack.aiMeta);await sleep(900+Math.floor(Math.random()*600));
+      const readQuestions=(pack.questions||[]);readQuestions.forEach((q,i)=>q.number=i+1);
+      const avoidPrompt=examCodes.map(c=>c.write?.prompt||'').filter(Boolean).join('\n');progress(`Đề ${code} · Phần Viết`);
+      const w=await postGeneratePart('/api/generate-write-chunk',{...aiParams(),payload,code,avoidPrompt},`Đề ${code} · Phần Viết`);done++;progress(`Đề ${code} · đã xong phần Viết`,w.aiMeta);await sleep(900+Math.floor(Math.random()*600));
       examCodes.push({code,readQuestions,write:w.write});
     }
-    progress('Kiểm tra tổng điểm, rubric và tính nhất quán');
-    const checked=await post('/api/validate-exam',{payload,exam:{examCodes}});done++;
-    state.exam=distributeSingleAnswers(checked);state.history=[];state.proposal=null;state.aiReview=null;renderExam();renderReview();resetConfirm();status.textContent=`✓ Đã tạo đề theo ${totalJobs-1} phần nhỏ và kiểm tra hoàn tất. Hãy kiểm tra kĩ trước khi xuất Word.`;
-  }catch(e){status.textContent='✕ '+e.message+' Bạn có thể bấm “Tạo đề” để thử lại; V1.4 không còn chờ một request tạo toàn bộ đề.';}finally{btn.disabled=false;}
+    progress('Kiểm tra tổng điểm, rubric và tính nhất quán');const checked=await post('/api/validate-exam',{payload,exam:{examCodes}});done++;
+    state.exam=distributeSingleAnswers(checked);state.history=[];state.proposal=null;state.aiReview=null;renderExam();renderReview();resetConfirm();status.textContent=`✓ Hoàn tất bằng ${totalJobs-1} lượt tạo AI (thay vì nhiều request nhỏ). Hệ thống đã tự chuẩn hóa đáp án và điểm; hãy kiểm tra kĩ trước khi xuất Word.`;
+  }catch(e){status.textContent='✕ '+e.message+' Nếu Gemini đang quá tải, V1.5 sẽ tự đổi sang model Gemini khác và có thể dùng Cloudflare dự phòng. Hãy thử lại sau ít phút nếu tất cả model đều bận.';}finally{btn.disabled=false;}
 }
 function outputHeaderHtml(kind='bundle',code=''){const agency=esc($('#agency').value.trim()),s1=esc($('#schoolLine1').value.trim()),s2=esc($('#schoolLine2').value.trim()),year=esc($('#schoolYear').value.trim()),etype=esc($('#examType').value),grade=esc(state.grade),duration=esc($('#duration').value),pages=esc($('#examPages')?.value.trim()||'…');if(kind==='marking')return `<table class="output-header-table"><tr><td>${agency}<div class="school-name">${s1}<br>${s2}</div></td><td><div class="exam-name">HƯỚNG DẪN CHẤM ${etype}</div><b>NĂM HỌC ${year}</b><br><b>MÔN: NGỮ VĂN – LỚP ${grade}</b></td></tr></table>`;const detail=kind==='exam'?`<br>Thời gian làm bài: ${duration} phút <i>(không kể thời gian phát đề)</i><br><i>Đề gồm có ${pages} trang</i>`:'';const off=kind==='exam'?officialLabel(code):'ĐỀ CHÍNH THỨC';const student=kind==='exam'?`<tr><td colspan="2" class="student-line">Họ và tên học sinh: ................................................................................................... Lớp: ........................</td></tr>`:'';return `<table class="output-header-table"><tr><td>${agency}<div class="school-name">${s1}<br>${s2}</div></td><td><div class="exam-name">${etype}</div><b>NĂM HỌC ${year}</b><br><b>MÔN: NGỮ VĂN – LỚP ${grade}</b>${detail}</td></tr><tr><td><span class="official">${off}</span></td><td></td></tr>${student}</table>`}
 function objectiveHtml(){const o=state.objectives||{...objectiveBase(),qualities:'Chưa tạo bằng AI'};return `${outputHeaderHtml('bundle')}<div class="preview-doc-heading">I. MỤC TIÊU ĐỀ KIỂM TRA</div><div class="preview-objective"><b>1. Năng lực:</b> ${esc(o.competencyIntro)}<br>– Phần Đọc - hiểu: ${esc(o.readScope)}<br>– Phần tiếng Việt: ${esc(o.vietnameseScope)}<br>– Phần Viết: ${esc(o.writeScope)}<br><b>2. Phẩm chất:</b> ${esc(o.qualities)}</div><div class="preview-doc-heading">II. HÌNH THỨC ĐỀ KIỂM TRA</div><div class="preview-objective">${esc(formText())}</div><div class="preview-doc-heading">III. THIẾT LẬP MA TRẬN, ĐẶC TẢ</div>`}
