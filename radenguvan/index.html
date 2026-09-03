@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#4338ca" />
   <title>Ra đề kiểm tra Ngữ văn THCS</title>
-  <link rel="stylesheet" href="styles.css?v=1.5.0" />
+  <link rel="stylesheet" href="styles.css?v=1.6.0" />
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
     <div class="brand-mark">NV</div>
     <div class="brand-copy"><h1>Ra đề kiểm tra Ngữ văn THCS</h1><p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p></div>
-    <span class="version-badge" id="versionBadge">V1.5.0</span>
+    <div class="header-actions"><a class="home-btn" href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">⌂ Về trang chủ</a><span class="version-badge" id="versionBadge">V1.6.0</span></div>
   </div>
 </header>
 
@@ -65,23 +65,30 @@
       </div>
 
       <div class="api-card">
-        <div class="api-title"><div><h3>Nhà cung cấp AI</h3><p>Ưu tiên Gemini API cá nhân; có thể chuyển sang OpenAI, xAI Grok hoặc Cloudflare Workers AI.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
-        <div class="provider-grid">
-          <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" checked/><span><strong>Google Gemini</strong><small>Khuyến nghị · API cá nhân.</small></span></label>
-          <label class="provider-card"><input type="radio" name="aiProvider" value="openai"/><span><strong>OpenAI API</strong><small>ChatGPT/GPT qua Responses API.</small></span></label>
-          <label class="provider-card"><input type="radio" name="aiProvider" value="xai"/><span><strong>xAI Grok</strong><small>API cá nhân xAI.</small></span></label>
-          <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare"/><span><strong>Cloudflare Workers AI</strong><small>Không cần API key cá nhân; dùng hạn mức tài khoản Cloudflare.</small></span></label>
+        <div class="api-title"><div><h3>Hệ thống AI</h3><p>V1.6 dùng chế độ tự động để không phụ thuộc một nhà cung cấp. Cloudflare Workers AI là tuyến mặc định; API cá nhân là các tuyến dự phòng bổ sung.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
+        <div class="provider-grid five">
+          <label class="provider-card auto-provider"><input type="radio" name="aiProvider" value="auto" checked/><span><strong>Tự động · Khuyến nghị</strong><small>Tự chọn tuyến AI khả dụng, tự bỏ qua lỗi vùng/quota/quá tải.</small></span></label>
+          <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare"/><span><strong>Cloudflare Workers AI</strong><small>Không cần API key cá nhân.</small></span></label>
+          <label class="provider-card"><input type="radio" name="aiProvider" value="gemini"/><span><strong>Google Gemini</strong><small>Dùng API key cá nhân khi cần.</small></span></label>
+          <label class="provider-card"><input type="radio" name="aiProvider" value="openai"/><span><strong>OpenAI API</strong><small>Dùng API key cá nhân khi cần.</small></span></label>
+          <label class="provider-card"><input type="radio" name="aiProvider" value="xai"/><span><strong>xAI Grok</strong><small>Dùng API key cá nhân khi cần.</small></span></label>
         </div>
-        <div id="personalApiPanel">
-          <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán API key cá nhân..."/><button class="icon-btn" id="toggleKey" type="button" aria-label="Hiện/ẩn API key">👁</button></div>
-          <div class="provider-links">
-            <a id="geminiGuide" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
-            <a id="providerConsole" target="_blank" rel="noopener">Mở trang quản lí API ↗</a>
+        <div id="autoApiPanel" class="auto-api-panel">
+          <div class="provider-note"><strong>Chế độ Tự động không bắt buộc API cá nhân.</strong> Có thể nhập thêm key bên dưới để app có nhiều đường dự phòng hơn. Key chỉ dùng trong request hiện tại và không được lưu vào bản nháp.</div>
+          <div class="form-grid three optional-keys">
+            <label>Gemini key (không bắt buộc)<input id="autoGeminiKey" type="password" autocomplete="off" placeholder="AIza..."/></label>
+            <label>OpenAI key (không bắt buộc)<input id="autoOpenAiKey" type="password" autocomplete="off" placeholder="sk-..."/></label>
+            <label>xAI key (không bắt buộc)<input id="autoXaiKey" type="password" autocomplete="off" placeholder="xai-..."/></label>
           </div>
         </div>
-        <div class="api-row"><label>Model<select id="modelSelect"><option>Chưa kiểm tra API...</option></select></label><button class="btn secondary" id="testApiBtn" type="button">Kiểm tra API</button></div>
-        <p class="status-line" id="apiStatus">Chưa kiểm tra API.</p>
-        <label class="fallback-toggle"><input type="checkbox" id="autoFallbackAi" checked/><span><strong>Tự động dự phòng khi AI quá tải</strong><small>Ưu tiên model đã chọn → model Gemini Flash/Flash-Lite khác → Cloudflare Workers AI nếu cần. Không thay đổi ngữ liệu, ma trận hoặc đặc tả.</small></span></label>
+        <div id="personalApiPanel" class="hidden">
+          <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán API key cá nhân..."/><button class="icon-btn" id="toggleKey" type="button" aria-label="Hiện/ẩn API key">👁</button></div>
+          <div class="provider-links"><a id="geminiGuide" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a><a id="providerConsole" target="_blank" rel="noopener">Mở trang quản lí API ↗</a></div>
+        </div>
+        <div class="api-row"><label>Model / tuyến<select id="modelSelect"><option value="auto">Tự động chọn tuyến tốt nhất</option></select></label><button class="btn secondary" id="testApiBtn" type="button">Kiểm tra hệ thống AI</button></div>
+        <div id="aiHealth" class="ai-health hidden"></div>
+        <p class="status-line" id="apiStatus">Chưa kiểm tra hệ thống AI.</p>
+        <label class="fallback-toggle"><input type="checkbox" id="autoFallbackAi" checked/><span><strong>Tự động dự phòng khi AI lỗi</strong><small>Xử lí lỗi vùng, 429, 503, timeout, model ngừng hỗ trợ và lỗi JSON bằng tuyến/model khác; không thay đổi ngữ liệu, ma trận hoặc đặc tả.</small></span></label>
       </div>
 
       <div class="ai-risk-banner"><strong>⚠ AI có thể sai.</strong> Giáo viên cần kiểm tra kĩ câu hỏi, đáp án, đặc biệt là nội dung trích dẫn, nguồn, kiến thức tiếng Việt, yêu cầu thể loại và hướng dẫn chấm. Tiện ích không được phép tự bịa ngữ liệu, tác giả, nguồn hoặc thông tin còn thiếu.</div>
@@ -149,8 +156,8 @@
     <section class="panel" id="panel-generate">
       <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Tạo đề bằng AI</h2></div><p>AI chỉ nhận ngữ liệu, ma trận và đặc tả giáo viên đã chọn; không được tự bổ sung nguồn hoặc kiến thức thiếu căn cứ.</p></div>
       <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai.</strong> Hãy kiểm tra lại toàn bộ nội dung trước khi sử dụng. Nếu dữ liệu nguồn chưa đủ, tiện ích phải báo thiếu thay vì tự bịa.</div>
-      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.5:</b> Chế độ ổn định: tạo toàn bộ phần Đọc trong một lượt/mã đề, dùng JSON có cấu trúc, tự chuẩn hóa đáp án và tự chuyển model khi Gemini quá tải.</p></div><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div>
-      <div class="status-box" id="generateStatus">Chưa tạo đề.</div>
+      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.6:</b> Kiến trúc chịu lỗi: AI tự động nhiều tuyến, lưu tiến trình sau từng phần, có thể tiếp tục khi mạng/API lỗi; mạch Thơ được tách theo thể thơ của từng lớp.</p></div><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div>
+      <div class="status-box" id="generateStatus">Chưa tạo đề.</div><div class="draft-status" id="draftStatus">Bản nháp được lưu tự động trên thiết bị; API key không được lưu.</div>
       <div class="exam-preview" id="examPreview"></div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="spec">← Quay lại</button><button class="btn primary next-btn" data-next="review">Kiểm tra & Xuất Word →</button></div>
     </section>
@@ -169,13 +176,13 @@
   </div>
 </main>
 
-<footer class="site-footer"><div><strong>Học liệu số</strong><span>Ra đề kiểm tra Ngữ văn THCS · Công cụ hỗ trợ giáo viên, không thay thế kiểm tra chuyên môn.</span></div></footer>
+<footer class="site-footer"><div class="footer-disclaimer">Tiện ích được phát triển bởi "<a href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">Học liệu số</a>", mọi kết quả chỉ mang tính tham khảo. Chúng tôi hoàn toàn không chịu trách nhiệm về kết quả được đưa ra.</div></footer>
 
 <div class="modal-backdrop hidden" id="matrixModalBackdrop"><div class="matrix-dialog" role="dialog" aria-modal="true"><div class="dialog-head"><div><span class="eyebrow" id="dialogLevel">Cấu hình</span><h3 id="dialogTitle">Thiết lập ô ma trận</h3></div><button class="icon-btn" id="closeMatrixDialog">✕</button></div><div id="configRows"></div><button class="btn secondary" id="addConfigBtn">+ Thêm cấu hình</button><div class="dialog-summary" id="dialogSummary"></div><div class="dialog-actions"><button class="btn ghost" id="cancelDialog">Hủy</button><button class="btn primary" id="saveDialog">Lưu cấu hình</button></div></div></div>
 
-<script src="config.js?v=1.5.0"></script>
-<script src="data.js?v=1.5.0"></script>
+<script src="config.js?v=1.6.0"></script>
+<script src="data.js?v=1.6.0"></script>
 <script src="jszip.min.js"></script>
-<script src="app.js?v=1.5.0"></script>
+<script src="app.js?v=1.6.0"></script>
 </body>
 </html>
