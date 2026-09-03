@@ -858,7 +858,7 @@ a:focus-visible {
 
 .schedule-table td {
   min-width: 132px;
-  height: 48px;
+  height: 35px;
   padding: 0.28rem;
   background: var(--surface);
   color: var(--ink);
