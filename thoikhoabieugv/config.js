@@ -11,6 +11,7 @@ window.TKB_CONFIG = Object.freeze({
     "Nhà trường sẽ cập nhật thời khóa biểu tại đây khi có điều chỉnh. Vui lòng nhấn Làm mới để kiểm tra dữ liệu mới nhất.",
   effectiveDate: "Áp dụng theo thông báo của nhà trường",
   timezone: "Asia/Ho_Chi_Minh",
+  summerBreak: { startMonth: 6, startDay: 1, endMonth: 9, endDay: 4 },
   defaultView: "student",
   showSaturday: true,
   cacheMinutes: 30,

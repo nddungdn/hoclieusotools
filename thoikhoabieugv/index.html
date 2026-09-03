@@ -107,7 +107,15 @@
           </div>
         </div>
 
-        <div class="selector-bar no-print">
+        <div id="selector-bar" class="selector-bar no-print">
+          <div id="teacher-search-field" class="select-field teacher-search-field" hidden>
+            <label for="teacher-search">Tìm giáo viên</label>
+            <div class="teacher-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+              <input id="teacher-search" type="search" placeholder="Nhập tên giáo viên..." autocomplete="off" aria-controls="entity-select" />
+            </div>
+            <span id="teacher-search-count" class="teacher-search-count" aria-live="polite"></span>
+          </div>
           <div class="select-field">
             <label id="entity-label" for="entity-select">Chọn lớp</label>
             <div class="select-wrap">
@@ -205,8 +213,16 @@
 
         <div class="finder-fields">
           <label>
-            <span>Môn đang dạy (không bắt buộc)</span>
-            <select id="finder-subject"><option value="">Tất cả môn</option></select>
+            <span>Tổ chuyên môn</span>
+            <select id="finder-department"><option value="">Tất cả tổ</option></select>
+          </label>
+          <label>
+            <span>Địa điểm</span>
+            <select id="finder-site">
+              <option value="">Tất cả địa điểm</option>
+              <option value="Trụ sở">Trụ sở Hàn Mặc Tử</option>
+              <option value="Phân hiệu">Phân hiệu Hải Sơn</option>
+            </select>
           </label>
           <label>
             <span>Buổi</span>

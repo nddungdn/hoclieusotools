@@ -1,22 +1,27 @@
 # Thời khóa biểu THCS Lê Hồng Phong
 
-Bộ mã nguồn tĩnh để học sinh và giáo viên tra cứu thời khóa biểu từ Google Sheet. Giao diện giữ bảng màu tím–xanh–hồng của mẫu, cho phép vuốt ngang để đổi ngày trên điện thoại, tìm giáo viên rảnh để dạy thay, về trang chủ, dùng chế độ tối, chia sẻ, in và cài như ứng dụng.
+Bộ mã nguồn tĩnh để học sinh và giáo viên tra cứu thời khóa biểu của hai điểm trường từ Google Sheet. Giao diện giữ bảng màu tím–xanh–hồng của mẫu, cho phép vuốt ngang để đổi ngày trên điện thoại, tìm nhanh tên giáo viên, tìm giáo viên rảnh theo tổ và địa điểm, về trang chủ, dùng chế độ tối, chia sẻ, in và cài như ứng dụng.
 
 ## 1. Cấu trúc dữ liệu đã hỗ trợ
 
-Mã nguồn đọc đúng ba trang tính trong file Excel mẫu mới:
+Mã nguồn đọc đúng bốn trang tính trong file Excel mẫu mới:
 
 - `TKBHocSinh`: cột `Lớp | GVCN | Điện thoại | Buổi | Tiết | Thứ Hai ... Thứ Bảy`.
 - `TKBGiaoVien`: mỗi giáo viên là một khối gồm tên giáo viên, phần `SÁNG`, phần `CHIỀU`, hàng `TIẾT` và các tiết 1–5.
 - `ThoiGianBieu`: cột `Buổi | Tiết | Thời gian bắt đầu | Thời gian kết thúc`; dùng để xác định tiết học hoặc giờ ra chơi hiện tại.
+- `DanhMucGiaoVien`: cột `Giáo viên | Tổ chuyên môn | Điểm trường`; dùng để lọc giáo viên rảnh tại Trụ sở hoặc Phân hiệu.
 
-Không đổi tên ba trang tính. Có thể thay đổi môn học, lớp, giáo viên và nội dung từng ô mà không phải sửa mã nguồn.
+Không đổi tên bốn trang tính. Tên giáo viên trong `DanhMucGiaoVien` phải khớp với tên khối giáo viên trong `TKBGiaoVien` (không phân biệt chữ hoa/thường).
+
+Các giá trị điểm trường được hỗ trợ: `Trụ sở`, `Phân hiệu`, `Cả hai`. Khi chọn Trụ sở hoặc Phân hiệu, giáo viên có giá trị `Cả hai` cũng được đưa vào kết quả.
+
+Trên giao diện, hai địa điểm được trình bày là `Trụ sở Hàn Mặc Tử` và `Phân hiệu Hải Sơn`. Khi chuyển sang tab Giáo viên, nhập một phần tên vào ô `Tìm giáo viên` để thu gọn danh sách lựa chọn.
 
 ## 2. Đưa file Excel lên Google Sheet
 
 1. Mở Google Drive, chọn **Mới > Tải tệp lên** và tải file Excel.
 2. Mở file vừa tải, chọn **Tệp > Lưu dưới dạng Google Trang tính**.
-3. Kiểm tra lại ba tên trang tính là `TKBHocSinh`, `TKBGiaoVien` và `ThoiGianBieu`.
+3. Kiểm tra lại bốn tên trang tính là `TKBHocSinh`, `TKBGiaoVien`, `ThoiGianBieu` và `DanhMucGiaoVien`.
 
 ## 3. Tạo API Google Apps Script
 
@@ -25,7 +30,7 @@ Không đổi tên ba trang tính. Có thể thay đổi môn học, lớp, giá
 3. Mở **Cài đặt dự án**, bật tùy chọn hiển thị tệp kê khai `appsscript.json`.
 4. Thay nội dung tệp kê khai bằng file `google-apps-script/appsscript.json`.
 5. Quay lại `Code.gs`, chọn hàm `setup` và nhấn **Chạy**. Chấp nhận quyền truy cập Google Sheet.
-6. Chọn hàm `testApi` và nhấn **Chạy**. Với file mẫu, nhật ký phải hiển thị 17 lớp, 36 giáo viên và 12 mốc thời gian hợp lệ.
+6. Chọn hàm `testApi` và nhấn **Chạy**. Với file mới, nhật ký phải hiển thị 41 lớp, 86 giáo viên, 7 tổ chuyên môn, 2 điểm trường và 12 mốc thời gian hợp lệ.
 7. Chọn **Triển khai > Tùy chọn triển khai mới > Ứng dụng web**.
 8. Thiết lập:
    - Thực thi với tư cách: **Tôi**.
@@ -42,13 +47,15 @@ Kết quả đúng có dạng `{"success":true,...}`.
 
 ## 4. Nối giao diện với Google Sheet
 
-Mở `config.js` và thay:
+File `config.js` trong gói này đã được điền URL Apps Script do nhà trường cung cấp. Khi tạo bản triển khai khác, thay giá trị:
 
 ```js
-apiUrl: "PASTE_GOOGLE_APPS_SCRIPT_URL_HERE",
+apiUrl: "URL_APPS_SCRIPT_KET_THUC_BANG_EXEC",
 ```
 
-bằng URL `/exec` vừa sao chép. Cũng trong file này, có thể sửa `homeUrl`, tên trường, dòng thông báo, ngày áp dụng và lựa chọn hiển thị Thứ Bảy.
+bằng URL `/exec` mới. Cũng trong file này, có thể sửa `homeUrl`, tên trường, dòng thông báo, ngày áp dụng và lựa chọn hiển thị Thứ Bảy.
+
+Từ ngày 01/6 đến hết ngày 04/9 hằng năm, tiện ích tự hiển thị thông báo nghỉ hè và không thông báo tiết đang diễn ra hoặc tiết sắp tới. Bảng thời khóa biểu vẫn tra cứu bình thường.
 
 ## 5. Đưa vào GitHub `hoclieusotools`
 
@@ -74,7 +81,7 @@ Khi thay đổi chính mã Apps Script, vào **Triển khai > Quản lý bản t
 
 - Google Sheet vẫn để **Riêng tư**; không chọn “Công khai trên web”.
 - API chỉ chấp nhận các hành động cố định: kiểm tra kết nối, lấy danh sách, lấy một thời khóa biểu và tìm giáo viên rảnh. Người dùng không thể truyền tên trang tính tùy ý.
-- Danh sách môn trong chức năng dạy thay được suy ra từ nội dung các tiết của từng giáo viên trong sheet `TKBGiaoVien`; không cần thêm sheet thứ tư.
+- Tổ chuyên môn và điểm trường trong chức năng dạy thay được đọc trực tiếp từ `DanhMucGiaoVien`.
 - Mặc định API **không trả số điện thoại GVCN**. Nếu thật sự cần hiển thị, đổi `RETURN_STUDENT_PHONE` thành `true` trong `Code.gs` và triển khai phiên bản mới.
 - URL Apps Script sẽ xuất hiện trong mã chạy trên trình duyệt; điều này bình thường. Không đặt mật khẩu, API key hoặc dữ liệu bí mật trong `config.js`.
 - Bản này cho phép chọn tên giáo viên và xem công khai. Nếu cần đăng nhập riêng cho giáo viên, nên bổ sung một lớp xác thực bằng Cloudflare Worker thay vì lưu mật khẩu trong Google Sheet hoặc JavaScript.

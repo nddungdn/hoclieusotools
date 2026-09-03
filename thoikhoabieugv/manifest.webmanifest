@@ -1,7 +1,7 @@
 {
   "name": "Thời khóa biểu - THCS Lê Hồng Phong",
   "short_name": "TKB LHP",
-  "description": "Tra cứu thời khóa biểu học sinh và giáo viên.",
+  "description": "Tra cứu thời khóa biểu học sinh, giáo viên và tìm giáo viên dạy thay tại hai điểm trường.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

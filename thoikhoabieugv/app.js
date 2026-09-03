@@ -11,11 +11,20 @@
     { key: "sat", label: "Thứ Bảy", short: "T7" },
   ];
   const SESSIONS = ["Sáng", "Chiều"];
-  const CACHE_PREFIX = "tkb_lhp_v3:";
+  const DEPARTMENTS = [
+    "Ngữ văn - GDCD",
+    "Khoa học tự nhiên",
+    "Toán - Tin",
+    "Lịch sử và Địa lí",
+    "GDTC - Nghệ thuật",
+    "Tiếng Anh",
+    "Văn phòng",
+  ];
+  const CACHE_PREFIX = "tkb_lhp_v5:";
 
   const state = {
     view: CONFIG.defaultView === "teacher" ? "teacher" : "student",
-    bootstrap: { classes: [], teachers: [], subjects: [], timeBlocks: [] },
+    bootstrap: { classes: [], teachers: [], departments: [], sites: [], timeBlocks: [] },
     selected: { student: "", teacher: "" },
     timetable: null,
     activeDay: currentDayKey(),
@@ -61,6 +70,10 @@
       "find-teacher-button",
       "tab-student",
       "tab-teacher",
+      "selector-bar",
+      "teacher-search-field",
+      "teacher-search",
+      "teacher-search-count",
       "entity-label",
       "entity-select",
       "refresh-button",
@@ -90,7 +103,8 @@
       "find-teacher-dialog",
       "find-teacher-form",
       "finder-close-button",
-      "finder-subject",
+      "finder-department",
+      "finder-site",
       "finder-session",
       "finder-day",
       "finder-period",
@@ -114,7 +128,9 @@
   function setupEvents() {
     el.tabStudent.addEventListener("click", () => switchView("student"));
     el.tabTeacher.addEventListener("click", () => switchView("teacher"));
+    el.teacherSearch.addEventListener("input", populateEntitySelect);
     el.entitySelect.addEventListener("change", () => {
+      if (!el.entitySelect.value) return;
       state.selected[state.view] = el.entitySelect.value;
       localStorage.setItem(`${CACHE_PREFIX}last:${state.view}`, el.entitySelect.value);
       updateAddressBar();
@@ -175,7 +191,7 @@
       state.mode = result.mode;
       state.updatedAt = result.updatedAt || "";
       populateEntitySelect();
-      populateFinderSubjects();
+      populateFinderDepartments();
       renderDataStatus();
       await loadTimetable(force);
     } catch (error) {
@@ -306,39 +322,76 @@
   }
 
   function populateEntitySelect() {
-    const items = state.view === "student" ? state.bootstrap.classes : state.bootstrap.teachers;
+    const allItems = state.view === "student" ? state.bootstrap.classes : state.bootstrap.teachers;
+    const teacherMode = state.view === "teacher";
+    const searchQuery = teacherMode ? normalizeText(el.teacherSearch.value).trim() : "";
+    const items = teacherMode && searchQuery
+      ? allItems.filter((item) => normalizeText(item.name || item.id).includes(searchQuery))
+      : allItems;
+
+    el.selectorBar.classList.toggle("is-teacher", teacherMode);
+    el.teacherSearchField.hidden = !teacherMode;
+    el.teacherSearchCount.textContent = teacherMode && searchQuery
+      ? `Tìm thấy ${items.length} giáo viên`
+      : "";
     el.entityLabel.textContent = state.view === "student" ? "Chọn lớp" : "Chọn giáo viên";
     el.entitySelect.replaceChildren();
 
-    if (!items.length) {
+    if (!allItems.length) {
       const option = new Option("Chưa có dữ liệu", "");
       el.entitySelect.add(option);
       state.selected[state.view] = "";
       return;
     }
 
+    if (teacherMode && searchQuery) {
+      const prompt = new Option(
+        items.length ? `Chọn trong ${items.length} kết quả` : "Không tìm thấy giáo viên",
+        "",
+      );
+      prompt.disabled = items.length > 0;
+      prompt.selected = true;
+      el.entitySelect.add(prompt);
+    }
+
     for (const item of items) {
-      el.entitySelect.add(new Option(item.name || item.id, item.id));
+      const label = state.view === "teacher" && item.site
+        ? `${item.name || item.id} · ${formatSiteLabel(item.site)}`
+        : item.name || item.id;
+      el.entitySelect.add(new Option(label, item.id));
+    }
+
+    if (teacherMode && searchQuery) {
+      if (items.some((item) => item.id === state.selected.teacher)) {
+        el.entitySelect.value = state.selected.teacher;
+      }
+      return;
     }
 
     const requested = state.selected[state.view];
     const saved = localStorage.getItem(`${CACHE_PREFIX}last:${state.view}`);
-    const validRequested = items.some((item) => item.id === requested) ? requested : "";
-    const validSaved = items.some((item) => item.id === saved) ? saved : "";
-    state.selected[state.view] = validRequested || validSaved || items[0].id;
+    const validRequested = allItems.some((item) => item.id === requested) ? requested : "";
+    const validSaved = allItems.some((item) => item.id === saved) ? saved : "";
+    state.selected[state.view] = validRequested || validSaved || allItems[0].id;
     el.entitySelect.value = state.selected[state.view];
     updateAddressBar();
   }
 
-  function populateFinderSubjects() {
-    const current = el.finderSubject.value;
-    const subjects = Array.isArray(state.bootstrap.subjects) ? state.bootstrap.subjects : [];
-    el.finderSubject.replaceChildren(new Option("Tất cả môn", ""));
-    subjects.forEach((subject) => el.finderSubject.add(new Option(subject, subject)));
-    if (subjects.includes(current)) el.finderSubject.value = current;
+  function populateFinderDepartments() {
+    const current = el.finderDepartment.value;
+    const apiDepartments = Array.isArray(state.bootstrap.departments) ? state.bootstrap.departments : [];
+    const departments = apiDepartments.length ? apiDepartments : DEPARTMENTS;
+    el.finderDepartment.replaceChildren(new Option("Tất cả tổ", ""));
+    departments.forEach((department) => el.finderDepartment.add(new Option(department, department)));
+    if (departments.includes(current)) el.finderDepartment.value = current;
   }
 
   function openTeacherFinder() {
+    const day = currentDayKey();
+    if (day && Array.from(el.finderDay.options).some((option) => option.value === day)) {
+      el.finderDay.value = day;
+    }
+    el.finderSession.value = zonedClockParts(new Date()).hour < 12 ? "Sáng" : "Chiều";
     el.finderResults.textContent = "Chọn buổi, thứ và tiết rồi nhấn tìm kiếm.";
     if (typeof el.findTeacherDialog.showModal === "function") {
       el.findTeacherDialog.showModal();
@@ -354,7 +407,8 @@
       buoi: el.finderSession.value,
       thu: el.finderDay.value,
       tiet: el.finderPeriod.value,
-      toCM: el.finderSubject.value,
+      toCM: el.finderDepartment.value,
+      diemTruong: el.finderSite.value,
     };
     el.finderSubmitButton.disabled = true;
     el.finderResults.textContent = "Đang tìm giáo viên rảnh...";
@@ -376,14 +430,24 @@
   }
 
   function findFreeTeachersInDemo(params) {
-    const wantedSubject = normalizeText(params.toCM);
+    const wantedDepartment = normalizeText(params.toCM);
+    const wantedSite = normalizeText(params.diemTruong);
     return Object.values(DEMO.teachers)
       .filter((teacher) => !getScheduleValue(teacher, params.buoi, params.tiet, params.thu))
       .filter((teacher) => {
-        if (!wantedSubject) return true;
-        return (teacher.subjects || []).some((subject) => normalizeText(subject).includes(wantedSubject));
+        if (wantedDepartment && normalizeText(teacher.department) !== wantedDepartment) return false;
+        if (wantedSite) {
+          const site = normalizeText(teacher.site);
+          if (site !== wantedSite && site !== normalizeText("Cả hai")) return false;
+        }
+        return true;
       })
-      .map((teacher) => ({ id: teacher.id, name: teacher.title, subjects: teacher.subjects || [] }));
+      .map((teacher) => ({
+        id: teacher.id,
+        name: teacher.title,
+        department: teacher.department || "",
+        site: teacher.site || "",
+      }));
   }
 
   function renderFinderResults(teachers, params) {
@@ -392,9 +456,12 @@
     el.finderResults.replaceChildren();
     const summary = document.createElement("p");
     summary.className = "finder-result-summary";
+    const locationText = params.diemTruong
+      ? ` · ${formatSiteLabel(params.diemTruong)}`
+      : " · Tất cả địa điểm";
     summary.textContent = list.length
-      ? `${list.length} giáo viên rảnh · ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}`
-      : `Chưa tìm thấy giáo viên phù hợp ở ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}.`;
+      ? `${list.length} giáo viên rảnh · ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}${locationText}`
+      : `Chưa tìm thấy giáo viên phù hợp ở ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}${locationText}.`;
     el.finderResults.append(summary);
     if (!list.length) return;
 
@@ -403,7 +470,12 @@
     list.forEach((teacher) => {
       const pill = document.createElement("span");
       pill.className = "teacher-pill";
-      pill.textContent = typeof teacher === "string" ? teacher : teacher.name || teacher.id;
+      if (typeof teacher === "string") {
+        pill.textContent = teacher;
+      } else {
+        const detail = [teacher.department, formatSiteLabel(teacher.site)].filter(Boolean).join(" · ");
+        pill.textContent = detail ? `${teacher.name || teacher.id} — ${detail}` : teacher.name || teacher.id;
+      }
       pills.append(pill);
     });
     el.finderResults.append(pills);
@@ -452,6 +524,8 @@
       if (data.phone) addMetaPill("Liên hệ", data.phone);
     } else {
       addMetaPill("Giáo viên", data.title || data.id);
+      if (data.department) addMetaPill("Tổ", data.department);
+      if (data.site) addMetaPill("Địa điểm", formatSiteLabel(data.site));
     }
   }
 
@@ -693,6 +767,7 @@
   function setBusy(busy) {
     el.refreshButton.disabled = busy;
     el.entitySelect.disabled = busy;
+    el.teacherSearch.disabled = busy;
     el.refreshButton.classList.toggle("is-loading", busy);
   }
 
@@ -739,7 +814,15 @@
 
   function renderCurrentPeriod(date) {
     const blocks = Array.isArray(state.bootstrap.timeBlocks) ? state.bootstrap.timeBlocks : [];
-    el.currentPeriod.classList.remove("is-active");
+    el.currentPeriod.classList.remove("is-active", "is-holiday");
+
+    const parts = zonedClockParts(date);
+    if (isSummerBreak(parts)) {
+      el.currentPeriodTitle.textContent = "Nhà trường đang trong thời gian nghỉ hè";
+      el.currentPeriodDetail.textContent = "Từ ngày 01/6 đến hết ngày 04/9 · Tạm ẩn thông tin tiết học đang diễn ra.";
+      el.currentPeriod.classList.add("is-holiday");
+      return;
+    }
 
     if (!blocks.length) {
       el.currentPeriodTitle.textContent = "Chưa có dữ liệu thời gian biểu";
@@ -747,7 +830,6 @@
       return;
     }
 
-    const parts = zonedClockParts(date);
     if (parts.weekday === "Sun") {
       el.currentPeriodTitle.textContent = "Hôm nay là Chủ nhật";
       el.currentPeriodDetail.textContent = "Không có tiết học trong thời gian biểu.";
@@ -796,6 +878,8 @@
     const formatter = new Intl.DateTimeFormat("en-GB", {
       timeZone: CONFIG.timezone || "Asia/Ho_Chi_Minh",
       weekday: "short",
+      month: "2-digit",
+      day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -809,10 +893,22 @@
     );
     return {
       weekday: values.weekday,
+      month: Number(values.month),
+      day: Number(values.day),
       hour: Number(values.hour),
       minute: Number(values.minute),
       second: Number(values.second),
     };
+  }
+
+  function isSummerBreak(parts) {
+    const setting = CONFIG.summerBreak || {};
+    const startMonth = Number(setting.startMonth) || 6;
+    const startDay = Number(setting.startDay) || 1;
+    const endMonth = Number(setting.endMonth) || 9;
+    const endDay = Number(setting.endDay) || 4;
+    const current = parts.month * 100 + parts.day;
+    return current >= startMonth * 100 + startDay && current <= endMonth * 100 + endDay;
   }
 
   function toMinutes(value) {
@@ -907,6 +1003,13 @@
       .toLowerCase();
   }
 
+  function formatSiteLabel(value) {
+    const site = String(value || "").trim();
+    if (site === "Trụ sở") return "Trụ sở Hàn Mặc Tử";
+    if (site === "Phân hiệu") return "Phân hiệu Hải Sơn";
+    return site;
+  }
+
   function titleCase(value) {
     return String(value || "")
       .toLocaleLowerCase("vi-VN")
@@ -960,8 +1063,22 @@
     return {
       bootstrap: {
         classes: [{ id: "6.7", name: "Lớp 6.7" }],
-        teachers: [{ id: "GIAO_VIEN_MAU", name: "Giáo viên mẫu" }],
-        subjects: ["Công nghệ", "KHTN", "KHTN-Sinh"],
+        teachers: [{
+          id: "GIAO_VIEN_MAU",
+          name: "Giáo viên mẫu",
+          department: "Khoa học tự nhiên",
+          site: "Trụ sở",
+        }],
+        departments: [
+          "Ngữ văn - GDCD",
+          "Khoa học tự nhiên",
+          "Toán - Tin",
+          "Lịch sử và Địa lí",
+          "GDTC - Nghệ thuật",
+          "Tiếng Anh",
+          "Văn phòng",
+        ],
+        sites: ["Trụ sở", "Phân hiệu"],
         timeBlocks: [
           { session: "Sáng", type: "period", period: 1, label: "Tiết 1", start: "07:00", end: "07:45" },
           { session: "Sáng", type: "period", period: 2, label: "Tiết 2", start: "07:48", end: "08:33" },
@@ -993,7 +1110,8 @@
           type: "teacher",
           id: "GIAO_VIEN_MAU",
           title: "Giáo viên mẫu",
-          subjects: ["Công nghệ", "KHTN", "KHTN-Sinh"],
+          department: "Khoa học tự nhiên",
+          site: "Trụ sở",
           note: "",
           schedule: teacherSchedule,
         },
