@@ -1,6 +1,6 @@
 window.NV_DATA = {
   meta: {
-    version: '1.6.0',
+    version: '1.7.0',
     program: 'Chương trình GDPT 2018 môn Ngữ văn (Thông tư 32/2018/TT-BGDĐT)',
     descriptor: '31.8.2023 – Xây dựng ma trận, đặc tả, đề kiểm tra định kì môn Ngữ văn THCS',
     sample6: 'Đề kiểm tra giữa kì II Ngữ văn 6, năm học 2025–2026',
@@ -19,7 +19,14 @@ window.NV_DATA = {
           vd:['Trình bày bài học về cách nghĩ, cách ứng xử từ văn bản gợi ra.','Trình bày điểm giống và khác nhau giữa hai nhân vật/văn bản khi ngữ liệu cho phép.']
         },
         {
-          id:'g6_story', label:'Truyện đồng thoại, truyện ngắn', source:'Bộ đặc tả lớp 6',
+          id:'g6_animal_story', label:'Truyện đồng thoại', source:'Bộ đặc tả lớp 6 (nguồn gộp “truyện đồng thoại, truyện ngắn”; tiện ích tách lựa chọn nhưng giữ nguyên đặc tả nguồn)',
+          vi:['Từ đơn và từ phức (từ ghép, từ láy)','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt thông dụng','Biện pháp tu từ ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
+          nb:['Nhận biết chi tiết tiêu biểu, nhân vật, đề tài, cốt truyện, lời người kể chuyện và lời nhân vật.','Nhận biết người kể chuyện ngôi thứ nhất và ngôi thứ ba.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
+          th:['Tóm tắt được cốt truyện.','Nêu được chủ đề của văn bản.','Phân tích tình cảm, thái độ của người kể chuyện qua ngôn ngữ, giọng điệu.','Phân tích tác dụng của việc lựa chọn ngôi kể, cách kể chuyện.','Phân tích đặc điểm nhân vật qua hình dáng, cử chỉ, hành động, ngôn ngữ, ý nghĩ.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn trong ngữ liệu.'],
+          vd:['Trình bày bài học về cách nghĩ, cách ứng xử do văn bản gợi ra.','Chỉ ra điểm giống và khác nhau giữa hai nhân vật trong hai văn bản khi ngữ liệu cho phép.']
+        },
+        {
+          id:'g6_short_story', label:'Truyện ngắn', source:'Bộ đặc tả lớp 6 (nguồn gộp “truyện đồng thoại, truyện ngắn”; tiện ích tách lựa chọn nhưng giữ nguyên đặc tả nguồn)',
           vi:['Từ đơn và từ phức (từ ghép, từ láy)','Từ đa nghĩa và từ đồng âm','Thành phần câu','Thành ngữ thông dụng','Yếu tố Hán Việt thông dụng','Biện pháp tu từ ẩn dụ, hoán dụ','Dấu chấm phẩy, dấu ngoặc kép'],
           nb:['Nhận biết chi tiết tiêu biểu, nhân vật, đề tài, cốt truyện, lời người kể chuyện và lời nhân vật.','Nhận biết người kể chuyện ngôi thứ nhất và ngôi thứ ba.','Nhận biết hiện tượng tiếng Việt phù hợp trong ngữ liệu.'],
           th:['Tóm tắt được cốt truyện.','Nêu được chủ đề của văn bản.','Phân tích tình cảm, thái độ của người kể chuyện qua ngôn ngữ, giọng điệu.','Phân tích tác dụng của việc lựa chọn ngôi kể, cách kể chuyện.','Phân tích đặc điểm nhân vật qua hình dáng, cử chỉ, hành động, ngôn ngữ, ý nghĩ.','Giải thích nghĩa/tác dụng của tri thức tiếng Việt được chọn trong ngữ liệu.'],

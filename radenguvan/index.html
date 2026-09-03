@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#4338ca" />
   <title>Ra đề kiểm tra Ngữ văn THCS</title>
-  <link rel="stylesheet" href="styles.css?v=1.6.0" />
+  <link rel="stylesheet" href="styles.css?v=1.7.0" />
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
     <div class="brand-mark">NV</div>
     <div class="brand-copy"><h1>Ra đề kiểm tra Ngữ văn THCS</h1><p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p></div>
-    <div class="header-actions"><a class="home-btn" href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">⌂ Về trang chủ</a><span class="version-badge" id="versionBadge">V1.6.0</span></div>
+    <div class="header-actions"><a class="home-btn" href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">⌂ Về trang chủ</a><span class="version-badge" id="versionBadge">V1.7.0</span></div>
   </div>
 </header>
 
@@ -65,7 +65,7 @@
       </div>
 
       <div class="api-card">
-        <div class="api-title"><div><h3>Hệ thống AI</h3><p>V1.6 dùng chế độ tự động để không phụ thuộc một nhà cung cấp. Cloudflare Workers AI là tuyến mặc định; API cá nhân là các tuyến dự phòng bổ sung.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
+        <div class="api-title"><div><h3>Hệ thống AI</h3><p>V1.7 tiếp tục dùng chế độ tự động để không phụ thuộc một nhà cung cấp. Cloudflare Workers AI là tuyến mặc định; API cá nhân là các tuyến dự phòng bổ sung.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
         <div class="provider-grid five">
           <label class="provider-card auto-provider"><input type="radio" name="aiProvider" value="auto" checked/><span><strong>Tự động · Khuyến nghị</strong><small>Tự chọn tuyến AI khả dụng, tự bỏ qua lỗi vùng/quota/quá tải.</small></span></label>
           <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare"/><span><strong>Cloudflare Workers AI</strong><small>Không cần API key cá nhân.</small></span></label>
@@ -98,7 +98,8 @@
     <section class="panel" id="panel-scope">
       <div class="panel-heading"><div><span class="eyebrow">BƯỚC 2</span><h2>Phạm vi kiểm tra</h2></div><p>Chọn đúng mạch nội dung Đọc, kiểu bài Viết và tri thức tiếng Việt tích hợp.</p></div>
       <div class="scope-grid">
-        <div class="scope-card read-card"><div class="scope-head"><span class="scope-badge">ĐỌC</span><h3>Mạch nội dung Đọc</h3></div><label>Thể loại / kiểu văn bản<select id="readTrack"></select></label><div class="source-note" id="readTrackSource"></div><h4>Tri thức tiếng Việt tích hợp</h4><div id="viKnowledge" class="check-list"></div><label>Tri thức tiếng Việt khác (nếu nguồn của đơn vị có quy định)<textarea id="viExtra" rows="3" placeholder="Chỉ nhập khi giáo viên có căn cứ; AI không tự bổ sung."></textarea></label></div>
+        <div class="scope-card read-card"><div class="scope-head"><span class="scope-badge">ĐỌC</span><h3>Mạch nội dung Đọc</h3></div><label>Thể loại / kiểu văn bản<select id="readTrack"></select></label><div class="source-note" id="readTrackSource"></div><h4>Tri thức tiếng Việt tích hợp</h4><div id="viKnowledge" class="check-list"></div><label>Tri thức tiếng Việt khác (nếu nguồn của đơn vị có quy định)<textarea id="viExtra" rows="3" placeholder="Chỉ nhập khi giáo viên có căn cứ; AI không tự bổ sung."></textarea></label>
+          <div class="vi-practice-box"><div class="vi-practice-head"><div><b>Thực hành tiếng Việt</b><div class="tiny">Quy định số câu và tổng điểm tiếng Việt nằm trong tổng điểm phần Đọc.</div></div></div><div class="form-grid two"><label>Số câu<input id="viQuestionCount" type="number" min="0" step="1" value="0"></label><label>Tổng số điểm<input id="viTotalPoints" type="number" min="0" step="0.25" value="0"></label></div><div id="viPlanStatus" class="tiny">Chưa bố trí câu Thực hành tiếng Việt.</div></div></div>
         <div class="scope-card write-card"><div class="scope-head"><span class="scope-badge">VIẾT</span><h3>Mạch nội dung Viết</h3></div><label>Kiểu bài viết<select id="writeTrack"></select></label><div class="source-note" id="writeTrackSource"></div><div class="notice compact">Phần Viết là một nhiệm vụ tạo lập văn bản; điểm có thể được phân bổ ở Nhận biết – Thông hiểu – Vận dụng nhưng không tách thành ba bài viết.</div></div>
       </div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="setup">← Quay lại</button><button class="btn primary next-btn" data-next="sources">Tiếp tục →</button></div>
@@ -148,7 +149,7 @@
     </section>
 
     <section class="panel" id="panel-spec">
-      <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Bản đặc tả</h2></div><p>Chỉ dùng đặc tả tương ứng với mạch đã chọn. Giáo viên có thể ẩn bớt đặc tả nguồn, bổ sung và xóa đặc tả bổ sung.</p></div>
+      <div class="panel-heading"><div><span class="eyebrow">BƯỚC 5</span><h2>Bản đặc tả</h2></div><p>Hiển thị theo biểu bảng. Giáo viên có thể sửa trực tiếp đặc tả nguồn, ẩn/khôi phục, bổ sung hoặc xóa nội dung bổ sung.</p></div>
       <div id="specEditor"></div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="matrix">← Quay lại</button><button class="btn primary next-btn" data-next="generate">Tiếp tục →</button></div>
     </section>
@@ -156,7 +157,7 @@
     <section class="panel" id="panel-generate">
       <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Tạo đề bằng AI</h2></div><p>AI chỉ nhận ngữ liệu, ma trận và đặc tả giáo viên đã chọn; không được tự bổ sung nguồn hoặc kiến thức thiếu căn cứ.</p></div>
       <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai.</strong> Hãy kiểm tra lại toàn bộ nội dung trước khi sử dụng. Nếu dữ liệu nguồn chưa đủ, tiện ích phải báo thiếu thay vì tự bịa.</div>
-      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.6:</b> Kiến trúc chịu lỗi: AI tự động nhiều tuyến, lưu tiến trình sau từng phần, có thể tiếp tục khi mạng/API lỗi; mạch Thơ được tách theo thể thơ của từng lớp.</p></div><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div>
+      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.7:</b> Bảng đặc tả theo mẫu, chỉnh sửa trực tiếp đặc tả và kế hoạch Thực hành tiếng Việt; giữ kiến trúc AI chịu lỗi nhiều tuyến và lưu tiến trình.</p></div><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div>
       <div class="status-box" id="generateStatus">Chưa tạo đề.</div><div class="draft-status" id="draftStatus">Bản nháp được lưu tự động trên thiết bị; API key không được lưu.</div>
       <div class="exam-preview" id="examPreview"></div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="spec">← Quay lại</button><button class="btn primary next-btn" data-next="review">Kiểm tra & Xuất Word →</button></div>
@@ -180,9 +181,9 @@
 
 <div class="modal-backdrop hidden" id="matrixModalBackdrop"><div class="matrix-dialog" role="dialog" aria-modal="true"><div class="dialog-head"><div><span class="eyebrow" id="dialogLevel">Cấu hình</span><h3 id="dialogTitle">Thiết lập ô ma trận</h3></div><button class="icon-btn" id="closeMatrixDialog">✕</button></div><div id="configRows"></div><button class="btn secondary" id="addConfigBtn">+ Thêm cấu hình</button><div class="dialog-summary" id="dialogSummary"></div><div class="dialog-actions"><button class="btn ghost" id="cancelDialog">Hủy</button><button class="btn primary" id="saveDialog">Lưu cấu hình</button></div></div></div>
 
-<script src="config.js?v=1.6.0"></script>
-<script src="data.js?v=1.6.0"></script>
+<script src="config.js?v=1.7.0"></script>
+<script src="data.js?v=1.7.0"></script>
 <script src="jszip.min.js"></script>
-<script src="app.js?v=1.6.0"></script>
+<script src="app.js?v=1.7.0"></script>
 </body>
 </html>
