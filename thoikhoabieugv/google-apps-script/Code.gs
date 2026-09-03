@@ -21,9 +21,9 @@ const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat"];
 const SESSION_NAMES = ["Sáng", "Chiều"];
 const CACHE_KEYS = Object.freeze({
   STUDENTS: "tkb_students_v1",
-  TEACHERS: "tkb_teachers_v1",
+  TEACHERS: "tkb_teachers_v2",
   TIMES: "tkb_times_v1",
-  BOOTSTRAP: "tkb_bootstrap_v2",
+  BOOTSTRAP: "tkb_bootstrap_v3",
 });
 
 function doGet(e) {
@@ -55,6 +55,20 @@ function doGet(e) {
       return json_({
         success: true,
         data: timetable,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    if (action === "findFreeTeachers") {
+      const teachers = findFreeTeachers_(
+        clean_(e.parameter.buoi),
+        clean_(e.parameter.thu),
+        Number(clean_(e.parameter.tiet)),
+        clean_(e.parameter.toCM)
+      );
+      return json_({
+        success: true,
+        data: teachers,
         updatedAt: new Date().toISOString(),
       });
     }
@@ -112,6 +126,7 @@ function getBootstrap_() {
     teachers: teachers.map(function (item) {
       return { id: item.id, name: item.title };
     }),
+    subjects: collectSubjects_(teachers),
     timeBlocks: getTimeBlocks_(),
   };
 
@@ -125,6 +140,27 @@ function getTimetable_(type, id) {
   return items.find(function (item) {
     return item.id.toLocaleUpperCase("vi-VN") === wanted;
   }) || null;
+}
+
+function findFreeTeachers_(sessionValue, dayValue, period, subjectValue) {
+  const session = normalizeSession_(sessionValue);
+  const day = normalizeDayKey_(dayValue);
+  if (SESSION_NAMES.indexOf(session) === -1) throw new Error("Buổi phải là Sáng hoặc Chiều.");
+  if (DAY_KEYS.indexOf(day) === -1) throw new Error("Thứ không hợp lệ.");
+  if (period < 1 || period > 5) throw new Error("Tiết phải từ 1 đến 5.");
+
+  const wantedSubject = normalizeText_(subjectValue);
+  return getTeachers_().filter(function (teacher) {
+    const scheduled = clean_(teacher.schedule[session][String(period)][day]);
+    if (scheduled) return false;
+    if (!wantedSubject) return true;
+    return (teacher.subjects || []).some(function (subject) {
+      const normalized = normalizeText_(subject);
+      return normalized.indexOf(wantedSubject) !== -1 || wantedSubject.indexOf(normalized) !== -1;
+    });
+  }).map(function (teacher) {
+    return { id: teacher.id, name: teacher.title, subjects: teacher.subjects || [] };
+  });
 }
 
 function getStudents_() {
@@ -245,6 +281,10 @@ function getTeachers_() {
     }
   }
 
+  teachers.forEach(function (teacher) {
+    teacher.subjects = inferTeacherSubjects_(teacher.schedule);
+  });
+
   putCacheSafely_(CACHE_KEYS.TEACHERS, teachers);
   return teachers;
 }
@@ -271,7 +311,8 @@ function getTimeBlocks_() {
     const displayRow = displayValues[rowIndex];
     const rawRow = rawValues[rowIndex];
     const sessionCell = clean_(displayRow[0]);
-    if (sessionCell) currentSession = normalizeSession_(sessionCell);
+    const candidateSession = normalizeSession_(sessionCell);
+    if (SESSION_NAMES.indexOf(candidateSession) !== -1) currentSession = candidateSession;
 
     const label = clean_(displayRow[1]);
     const start = formatTimeCell_(rawRow[2], displayRow[2]);
@@ -348,14 +389,65 @@ function normalizeSession_(value) {
   return clean_(value);
 }
 
+function normalizeDayKey_(value) {
+  const normalized = normalizeText_(value).replace(/\s+/g, "");
+  const aliases = {
+    mon: "mon", t2: "mon", thu2: "mon", hai: "mon",
+    tue: "tue", t3: "tue", thu3: "tue", ba: "tue",
+    wed: "wed", t4: "wed", thu4: "wed", tu: "wed",
+    thu: "thu", t5: "thu", thu5: "thu", nam: "thu",
+    fri: "fri", t6: "fri", thu6: "fri", sau: "fri",
+    sat: "sat", t7: "sat", thu7: "sat", bay: "sat",
+  };
+  return aliases[normalized] || "";
+}
+
 function formatTimeCell_(rawValue, displayValue) {
+  const match = clean_(displayValue).match(/^(\d{1,2}):(\d{2})/);
+  if (match) return String(match[1]).padStart(2, "0") + ":" + match[2];
+
   if (rawValue instanceof Date && !isNaN(rawValue.getTime())) {
     return Utilities.formatDate(rawValue, Session.getScriptTimeZone(), "HH:mm");
   }
+  return "";
+}
 
-  const match = clean_(displayValue).match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return "";
-  return String(match[1]).padStart(2, "0") + ":" + match[2];
+function inferTeacherSubjects_(schedule) {
+  const subjects = {};
+  SESSION_NAMES.forEach(function (session) {
+    for (let period = 1; period <= 5; period += 1) {
+      DAY_KEYS.forEach(function (day) {
+        const subject = extractSubject_(schedule[session][String(period)][day]);
+        if (subject) subjects[normalizeText_(subject)] = subject;
+      });
+    }
+  });
+  return Object.keys(subjects).sort().map(function (key) { return subjects[key]; });
+}
+
+function extractSubject_(value) {
+  return clean_(value)
+    .replace(/\s*-\s*(?:Lớp\s*)?\d+(?:\.\d+)?\s*$/i, "")
+    .trim();
+}
+
+function collectSubjects_(teachers) {
+  const subjects = {};
+  teachers.forEach(function (teacher) {
+    (teacher.subjects || []).forEach(function (subject) {
+      subjects[normalizeText_(subject)] = subject;
+    });
+  });
+  return Object.keys(subjects).sort().map(function (key) { return subjects[key]; });
+}
+
+function normalizeText_(value) {
+  return clean_(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
 }
 
 function putCacheSafely_(key, value) {

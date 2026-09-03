@@ -4,6 +4,7 @@
  */
 window.TKB_CONFIG = Object.freeze({
   apiUrl: "https://script.google.com/macros/s/AKfycbx4sQgX9fuIN6n4VtTkPxxpjgCC8h9iSBVvQ1ysX1Z1wi4HkfDBO-Nl-l4roWJ64sI/exec",
+  homeUrl: "https://www.hoclieuso.id.vn/",
   schoolName: "TRƯỜNG THCS LÊ HỒNG PHONG",
   authorityName: "THỜI KHÓA BIỂU TRỰC TUYẾN",
   notice:

@@ -11,11 +11,11 @@
     { key: "sat", label: "Thứ Bảy", short: "T7" },
   ];
   const SESSIONS = ["Sáng", "Chiều"];
-  const CACHE_PREFIX = "tkb_lhp_v2:";
+  const CACHE_PREFIX = "tkb_lhp_v3:";
 
   const state = {
     view: CONFIG.defaultView === "teacher" ? "teacher" : "student",
-    bootstrap: { classes: [], teachers: [], timeBlocks: [] },
+    bootstrap: { classes: [], teachers: [], subjects: [], timeBlocks: [] },
     selected: { student: "", teacher: "" },
     timetable: null,
     activeDay: currentDayKey(),
@@ -57,6 +57,8 @@
       "notice-text",
       "live-clock-text",
       "theme-button",
+      "home-link",
+      "find-teacher-button",
       "tab-student",
       "tab-teacher",
       "entity-label",
@@ -85,6 +87,15 @@
       "schedule-note",
       "schedule-note-text",
       "toast",
+      "find-teacher-dialog",
+      "find-teacher-form",
+      "finder-close-button",
+      "finder-subject",
+      "finder-session",
+      "finder-day",
+      "finder-period",
+      "finder-submit-button",
+      "finder-results",
     ].forEach((id) => {
       el[toCamel(id)] = document.getElementById(id);
     });
@@ -96,6 +107,7 @@
     el.footerSchoolName.textContent = titleCase(schoolName);
     el.authorityName.textContent = CONFIG.authorityName || "THỜI KHÓA BIỂU TRỰC TUYẾN";
     el.noticeText.textContent = CONFIG.notice || "Vui lòng theo dõi thông báo mới nhất của nhà trường.";
+    el.homeLink.href = CONFIG.homeUrl || "https://www.hoclieuso.id.vn/";
     document.title = `Thời khóa biểu | ${titleCase(schoolName)}`;
   }
 
@@ -113,6 +125,12 @@
     el.shareButton.addEventListener("click", shareCurrentSchedule);
     el.printButton.addEventListener("click", () => window.print());
     el.themeButton.addEventListener("click", toggleTheme);
+    el.findTeacherButton.addEventListener("click", openTeacherFinder);
+    el.finderCloseButton.addEventListener("click", () => el.findTeacherDialog.close());
+    el.findTeacherForm.addEventListener("submit", findFreeTeachers);
+    el.findTeacherDialog.addEventListener("click", (event) => {
+      if (event.target === el.findTeacherDialog) el.findTeacherDialog.close();
+    });
   }
 
   function setupTheme() {
@@ -157,6 +175,7 @@
       state.mode = result.mode;
       state.updatedAt = result.updatedAt || "";
       populateEntitySelect();
+      populateFinderSubjects();
       renderDataStatus();
       await loadTimetable(force);
     } catch (error) {
@@ -311,6 +330,85 @@
     updateAddressBar();
   }
 
+  function populateFinderSubjects() {
+    const current = el.finderSubject.value;
+    const subjects = Array.isArray(state.bootstrap.subjects) ? state.bootstrap.subjects : [];
+    el.finderSubject.replaceChildren(new Option("Tất cả môn", ""));
+    subjects.forEach((subject) => el.finderSubject.add(new Option(subject, subject)));
+    if (subjects.includes(current)) el.finderSubject.value = current;
+  }
+
+  function openTeacherFinder() {
+    el.finderResults.textContent = "Chọn buổi, thứ và tiết rồi nhấn tìm kiếm.";
+    if (typeof el.findTeacherDialog.showModal === "function") {
+      el.findTeacherDialog.showModal();
+    } else {
+      el.findTeacherDialog.setAttribute("open", "");
+    }
+  }
+
+  async function findFreeTeachers(event) {
+    event.preventDefault();
+    const params = {
+      action: "findFreeTeachers",
+      buoi: el.finderSession.value,
+      thu: el.finderDay.value,
+      tiet: el.finderPeriod.value,
+      toCM: el.finderSubject.value,
+    };
+    el.finderSubmitButton.disabled = true;
+    el.finderResults.textContent = "Đang tìm giáo viên rảnh...";
+
+    try {
+      let teachers;
+      if (isApiConfigured()) {
+        const response = await requestApi(params);
+        teachers = response.data || [];
+      } else {
+        teachers = findFreeTeachersInDemo(params);
+      }
+      renderFinderResults(teachers, params);
+    } catch (error) {
+      el.finderResults.textContent = error.message || "Không thể tìm giáo viên lúc này.";
+    } finally {
+      el.finderSubmitButton.disabled = false;
+    }
+  }
+
+  function findFreeTeachersInDemo(params) {
+    const wantedSubject = normalizeText(params.toCM);
+    return Object.values(DEMO.teachers)
+      .filter((teacher) => !getScheduleValue(teacher, params.buoi, params.tiet, params.thu))
+      .filter((teacher) => {
+        if (!wantedSubject) return true;
+        return (teacher.subjects || []).some((subject) => normalizeText(subject).includes(wantedSubject));
+      })
+      .map((teacher) => ({ id: teacher.id, name: teacher.title, subjects: teacher.subjects || [] }));
+  }
+
+  function renderFinderResults(teachers, params) {
+    const list = Array.isArray(teachers) ? teachers : [];
+    const day = DAYS.find((item) => item.key === params.thu);
+    el.finderResults.replaceChildren();
+    const summary = document.createElement("p");
+    summary.className = "finder-result-summary";
+    summary.textContent = list.length
+      ? `${list.length} giáo viên rảnh · ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}`
+      : `Chưa tìm thấy giáo viên phù hợp ở ${day?.label || params.thu}, buổi ${params.buoi.toLocaleLowerCase("vi-VN")}, tiết ${params.tiet}.`;
+    el.finderResults.append(summary);
+    if (!list.length) return;
+
+    const pills = document.createElement("div");
+    pills.className = "teacher-pills";
+    list.forEach((teacher) => {
+      const pill = document.createElement("span");
+      pill.className = "teacher-pill";
+      pill.textContent = typeof teacher === "string" ? teacher : teacher.name || teacher.id;
+      pills.append(pill);
+    });
+    el.finderResults.append(pills);
+  }
+
   function switchView(view) {
     if (view === state.view) return;
     state.view = view;
@@ -427,8 +525,9 @@
     const days = visibleDays();
     if (!days.some((day) => day.key === state.activeDay)) state.activeDay = days[0].key;
     el.dayTabs.replaceChildren();
+    el.dayPanel.replaceChildren();
 
-    for (const day of days) {
+    days.forEach((day, dayIndex) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "day-tab";
@@ -440,47 +539,83 @@
       button.classList.toggle("is-today", day.key === currentDayKey());
       button.addEventListener("click", () => {
         state.activeDay = day.key;
-        renderMobileSchedule(data);
+        updateMobileDayTabs();
+        const slide = el.dayPanel.querySelector(`[data-day="${day.key}"]`);
+        if (slide) slide.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
       });
       el.dayTabs.append(button);
-    }
 
-    const activeDay = days.find((day) => day.key === state.activeDay) || days[0];
-    el.dayPanel.replaceChildren();
-    const heading = document.createElement("div");
-    heading.className = "mobile-day-title";
-    const h3 = document.createElement("h3");
-    h3.textContent = activeDay.label;
-    heading.append(h3);
-    if (activeDay.key === currentDayKey()) {
-      const badge = document.createElement("span");
-      badge.className = "today-badge";
-      badge.textContent = "Hôm nay";
-      heading.append(badge);
-    }
-    el.dayPanel.append(heading);
+      const slide = document.createElement("section");
+      slide.className = "day-slide";
+      slide.dataset.day = day.key;
+      slide.setAttribute("role", "tabpanel");
+      slide.setAttribute("aria-label", day.label);
 
-    for (const session of SESSIONS) {
-      const section = document.createElement("section");
-      section.className = "mobile-session";
-      const title = document.createElement("h4");
-      title.textContent = `Buổi ${session.toLowerCase()}`;
-      section.append(title);
-
-      for (let period = 1; period <= 5; period += 1) {
-        const row = document.createElement("div");
-        row.className = "mobile-period";
-        const label = document.createElement("span");
-        label.className = "mobile-period-label";
-        label.textContent = `Tiết ${period}`;
-        const value = document.createElement("div");
-        value.className = "mobile-period-value";
-        value.append(createSubjectChip(getScheduleValue(data, session, period, activeDay.key)));
-        row.append(label, value);
-        section.append(row);
+      const heading = document.createElement("div");
+      heading.className = "mobile-day-title";
+      const h3 = document.createElement("h3");
+      h3.textContent = day.label;
+      heading.append(h3);
+      if (day.key === currentDayKey()) {
+        const badge = document.createElement("span");
+        badge.className = "today-badge";
+        badge.textContent = "Hôm nay";
+        heading.append(badge);
       }
-      el.dayPanel.append(section);
-    }
+      slide.append(heading);
+
+      for (const session of SESSIONS) {
+        const section = document.createElement("section");
+        section.className = "mobile-session";
+        const title = document.createElement("h4");
+        title.textContent = `Buổi ${session.toLowerCase()}`;
+        section.append(title);
+
+        for (let period = 1; period <= 5; period += 1) {
+          const row = document.createElement("div");
+          row.className = "mobile-period";
+          const label = document.createElement("span");
+          label.className = "mobile-period-label";
+          label.textContent = `Tiết ${period}`;
+          const value = document.createElement("div");
+          value.className = "mobile-period-value";
+          value.append(createSubjectChip(getScheduleValue(data, session, period, day.key)));
+          row.append(label, value);
+          section.append(row);
+        }
+        slide.append(section);
+      }
+      el.dayPanel.append(slide);
+    });
+
+    let scrollFrame = 0;
+    el.dayPanel.addEventListener("scroll", () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        const width = el.dayPanel.clientWidth;
+        if (!width) return;
+        const index = Math.max(0, Math.min(days.length - 1, Math.round(el.dayPanel.scrollLeft / width)));
+        if (days[index].key !== state.activeDay) {
+          state.activeDay = days[index].key;
+          updateMobileDayTabs();
+        }
+      });
+    }, { passive: true });
+
+    const initialIndex = Math.max(0, days.findIndex((day) => day.key === state.activeDay));
+    window.requestAnimationFrame(() => {
+      const width = el.dayPanel.clientWidth;
+      if (width) el.dayPanel.scrollLeft = initialIndex * width;
+    });
+  }
+
+  function updateMobileDayTabs() {
+    el.dayTabs.querySelectorAll(".day-tab").forEach((button) => {
+      const active = button.getAttribute("aria-label") === DAYS.find((day) => day.key === state.activeDay)?.label;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", String(active));
+      if (active) button.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    });
   }
 
   function createSubjectChip(value) {
@@ -634,7 +769,7 @@
       const title =
         current.type === "period"
           ? `${current.label} · Buổi ${String(current.session).toLocaleLowerCase("vi-VN")}`
-          : current.label;
+          : `${current.label} · Buổi ${String(current.session).toLocaleLowerCase("vi-VN")}`;
       el.currentPeriodTitle.textContent = title;
       el.currentPeriodDetail.textContent = `${current.start}–${current.end} · Còn khoảng ${remaining} phút`;
       el.currentPeriod.classList.add("is-active");
@@ -647,7 +782,7 @@
       const title =
         next.type === "period"
           ? `Sắp tới: ${next.label} buổi ${String(next.session).toLocaleLowerCase("vi-VN")}`
-          : `Sắp tới: ${next.label}`;
+          : `Sắp tới: ${next.label} buổi ${String(next.session).toLocaleLowerCase("vi-VN")}`;
       el.currentPeriodTitle.textContent = title;
       el.currentPeriodDetail.textContent = `Bắt đầu lúc ${next.start} · Còn khoảng ${until} phút`;
       return;
@@ -826,6 +961,7 @@
       bootstrap: {
         classes: [{ id: "6.7", name: "Lớp 6.7" }],
         teachers: [{ id: "GIAO_VIEN_MAU", name: "Giáo viên mẫu" }],
+        subjects: ["Công nghệ", "KHTN", "KHTN-Sinh"],
         timeBlocks: [
           { session: "Sáng", type: "period", period: 1, label: "Tiết 1", start: "07:00", end: "07:45" },
           { session: "Sáng", type: "period", period: 2, label: "Tiết 2", start: "07:48", end: "08:33" },
@@ -857,6 +993,7 @@
           type: "teacher",
           id: "GIAO_VIEN_MAU",
           title: "Giáo viên mẫu",
+          subjects: ["Công nghệ", "KHTN", "KHTN-Sinh"],
           note: "",
           schedule: teacherSchedule,
         },

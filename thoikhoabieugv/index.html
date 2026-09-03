@@ -7,7 +7,7 @@
       name="description"
       content="Tra cứu thời khóa biểu học sinh và giáo viên Trường THCS Lê Hồng Phong."
     />
-    <meta name="theme-color" content="#0649a7" />
+    <meta name="theme-color" content="#004aad" />
     <title>Thời khóa biểu | Trường THCS Lê Hồng Phong</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
@@ -84,6 +84,14 @@
           </div>
 
           <div class="action-row">
+            <a id="home-link" class="button button-home" href="https://www.hoclieuso.id.vn/">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 9.5V21h14V9.5M9 21v-7h6v7" /></svg>
+              Về trang chủ
+            </a>
+            <button id="find-teacher-button" class="button button-accent" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="4" /><path d="M3 21v-2a7 7 0 0 1 14 0v2M17 11h4M19 9v4" /></svg>
+              Tìm GV dạy thay
+            </button>
             <button id="install-button" class="button button-soft" type="button" hidden>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" /></svg>
               Cài ứng dụng
@@ -166,7 +174,8 @@
 
           <div id="mobile-schedule" class="mobile-schedule">
             <div id="day-tabs" class="day-tabs no-print" role="tablist" aria-label="Chọn ngày trong tuần"></div>
-            <div id="day-panel"></div>
+            <p class="swipe-hint no-print">Vuốt sang trái hoặc phải để đổi ngày</p>
+            <div id="day-panel" class="day-slider" aria-live="polite"></div>
           </div>
 
           <div id="schedule-note" class="schedule-note" hidden>
@@ -183,6 +192,51 @@
     </footer>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="find-teacher-dialog" class="finder-dialog no-print" aria-labelledby="finder-title">
+      <form id="find-teacher-form" class="finder-card">
+        <div class="finder-heading">
+          <div>
+            <p class="finder-kicker">HỖ TRỢ XẾP DẠY THAY</p>
+            <h2 id="finder-title">Tìm giáo viên đang rảnh</h2>
+          </div>
+          <button id="finder-close-button" class="dialog-close" type="button" aria-label="Đóng cửa sổ">×</button>
+        </div>
+
+        <div class="finder-fields">
+          <label>
+            <span>Môn đang dạy (không bắt buộc)</span>
+            <select id="finder-subject"><option value="">Tất cả môn</option></select>
+          </label>
+          <label>
+            <span>Buổi</span>
+            <select id="finder-session"><option value="Sáng">Sáng</option><option value="Chiều">Chiều</option></select>
+          </label>
+          <label>
+            <span>Thứ</span>
+            <select id="finder-day">
+              <option value="mon">Thứ Hai</option><option value="tue">Thứ Ba</option>
+              <option value="wed">Thứ Tư</option><option value="thu">Thứ Năm</option>
+              <option value="fri">Thứ Sáu</option><option value="sat">Thứ Bảy</option>
+            </select>
+          </label>
+          <label>
+            <span>Tiết</span>
+            <select id="finder-period">
+              <option value="1">Tiết 1</option><option value="2">Tiết 2</option>
+              <option value="3">Tiết 3</option><option value="4">Tiết 4</option>
+              <option value="5">Tiết 5</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="finder-submit-button" class="button button-primary finder-submit" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+          Tìm giáo viên rảnh
+        </button>
+        <div id="finder-results" class="finder-results" aria-live="polite">Chọn buổi, thứ và tiết rồi nhấn tìm kiếm.</div>
+      </form>
+    </dialog>
 
     <noscript>
       <div class="noscript">Trang này cần JavaScript để hiển thị thời khóa biểu.</div>

@@ -1,6 +1,6 @@
 # Thời khóa biểu THCS Lê Hồng Phong
 
-Bộ mã nguồn tĩnh để học sinh và giáo viên tra cứu thời khóa biểu từ Google Sheet. Giao diện dùng tốt trên điện thoại và máy tính, có chế độ tối, liên kết chia sẻ trực tiếp, in thời khóa biểu, cài như ứng dụng và dùng bản dữ liệu đã lưu khi mạng chập chờn.
+Bộ mã nguồn tĩnh để học sinh và giáo viên tra cứu thời khóa biểu từ Google Sheet. Giao diện giữ bảng màu tím–xanh–hồng của mẫu, cho phép vuốt ngang để đổi ngày trên điện thoại, tìm giáo viên rảnh để dạy thay, về trang chủ, dùng chế độ tối, chia sẻ, in và cài như ứng dụng.
 
 ## 1. Cấu trúc dữ liệu đã hỗ trợ
 
@@ -21,7 +21,7 @@ Không đổi tên ba trang tính. Có thể thay đổi môn học, lớp, giá
 ## 3. Tạo API Google Apps Script
 
 1. Trong Google Sheet, chọn **Tiện ích mở rộng > Apps Script**.
-2. Mở file `Code.gs`, xóa mã mặc định rồi dán toàn bộ nội dung file `google-apps-script/Code.gs` của dự án này.
+2. Mở file `Code.gs`, xóa mã mặc định rồi dán toàn bộ nội dung file `google-apps-script/Code.gs` của dự án này. Bản mã này đã sửa việc lệch giờ sáng–chiều bằng cách ưu tiên giờ đang hiển thị trong sheet.
 3. Mở **Cài đặt dự án**, bật tùy chọn hiển thị tệp kê khai `appsscript.json`.
 4. Thay nội dung tệp kê khai bằng file `google-apps-script/appsscript.json`.
 5. Quay lại `Code.gs`, chọn hàm `setup` và nhấn **Chạy**. Chấp nhận quyền truy cập Google Sheet.
@@ -48,18 +48,18 @@ Mở `config.js` và thay:
 apiUrl: "PASTE_GOOGLE_APPS_SCRIPT_URL_HERE",
 ```
 
-bằng URL `/exec` vừa sao chép. Cũng trong file này, có thể sửa tên trường, dòng thông báo, ngày áp dụng và lựa chọn hiển thị Thứ Bảy.
+bằng URL `/exec` vừa sao chép. Cũng trong file này, có thể sửa `homeUrl`, tên trường, dòng thông báo, ngày áp dụng và lựa chọn hiển thị Thứ Bảy.
 
 ## 5. Đưa vào GitHub `hoclieusotools`
 
-1. Tạo thư mục `thoikhoabieu` trong kho `hoclieusotools`.
+1. Tạo thư mục `thoikhoabieugv` trong kho `hoclieusotools`.
 2. Sao chép toàn bộ các tệp của dự án vào thư mục này.
 3. Commit và push lên GitHub.
 4. Nếu Cloudflare Pages đang tự động triển khai kho `hoclieusotools`, chờ bản triển khai hoàn tất.
 5. Truy cập:
 
 ```text
-https://tools.hoclieuso.id.vn/thoikhoabieu/
+https://tools.hoclieuso.id.vn/thoikhoabieugv/
 ```
 
 Đây là trang tĩnh, không cần lệnh build và không cần Node.js.
@@ -73,7 +73,8 @@ Khi thay đổi chính mã Apps Script, vào **Triển khai > Quản lý bản t
 ## 7. Lưu ý bảo mật
 
 - Google Sheet vẫn để **Riêng tư**; không chọn “Công khai trên web”.
-- API chỉ chấp nhận các hành động cố định: kiểm tra kết nối, lấy danh sách và lấy một thời khóa biểu. Người dùng không thể truyền tên trang tính tùy ý.
+- API chỉ chấp nhận các hành động cố định: kiểm tra kết nối, lấy danh sách, lấy một thời khóa biểu và tìm giáo viên rảnh. Người dùng không thể truyền tên trang tính tùy ý.
+- Danh sách môn trong chức năng dạy thay được suy ra từ nội dung các tiết của từng giáo viên trong sheet `TKBGiaoVien`; không cần thêm sheet thứ tư.
 - Mặc định API **không trả số điện thoại GVCN**. Nếu thật sự cần hiển thị, đổi `RETURN_STUDENT_PHONE` thành `true` trong `Code.gs` và triển khai phiên bản mới.
 - URL Apps Script sẽ xuất hiện trong mã chạy trên trình duyệt; điều này bình thường. Không đặt mật khẩu, API key hoặc dữ liệu bí mật trong `config.js`.
 - Bản này cho phép chọn tên giáo viên và xem công khai. Nếu cần đăng nhập riêng cho giáo viên, nên bổ sung một lớp xác thực bằng Cloudflare Worker thay vì lưu mật khẩu trong Google Sheet hoặc JavaScript.
