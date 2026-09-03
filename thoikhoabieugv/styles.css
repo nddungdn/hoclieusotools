@@ -798,7 +798,7 @@ a:focus-visible {
 
 .schedule-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 700px;
   border-collapse: separate;
   border-spacing: 0;
   text-align: center;
