@@ -1,0 +1,7 @@
+Trong Code.gs hiện có, thêm NGAY SAU dòng function doGet(e) { đoạn sau:
+
+  if (e && e.parameter && e.parameter.action === 'studentOnly') {
+    return lhpStudentOnlyResponse_();
+  }
+
+Không xóa phần còn lại của doGet(e). Sau đó triển khai Phiên bản mới trên chính bản triển khai hiện có.
