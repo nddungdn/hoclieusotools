@@ -43,13 +43,13 @@
       <div id="loading-view" class="loading-view"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton-grid"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
       <div id="error-view" class="error-view" hidden role="alert"><div><strong>Không thể tải dữ liệu.</strong><p id="error-message"></p></div><button id="retry-button" class="button button-danger" type="button">Thử lại</button></div>
       <article id="schedule-view" class="schedule-view" hidden>
-        <div class="schedule-heading"><div><p class="schedule-kicker">THỜI KHÓA BIỂU HỌC SINH</p><h2 id="workspace-title">Đang tải lớp...</h2><p class="effective-date">Dữ liệu từ TKBHocSinh · Giờ học từ ThoiGianBieu</p></div><div id="schedule-meta" class="schedule-meta"></div></div>
+        <div class="schedule-heading"><div><p class="schedule-kicker">THỜI KHÓA BIỂU HỌC SINH</p><h2 id="workspace-title">Đang tải lớp...</h2><p class="effective-date">Dữ liệu từ Thời khóa biểu và Thời gian biểu chính thức.</p></div><div id="schedule-meta" class="schedule-meta"></div></div>
         <div class="action-row schedule-actions no-print"><button id="calendar-button" class="button button-primary" type="button">Lưu lịch</button><button id="image-button" class="button button-accent" type="button">Tải ảnh</button><button id="print-button" class="button button-soft" type="button">In</button></div>
         <div id="capture-area"><div id="desktop-schedule" class="desktop-schedule"></div><div class="mobile-schedule"><div id="day-tabs" class="day-tabs no-print" role="tablist" aria-label="Chọn ngày trong tuần"></div><p class="swipe-hint no-print">Vuốt sang trái hoặc phải để đổi ngày</p><div id="day-panel" class="day-slider" aria-live="polite"></div></div><div id="schedule-note" class="schedule-note" hidden><svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 7v6M12 17h.01"/></svg><div><strong>Ghi chú</strong><p id="schedule-note-text"></p></div></div></div>
       </article>
     </section>
   </main>
-  <footer class="site-footer no-print"><p><strong>Trường THCS Lê Hồng Phong</strong></p><p>Trụ sở: 85 Hàn Mặc Tử · Phân hiệu: 36 Hải Sơn</p></footer>
+  <footer class="site-footer no-print"><p><strong>Trường THCS Lê Hồng Phong</strong></p><p>Bản quyền thuộc Trường THCS Lê Hồng Phong. Chỉ sử dụng dữ liệu khi được sự đồng ý bằng văn bản của nhà trường.</p></footer>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <dialog id="note-dialog" class="note-dialog no-print" aria-labelledby="note-title"><form method="dialog" class="note-card"><div class="note-heading"><h2 id="note-title">Ghi chú cá nhân</h2><button id="note-close" class="dialog-close" value="cancel" aria-label="Đóng">×</button></div><p id="note-context"></p><textarea id="note-text" rows="4" placeholder="Ví dụ: Nhớ mang compa..."></textarea><div class="action-row"><button id="note-delete" class="button button-danger" type="button">Xóa</button><button id="note-save" class="button button-primary" type="button">Lưu ghi chú</button></div></form></dialog>
 </body>
