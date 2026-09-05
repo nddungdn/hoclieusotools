@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#4338ca" />
   <title>Ra đề kiểm tra Ngữ văn THCS</title>
-  <link rel="stylesheet" href="styles.css?v=1.7.0" />
+  <link rel="stylesheet" href="styles.css?v=1.7.1" />
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
     <div class="brand-mark">NV</div>
     <div class="brand-copy"><h1>Ra đề kiểm tra Ngữ văn THCS</h1><p>Ma trận · Bản đặc tả · Đề kiểm tra · Hướng dẫn chấm</p></div>
-    <div class="header-actions"><a class="home-btn" href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">⌂ Về trang chủ</a><span class="version-badge" id="versionBadge">V1.7.0</span></div>
+    <div class="header-actions"><a class="home-btn" href="https://www.hoclieuso.id.vn/" target="_self" rel="noopener">⌂ Về trang chủ</a><span class="version-badge" id="versionBadge">V1.7.1</span></div>
   </div>
 </header>
 
@@ -65,7 +65,7 @@
       </div>
 
       <div class="api-card">
-        <div class="api-title"><div><h3>Hệ thống AI</h3><p>V1.7 tiếp tục dùng chế độ tự động để không phụ thuộc một nhà cung cấp. Cloudflare Workers AI là tuyến mặc định; API cá nhân là các tuyến dự phòng bổ sung.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
+        <div class="api-title"><div><h3>Hệ thống AI</h3><p>V1.7.1 tiếp tục dùng chế độ tự động để không phụ thuộc một nhà cung cấp. Cloudflare Workers AI là tuyến mặc định; API cá nhân là các tuyến dự phòng bổ sung.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
         <div class="provider-grid five">
           <label class="provider-card auto-provider"><input type="radio" name="aiProvider" value="auto" checked/><span><strong>Tự động · Khuyến nghị</strong><small>Tự chọn tuyến AI khả dụng, tự bỏ qua lỗi vùng/quota/quá tải.</small></span></label>
           <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare"/><span><strong>Cloudflare Workers AI</strong><small>Không cần API key cá nhân.</small></span></label>
@@ -157,7 +157,7 @@
     <section class="panel" id="panel-generate">
       <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Tạo đề bằng AI</h2></div><p>AI chỉ nhận ngữ liệu, ma trận và đặc tả giáo viên đã chọn; không được tự bổ sung nguồn hoặc kiến thức thiếu căn cứ.</p></div>
       <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai.</strong> Hãy kiểm tra lại toàn bộ nội dung trước khi sử dụng. Nếu dữ liệu nguồn chưa đủ, tiện ích phải báo thiếu thay vì tự bịa.</div>
-      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.7:</b> Bảng đặc tả theo mẫu, chỉnh sửa trực tiếp đặc tả và kế hoạch Thực hành tiếng Việt; giữ kiến trúc AI chịu lỗi nhiều tuyến và lưu tiến trình.</p></div><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div>
+      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.7.1:</b> Giữ tốc độ tạo đề của V1.6; Thực hành tiếng Việt được phân bổ bằng thuật toán thay vì bắt AI tự tính; bản tạo dở không còn được hiển thị như đề hoàn chỉnh.</p></div><div class="generate-actions"><button class="btn ghost" id="resetGenerationBtn" type="button">↻ Tạo lại từ đầu</button><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div></div>
       <div class="status-box" id="generateStatus">Chưa tạo đề.</div><div class="draft-status" id="draftStatus">Bản nháp được lưu tự động trên thiết bị; API key không được lưu.</div>
       <div class="exam-preview" id="examPreview"></div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="spec">← Quay lại</button><button class="btn primary next-btn" data-next="review">Kiểm tra & Xuất Word →</button></div>
@@ -181,9 +181,9 @@
 
 <div class="modal-backdrop hidden" id="matrixModalBackdrop"><div class="matrix-dialog" role="dialog" aria-modal="true"><div class="dialog-head"><div><span class="eyebrow" id="dialogLevel">Cấu hình</span><h3 id="dialogTitle">Thiết lập ô ma trận</h3></div><button class="icon-btn" id="closeMatrixDialog">✕</button></div><div id="configRows"></div><button class="btn secondary" id="addConfigBtn">+ Thêm cấu hình</button><div class="dialog-summary" id="dialogSummary"></div><div class="dialog-actions"><button class="btn ghost" id="cancelDialog">Hủy</button><button class="btn primary" id="saveDialog">Lưu cấu hình</button></div></div></div>
 
-<script src="config.js?v=1.7.0"></script>
-<script src="data.js?v=1.7.0"></script>
+<script src="config.js?v=1.7.1"></script>
+<script src="data.js?v=1.7.1"></script>
 <script src="jszip.min.js"></script>
-<script src="app.js?v=1.7.0"></script>
+<script src="app.js?v=1.7.1"></script>
 </body>
 </html>

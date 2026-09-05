@@ -66,3 +66,6 @@
 .spec-toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
 .spec-preview-desc{font-size:12px;line-height:1.45;text-align:justify}.spec-preview-desc div+div{margin-top:4px}
 @media(max-width:760px){.vi-practice-box .form-grid.two{grid-template-columns:1fr 1fr}.spec-edit-item,.spec-teacher-item{grid-template-columns:1fr}.spec-edit-actions{flex-direction:row;flex-wrap:wrap}}
+
+/* V1.7.1 */
+.generate-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.generate-actions .btn{white-space:nowrap}@media(max-width:680px){.generate-actions{width:100%;justify-content:stretch}.generate-actions .btn{flex:1}}

@@ -1,6 +1,6 @@
 window.NV_DATA = {
   meta: {
-    version: '1.7.0',
+    version: '1.7.1',
     program: 'Chương trình GDPT 2018 môn Ngữ văn (Thông tư 32/2018/TT-BGDĐT)',
     descriptor: '31.8.2023 – Xây dựng ma trận, đặc tả, đề kiểm tra định kì môn Ngữ văn THCS',
     sample6: 'Đề kiểm tra giữa kì II Ngữ văn 6, năm học 2025–2026',
