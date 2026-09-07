@@ -29,35 +29,37 @@ function imageCredit(r) {
 }
 
 // ---------------- MAP ----------------
-// Atlas V7: vector nội bộ, khóa toàn cảnh, pan an toàn và marker chống chồng lấn.
-const ATLAS_DATA_BOUNDS = L.latLngBounds([[4.8, 98.6], [25.6, 119.6]]);
-// V7: giới hạn pan thực tế hẹp hơn dữ liệu nền để người dùng không kéo atlas lệch sang hai bên.
-const MAP_SAFE_BOUNDS = L.latLngBounds([[5.25, 99.65], [25.15, 118.75]]);
-// Khung toàn cảnh được thu gọn để Việt Nam chiếm diện tích thị giác lớn hơn,
-// nhưng vẫn giữ trọn Hoàng Sa, Trường Sa và các khu sinh quyển phía nam.
-const OVERVIEW_BOUNDS = L.latLngBounds([[7.15, 101.15], [23.95, 117.35]]);
+// Atlas V8: nền vector nội bộ, zoom-out tự do không lộ mép dữ liệu.
+// Khi zoom xa, lớp nền khu vực được ẩn và chỉ giữ Việt Nam + Biển Đông + đảo/quần đảo;
+// vì vậy không còn hiện tượng nhìn thấy "khung chữ nhật" của bộ dữ liệu cắt theo vùng.
+const WORLD_BOUNDS = L.latLngBounds([[-80, -179], [80, 179]]);
+const OVERVIEW_BOUNDS = L.latLngBounds([[6.1, 100.15], [24.7, 118.05]]);
+const REGIONAL_DETAIL_MIN_ZOOM = 4.85;
+const LABEL_DETAIL_MIN_ZOOM = 6.15;
+const WORLD_CLEAN_ZOOM = 4.45;
 
 const map = L.map('map', {
-  minZoom: 4.25,
+  minZoom: 2.25,
   maxZoom: 10,
   zoomControl: true,
   attributionControl: false,
   preferCanvas: true,
   zoomSnap: 0.25,
   zoomDelta: 0.5,
-  maxBoundsViscosity: 1
+  worldCopyJump: false,
+  maxBoundsViscosity: 0.15
 });
 
-map.setMaxBounds(MAP_SAFE_BOUNDS);
+// Chỉ chặn kéo ra ngoài thế giới Web Mercator; không khóa người dùng trong một ô atlas khu vực.
+map.setMaxBounds(WORLD_BOUNDS);
 L.control.scale({ imperial: false, position: 'bottomright', maxWidth: 110 }).addTo(map);
 
-// Các pane của atlas nền.
 [
-  ['graticulePane', 160],
-  ['atlasLandPane', 170],
+  ['graticulePane', 155],
+  ['atlasLandPane', 165],
   ['atlasFocusPane', 176],
-  ['atlasBoundaryPane', 180],
-  ['atlasLabelPane', 200],
+  ['atlasBoundaryPane', 184],
+  ['atlasLabelPane', 205],
   ['reserveLeaderPane', 395],
   ['islandPane', 420],
   ['archipelagoPane', 430]
@@ -67,70 +69,75 @@ L.control.scale({ imperial: false, position: 'bottomright', maxWidth: 110 }).add
   map.getPane(name).style.pointerEvents = 'none';
 });
 
-// Lưới kinh - vĩ tuyến chỉ nằm trong vùng atlas, tránh tạo cảm giác một "ô vuông" khi thu nhỏ.
+// Các lớp nền khu vực được gom riêng để có thể ẩn hoàn toàn khi zoom xa.
+const graticuleLayer = L.layerGroup();
+const regionalLandLayer = L.layerGroup();
+const regionalBoundaryLayer = L.layerGroup();
+const vietnamFocusLayer = L.layerGroup().addTo(map);
+const vietnamDetailLayer = L.layerGroup().addTo(map);
+
 for (let lng = 100; lng <= 120; lng += 5) {
-  L.polyline([[5, lng], [26, lng]], {
-    pane:'graticulePane', color:'#9eb9bd', weight:.55, opacity:.20,
+  L.polyline([[5, lng], [27, lng]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.5, opacity:.18,
     dashArray:'3 8', interactive:false
-  }).addTo(map);
+  }).addTo(graticuleLayer);
 }
 for (let lat = 5; lat <= 25; lat += 5) {
-  L.polyline([[lat, 98], [lat, 120.5]], {
-    pane:'graticulePane', color:'#9eb9bd', weight:.55, opacity:.20,
+  L.polyline([[lat, 98], [lat, 121]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.5, opacity:.18,
     dashArray:'3 8', interactive:false
-  }).addTo(map);
+  }).addTo(graticuleLayer);
 }
 
-// Chỉ vẽ KHỐI ĐẤT. Không vẽ các polygon "water" đã bị cắt theo bounding box,
-// vì chính lớp này tạo ra hình chữ nhật lộ rõ khi zoom-out. Biển dùng nền #map.
 ATLAS_DATA.land.forEach(ring => {
   L.polygon(ring, {
     pane:'atlasLandPane', stroke:false, fillColor:'#eef2e8', fillOpacity:1,
-    interactive:false, smoothFactor:1.15
-  }).addTo(map);
+    interactive:false, smoothFactor:1.05
+  }).addTo(regionalLandLayer);
 });
 
-// Lớp tô Việt Nam chỉ là một sắc độ rất nhẹ. Hình dáng nhìn thấy chủ yếu đến từ
-// đường bờ GSHHG và các đoạn biên giới có độ chi tiết cao hơn ở phía trên.
-ATLAS_DATA.vietnamFocus.forEach(ring => {
-  L.polygon(ring, {
-    pane:'atlasFocusPane', stroke:false, fillColor:'#cfe4d5', fillOpacity:.075,
-    interactive:false, smoothFactor:1.35
-  }).addTo(map);
-});
-
-// Đường bờ / biên giới các nước lân cận làm nền rất nhẹ.
 ATLAS_DATA.coasts.forEach(line => {
   L.polyline(line, {
-    pane:'atlasBoundaryPane', color:'#8aa39e', weight:.58, opacity:.47,
-    interactive:false, smoothFactor:1.25
-  }).addTo(map);
+    pane:'atlasBoundaryPane', color:'#8ba59f', weight:.6, opacity:.46,
+    interactive:false, smoothFactor:1.15
+  }).addTo(regionalBoundaryLayer);
 });
 ATLAS_DATA.borders.forEach(line => {
   L.polyline(line, {
-    pane:'atlasBoundaryPane', color:'#96aaa4', weight:.55, opacity:.25,
-    dashArray:'2 5', interactive:false, smoothFactor:1.1
-  }).addTo(map);
+    pane:'atlasBoundaryPane', color:'#93aaa3', weight:.58, opacity:.28,
+    dashArray:'2 5', interactive:false, smoothFactor:1.05
+  }).addTo(regionalBoundaryLayer);
 });
 
-// Viền Việt Nam độ chi tiết cao hơn: bờ biển liền nét, biên giới đất liền nét đứt.
+// Quan trọng: polygon Việt Nam được vẽ VIỀN LIÊN TỤC từ chính hình quốc gia.
+// Viền này nằm dưới dữ liệu bờ biển/biên giới chi tiết, nên các đoạn biên giới chi tiết
+// có bị chia thành nhiều đoạn vẫn không tạo khoảng hở thị giác như các phiên bản trước.
+ATLAS_DATA.vietnamFocus.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasFocusPane',
+    color:'#3f7969', weight:1.35, opacity:.92,
+    fillColor:'#cfe4d5', fillOpacity:.27,
+    className:'vn-national-outline', interactive:false, smoothFactor:.42
+  }).addTo(vietnamFocusLayer);
+});
+
+// Chi tiết bờ biển và biên giới đất liền là lớp tăng cường, không còn là lớp duy nhất tạo viền.
 (ATLAS_DATA.vietnamCoast || []).forEach(line => {
   L.polyline(line, {
-    pane:'atlasBoundaryPane', color:'#3f7869', weight:1.35, opacity:.92,
-    className:'vn-outline vn-coast-outline', interactive:false, smoothFactor:.65
-  }).addTo(map);
+    pane:'atlasBoundaryPane', color:'#326f60', weight:1.5, opacity:.88,
+    className:'vn-outline vn-coast-outline', interactive:false, smoothFactor:.55
+  }).addTo(vietnamDetailLayer);
 });
 (ATLAS_DATA.vietnamBorder || []).forEach(line => {
   L.polyline(line, {
-    pane:'atlasBoundaryPane', color:'#4c7f70', weight:1.08, opacity:.77,
+    pane:'atlasBoundaryPane', color:'#426f64', weight:1.02, opacity:.58,
     dashArray:'3 4', className:'vn-outline vn-border-outline',
-    interactive:false, smoothFactor:.65
-  }).addTo(map);
+    interactive:false, smoothFactor:.55
+  }).addTo(vietnamDetailLayer);
 });
 
-// Nhãn được chia lớp để tự động ẩn/hiện theo mức zoom.
-const cityLabelLayer = L.layerGroup().addTo(map);
-const countryLabelLayer = L.layerGroup().addTo(map);
+const cityLabelLayer = L.layerGroup();
+const countryLabelLayer = L.layerGroup();
 const seaLabelLayer = L.layerGroup().addTo(map);
 
 ATLAS_DATA.labels.forEach(item => {
@@ -150,7 +157,6 @@ ATLAS_DATA.labels.forEach(item => {
   L.marker([item.lat,item.lng], {icon, interactive:false, pane:'atlasLabelPane'}).addTo(targetLayer);
 });
 
-// Nhãn quốc gia chính giúp mắt nhận diện Việt Nam ngay ở chế độ toàn cảnh.
 const vietnamNameLayer = L.layerGroup().addTo(map);
 const vietnamNameIcon = L.divIcon({
   className:'vietnam-name-icon',
@@ -176,10 +182,6 @@ function bindReserveTooltip(r) {
   });
 }
 
-// Tọa độ thật luôn được giữ riêng. Ở toàn cảnh, nếu nhiều marker quá gần nhau,
-// chúng được đẩy lệch vài pixel và nối về tọa độ thật bằng một đường dẫn mảnh.
-// Đây là kĩ thuật cartographic displacement, giúp khu vực đồng bằng sông Hồng
-// và Đông Nam Bộ dễ đọc hơn mà không làm mất thông tin vị trí.
 const reserveOrigins = new Map(BIOSPHERES.map(r => [r.id, L.latLng(r.lat, r.lng)]));
 const reserveLeaderLayer = L.layerGroup().addTo(map);
 
@@ -188,10 +190,11 @@ function resetReserveMarkerPositions() {
   reserveLeaderLayer.clearLayers();
 }
 
+let overviewZoom = 5.15;
 function layoutReserveMarkers() {
   if (!map._loaded) return;
   const z = map.getZoom();
-  const overview = z <= overviewMinZoom + .62;
+  const overview = z <= overviewZoom + .55 && z > WORLD_CLEAN_ZOOM;
   if (!overview) { resetReserveMarkerPositions(); return; }
 
   reserveLeaderLayer.clearLayers();
@@ -204,7 +207,6 @@ function layoutReserveMarkers() {
     return {r, idx, origin, base:p, p:L.point(p.x,p.y)};
   });
 
-  // Mô phỏng lực đẩy nhỏ trong không gian pixel, vẫn neo marker sát tọa độ gốc.
   for (let iter = 0; iter < 12; iter++) {
     for (let i = 0; i < items.length; i++) {
       for (let j = i + 1; j < items.length; j++) {
@@ -262,7 +264,6 @@ BIOSPHERES.forEach(r => {
   });
 });
 
-// Hoàng Sa và Trường Sa: cụm điểm định hướng + nhãn tiếng Việt.
 const ARCHIPELAGO_GROUPS = [
   {
     name: 'Quần đảo Hoàng Sa',
@@ -315,84 +316,61 @@ function addIsland(i) {
 }
 ISLAND_LABELS.filter(i => !i.major).forEach(addIsland);
 
-function updateIslandLayer() {
-  if (minorIslandsVisible && map.getZoom() >= 6.15) {
-    if (!map.hasLayer(minorIslandLayer)) minorIslandLayer.addTo(map);
-  } else if (map.hasLayer(minorIslandLayer)) {
-    map.removeLayer(minorIslandLayer);
-  }
+function setLayerVisible(layer, visible) {
+  if (visible && !map.hasLayer(layer)) layer.addTo(map);
+  if (!visible && map.hasLayer(layer)) map.removeLayer(layer);
 }
 
-// Ở toàn cảnh: bỏ nhãn đô thị để tránh đè marker, giảm nhãn nước láng giềng,
-// giữ tên Việt Nam + Biển Đông + Hoàng Sa + Trường Sa.
+function updateIslandLayer() {
+  setLayerVisible(minorIslandLayer, minorIslandsVisible && map.getZoom() >= 6.15);
+}
+
 function updateMapPresentation() {
   const z = map.getZoom();
-  const overview = z <= overviewMinZoom + .62;
+  const worldClean = z <= WORLD_CLEAN_ZOOM;
+  const overview = !worldClean && z <= overviewZoom + .55;
+  const detail = z >= LABEL_DETAIL_MIN_ZOOM;
   const mapEl = $('#map');
+  mapEl.classList.toggle('map-world', worldClean);
   mapEl.classList.toggle('map-overview', overview);
-  mapEl.classList.toggle('map-detail', !overview);
+  mapEl.classList.toggle('map-detail', !worldClean && !overview);
 
-  if (overview) {
-    // Ở toàn cảnh khóa kéo bản đồ: học sinh vẫn zoom/click bình thường nhưng không thể kéo atlas lệch sang trái/phải.
-    if (map.dragging.enabled()) map.dragging.disable();
-    if (map.keyboard && map.keyboard.enabled()) map.keyboard.disable();
-    if (map.hasLayer(cityLabelLayer)) map.removeLayer(cityLabelLayer);
-    if (map.hasLayer(countryLabelLayer)) map.removeLayer(countryLabelLayer);
-    if (!map.hasLayer(vietnamNameLayer)) vietnamNameLayer.addTo(map);
-  } else {
-    if (!map.dragging.enabled()) map.dragging.enable();
-    if (map.keyboard && !map.keyboard.enabled()) map.keyboard.enable();
-    if (!map.hasLayer(cityLabelLayer)) cityLabelLayer.addTo(map);
-    if (!map.hasLayer(countryLabelLayer)) countryLabelLayer.addTo(map);
-    if (z >= 6.65 && map.hasLayer(vietnamNameLayer)) map.removeLayer(vietnamNameLayer);
-    if (z < 6.65 && !map.hasLayer(vietnamNameLayer)) vietnamNameLayer.addTo(map);
-  }
+  // Nền khu vực chỉ xuất hiện khi đủ gần. Zoom xa chỉ còn nền biển liên tục + Việt Nam,
+  // vì vậy dù thu nhỏ sâu vẫn không thể lộ mép trái/phải/trên/dưới của dữ liệu cắt vùng.
+  setLayerVisible(regionalLandLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+  setLayerVisible(regionalBoundaryLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+  setLayerVisible(graticuleLayer, z >= REGIONAL_DETAIL_MIN_ZOOM + .15);
+  setLayerVisible(vietnamDetailLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+
+  setLayerVisible(cityLabelLayer, detail);
+  setLayerVisible(countryLabelLayer, detail);
+  setLayerVisible(vietnamNameLayer, z < 6.7);
   updateIslandLayer();
   layoutReserveMarkers();
 }
 
-// Tính mức zoom tối thiểu theo kích thước thực của khung bản đồ.
-// Người dùng không thể thu nhỏ tới mức nhìn thấy mép dữ liệu hình chữ nhật nữa.
-let overviewMinZoom = 5.15;
-function computeSafeMinZoom() {
-  // Toàn cảnh phải giữ đủ Việt Nam + Hoàng Sa + Trường Sa.
-  // Không tăng zoom chỉ để lấp hai mép vì sẽ làm mất phần bắc/nam; thay vào đó khóa kéo ở toàn cảnh.
-  const fitOverview = map.getBoundsZoom(OVERVIEW_BOUNDS, false, [18,18]);
-  return Math.max(4.25, fitOverview);
-}
-function enforceSafeView() {
-  const view = map.getBounds();
-  if (!MAP_SAFE_BOUNDS.contains(view.getNorthWest()) || !MAP_SAFE_BOUNDS.contains(view.getSouthEast())) {
-    map.panInsideBounds(MAP_SAFE_BOUNDS, {animate:false});
-  }
-}
 function fitVietnam({animate=false} = {}) {
-  map.setMinZoom(4.25);
-  overviewMinZoom = computeSafeMinZoom();
-  map.setMinZoom(overviewMinZoom);
-  map.fitBounds(OVERVIEW_BOUNDS, { padding:[18,18], animate, maxZoom:overviewMinZoom });
-  if (map.getZoom() < overviewMinZoom) map.setZoom(overviewMinZoom, {animate:false});
-  map.panInsideBounds(MAP_SAFE_BOUNDS, {animate:false});
+  map.fitBounds(OVERVIEW_BOUNDS, {
+    paddingTopLeft:[18,18], paddingBottomRight:[18,18], animate
+  });
+  // Lưu zoom toàn cảnh thực tế theo kích thước thiết bị để marker chống chồng lấn hoạt động ổn định.
+  overviewZoom = map.getZoom();
   updateMapPresentation();
 }
 
 let resizeTimer;
-function refreshOverviewZoom() {
+function refreshMapLayout() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    const wasOverview = map.getZoom() <= overviewMinZoom + .15;
+    const nearOverview = Math.abs(map.getZoom() - overviewZoom) <= .35;
     map.invalidateSize({pan:false});
-    map.setMinZoom(4.25);
-    overviewMinZoom = computeSafeMinZoom();
-    map.setMinZoom(overviewMinZoom);
-    if (wasOverview || map.getZoom() < overviewMinZoom) fitVietnam();
-    else { enforceSafeView(); updateMapPresentation(); }
+    if (nearOverview) fitVietnam();
+    else updateMapPresentation();
   }, 140);
 }
 
-map.on('zoomend', () => { enforceSafeView(); updateMapPresentation(); });
-map.on('moveend', () => { enforceSafeView(); updateMapPresentation(); });
-window.addEventListener('resize', refreshOverviewZoom, {passive:true});
+map.on('zoomend moveend', updateMapPresentation);
+window.addEventListener('resize', refreshMapLayout, {passive:true});
 
 $('#resetMap').addEventListener('click', () => fitVietnam({animate:true}));
 $('#toggleIslands').addEventListener('click', (e) => {
@@ -401,6 +379,7 @@ $('#toggleIslands').addEventListener('click', (e) => {
   e.currentTarget.setAttribute('aria-pressed', String(minorIslandsVisible));
   updateIslandLayer();
 });
+
 
 // ---------------- FILTER + LIST ----------------
 function currentFiltered() {
