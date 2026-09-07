@@ -8,7 +8,6 @@
   <title>12 Khu dự trữ sinh quyển thế giới ở Việt Nam</title>
   <meta name="description" content="Bản đồ học tập tương tác hỗ trợ dạy Địa lí: khám phá 12 khu dự trữ sinh quyển thế giới của Việt Nam, Hoàng Sa, Trường Sa, hình ảnh, video và thử thách bản đồ." />
   <link rel="preconnect" href="https://unpkg.com" />
-  <link rel="preconnect" href="https://tile.openstreetmap.org" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -89,7 +88,7 @@
         </div>
 
         <div class="map-note">
-          <div><b>Bản đồ học tập:</b> marker là tọa độ tham chiếu, không thể hiện ranh giới pháp lý của khu dự trữ sinh quyển.</div>
+          <div><b>Bản đồ vector không nhãn:</b> không dùng Google Maps/OSM/CARTO; toàn bộ địa danh trên bản đồ do tiện ích hiển thị bằng tiếng Việt. Marker là tọa độ tham chiếu, không thể hiện ranh giới pháp lý.</div>
           <div>Hoàng Sa, Trường Sa và các đảo tiêu biểu được bổ sung để rèn năng lực định hướng không gian; các điểm đảo mang tính định hướng, không thể hiện ranh giới hành chính/pháp lý.</div>
         </div>
       </section>
@@ -180,7 +179,7 @@
 
   <footer>
     <div><b>Nguồn dữ liệu chính:</b> UNESCO Man and the Biosphere Programme (MAB).</div>
-    <div><b>Bản đồ nền:</b> OpenStreetMap contributors. <b>Ảnh:</b> Wikimedia Commons theo giấy phép ghi tại từng ảnh.</div>
+    <div><b>Bản đồ:</b> atlas vector không nhãn, dữ liệu đường bờ GSHHG/Basemap; toàn bộ địa danh hiển thị do tiện ích ghi bằng tiếng Việt. <b>Ảnh:</b> Wikimedia Commons theo giấy phép ghi tại từng ảnh.</div>
     <div>Tiện ích phục vụ dạy và học Địa lí; số liệu dùng cho kiểm tra hoặc tài liệu chính thức nên đối chiếu lại nguồn UNESCO/cơ quan quản lí.</div>
     <div class="copyright">Bản quyền tiện ích được thuộc về <a href="https://hoclieuso.id.vn/" aria-label="Về trang chủ Học liệu số">Học liệu số</a>!</div>
   </footer>
@@ -194,6 +193,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="atlas-data.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>

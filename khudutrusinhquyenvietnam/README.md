@@ -1,12 +1,27 @@
-# Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V2
+# Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V4
 
-Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần backend, API key hoặc cơ sở dữ liệu. Bản đồ dùng OpenStreetMap nên không xuất hiện watermark yêu cầu API key.
+Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần backend, API key hoặc cơ sở dữ liệu.
 
-## Điểm mới V2
+## Bản đồ V4 — không nhãn bên thứ ba
 
-- Bản đồ Việt Nam tương tác là trung tâm của giao diện.
+Phiên bản này **không dùng Google Maps, OpenStreetMap tile, CARTO hoặc bất kỳ nền bản đồ trực tuyến có sẵn nào**. Lý do là các nền tile có thể tự hiển thị địa danh theo ngôn ngữ/thiết lập của nhà cung cấp, gây khó kiểm soát trong một tiện ích dùng trong trường học.
+
+Bản đồ được dựng theo kiểu **atlas vector nội bộ**:
+
+- biển là nền màu tĩnh;
+- đường bờ và khối đất được đóng gói trong `atlas-data.js`;
+- biên giới đất liền chỉ thể hiện nhẹ để định hướng;
+- toàn bộ địa danh trên bản đồ do tiện ích tự ghi bằng tiếng Việt;
+- không có API key, watermark hoặc chữ ngoại ngữ tự phát sinh;
+- Hoàng Sa và Trường Sa được thể hiện bằng cụm điểm đảo + nhãn tiếng Việt, không dùng khung chữ nhật hoặc đường ranh giới pháp lý;
+- các đảo tiêu biểu được bổ sung khi zoom để hỗ trợ học sinh định hướng không gian.
+
+Dữ liệu đường bờ của lớp atlas được tạo từ bộ dữ liệu GSHHG đi kèm Basemap. Bản đồ chỉ phục vụ học tập và định hướng; không dùng thay cho bản đồ hành chính/pháp lý chính thức.
+
+## Chức năng chính
+
 - 12 khu dự trữ sinh quyển có marker theo vùng và tự zoom khi chọn.
-- Hiển thị **Quần đảo Hoàng Sa** và **Quần đảo Trường Sa** ở lớp chính; thêm các đảo tiêu biểu: Cát Bà, Bạch Long Vĩ, Cồn Cỏ, Lý Sơn, Cù Lao Chàm, Phú Quý, Côn Đảo, Phú Quốc, Thổ Chu, Hòn Khoai.
+- Hiển thị **Quần đảo Hoàng Sa** và **Quần đảo Trường Sa** ở lớp chính; thêm Cát Bà, Bạch Long Vĩ, Cồn Cỏ, Lý Sơn, Cù Lao Chàm, Phú Quý, Côn Đảo, Phú Quốc, Thổ Chu, Hòn Khoai.
 - Ảnh minh họa cho đủ 12 khu từ Wikimedia Commons, có ghi tác giả/giấy phép và liên kết nguồn.
 - Video YouTube cho đủ 12 khu; mở trong hộp thoại bằng `youtube-nocookie.com`.
 - Bộ lọc theo vùng, kiểu cảnh quan, tìm kiếm và sắp xếp.
@@ -15,28 +30,31 @@ Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần b
 - Chế độ so sánh 2 khu.
 - **Thử thách bản đồ**: 8 câu ngẫu nhiên, học sinh phải bấm đúng marker; trả lời sai được gợi ý vùng/cảnh quan.
 - Responsive cho máy tính, máy tính bảng và điện thoại.
+- Nút **Về trang chủ** và chân trang bản quyền Học liệu số.
 
 ## Cấu trúc
 
 - `index.html` – giao diện.
 - `styles.css` – toàn bộ trình bày responsive.
-- `data.js` – dữ liệu 12 khu, tọa độ, media, đảo/quần đảo và đường bao Việt Nam dùng cho trực quan hóa.
+- `atlas-data.js` – lớp bản đồ vector không nhãn: đất, đường bờ, biên giới định hướng và nhãn tiếng Việt.
+- `data.js` – dữ liệu 12 khu, tọa độ, media và danh sách đảo/quần đảo.
 - `app.js` – bản đồ, bộ lọc, chi tiết, media, so sánh, timeline và quiz.
 
 ## Triển khai
 
-Có thể đưa nguyên thư mục lên GitHub Pages hoặc Cloudflare Pages. Nếu repo là `hoclieusotools`, đặt thư mục này tại:
+Đặt nguyên thư mục tại:
 
 ```text
 hoclieusotools/
 └── khudutrusinhquyenvietnam/
     ├── index.html
     ├── styles.css
+    ├── atlas-data.js
     ├── data.js
     └── app.js
 ```
 
-Sau khi deploy, đường dẫn có thể là:
+Đường dẫn:
 
 ```text
 https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/
@@ -44,28 +62,25 @@ https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/
 
 ## Kết nối Internet
 
-Tiện ích là web tĩnh nhưng khi chạy cần Internet để tải:
+Phần **bản đồ nền vector không cần Internet** sau khi mã nguồn đã được tải. Khi chạy trang vẫn cần Internet cho:
 
 - Leaflet từ CDN `unpkg.com`;
-- bản đồ nền OpenStreetMap (không API key), được làm dịu màu để phù hợp dạng atlas học tập;
 - ảnh Wikimedia Commons;
 - thumbnail/video YouTube.
+
+Nếu muốn bản đồ hoạt động hoàn toàn offline, có thể đóng gói Leaflet vào thư mục dự án ở phiên bản sau.
 
 ## Lưu ý bản đồ
 
 - Marker của khu dự trữ sinh quyển là **tọa độ tham chiếu phục vụ học tập**, không phải ranh giới pháp lý.
-- Khung nét đứt quanh Hoàng Sa và Trường Sa chỉ nhằm hỗ trợ định hướng không gian trên bản đồ học tập, **không biểu thị ranh giới hành chính hoặc pháp lý**.
-- Nếu sau này có GeoJSON chính thức của vùng lõi/vùng đệm/vùng chuyển tiếp, có thể bổ sung polygon vào `app.js` mà không cần đổi cấu trúc giao diện.
-
-## Cập nhật nội dung
-
-Mỗi khu nằm trong mảng `BIOSPHERES` của `data.js`. Có thể thay ảnh, video, nội dung hoặc tọa độ trực tiếp tại đây. Danh sách đảo nằm trong `ISLAND_LABELS`.
+- Các điểm của Hoàng Sa, Trường Sa và các đảo tiêu biểu nhằm hỗ trợ định hướng không gian, **không biểu thị ranh giới hành chính hoặc pháp lý**.
+- Nếu sau này có GeoJSON chính thức của vùng lõi/vùng đệm/vùng chuyển tiếp, có thể bổ sung polygon mà không cần đổi cấu trúc giao diện.
 
 ## Nguồn chính
 
 - UNESCO Man and the Biosphere Programme (MAB)
 - Wikimedia Commons
 - YouTube (ưu tiên kênh truyền hình, khoa giáo, du lịch/chính thống phù hợp)
-- OpenStreetMap contributors
+- Dữ liệu đường bờ atlas: GSHHG/Basemap
 
-V2 — 07/09/2026
+V4 — 07/09/2026

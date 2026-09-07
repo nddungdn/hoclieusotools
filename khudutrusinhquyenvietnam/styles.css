@@ -56,3 +56,16 @@ footer{width:min(1440px,calc(100% - 26px));margin:16px auto 38px;padding:18px 3p
 .island-label{width:110px;text-align:center;color:#416875;font-size:9px;font-weight:800;line-height:1.1;text-shadow:0 0 2px #fff,0 1px #fff}
 .map-note{background:#f8fbfa}
 @media(max-width:760px){.archipelago-label{font-size:10px;width:170px}.island-label{font-size:8px}}
+
+/* ===== Map V4: vector atlas nội bộ, 100% nhãn do tiện ích kiểm soát ===== */
+#map{background:#dcecf1}
+#map .leaflet-tile-pane{display:none!important}
+#map .leaflet-control-attribution{display:none!important}
+.atlas-country-label{width:150px;text-align:center;color:#7c8780;font-size:10px;font-weight:750;letter-spacing:.02em;text-shadow:0 1px 0 rgba(255,255,255,.95),0 0 4px rgba(255,255,255,.9)}
+.atlas-city-label{width:150px;text-align:center;color:#516b63;font-size:9px;font-weight:800;white-space:nowrap;text-shadow:0 1px 0 #fff,0 0 4px #fff}
+.atlas-sea-label{width:150px;text-align:center;color:#6790a0;font-size:11px;font-weight:900;letter-spacing:.14em;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.82)}
+.archipelago-label{color:#0d5c7c;font-size:11px;letter-spacing:.02em;text-shadow:0 0 4px #fff,0 0 4px #fff,0 1px #fff}
+.island-label{color:#466d78;text-shadow:0 0 3px #fff,0 1px #fff}
+#map .leaflet-control-zoom a{color:#31564c;background:rgba(255,255,255,.97);border-color:#d6e1dc}
+#map .leaflet-control-scale-line{border-color:#617d75;background:rgba(255,255,255,.78);color:#3d5c53}
+@media(max-width:760px){.atlas-country-label{font-size:9px}.atlas-city-label{font-size:8px}.atlas-sea-label{font-size:9px}.archipelago-label{font-size:10px}}

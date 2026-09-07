@@ -31,34 +31,103 @@ function imageTag(r, className = '') {
 }
 
 // ---------------- MAP ----------------
-// Bản đồ nền OpenStreetMap: không cần API key. Lớp tile được làm dịu bằng CSS
-// để giao diện giống atlas học tập hơn bản đồ giao thông thông thường.
+// Atlas V4: vector nền nội bộ, KHÔNG dùng tile bản đồ bên thứ ba.
+// Vì vậy không có nhãn ngoại ngữ tự phát sinh, không API key và không watermark.
 const map = L.map('map', {
   minZoom: 4,
-  maxZoom: 13,
+  maxZoom: 10,
   zoomControl: true,
-  attributionControl: true,
+  attributionControl: false,
   preferCanvas: true,
   zoomSnap: 0.25,
   zoomDelta: 0.5
-}).setView([15.8, 108.35], 5.25);
+}).setView([15.8, 108.6], 5.25);
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
-map.setMaxBounds([[4.8, 97.8], [26.2, 120.2]]);
+map.setMaxBounds([[3.8, 96.8], [27.2, 121.2]]);
 L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
 
-// Các lớp phủ phục vụ học tập. Không vẽ lại đường biên quốc gia bằng polygon thô;
-// đường bờ và biên giới dùng trực tiếp từ bản đồ nền để giữ hình dáng tự nhiên.
-map.createPane('archipelagoPane');
-map.getPane('archipelagoPane').style.zIndex = 430;
-map.getPane('archipelagoPane').style.pointerEvents = 'none';
-map.createPane('islandPane');
-map.getPane('islandPane').style.zIndex = 420;
-map.getPane('islandPane').style.pointerEvents = 'none';
+// Các pane của atlas nền.
+[
+  ['graticulePane', 160],
+  ['atlasLandPane', 170],
+  ['atlasWaterPane', 172],
+  ['atlasFocusPane', 176],
+  ['atlasBoundaryPane', 180],
+  ['atlasLabelPane', 200],
+  ['islandPane', 420],
+  ['archipelagoPane', 430]
+].forEach(([name,z]) => {
+  map.createPane(name);
+  map.getPane(name).style.zIndex = z;
+  map.getPane(name).style.pointerEvents = 'none';
+});
+
+// Lưới kinh - vĩ tuyến nhẹ giúp bản đồ có cảm giác atlas học tập.
+for (let lng = 100; lng <= 120; lng += 5) {
+  L.polyline([[4, lng], [27, lng]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.65, opacity:.28,
+    dashArray:'3 7', interactive:false
+  }).addTo(map);
+}
+for (let lat = 5; lat <= 25; lat += 5) {
+  L.polyline([[lat, 97], [lat, 121]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.65, opacity:.28,
+    dashArray:'3 7', interactive:false
+  }).addTo(map);
+}
+
+// Đường bờ và khối đất được đóng gói ngay trong tiện ích.
+ATLAS_DATA.land.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasLandPane', stroke:false, fillColor:'#eef2e8', fillOpacity:1,
+    interactive:false, smoothFactor:1
+  }).addTo(map);
+});
+ATLAS_DATA.water.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasWaterPane', stroke:false, fillColor:'#dcecf1', fillOpacity:1,
+    interactive:false, smoothFactor:1
+  }).addTo(map);
+});
+
+// Việt Nam được nhấn bằng một lớp nền rất nhẹ, không dùng đường bao nhân tạo.
+ATLAS_DATA.vietnamFocus.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasFocusPane', stroke:false, fillColor:'#cfe6d5', fillOpacity:.44,
+    interactive:false, smoothFactor:1.2
+  }).addTo(map);
+});
+
+ATLAS_DATA.coasts.forEach(line => {
+  L.polyline(line, {
+    pane:'atlasBoundaryPane', color:'#799896', weight:.9, opacity:.72,
+    interactive:false, smoothFactor:1.3
+  }).addTo(map);
+});
+ATLAS_DATA.borders.forEach(line => {
+  L.polyline(line, {
+    pane:'atlasBoundaryPane', color:'#879c91', weight:.75, opacity:.45,
+    dashArray:'2 3', interactive:false, smoothFactor:1.1
+  }).addTo(map);
+});
+
+// Chỉ dùng nhãn tiếng Việt do tiện ích kiểm soát.
+const atlasLabelLayer = L.layerGroup().addTo(map);
+ATLAS_DATA.labels.forEach(item => {
+  if (item.kind === 'city') {
+    L.circleMarker([item.lat,item.lng], {
+      pane:'atlasLabelPane', radius:2.3, color:'#50756b', weight:1,
+      fillColor:'#fff', fillOpacity:1, interactive:false
+    }).addTo(atlasLabelLayer);
+  }
+  const cls = item.kind === 'sea' ? 'atlas-sea-label' : item.kind === 'country' ? 'atlas-country-label' : 'atlas-city-label';
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="${cls}">${item.name}</div>`,
+    iconSize:[150,22], iconAnchor:[75, item.kind === 'city' ? -5 : 11]
+  });
+  L.marker([item.lat,item.lng], {icon, interactive:false, pane:'atlasLabelPane'}).addTo(atlasLabelLayer);
+});
 
 function reserveIcon(r) {
   return L.divIcon({
@@ -87,12 +156,12 @@ BIOSPHERES.forEach(r => {
   });
 });
 
-// Hoàng Sa và Trường Sa: dùng cụm điểm đảo cách điệu thay cho khung chữ nhật.
-// Các điểm chỉ nhằm định hướng vị trí trên bản đồ học tập, không mô tả ranh giới pháp lý.
+// Hoàng Sa và Trường Sa: cụm điểm định hướng + nhãn tiếng Việt.
+// Không dùng khung hoặc đường tuyên bố ranh giới/phạm vi pháp lý.
 const ARCHIPELAGO_GROUPS = [
   {
     name: 'Quần đảo Hoàng Sa',
-    label: [15.86, 112.15],
+    label: [15.82, 112.15],
     points: [
       [16.50,112.00],[16.30,111.72],[16.82,112.32],[16.10,112.48],
       [16.63,112.62],[15.95,111.92],[16.38,112.24]
@@ -100,7 +169,7 @@ const ARCHIPELAGO_GROUPS = [
   },
   {
     name: 'Quần đảo Trường Sa',
-    label: [8.45, 114.72],
+    label: [8.40, 114.76],
     points: [
       [11.05,114.25],[10.55,114.70],[10.20,115.15],[9.72,114.25],
       [9.25,115.52],[8.87,114.10],[8.38,115.85],[10.72,116.05],
@@ -113,40 +182,31 @@ const archipelagoLayer = L.layerGroup().addTo(map);
 ARCHIPELAGO_GROUPS.forEach(group => {
   group.points.forEach(([lat,lng], idx) => {
     L.circleMarker([lat,lng], {
-      pane: 'archipelagoPane',
-      radius: idx % 3 === 0 ? 2.8 : 2.1,
-      color: '#ffffff',
-      weight: 1.4,
-      fillColor: '#176b8b',
-      fillOpacity: 0.95,
-      interactive: false
+      pane:'archipelagoPane', radius: idx % 3 === 0 ? 2.8 : 2.1,
+      color:'#ffffff', weight:1.4, fillColor:'#176b8b', fillOpacity:.95,
+      interactive:false
     }).addTo(archipelagoLayer);
   });
   const label = L.divIcon({
-    className: '',
-    html: `<div class="archipelago-label">${group.name}</div>`,
-    iconSize: [190, 24],
-    iconAnchor: [95, 12]
+    className:'',
+    html:`<div class="archipelago-label">${group.name}</div>`,
+    iconSize:[190,24], iconAnchor:[95,12]
   });
-  L.marker(group.label, { icon: label, interactive: false, pane: 'archipelagoPane' }).addTo(archipelagoLayer);
+  L.marker(group.label, {icon:label, interactive:false, pane:'archipelagoPane'}).addTo(archipelagoLayer);
 });
 
 const minorIslandLayer = L.layerGroup();
 function addIsland(i) {
   const dot = L.divIcon({
-    className: '',
-    html: '<div class="island-dot"></div>',
-    iconSize: [7, 7],
-    iconAnchor: [3.5, 3.5]
+    className:'', html:'<div class="island-dot"></div>',
+    iconSize:[7,7], iconAnchor:[3.5,3.5]
   });
-  L.marker([i.lat, i.lng], { icon: dot, interactive: false, pane:'islandPane' }).addTo(minorIslandLayer);
+  L.marker([i.lat,i.lng], {icon:dot, interactive:false, pane:'islandPane'}).addTo(minorIslandLayer);
   const label = L.divIcon({
-    className: '',
-    html: `<div class="island-label">${i.name}</div>`,
-    iconSize: [110, 22],
-    iconAnchor: [55, -7]
+    className:'', html:`<div class="island-label">${i.name}</div>`,
+    iconSize:[110,22], iconAnchor:[55,-7]
   });
-  L.marker([i.lat, i.lng], { icon: label, interactive: false, pane:'islandPane' }).addTo(minorIslandLayer);
+  L.marker([i.lat,i.lng], {icon:label, interactive:false, pane:'islandPane'}).addTo(minorIslandLayer);
 }
 ISLAND_LABELS.filter(i => !i.major).forEach(addIsland);
 
@@ -160,7 +220,7 @@ function updateIslandLayer() {
 map.on('zoomend', updateIslandLayer);
 
 function fitVietnam() {
-  map.fitBounds([[7.0, 102.0], [23.8, 117.2]], { padding: [18, 18] });
+  map.fitBounds([[6.6, 101.0], [24.1, 117.6]], { padding:[18,18] });
 }
 $('#resetMap').addEventListener('click', fitVietnam);
 $('#toggleIslands').addEventListener('click', (e) => {
