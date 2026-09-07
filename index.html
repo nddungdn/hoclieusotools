@@ -1,25 +1,200 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Tiện ích HLS</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b4f43" />
+  <meta name="color-scheme" content="light" />
+  <title>12 Khu dự trữ sinh quyển thế giới ở Việt Nam</title>
+  <meta name="description" content="Bản đồ học tập tương tác hỗ trợ dạy Địa lí: khám phá 12 khu dự trữ sinh quyển thế giới của Việt Nam, Hoàng Sa, Trường Sa, hình ảnh, video và thử thách bản đồ." />
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="preconnect" href="https://basemaps.cartocdn.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<h1>Tiện ích HLS</h1>
-<ul>
-<li><a href="./viettinbangai/">Viết tin bằng AI</a></li>
-<li><a href="./thuatngunguvan/">Thuật ngữ Ngữ văn</a></li>
-<li><a href="./bienytuongthanhprompt/">Biến ý tưởng thành prompt tạo APP trò chơi</a></li>
-<li><a href="./goitenngaunhien/">Gọi tên ngẫu nhiên</a></li>
-<li><a href="./150thuatnguvanhoc/">150 thuật ngữ văn học</a></li>
-<li><a href="./soankhbdthtv/">Soạn KHBD Thực hành tiếng Việt</a></li>
-<li><a href="./donghanhcungnguvan8/">Đồng hành cùng Ngữ văn 8</a></li>
-<li><a href="./hotrotuhocthtv/">Công cụ hỗ trợ tự học THTV</a></li>
-<li><a href="./soankhbdnls/">Soạn KHBD Năng lực số</a></li>
-<li><a href="./sochunhiemso/">Sổ chủ nhiệm</a></li>
-<li><a href="./tienichtinhluong/">Tiện ích tính lương</a></li>
-<li><a href="./bodethivao10/">Bộ đề thi vào lớp 10</a></li>
-<li><a href="./phanbienai/">Hỗ trợ phản biện bằng AI</a></li>
-</ul>
+  <header class="hero-header" id="top">
+    <div class="hero-copy">
+      <a class="home-link" href="https://hoclieuso.id.vn/" aria-label="Về trang chủ Học liệu số">← Học liệu số</a>
+      <div class="eyebrow">ATLAS ĐỊA LÍ TƯƠNG TÁC</div>
+      <h1>12 KHU DỰ TRỮ SINH QUYỂN THẾ GIỚI Ở VIỆT NAM</h1>
+      <p>Khám phá vị trí · cảnh quan · giá trị bảo tồn · hình ảnh · video</p>
+      <div class="hero-actions">
+        <button class="primary-btn" id="startExplore" type="button">🗺️ Khám phá bản đồ</button>
+        <button class="outline-btn" id="startQuizTop" type="button">🎯 Thử thách vị trí</button>
+        <a class="outline-btn home-btn" href="https://hoclieuso.id.vn/" aria-label="Về trang chủ Học liệu số">🏠 Về trang chủ</a>
+      </div>
+    </div>
+    <div class="hero-stats" aria-label="Thông tin tổng quan">
+      <div><b>12</b><span>Khu sinh quyển</span></div>
+      <div><b>2000</b><span>Mốc đầu tiên</span></div>
+      <div><b>2026</b><span>Mốc mới nhất</span></div>
+      <div><b>4</b><span>Vùng học tập</span></div>
+    </div>
+  </header>
+
+  <nav class="quick-nav" aria-label="Điều hướng nội dung">
+    <a href="#atlas">Bản đồ</a>
+    <a href="#knowledge">Kiến thức nền</a>
+    <a href="#timeline">Dòng thời gian</a>
+    <a href="#compare">So sánh</a>
+    <a href="#media">Ảnh & video</a>
+  </nav>
+
+  <main>
+    <section id="atlas" class="app-shell section-anchor">
+      <section class="map-panel">
+        <div class="map-toolbar">
+          <label class="search-wrap">
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="Tìm Cát Bà, rừng ngập mặn, 2021..." autocomplete="off" />
+          </label>
+          <div id="regionFilters" class="chips" aria-label="Lọc theo vùng"></div>
+          <select id="environmentFilter" class="toolbar-select" aria-label="Lọc theo cảnh quan">
+            <option value="Tất cả">Mọi cảnh quan</option>
+            <option value="Biển – đảo">Biển – đảo</option>
+            <option value="Rừng">Rừng</option>
+            <option value="Đất ngập nước">Đất ngập nước</option>
+            <option value="Núi – cao nguyên">Núi – cao nguyên</option>
+            <option value="Karst – hang động">Karst – hang động</option>
+          </select>
+        </div>
+
+        <div class="map-wrap">
+          <div id="map" aria-label="Bản đồ Việt Nam và vị trí các khu dự trữ sinh quyển"></div>
+          <div class="map-actions">
+            <button id="resetMap" type="button" title="Xem toàn cảnh Việt Nam">⌂ Toàn cảnh</button>
+            <button id="toggleIslands" type="button" class="active" title="Ẩn hoặc hiện tên đảo">🏝️ Đảo</button>
+          </div>
+          <div class="map-legend" aria-label="Chú giải bản đồ">
+            <strong>Chú giải</strong>
+            <span><i class="legend-pin north"></i> Miền Bắc</span>
+            <span><i class="legend-pin central"></i> Miền Trung</span>
+            <span><i class="legend-pin highlands"></i> Tây Nguyên</span>
+            <span><i class="legend-pin south"></i> Miền Nam</span>
+          </div>
+
+          <div id="quizHud" class="quiz-hud" hidden>
+            <div class="quiz-hud-top">
+              <span class="quiz-label">THỬ THÁCH BẢN ĐỒ</span>
+              <button id="closeQuiz" type="button" aria-label="Đóng thử thách">×</button>
+            </div>
+            <div class="quiz-progress"><span id="quizProgressBar"></span></div>
+            <div class="quiz-meta"><b id="quizRound">1/8</b><span>Điểm: <b id="quizScore">0</b></span></div>
+            <h3 id="quizQuestion">Hãy tìm khu dự trữ sinh quyển...</h3>
+            <p id="quizHint">Bấm vào một marker trên bản đồ.</p>
+            <div id="quizFeedback" class="quiz-feedback" aria-live="polite"></div>
+            <button id="quizNext" class="quiz-next" type="button" hidden>Câu tiếp theo →</button>
+          </div>
+        </div>
+
+        <div class="map-note">
+          <div><b>Bản đồ học tập:</b> marker là tọa độ tham chiếu, không thể hiện ranh giới pháp lý của khu dự trữ sinh quyển.</div>
+          <div>Hoàng Sa, Trường Sa và các đảo tiêu biểu được bổ sung để rèn năng lực định hướng không gian. Dữ liệu hình Việt Nam dùng cho mục đích trực quan hóa học tập.</div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="panel-head">
+          <div>
+            <span class="count-badge"><b id="resultCount">12</b> khu</span>
+            <h2>Chọn một khu để khám phá</h2>
+          </div>
+          <select id="sortSelect" aria-label="Sắp xếp">
+            <option value="year">Theo năm UNESCO</option>
+            <option value="name">Theo tên A–Z</option>
+            <option value="northSouth">Từ Bắc xuống Nam</option>
+          </select>
+        </div>
+        <div id="reserveList" class="reserve-list"></div>
+      </aside>
+    </section>
+
+    <section id="detailSection" class="detail-section" aria-live="polite">
+      <div class="detail-placeholder">
+        <div class="big-icon">🌏</div>
+        <h2>Chọn một khu trên bản đồ hoặc danh sách</h2>
+        <p>Thông tin địa lí, hình ảnh, video và kiến thức cần ghi nhớ sẽ xuất hiện tại đây.</p>
+      </div>
+    </section>
+
+    <section id="knowledge" class="learn-section section-anchor">
+      <div class="section-title split-title">
+        <div>
+          <span>KIẾN THỨC NỀN</span>
+          <h2>Khu dự trữ sinh quyển không chỉ là “khu bảo tồn”</h2>
+          <p>UNESCO tổ chức một khu dự trữ sinh quyển theo ba chức năng gắn với ba không gian quản lí.</p>
+        </div>
+        <div class="zone-visual" aria-label="Mô hình vùng lõi, vùng đệm và vùng chuyển tiếp">
+          <div class="zone transition"><span>Vùng chuyển tiếp</span>
+            <div class="zone buffer"><span>Vùng đệm</span>
+              <div class="zone core"><span>Vùng lõi</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="function-grid">
+        <article><div class="fn-icon">🌿</div><h3>Bảo tồn</h3><p>Bảo vệ đa dạng sinh học, cảnh quan, hệ sinh thái và các giá trị văn hóa gắn với thiên nhiên.</p></article>
+        <article><div class="fn-icon">🤝</div><h3>Phát triển</h3><p>Khuyến khích sinh kế, kinh tế và đời sống cộng đồng theo hướng bền vững, hài hòa với tự nhiên.</p></article>
+        <article><div class="fn-icon">🔬</div><h3>Hỗ trợ</h3><p>Phục vụ nghiên cứu, quan trắc, giáo dục, đào tạo và thử nghiệm các mô hình phát triển bền vững.</p></article>
+      </div>
+      <div class="teaching-prompt">
+        <b>Gợi ý trên lớp:</b> Sau khi xem bản đồ, yêu cầu học sinh nhận xét sự phân bố của 12 khu theo các dạng lãnh thổ: ven biển – hải đảo, cửa sông – đất ngập nước, vùng núi – cao nguyên và các khối rừng lớn.
+      </div>
+    </section>
+
+    <section id="timeline" class="timeline-section section-anchor">
+      <div class="section-title">
+        <span>DÒNG THỜI GIAN UNESCO</span>
+        <h2>Từ Cần Giờ năm 2000 đến Phong Nha – Kẻ Bàng năm 2026</h2>
+        <p>Bấm vào một mốc để mở khu tương ứng trên bản đồ.</p>
+      </div>
+      <div id="timelineTrack" class="timeline-track"></div>
+    </section>
+
+    <section id="compare" class="compare-section section-anchor">
+      <div class="section-title">
+        <span>HỌC QUA SO SÁNH</span>
+        <h2>Đặt hai khu cạnh nhau</h2>
+        <p>So sánh vị trí, cảnh quan và vai trò để thấy sự đa dạng của thiên nhiên Việt Nam.</p>
+      </div>
+      <div class="compare-controls">
+        <select id="compareA"></select>
+        <button id="swapCompare" class="swap-btn" type="button" aria-label="Đổi vị trí hai khu">⇄</button>
+        <select id="compareB"></select>
+        <button id="compareBtn" type="button">So sánh</button>
+      </div>
+      <div id="compareResult"></div>
+    </section>
+
+    <section id="media" class="media-section section-anchor">
+      <div class="section-title">
+        <span>ẢNH & VIDEO</span>
+        <h2>Quan sát cảnh quan trước khi đọc thông tin</h2>
+        <p>Ảnh ưu tiên từ Wikimedia Commons; video được chọn từ YouTube, ưu tiên nội dung truyền hình, khoa giáo và du lịch chính thống.</p>
+      </div>
+      <div id="mediaGrid" class="media-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div><b>Nguồn dữ liệu chính:</b> UNESCO Man and the Biosphere Programme (MAB).</div>
+    <div><b>Bản đồ nền:</b> OpenStreetMap contributors · CARTO. <b>Ảnh:</b> Wikimedia Commons theo giấy phép ghi tại từng ảnh.</div>
+    <div>Tiện ích phục vụ dạy và học Địa lí; số liệu dùng cho kiểm tra hoặc tài liệu chính thức nên đối chiếu lại nguồn UNESCO/cơ quan quản lí.</div>
+    <div class="copyright">Bản quyền tiện ích được thuộc về <a href="https://hoclieuso.id.vn/" aria-label="Về trang chủ Học liệu số">Học liệu số</a>!</div>
+  </footer>
+
+  <div id="mediaModal" class="media-modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" type="button" data-close-modal aria-label="Đóng">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
