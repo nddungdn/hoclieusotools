@@ -41,3 +41,10 @@ Chép toàn bộ nội dung thư mục này vào:
 `hoclieusotools/khudutrusinhquyenvietnam/`
 
 Sau đó commit và push lên GitHub/Cloudflare Pages như các tiện ích khác của Học liệu số.
+
+
+## V8.1 — làm sạch đường nét bản đồ
+- Bỏ viền liền quanh lãnh thổ Việt Nam.
+- Bỏ lớp đường bờ biển Việt Nam tô đậm.
+- Giữ nền lãnh thổ nhẹ và biên giới đất liền nét đứt mảnh.
+- Mục tiêu: tránh các đoạn nối thẳng/gãy khúc xấu khi zoom.

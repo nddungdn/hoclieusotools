@@ -349,3 +349,24 @@ footer{width:min(1440px,calc(100% - 26px));margin:16px auto 38px;padding:18px 3p
   .hero-toolbar .hero-stats b{font-size:.9rem}
   .hero-toolbar .hero-stats span{font-size:.59rem}
 }
+
+
+/* V8.1 — bản đồ sạch: loại bỏ toàn bộ viền liền kỹ thuật quanh Việt Nam. */
+#map .vn-national-outline,
+#map .vn-coast-outline{
+  display:none!important;
+  stroke:none!important;
+}
+#map .vn-national-fill{
+  stroke:none!important;
+  filter:none!important;
+}
+#map .vn-border-outline{
+  stroke:#6f9489!important;
+  stroke-width:.8px!important;
+  stroke-dasharray:3 5!important;
+  opacity:.46!important;
+  filter:none!important;
+}
+#map.map-overview .vn-border-outline{opacity:.42!important}
+#map.map-detail .vn-border-outline{opacity:.52!important}

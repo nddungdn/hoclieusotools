@@ -109,25 +109,19 @@ ATLAS_DATA.borders.forEach(line => {
   }).addTo(regionalBoundaryLayer);
 });
 
-// Quan trọng: polygon Việt Nam được vẽ VIỀN LIÊN TỤC từ chính hình quốc gia.
-// Viền này nằm dưới dữ liệu bờ biển/biên giới chi tiết, nên các đoạn biên giới chi tiết
-// có bị chia thành nhiều đoạn vẫn không tạo khoảng hở thị giác như các phiên bản trước.
+// Việt Nam chỉ được tô nền rất nhẹ, KHÔNG vẽ viền liền quanh quốc gia.
+// Cách này tránh các đoạn nối thẳng/gãy khúc xấu khi zoom.
 ATLAS_DATA.vietnamFocus.forEach(ring => {
   L.polygon(ring, {
     pane:'atlasFocusPane',
-    color:'#3f7969', weight:1.35, opacity:.92,
-    fillColor:'#cfe4d5', fillOpacity:.27,
-    className:'vn-national-outline', interactive:false, smoothFactor:.42
+    stroke:false,
+    fillColor:'#cfe4d5', fillOpacity:.24,
+    className:'vn-national-fill', interactive:false, smoothFactor:.42
   }).addTo(vietnamFocusLayer);
 });
 
-// Chi tiết bờ biển và biên giới đất liền là lớp tăng cường, không còn là lớp duy nhất tạo viền.
-(ATLAS_DATA.vietnamCoast || []).forEach(line => {
-  L.polyline(line, {
-    pane:'atlasBoundaryPane', color:'#326f60', weight:1.5, opacity:.88,
-    className:'vn-outline vn-coast-outline', interactive:false, smoothFactor:.55
-  }).addTo(vietnamDetailLayer);
-});
+// Không vẽ lớp bờ biển Việt Nam đậm riêng. Mép khối đất của atlas đã tạo đường bờ tự nhiên.
+// Chỉ giữ biên giới đất liền dạng nét đứt mảnh để định hướng.
 (ATLAS_DATA.vietnamBorder || []).forEach(line => {
   L.polyline(line, {
     pane:'atlasBoundaryPane', color:'#426f64', weight:1.02, opacity:.58,
