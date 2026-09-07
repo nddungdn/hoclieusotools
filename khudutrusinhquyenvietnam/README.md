@@ -1,98 +1,75 @@
-# Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V6
+# Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V7
 
-Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần backend, API key hoặc cơ sở dữ liệu.
+Tiện ích tra cứu và bản đồ học tập tương tác hỗ trợ dạy Địa lí THCS. Thư mục triển khai đề nghị:
 
-## Bản đồ V6 — atlas điện tử nội bộ, không nhãn bên thứ ba
+`hoclieusotools/khudutrusinhquyenvietnam/`
 
-Phiên bản này **không dùng Google Maps, OpenStreetMap tile, CARTO hoặc bất kỳ nền bản đồ trực tuyến có sẵn nào**. Lý do là các nền tile có thể tự hiển thị địa danh theo ngôn ngữ/thiết lập của nhà cung cấp, gây khó kiểm soát trong một tiện ích dùng trong trường học.
+Đường dẫn dự kiến:
 
-Bản đồ được dựng theo kiểu **atlas vector nội bộ**:
+`https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
 
-- biển là nền màu tĩnh;
-- đường bờ và khối đất được đóng gói trong `atlas-data.js`;
-- đường bờ Việt Nam được nhấn bằng lớp GSHHG chi tiết hơn, còn polygon ADM0 đơn giản chỉ làm lớp tô nền rất nhẹ để tránh cảm giác đường viền gãy khúc;
-- biên giới đất liền chỉ thể hiện nhẹ để định hướng;
-- toàn bộ địa danh trên bản đồ do tiện ích tự ghi bằng tiếng Việt;
-- không có API key, watermark hoặc chữ ngoại ngữ tự phát sinh;
-- Hoàng Sa và Trường Sa được thể hiện bằng cụm điểm đảo + nhãn tiếng Việt, không dùng khung chữ nhật hoặc đường ranh giới pháp lý;
-- các đảo tiêu biểu được bổ sung khi zoom để hỗ trợ học sinh định hướng không gian.
+## Thay đổi V7
 
-Dữ liệu đường bờ của lớp atlas được tạo từ bộ dữ liệu GSHHG đi kèm Basemap. Bản đồ chỉ phục vụ học tập và định hướng; không dùng thay cho bản đồ hành chính/pháp lý chính thức.
+- Sửa hoàn toàn phần **Dòng thời gian**: nội dung nằm trong khung, cuộn ngang bên trong section và không còn làm vỡ chiều rộng trang.
+- Ảnh của **12/12 khu** đã chuyển khỏi Wikimedia Commons. Mỗi ảnh dùng nguồn từ cổng thông tin chính thống của Việt Nam và có liên kết về trang nguồn ngay dưới ảnh.
+- Nguồn ảnh hiện dùng gồm: Cục Du lịch Quốc gia Việt Nam (`vietnam.travel`), Cục Bảo tồn thiên nhiên và Đa dạng sinh học (`nbca.gov.vn`), Báo và Phát thanh, Truyền hình Nghệ An, cổng thông tin Khu DTSQ thế giới Cao nguyên Kon Hà Nừng – Gia Lai và các trang/cổng chính thống tương ứng.
+- Khung atlas có **vùng pan an toàn**; ở chế độ toàn cảnh khóa thao tác kéo ngang để bản đồ không trôi sang trái/phải. Khi zoom vào, người dùng vẫn có thể kéo trong giới hạn cho phép.
+- Tự tính mức zoom tối thiểu theo kích thước màn hình để viewport luôn nằm trong phạm vi atlas.
+- Xóa mục **“Gợi ý trên lớp”**.
+- Bốn chỉ số tổng quan `12 · 2000 · 2026 · 4` được đưa xuống cùng hàng với nút **Về trang chủ**, căn phải trên desktop và tự thích ứng trên màn hình nhỏ.
+- Giữ bản đồ vector nội bộ không nhãn bên thứ ba, không tile Google Maps/OSM/CARTO và không API key bản đồ.
 
-## Chức năng chính
+## Bản đồ
 
-- 12 khu dự trữ sinh quyển có marker theo vùng và tự zoom khi chọn.
-- **Chống chồng marker thông minh ở toàn cảnh:** các điểm quá gần nhau (đặc biệt Cát Bà – Châu thổ sông Hồng và một số điểm phía Nam) được tách nhẹ trong không gian pixel; đường nối mảnh vẫn chỉ về tọa độ thật.
-- Hiển thị **Quần đảo Hoàng Sa** và **Quần đảo Trường Sa** ở lớp chính; thêm Cát Bà, Bạch Long Vĩ, Cồn Cỏ, Lý Sơn, Cù Lao Chàm, Phú Quý, Côn Đảo, Phú Quốc, Thổ Chu, Hòn Khoai.
-- Ảnh minh họa cho đủ 12 khu từ Wikimedia Commons, có ghi tác giả/giấy phép và liên kết nguồn.
-- Video YouTube cho đủ 12 khu; mở trong hộp thoại bằng `youtube-nocookie.com`.
-- Bộ lọc theo vùng, kiểu cảnh quan, tìm kiếm và sắp xếp.
-- Trang chi tiết: vị trí, năm UNESCO, diện tích, tọa độ, tự nhiên, con người, vai trò, thách thức và kiến thức cần ghi nhớ.
-- Dòng thời gian UNESCO.
-- Chế độ so sánh 2 khu.
-- **Thử thách bản đồ**: 8 câu ngẫu nhiên, học sinh phải bấm đúng marker; trả lời sai được gợi ý vùng/cảnh quan.
-- Responsive cho máy tính, máy tính bảng và điện thoại.
-- Nút **Về trang chủ** và chân trang bản quyền Học liệu số.
+Bản đồ dùng Leaflet cho tương tác nhưng nền địa lí được vẽ từ dữ liệu vector đóng gói trong `atlas-data.js`. Không có tile nền từ nhà cung cấp bản đồ bên thứ ba, nên không có nhãn địa danh tự chèn ngoài kiểm soát của tiện ích.
+
+- Hoàng Sa và Trường Sa được hiển thị bằng cụm điểm đảo và nhãn tiếng Việt.
+- Các đảo tiêu biểu như Cát Bà, Bạch Long Vĩ, Cồn Cỏ, Lý Sơn, Cù Lao Chàm, Phú Quốc, Côn Đảo... xuất hiện theo mức zoom.
+- Marker 12 khu tự tách nhẹ ở toàn cảnh nếu quá gần nhau; đường nối mảnh chỉ về tọa độ tham chiếu thật.
+- Khi zoom vào, marker trở về đúng tọa độ gốc.
+
+> Bản đồ phục vụ định hướng không gian trong học tập; marker và cụm điểm đảo không thay thế bản đồ hành chính hoặc tài liệu pháp lý chuyên ngành.
+
+## Ảnh và video
+
+Mỗi khu có:
+
+- 1 ảnh minh họa từ một nguồn thông tin chính thống của Việt Nam;
+- liên kết **Xem nguồn** về trang xuất bản ảnh;
+- 1 video YouTube tiêu biểu;
+- cơ chế ảnh dự phòng bằng thumbnail video nếu máy chủ nguồn ảnh tạm thời không phản hồi.
+
+Ảnh được hiển thị cho mục đích minh họa giáo dục; khi sử dụng lại ngoài tiện ích cần tuân thủ điều kiện bản quyền của cơ quan/tác giả tại trang nguồn.
 
 ## Cấu trúc
 
-- `index.html` – giao diện.
-- `styles.css` – toàn bộ trình bày responsive.
-- `atlas-data.js` – lớp bản đồ vector không nhãn: đất, đường bờ, biên giới định hướng và nhãn tiếng Việt.
-- `data.js` – dữ liệu 12 khu, tọa độ, media và danh sách đảo/quần đảo.
-- `app.js` – bản đồ, bộ lọc, chi tiết, media, so sánh, timeline và quiz.
+- `index.html` — giao diện.
+- `styles.css` — trình bày responsive.
+- `app.js` — bản đồ, tra cứu, timeline, so sánh, quiz, modal media.
+- `data.js` — dữ liệu 12 khu, nguồn ảnh và video.
+- `atlas-data.js` — dữ liệu vector atlas nội bộ.
 
-## Triển khai
+## Triển khai GitHub
 
-Đặt nguyên thư mục tại:
+Chép toàn bộ các file trong thư mục này vào:
 
 ```text
 hoclieusotools/
 └── khudutrusinhquyenvietnam/
     ├── index.html
     ├── styles.css
-    ├── atlas-data.js
+    ├── app.js
     ├── data.js
-    └── app.js
+    ├── atlas-data.js
+    └── README.md
 ```
 
-Đường dẫn:
+Sau khi push lên nhánh đang được Cloudflare Pages/GitHub Pages sử dụng, truy cập:
 
-```text
-https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/
-```
+`https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
 
-## Kết nối Internet
+## Nguồn dữ liệu nội dung
 
-Phần **bản đồ nền vector không cần Internet** sau khi mã nguồn đã được tải. Khi chạy trang vẫn cần Internet cho:
+Thông tin danh hiệu, năm công nhận và mô tả nền ưu tiên đối chiếu UNESCO Man and the Biosphere Programme (MAB). Phần địa giới hiện nay được trình bày riêng với địa danh trong hồ sơ UNESCO khi cần thiết.
 
-- Leaflet từ CDN `unpkg.com`;
-- ảnh Wikimedia Commons;
-- thumbnail/video YouTube.
-
-Nếu muốn bản đồ hoạt động hoàn toàn offline, có thể đóng gói Leaflet vào thư mục dự án ở phiên bản sau.
-
-## Lưu ý bản đồ
-
-- Marker của khu dự trữ sinh quyển là **tọa độ tham chiếu phục vụ học tập**, không phải ranh giới pháp lý.
-- Các điểm của Hoàng Sa, Trường Sa và các đảo tiêu biểu nhằm hỗ trợ định hướng không gian, **không biểu thị ranh giới hành chính hoặc pháp lý**.
-- Nếu sau này có GeoJSON chính thức của vùng lõi/vùng đệm/vùng chuyển tiếp, có thể bổ sung polygon mà không cần đổi cấu trúc giao diện.
-
-## Nguồn chính
-
-- UNESCO Man and the Biosphere Programme (MAB)
-- Wikimedia Commons
-- YouTube (ưu tiên kênh truyền hình, khoa giáo, du lịch/chính thống phù hợp)
-- Dữ liệu đường bờ atlas: GSHHG/Basemap
-
-V6 — 07/09/2026
-
-
-## Nâng cấp bản đồ V6
-- Thu gọn khung toàn cảnh để Việt Nam chiếm diện tích lớn hơn trên màn hình, vẫn giữ đầy đủ Hoàng Sa và Trường Sa.
-- Nhấn đường bờ Việt Nam bằng dữ liệu GSHHG/Basemap có độ chi tiết cao hơn; giảm lớp tô ADM0 thô xuống mức rất nhẹ.
-- Đường bờ biển Việt Nam dùng nét liền; biên giới đất liền dùng nét đứt, trong khi các nước lân cận chỉ làm nền mờ.
-- Thuật toán chống va chạm tự động tách các marker gần nhau ở chế độ toàn cảnh và vẽ đường nối về tọa độ gốc.
-- Marker trở về đúng tọa độ khi zoom chi tiết; vì vậy phần tương tác/quiz vẫn giữ độ chính xác định vị.
-- Nhãn đô thị và nước láng giềng tiếp tục được ẩn ở toàn cảnh; chỉ ưu tiên Việt Nam, Biển Đông, Hoàng Sa, Trường Sa và 12 điểm sinh quyển.
-- Giữ giới hạn zoom thích ứng theo kích thước màn hình để người dùng không thể thu nhỏ bản đồ tới mức bố cục bị vỡ.
+Bản quyền tiện ích được thuộc về **Học liệu số** — https://hoclieuso.id.vn/

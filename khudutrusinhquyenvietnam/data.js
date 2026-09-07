@@ -10,7 +10,7 @@ const BIOSPHERES = [
     challenge:'Đô thị hóa, du lịch, ô nhiễm nước, suy giảm sinh cảnh và tác động của biến đổi khí hậu.',
     highlight:'Khu dự trữ sinh quyển thế giới đầu tiên của Việt Nam.',
     source:'https://www.unesco.org/en/mab/can-gio-mangrove',
-    image:{file:'Can Gio mangrove forest.jpg', author:'Tho nau', license:'CC BY-SA 3.0'},
+    image:{src:'https://vietnam.travel/sites/default/files/inline-images/shutterstock_1363149215.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/things-to-do/enjoy-great-outdoors-ho-chi-minh-city', credit:'Cần Giờ · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'SxeVsQBEpM8', title:'Nam Bộ du ký: Khám phá rừng sác Cần Giờ', channel:'YouTube'}
   },
   {
@@ -24,7 +24,7 @@ const BIOSPHERES = [
     challenge:'Biến đổi dòng chảy, ô nhiễm, nuôi trồng thủy sản, xói lở – bồi tụ và nước biển dâng.',
     highlight:'Một khu sinh quyển tiêu biểu để học về châu thổ, cửa sông, bãi triều và đường bay chim di cư.',
     source:'https://www.unesco.org/en/mab/red-river-delta',
-    image:{file:'Landscape Xuan Thuy National Park.JPG', author:'Kristinvafranzi', license:'CC BY-SA 3.0'},
+    image:{src:'https://nbca.gov.vn/wp-content/uploads/2023/10/Xuan-Thuy1.ENV-2-1-770x367-1.jpg', sourceName:'Cục Bảo tồn thiên nhiên và Đa dạng sinh học', sourceUrl:'https://nbca.gov.vn/vuon-quoc-gia-xuan-thuy-nam-dinh/', credit:'Vườn quốc gia Xuân Thủy'},
     video:{id:'KPqJR8YMvjs', title:'Độc đáo “ga chim” ở Vườn quốc gia Xuân Thủy', channel:'YouTube'}
   },
   {
@@ -38,7 +38,7 @@ const BIOSPHERES = [
     challenge:'Du lịch đông, hạ tầng ven biển, rác thải và áp lực lên sinh cảnh của các loài đặc hữu.',
     highlight:'Nơi sinh sống của voọc Cát Bà – loài linh trưởng đặc hữu cực kỳ nguy cấp.',
     source:'https://www.unesco.org/en/mab/cat-ba',
-    image:{file:'Cat Ba.jpg', author:'Christophe95', license:'CC BY-SA 4.0'},
+    image:{src:'https://vietnam.travel/sites/default/files/inline-images/anh1edit.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/things-to-do/halong-bay-cat-ba-inter-provincial-world-heritage-site-trending-destination-vietnam', credit:'Cát Bà · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'1i5oo5KQdFE', title:'Voọc Cát Bà trước nguy cơ tuyệt chủng', channel:'VTV24'}
   },
   {
@@ -52,7 +52,7 @@ const BIOSPHERES = [
     challenge:'Phát triển du lịch, khai thác thủy sản, ô nhiễm biển và suy giảm thảm cỏ biển – rạn san hô.',
     highlight:'Có các hệ sinh thái cỏ biển quan trọng đối với bò biển (dugong).',
     source:'https://www.unesco.org/en/mab/kien-giang',
-    image:{file:'Phu Quoc, Viet Nam.jpg', author:'Trantuonglam', license:'CC BY-SA'},
+    image:{src:'https://vietnam.travel/sites/default/files/inline-images/shutterstock_1660147072_resize.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/things-to-do/unesco-kien-giang-biosphere-reserve', credit:'Khu dự trữ sinh quyển Kiên Giang'},
     video:{id:'VlavGURdc58', title:'Có được tham quan trong Vườn Quốc gia Phú Quốc?', channel:'Truyền Hình Đồng Tháp'}
   },
   {
@@ -66,7 +66,7 @@ const BIOSPHERES = [
     challenge:'Suy giảm rừng, săn bắt và khai thác tài nguyên; một bộ phận sinh kế còn phụ thuộc nhiều vào tài nguyên tự nhiên.',
     highlight:'Một trong những khu dự trữ sinh quyển có diện tích lớn nhất Việt Nam.',
     source:'https://www.unesco.org/en/mab/western-nghe',
-    image:{file:'Vườn Quốc Gia Pù Mát② Con Cuông, Nghệ An.jpg', author:'KoheiU', license:'CC0'},
+    image:{src:'https://bna.1cdn.vn/2026/04/21/thac-khe-kem%281%29.jpg', sourceName:'Báo và Phát thanh, Truyền hình Nghệ An', sourceUrl:'https://baonghean.vn/healing-cung-mien-tay-xu-nghe-10333750.html', credit:'Thác Khe Kèm · Vườn quốc gia Pù Mát'},
     video:{id:'HWhzCFWaMuM', title:'Khám phá Khu dự trữ sinh quyển miền Tây Nghệ An', channel:'Vietnam Tourism'}
   },
   {
@@ -80,7 +80,7 @@ const BIOSPHERES = [
     challenge:'Sạt lở bờ biển, nước biển dâng, sụt lún và biến đổi dòng chảy.',
     highlight:'Cảnh quan “đất nở – rừng tiến ra biển” giúp học sinh quan sát trực tiếp quá trình bồi tụ ở cực Nam.',
     source:'https://www.unesco.org/en/mab/mui-ca-mao',
-    image:{file:'Walkway railing along a mangrove river in Ca Mau.jpg', author:'Nevillenguyen310', license:'Wikimedia Commons'},
+    image:{src:'https://2025.vietnam.travel/wp-content/uploads/2025/04/0304.ca_mau.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://2025.vietnam.travel/soi-dong-tu-hao-voi-ca-mau-diem-den-2025/84904157948/', credit:'Mũi Cà Mau · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'U3dNbhSZ7u8', title:'Is Mui Ca Mau Sinking?', channel:'VTV4'}
   },
   {
@@ -94,7 +94,7 @@ const BIOSPHERES = [
     challenge:'Rác thải nhựa, sức ép du lịch, neo đậu tàu thuyền, suy giảm san hô và tác động của bão.',
     highlight:'Mô hình nổi tiếng về giảm túi ni-lông và bảo tồn gắn với cộng đồng.',
     source:'https://www.unesco.org/en/mab/cu-lao-cham-hoi',
-    image:{file:'Cu Lao Cham.JPG', author:'Lê Thy', license:'Public domain'},
+    image:{src:'https://image.vietnam.travel/sites/default/files/inline-images/29-dinh-cao-hop-tac.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/things-to-do/cu-lao-cham-an-eco-paradise-near-hoi-an', credit:'Cù Lao Chàm · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'NxDmLNZ4GnY', title:'Cộng đồng chung tay bảo tồn biển Cù Lao Chàm', channel:'VTV4'}
   },
   {
@@ -108,7 +108,7 @@ const BIOSPHERES = [
     challenge:'Chia cắt sinh cảnh, săn bắt trái phép, xung đột người – động vật và áp lực phát triển hạ tầng.',
     highlight:'UNESCO ghi mốc 2001; năm 2011 khu được mở rộng và mang tên Đồng Nai.',
     source:'https://www.unesco.org/en/mab/dong-nai',
-    image:{file:'Cat Tien National Park.jpg', author:'Vyacheslav Argenberg', license:'CC BY 2.0'},
+    image:{src:'https://image.vietnam.travel/sites/default/files/inline-images/eco%20travel%20vietnam%20%282%29.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://image.vietnam.travel/things-to-do/sustainable-tours-vietnam', credit:'Cát Tiên · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'--6RNepiuzs', title:'Khám phá Vườn quốc gia Cát Tiên', channel:'VTV24'}
   },
   {
@@ -122,7 +122,7 @@ const BIOSPHERES = [
     challenge:'Mở rộng nông nghiệp, du lịch, cháy rừng và biến đổi khí hậu trên cao nguyên.',
     highlight:'Khu dự trữ sinh quyển thế giới đầu tiên ở Tây Nguyên.',
     source:'https://www.unesco.org/en/mab/langbiang',
-    image:{file:'Lang Biang mountain 1.jpg', author:'Nomad Tales', license:'CC BY-SA 2.0'},
+    image:{src:'https://www.vietnam.travel/sites/default/files/inline-images/What%20to%20do%20in%20Dalat-4.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://www.vietnam.travel/vi/things-to-do/8-ways-appreciate-da-lat', credit:'Cảnh quan Đà Lạt – Langbiang'},
     video:{id:'qIcTjy82kX8', title:'Bảo tồn giá trị khu dự trữ sinh quyển Langbiang', channel:'VTC14'}
   },
   {
@@ -136,7 +136,7 @@ const BIOSPHERES = [
     challenge:'Hạn hán, cháy rừng, sức ép du lịch ven biển, biến đổi khí hậu và tổn thương rạn san hô.',
     highlight:'Một trong những vùng khô hạn nhất Việt Nam nhưng có đa dạng sinh học rất đặc sắc.',
     source:'https://www.unesco.org/en/mab/nui-chua',
-    image:{file:'Nui Chua National Park.jpg', author:'Suriya Vij', license:'Public domain'},
+    image:{src:'https://image.vietnam.travel/sites/default/files/inline-images/10383-ninh%20thuan-038088022934-0977181133-Tran%20Dinh%20Nghia.jpg', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/places-to-go/central-vietnam/ninh-thuan', credit:'Cảnh quan ven biển khu vực Núi Chúa · ảnh Trần Đình Nghĩa'},
     video:{id:'BiiT5mIZlNY', title:'Khu dự trữ sinh quyển thế giới Núi Chúa – nơi giao hòa giữa rừng và biển', channel:'KTV Kết nối và Phát triển'}
   },
   {
@@ -150,7 +150,7 @@ const BIOSPHERES = [
     challenge:'Mất và chia cắt rừng, săn bắt, khai thác tài nguyên và sức ép chuyển đổi mục đích sử dụng đất.',
     highlight:'Vùng lõi gồm Kon Ka Kinh và Kon Chư Răng – hai khu bảo tồn có giá trị sinh học cao.',
     source:'https://www.unesco.org/en/mab/kon-ha-nung-highland',
-    image:{file:'K50 Waterfall Kon Chu Rang Nature Reserve Gia Lai Vietnam.png', author:'VinhNguyen.1257', license:'CC0'},
+    image:{src:'https://storage-vnportal.vnpt.vn/smeg2/3411/ThuVienAnh/z4929445659241_dcfb985e518f432ce0251a378624cced.jpg', sourceName:'Khu DTSQ thế giới Cao nguyên Kon Hà Nừng – Gia Lai', sourceUrl:'https://konhanung.gialai.gov.vn/tong-quan/khu-du-tru-sinh-quyen-the-gioi-cao-nguyen-kon-ha-nung-373705', credit:'Thác K50 · Gia Lai'},
     video:{id:'6SGsQOPLVKM', title:'UNESCO công nhận 2 khu dự trữ sinh quyển thế giới tại Việt Nam', channel:'TOÀN CẢNH 24H'}
   },
   {
@@ -164,7 +164,7 @@ const BIOSPHERES = [
     challenge:'Tác động du lịch, thời tiết cực đoan, quản lí vùng đệm rộng lớn và cân bằng bảo tồn với sinh kế địa phương.',
     highlight:'UNESCO ghi “Year of nomination: 2026” cho danh hiệu Khu dự trữ sinh quyển.',
     source:'https://www.unesco.org/en/mab/phong-nha-ke-bang',
-    image:{file:'Phongnhakebang10.jpg', author:'Genghiskhanviet', license:'Public domain'},
+    image:{src:'https://image.vietnam.travel/sites/default/files/styles/top_banner/public/2018-11/phongnhavietnamtourism.jpg?itok=eh7eQ1Xt', sourceName:'Cục Du lịch Quốc gia Việt Nam', sourceUrl:'https://vietnam.travel/vi/places-to-go/central-vietnam/phong-nha', credit:'Phong Nha – Kẻ Bàng · Cục Du lịch Quốc gia Việt Nam'},
     video:{id:'KTx1bnAQ-3M', title:'UNESCO vinh danh Phong Nha – Kẻ Bàng là Khu dự trữ sinh quyển thế giới', channel:'Truyền Hình Đồng Tháp'}
   }
 ];

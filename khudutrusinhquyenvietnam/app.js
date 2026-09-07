@@ -16,23 +16,23 @@ const regionClass = {
   'Miền Nam': 'south'
 };
 
-function commonsImageUrl(file, width = 1100) {
-  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${width}`;
-}
-function commonsPageUrl(file) {
-  return `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`;
-}
 function youtubeThumb(id) {
   return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 }
 function imageTag(r, className = '') {
   const fallback = youtubeThumb(r.video.id);
-  return `<img class="${className}" loading="lazy" src="${commonsImageUrl(r.image.file, 900)}" alt="Cảnh quan ${r.name}" onerror="this.onerror=null;this.src='${fallback}'">`;
+  const src = escapeAttr(r.image?.src || fallback);
+  return `<img class="${className}" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${src}" alt="Cảnh quan ${escapeAttr(r.name)}" onerror="this.onerror=null;this.src='${fallback}'">`;
+}
+function imageCredit(r) {
+  return r.image?.credit || r.image?.sourceName || 'Nguồn chính thống Việt Nam';
 }
 
 // ---------------- MAP ----------------
-// Atlas V6: ưu tiên hình dáng Việt Nam, bố cục toàn cảnh gọn và marker chống chồng lấn.
+// Atlas V7: vector nội bộ, khóa toàn cảnh, pan an toàn và marker chống chồng lấn.
 const ATLAS_DATA_BOUNDS = L.latLngBounds([[4.8, 98.6], [25.6, 119.6]]);
+// V7: giới hạn pan thực tế hẹp hơn dữ liệu nền để người dùng không kéo atlas lệch sang hai bên.
+const MAP_SAFE_BOUNDS = L.latLngBounds([[5.25, 99.65], [25.15, 118.75]]);
 // Khung toàn cảnh được thu gọn để Việt Nam chiếm diện tích thị giác lớn hơn,
 // nhưng vẫn giữ trọn Hoàng Sa, Trường Sa và các khu sinh quyển phía nam.
 const OVERVIEW_BOUNDS = L.latLngBounds([[7.15, 101.15], [23.95, 117.35]]);
@@ -48,7 +48,7 @@ const map = L.map('map', {
   maxBoundsViscosity: 1
 });
 
-map.setMaxBounds(ATLAS_DATA_BOUNDS);
+map.setMaxBounds(MAP_SAFE_BOUNDS);
 L.control.scale({ imperial: false, position: 'bottomright', maxWidth: 110 }).addTo(map);
 
 // Các pane của atlas nền.
@@ -333,10 +333,15 @@ function updateMapPresentation() {
   mapEl.classList.toggle('map-detail', !overview);
 
   if (overview) {
+    // Ở toàn cảnh khóa kéo bản đồ: học sinh vẫn zoom/click bình thường nhưng không thể kéo atlas lệch sang trái/phải.
+    if (map.dragging.enabled()) map.dragging.disable();
+    if (map.keyboard && map.keyboard.enabled()) map.keyboard.disable();
     if (map.hasLayer(cityLabelLayer)) map.removeLayer(cityLabelLayer);
     if (map.hasLayer(countryLabelLayer)) map.removeLayer(countryLabelLayer);
     if (!map.hasLayer(vietnamNameLayer)) vietnamNameLayer.addTo(map);
   } else {
+    if (!map.dragging.enabled()) map.dragging.enable();
+    if (map.keyboard && !map.keyboard.enabled()) map.keyboard.enable();
     if (!map.hasLayer(cityLabelLayer)) cityLabelLayer.addTo(map);
     if (!map.hasLayer(countryLabelLayer)) countryLabelLayer.addTo(map);
     if (z >= 6.65 && map.hasLayer(vietnamNameLayer)) map.removeLayer(vietnamNameLayer);
@@ -349,12 +354,25 @@ function updateMapPresentation() {
 // Tính mức zoom tối thiểu theo kích thước thực của khung bản đồ.
 // Người dùng không thể thu nhỏ tới mức nhìn thấy mép dữ liệu hình chữ nhật nữa.
 let overviewMinZoom = 5.15;
+function computeSafeMinZoom() {
+  // Toàn cảnh phải giữ đủ Việt Nam + Hoàng Sa + Trường Sa.
+  // Không tăng zoom chỉ để lấp hai mép vì sẽ làm mất phần bắc/nam; thay vào đó khóa kéo ở toàn cảnh.
+  const fitOverview = map.getBoundsZoom(OVERVIEW_BOUNDS, false, [18,18]);
+  return Math.max(4.25, fitOverview);
+}
+function enforceSafeView() {
+  const view = map.getBounds();
+  if (!MAP_SAFE_BOUNDS.contains(view.getNorthWest()) || !MAP_SAFE_BOUNDS.contains(view.getSouthEast())) {
+    map.panInsideBounds(MAP_SAFE_BOUNDS, {animate:false});
+  }
+}
 function fitVietnam({animate=false} = {}) {
   map.setMinZoom(4.25);
-  map.fitBounds(OVERVIEW_BOUNDS, { padding:[18,18], animate });
-  overviewMinZoom = Math.max(4.25, map.getZoom());
+  overviewMinZoom = computeSafeMinZoom();
   map.setMinZoom(overviewMinZoom);
-  if (map.getZoom() < overviewMinZoom) map.setZoom(overviewMinZoom);
+  map.fitBounds(OVERVIEW_BOUNDS, { padding:[18,18], animate, maxZoom:overviewMinZoom });
+  if (map.getZoom() < overviewMinZoom) map.setZoom(overviewMinZoom, {animate:false});
+  map.panInsideBounds(MAP_SAFE_BOUNDS, {animate:false});
   updateMapPresentation();
 }
 
@@ -365,15 +383,15 @@ function refreshOverviewZoom() {
     const wasOverview = map.getZoom() <= overviewMinZoom + .15;
     map.invalidateSize({pan:false});
     map.setMinZoom(4.25);
-    const calculated = map.getBoundsZoom(OVERVIEW_BOUNDS, false, [18,18]);
-    overviewMinZoom = Math.max(4.25, calculated);
+    overviewMinZoom = computeSafeMinZoom();
     map.setMinZoom(overviewMinZoom);
     if (wasOverview || map.getZoom() < overviewMinZoom) fitVietnam();
-    else updateMapPresentation();
+    else { enforceSafeView(); updateMapPresentation(); }
   }, 140);
 }
 
-map.on('zoomend moveend', updateMapPresentation);
+map.on('zoomend', () => { enforceSafeView(); updateMapPresentation(); });
+map.on('moveend', () => { enforceSafeView(); updateMapPresentation(); });
 window.addEventListener('resize', refreshOverviewZoom, {passive:true});
 
 $('#resetMap').addEventListener('click', () => fitVietnam({animate:true}));
@@ -461,8 +479,8 @@ function detailHtml(r) {
         <figure class="detail-figure">
           ${imageTag(r, 'detail-image')}
           <figcaption>
-            <span>Ảnh: ${r.image.author} · ${r.image.license}</span>
-            <a href="${commonsPageUrl(r.image.file)}" target="_blank" rel="noopener">Wikimedia Commons ↗</a>
+            <span>Ảnh: ${imageCredit(r)}</span>
+            <a href="${escapeAttr(r.image.sourceUrl)}" target="_blank" rel="noopener">${r.image.sourceName} ↗</a>
           </figcaption>
         </figure>
         <button class="video-preview" type="button" data-video-id="${r.video.id}" data-video-title="${escapeAttr(r.video.title)}">
@@ -540,14 +558,14 @@ function renderTimeline() {
   const groups = BIOSPHERES.slice().sort((a,b)=>a.year-b.year).reduce((acc,r)=>{
     (acc[r.year] ||= []).push(r); return acc;
   },{});
-  $('#timelineTrack').innerHTML = Object.entries(groups).map(([year, list]) => `
+  $('#timelineTrack').innerHTML = `<div class="timeline-inner">${Object.entries(groups).map(([year, list]) => `
     <div class="timeline-year">
       <div class="year-dot"></div>
       <b class="year-number">${year}</b>
       <div class="year-items">
         ${list.map(r=>`<button type="button" data-timeline-id="${r.id}">${r.name}</button>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('')}</div>`;
   $$('[data-timeline-id]').forEach(btn=>btn.addEventListener('click',()=>{
     selectReserve(btn.dataset.timelineId, true, false);
     $('#atlas').scrollIntoView({behavior:'smooth',block:'start'});
@@ -622,8 +640,8 @@ function openImageModal(r) {
     <div class="modal-image-wrap">
       ${imageTag(r, 'modal-image')}
       <div class="modal-caption">
-        <div><h2 id="modalTitle">${r.name}</h2><p>Ảnh: ${r.image.author} · ${r.image.license}</p></div>
-        <a href="${commonsPageUrl(r.image.file)}" target="_blank" rel="noopener">Xem nguồn Wikimedia Commons ↗</a>
+        <div><h2 id="modalTitle">${r.name}</h2><p>Ảnh: ${imageCredit(r)}</p></div>
+        <a href="${escapeAttr(r.image.sourceUrl)}" target="_blank" rel="noopener">Xem nguồn: ${r.image.sourceName} ↗</a>
       </div>
     </div>`;
   showModal();
