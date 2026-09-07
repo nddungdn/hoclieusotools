@@ -69,3 +69,107 @@ footer{width:min(1440px,calc(100% - 26px));margin:16px auto 38px;padding:18px 3p
 #map .leaflet-control-zoom a{color:#31564c;background:rgba(255,255,255,.97);border-color:#d6e1dc}
 #map .leaflet-control-scale-line{border-color:#617d75;background:rgba(255,255,255,.78);color:#3d5c53}
 @media(max-width:760px){.atlas-country-label{font-size:9px}.atlas-city-label{font-size:8px}.atlas-sea-label{font-size:9px}.archipelago-label{font-size:10px}}
+
+/* ===== Map V5: toàn cảnh thích ứng, không lộ mép dữ liệu khi zoom-out ===== */
+#map{
+  background:
+    radial-gradient(circle at 54% 48%,rgba(255,255,255,.16),transparent 42%),
+    #dcecf1;
+}
+#map .leaflet-graticule-pane{transition:opacity .18s ease}
+#map.map-overview .leaflet-graticule-pane{opacity:.34}
+#map.map-detail .leaflet-graticule-pane{opacity:.82}
+
+/* Nhãn chỉ do tiện ích tạo. Toàn cảnh ưu tiên tối đa cho hình dáng lãnh thổ. */
+.atlas-label-icon,.vietnam-name-icon,.archipelago-label-icon,.minor-island-label-icon{background:transparent!important;border:0!important}
+.vietnam-name-label{
+  width:120px;text-align:center;color:#3f7868;font-size:12px;font-weight:950;
+  letter-spacing:.16em;white-space:nowrap;opacity:.74;
+  text-shadow:0 1px 0 rgba(255,255,255,.98),0 0 5px rgba(255,255,255,.92)
+}
+#map.map-overview .atlas-city-icon,#map.map-overview .atlas-country-icon{display:none!important}
+#map.map-overview .atlas-sea-label{font-size:10px;opacity:.82;letter-spacing:.18em}
+#map.map-overview .vietnam-name-label{font-size:11px;opacity:.78}
+#map.map-overview .archipelago-label{font-size:10px;letter-spacing:.01em}
+
+/* Marker thu nhỏ ở toàn cảnh, tự tăng kích thước khi zoom vào. */
+.reserve-marker{width:18px;height:18px;border-width:3px}
+.reserve-marker span{width:5px;height:5px}
+#map.map-overview .reserve-marker{
+  width:14px;height:14px;border-width:2.5px;
+  box-shadow:0 1px 5px rgba(16,45,34,.30)
+}
+#map.map-overview .reserve-marker span{width:4px;height:4px}
+#map.map-detail .reserve-marker{width:19px;height:19px}
+
+/* Cụm đảo giữ nhẹ, không tạo cảm giác một vùng ranh giới đóng khung. */
+#map.map-overview .leaflet-archipelago-pane .leaflet-interactive{opacity:.92}
+.archipelago-label{white-space:nowrap}
+
+/* Điều khiển bản đồ gọn hơn, bớt chiếm diện tích ở chế độ toàn cảnh. */
+#map .leaflet-control-zoom{border:1px solid rgba(91,122,113,.26);border-radius:10px;overflow:hidden;box-shadow:0 4px 14px rgba(34,64,54,.10)}
+#map .leaflet-control-zoom a{width:32px;height:32px;line-height:31px;font-size:20px}
+#map .leaflet-control-scale{margin-right:12px;margin-bottom:10px}
+#map .leaflet-control-scale-line{font-size:10px;border-width:0 0 1px 1px;padding:1px 5px}
+
+@media(max-width:760px){
+  #map.map-overview .reserve-marker{width:13px;height:13px;border-width:2px}
+  #map.map-overview .archipelago-label{font-size:9px}
+  #map.map-overview .vietnam-name-label{font-size:10px}
+}
+
+/* ===== Map V6: atlas điện tử — viền Việt Nam chi tiết + marker chống chồng lấn ===== */
+#map{
+  background:
+    radial-gradient(ellipse at 48% 43%,rgba(255,255,255,.22),transparent 48%),
+    linear-gradient(180deg,#d9eaf0 0%,#dcecf1 55%,#d8e8ed 100%);
+}
+/* Đường biên atlas luôn mềm và giữ độ dày theo màn hình khi zoom. */
+#map .leaflet-overlay-pane svg path{
+  vector-effect:non-scaling-stroke;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#map .vn-coast-outline{filter:drop-shadow(0 0 1px rgba(255,255,255,.72))}
+#map .vn-border-outline{filter:drop-shadow(0 0 1px rgba(255,255,255,.58))}
+#map.map-overview .vn-coast-outline{stroke-width:1.42px}
+#map.map-overview .vn-border-outline{stroke-width:1.06px}
+#map.map-detail .vn-coast-outline{stroke-width:1.65px}
+#map.map-detail .vn-border-outline{stroke-width:1.18px}
+
+/* Marker gần nhau ở toàn cảnh được tách nhẹ bằng thuật toán chống va chạm.
+   Đường dẫn mảnh trả marker về tọa độ thật, tránh hiểu sai vị trí địa lí. */
+.reserve-leader-line{
+  stroke-dasharray:2 2;
+  stroke-linecap:round;
+  pointer-events:none;
+}
+#map.map-overview .reserve-marker{
+  width:15px;height:15px;border-width:2.5px;
+  box-shadow:0 1px 4px rgba(21,57,45,.28),0 0 0 1px rgba(255,255,255,.30);
+}
+#map.map-overview .reserve-marker:hover{transform:scale(1.22)}
+#map.map-overview .reserve-marker span{width:4px;height:4px}
+
+/* Tên Việt Nam / Biển Đông đóng vai trò nhãn vùng, không cạnh tranh với marker. */
+#map.map-overview .vietnam-name-label{
+  color:#356f60;font-size:10.5px;letter-spacing:.18em;opacity:.72;
+}
+#map.map-overview .atlas-sea-label{
+  color:#5e8798;font-size:9.5px;letter-spacing:.20em;opacity:.76;
+}
+#map.map-overview .archipelago-label{
+  padding:2px 5px;border-radius:7px;background:rgba(236,247,250,.54);
+  color:#0b5b7a;font-size:9.5px;letter-spacing:.01em;
+}
+
+/* Toàn cảnh cần nhiều diện tích cho bản đồ hơn là chi tiết điều khiển. */
+#map.map-overview .leaflet-control-scale{opacity:.72}
+#map.map-overview .leaflet-control-zoom{opacity:.88}
+
+@media(max-width:760px){
+  #map.map-overview .reserve-marker{width:13px;height:13px;border-width:2px}
+  #map.map-overview .vietnam-name-label{font-size:9.5px}
+  #map.map-overview .atlas-sea-label{font-size:8.7px}
+  #map.map-overview .archipelago-label{font-size:8.8px;padding:1px 4px}
+}
