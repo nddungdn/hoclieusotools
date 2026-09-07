@@ -31,52 +31,41 @@ function imageTag(r, className = '') {
 }
 
 // ---------------- MAP ----------------
+// Bản đồ nền OpenStreetMap: không cần API key. Lớp tile được làm dịu bằng CSS
+// để giao diện giống atlas học tập hơn bản đồ giao thông thông thường.
 const map = L.map('map', {
   minZoom: 4,
   maxZoom: 13,
   zoomControl: true,
   attributionControl: true,
-  preferCanvas: true
-}).setView([15.8, 108.2], 5.15);
+  preferCanvas: true,
+  zoomSnap: 0.25,
+  zoomDelta: 0.5
+}).setView([15.8, 108.35], 5.25);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  subdomains: 'abcd',
-  attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+  attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-map.setMaxBounds([[5.4, 98.6], [25.6, 119.1]]);
+map.setMaxBounds([[4.8, 97.8], [26.2, 120.2]]);
 L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
 
-map.createPane('countryPane');
-map.getPane('countryPane').style.zIndex = 310;
-map.getPane('countryPane').style.pointerEvents = 'none';
+// Các lớp phủ phục vụ học tập. Không vẽ lại đường biên quốc gia bằng polygon thô;
+// đường bờ và biên giới dùng trực tiếp từ bản đồ nền để giữ hình dáng tự nhiên.
 map.createPane('archipelagoPane');
-map.getPane('archipelagoPane').style.zIndex = 315;
+map.getPane('archipelagoPane').style.zIndex = 430;
 map.getPane('archipelagoPane').style.pointerEvents = 'none';
-
-L.geoJSON(VIETNAM_OUTLINE, {
-  pane: 'countryPane',
-  style: {
-    color: '#0c6a58',
-    weight: 2.2,
-    opacity: 0.9,
-    fillColor: '#88c8b6',
-    fillOpacity: 0.22
-  }
-}).addTo(map);
-
-// Hộp định hướng không gian cho hai quần đảo; không phải ranh giới hành chính/pháp lý.
-const archipelagoStyle = { pane:'archipelagoPane', color:'#197a99', weight:1.4, dashArray:'6 6', fillColor:'#76c7dd', fillOpacity:0.05, interactive:false };
-L.rectangle([[15.25,110.7],[17.45,113.35]], archipelagoStyle).addTo(map);
-L.rectangle([[7.15,111.0],[12.15,117.05]], archipelagoStyle).addTo(map);
+map.createPane('islandPane');
+map.getPane('islandPane').style.zIndex = 420;
+map.getPane('islandPane').style.pointerEvents = 'none';
 
 function reserveIcon(r) {
   return L.divIcon({
     className: '',
-    html: `<div class="reserve-marker ${regionClass[r.region] || ''}"><span>${String(r.year).slice(-2)}</span></div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 30]
+    html: `<div class="reserve-marker ${regionClass[r.region] || ''}" aria-hidden="true"><span></span></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
   });
 }
 
@@ -84,12 +73,12 @@ function bindReserveTooltip(r) {
   const marker = markers[r.id];
   if (!marker) return;
   marker.bindTooltip(`<b>${r.name}</b><br><span>UNESCO ${r.year} · ${r.currentLocation}</span>`, {
-    direction: 'top', offset: [0, -14], className: 'reserve-tooltip'
+    direction: 'top', offset: [0, -10], className: 'reserve-tooltip'
   });
 }
 
 BIOSPHERES.forEach(r => {
-  const m = L.marker([r.lat, r.lng], { icon: reserveIcon(r), riseOnHover: true }).addTo(map);
+  const m = L.marker([r.lat, r.lng], { icon: reserveIcon(r), riseOnHover: true, keyboard: true }).addTo(map);
   markers[r.id] = m;
   bindReserveTooltip(r);
   m.on('click', () => {
@@ -98,27 +87,68 @@ BIOSPHERES.forEach(r => {
   });
 });
 
-const majorIslandLayer = L.layerGroup().addTo(map);
-const minorIslandLayer = L.layerGroup();
+// Hoàng Sa và Trường Sa: dùng cụm điểm đảo cách điệu thay cho khung chữ nhật.
+// Các điểm chỉ nhằm định hướng vị trí trên bản đồ học tập, không mô tả ranh giới pháp lý.
+const ARCHIPELAGO_GROUPS = [
+  {
+    name: 'Quần đảo Hoàng Sa',
+    label: [15.86, 112.15],
+    points: [
+      [16.50,112.00],[16.30,111.72],[16.82,112.32],[16.10,112.48],
+      [16.63,112.62],[15.95,111.92],[16.38,112.24]
+    ]
+  },
+  {
+    name: 'Quần đảo Trường Sa',
+    label: [8.45, 114.72],
+    points: [
+      [11.05,114.25],[10.55,114.70],[10.20,115.15],[9.72,114.25],
+      [9.25,115.52],[8.87,114.10],[8.38,115.85],[10.72,116.05],
+      [9.55,113.72],[8.95,116.25]
+    ]
+  }
+];
 
-function addIsland(i) {
-  const target = i.major ? majorIslandLayer : minorIslandLayer;
-  const dot = L.divIcon({
-    className: '',
-    html: `<div class="island-dot ${i.major ? 'major' : ''}"></div>`,
-    iconSize: [i.major ? 9 : 7, i.major ? 9 : 7],
-    iconAnchor: [4, 4]
+const archipelagoLayer = L.layerGroup().addTo(map);
+ARCHIPELAGO_GROUPS.forEach(group => {
+  group.points.forEach(([lat,lng], idx) => {
+    L.circleMarker([lat,lng], {
+      pane: 'archipelagoPane',
+      radius: idx % 3 === 0 ? 2.8 : 2.1,
+      color: '#ffffff',
+      weight: 1.4,
+      fillColor: '#176b8b',
+      fillOpacity: 0.95,
+      interactive: false
+    }).addTo(archipelagoLayer);
   });
-  L.marker([i.lat, i.lng], { icon: dot, interactive: false, pane:'markerPane' }).addTo(target);
   const label = L.divIcon({
     className: '',
-    html: `<div class="island-label ${i.major ? 'major' : ''}">${i.name}</div>`,
-    iconSize: [i.major ? 180 : 110, 26],
-    iconAnchor: [i.major ? 90 : 55, -8]
+    html: `<div class="archipelago-label">${group.name}</div>`,
+    iconSize: [190, 24],
+    iconAnchor: [95, 12]
   });
-  L.marker([i.lat, i.lng], { icon: label, interactive: false, pane:'markerPane' }).addTo(target);
+  L.marker(group.label, { icon: label, interactive: false, pane: 'archipelagoPane' }).addTo(archipelagoLayer);
+});
+
+const minorIslandLayer = L.layerGroup();
+function addIsland(i) {
+  const dot = L.divIcon({
+    className: '',
+    html: '<div class="island-dot"></div>',
+    iconSize: [7, 7],
+    iconAnchor: [3.5, 3.5]
+  });
+  L.marker([i.lat, i.lng], { icon: dot, interactive: false, pane:'islandPane' }).addTo(minorIslandLayer);
+  const label = L.divIcon({
+    className: '',
+    html: `<div class="island-label">${i.name}</div>`,
+    iconSize: [110, 22],
+    iconAnchor: [55, -7]
+  });
+  L.marker([i.lat, i.lng], { icon: label, interactive: false, pane:'islandPane' }).addTo(minorIslandLayer);
 }
-ISLAND_LABELS.forEach(addIsland);
+ISLAND_LABELS.filter(i => !i.major).forEach(addIsland);
 
 function updateIslandLayer() {
   if (minorIslandsVisible && map.getZoom() >= 6) {
@@ -130,12 +160,13 @@ function updateIslandLayer() {
 map.on('zoomend', updateIslandLayer);
 
 function fitVietnam() {
-  map.fitBounds([[7.0, 102.0], [23.8, 117.15]], { padding: [18, 18] });
+  map.fitBounds([[7.0, 102.0], [23.8, 117.2]], { padding: [18, 18] });
 }
 $('#resetMap').addEventListener('click', fitVietnam);
 $('#toggleIslands').addEventListener('click', (e) => {
   minorIslandsVisible = !minorIslandsVisible;
   e.currentTarget.classList.toggle('active', minorIslandsVisible);
+  e.currentTarget.setAttribute('aria-pressed', String(minorIslandsVisible));
   updateIslandLayer();
 });
 

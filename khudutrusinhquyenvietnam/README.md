@@ -1,6 +1,6 @@
 # Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V2
 
-Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần backend, API key hoặc cơ sở dữ liệu.
+Tiện ích web tĩnh hỗ trợ dạy và học Địa lí THCS. Không cần backend, API key hoặc cơ sở dữ liệu. Bản đồ dùng OpenStreetMap nên không xuất hiện watermark yêu cầu API key.
 
 ## Điểm mới V2
 
@@ -47,7 +47,7 @@ https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/
 Tiện ích là web tĩnh nhưng khi chạy cần Internet để tải:
 
 - Leaflet từ CDN `unpkg.com`;
-- bản đồ nền CARTO/OpenStreetMap;
+- bản đồ nền OpenStreetMap (không API key), được làm dịu màu để phù hợp dạng atlas học tập;
 - ảnh Wikimedia Commons;
 - thumbnail/video YouTube.
 
@@ -66,6 +66,6 @@ Mỗi khu nằm trong mảng `BIOSPHERES` của `data.js`. Có thể thay ảnh,
 - UNESCO Man and the Biosphere Programme (MAB)
 - Wikimedia Commons
 - YouTube (ưu tiên kênh truyền hình, khoa giáo, du lịch/chính thống phù hợp)
-- OpenStreetMap contributors / CARTO
+- OpenStreetMap contributors
 
 V2 — 07/09/2026
