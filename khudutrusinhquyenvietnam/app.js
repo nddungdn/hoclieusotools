@@ -6,6 +6,7 @@ const detailSection = $('#detailSection');
 let selectedId = null;
 let activeRegion = 'Tất cả';
 let markers = {};
+let minorIslandsVisible = true;
 
 const regionOrder = ['Tất cả', 'Miền Bắc', 'Miền Trung', 'Tây Nguyên', 'Miền Nam'];
 const regionClass = {
@@ -28,108 +29,135 @@ function imageCredit(r) {
 }
 
 // ---------------- MAP ----------------
-// V9: sử dụng bản đồ hành chính chính thức do Cục Đo đạc, Bản đồ và
-// Thông tin địa lý Việt Nam (VNSDI) công bố qua ArcGIS REST MapServer.
-// Không còn tự vẽ đường bờ/biên giới bằng atlas-data.js.
-const VNSDI_MAP_URL = 'https://vnsdi.mae.gov.vn/server/rest/services/BDHCVN/BanDoHanhChinhVietNam/MapServer';
-const VNSDI_HOME_URL = 'https://vnsdi.mae.gov.vn/';
-const MAP_BOUNDS = L.latLngBounds([[3.8, 97.2], [27.0, 122.0]]);
-const OVERVIEW_BOUNDS = L.latLngBounds([[5.4, 100.0], [24.8, 119.2]]);
+// Atlas V8: nền vector nội bộ, zoom-out tự do không lộ mép dữ liệu.
+// Khi zoom xa, lớp nền khu vực được ẩn và chỉ giữ Việt Nam + Biển Đông + đảo/quần đảo;
+// vì vậy không còn hiện tượng nhìn thấy "khung chữ nhật" của bộ dữ liệu cắt theo vùng.
+const WORLD_BOUNDS = L.latLngBounds([[-80, -179], [80, 179]]);
+const OVERVIEW_BOUNDS = L.latLngBounds([[6.1, 100.15], [24.7, 118.05]]);
+const REGIONAL_DETAIL_MIN_ZOOM = 4.85;
+const LABEL_DETAIL_MIN_ZOOM = 6.15;
+const WORLD_CLEAN_ZOOM = 4.45;
 
 const map = L.map('map', {
-  minZoom: 3.25,
-  maxZoom: 11,
+  minZoom: 2.25,
+  maxZoom: 10,
   zoomControl: true,
   attributionControl: false,
   preferCanvas: true,
   zoomSnap: 0.25,
   zoomDelta: 0.5,
   worldCopyJump: false,
-  maxBounds: MAP_BOUNDS,
-  maxBoundsViscosity: 0.82
+  maxBoundsViscosity: 0.15
 });
+
+// Chỉ chặn kéo ra ngoài thế giới Web Mercator; không khóa người dùng trong một ô atlas khu vực.
+map.setMaxBounds(WORLD_BOUNDS);
 L.control.scale({ imperial: false, position: 'bottomright', maxWidth: 110 }).addTo(map);
 
-// Nền dự phòng hoàn toàn không có nhãn chữ. Chỉ bật khi dịch vụ VNSDI lỗi.
-const fallbackReliefLayer = L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Hillshade/MapServer/tile/{z}/{y}/{x}',
-  { maxZoom: 13, opacity: .42, crossOrigin: true }
-);
-
-// Nhãn tối thiểu chỉ dùng khi dịch vụ nền chính thức không tải được.
-// Mục đích: không để lớp dự phòng xuất hiện chữ ngoại ngữ và vẫn giữ
-// các địa danh biển đảo quan trọng phục vụ dạy học.
-const fallbackIslandLayer = L.layerGroup();
-const fallbackPlaces = [
-  {name:'Quần đảo Hoàng Sa', lat:16.50, lng:112.30, major:true},
-  {name:'Quần đảo Trường Sa', lat:10.20, lng:114.40, major:true},
-  {name:'Cát Bà', lat:20.80, lng:107.00},
-  {name:'Bạch Long Vĩ', lat:20.13, lng:107.73},
-  {name:'Cồn Cỏ', lat:17.16, lng:107.34},
-  {name:'Lý Sơn', lat:15.38, lng:109.12},
-  {name:'Cù Lao Chàm', lat:15.95, lng:108.52},
-  {name:'Phú Quý', lat:10.53, lng:108.95},
-  {name:'Côn Đảo', lat:8.68, lng:106.61},
-  {name:'Phú Quốc', lat:10.23, lng:103.96},
-  {name:'Hòn Khoai', lat:8.43, lng:104.82}
-];
-fallbackPlaces.forEach(place => {
-  L.circleMarker([place.lat, place.lng], {
-    radius: place.major ? 3.4 : 2.4, weight: 1.2, color: '#fff',
-    fillColor: '#19648a', fillOpacity: .96, interactive: false
-  }).addTo(fallbackIslandLayer);
-  L.marker([place.lat, place.lng], {
-    interactive:false, keyboard:false,
-    icon:L.divIcon({
-      className:'fallback-place-label',
-      html:`<span class="${place.major ? 'major' : ''}">${place.name}</span>`,
-      iconSize:[150,22], iconAnchor:[75, place.major ? -3 : -1]
-    })
-  }).addTo(fallbackIslandLayer);
+[
+  ['graticulePane', 155],
+  ['atlasLandPane', 165],
+  ['atlasFocusPane', 176],
+  ['atlasBoundaryPane', 184],
+  ['atlasLabelPane', 205],
+  ['reserveLeaderPane', 395],
+  ['islandPane', 420],
+  ['archipelagoPane', 430]
+].forEach(([name,z]) => {
+  map.createPane(name);
+  map.getPane(name).style.zIndex = z;
+  map.getPane(name).style.pointerEvents = 'none';
 });
 
-let fallbackActive = false;
-function activateMapFallback() {
-  if (fallbackActive) return;
-  fallbackActive = true;
-  fallbackReliefLayer.addTo(map);
-  fallbackIslandLayer.addTo(map);
-  const status = $('#mapStatus');
-  if (status) {
-    status.hidden = false;
-    status.innerHTML = 'Không tải được lớp VNSDI. Đang dùng nền địa hình không nhãn; <a href="' + VNSDI_HOME_URL + '" target="_blank" rel="noopener">mở VNSDI ↗</a>';
+// Các lớp nền khu vực được gom riêng để có thể ẩn hoàn toàn khi zoom xa.
+const graticuleLayer = L.layerGroup();
+const regionalLandLayer = L.layerGroup();
+const regionalBoundaryLayer = L.layerGroup();
+const vietnamFocusLayer = L.layerGroup().addTo(map);
+const vietnamDetailLayer = L.layerGroup().addTo(map);
+
+for (let lng = 100; lng <= 120; lng += 5) {
+  L.polyline([[5, lng], [27, lng]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.5, opacity:.18,
+    dashArray:'3 8', interactive:false
+  }).addTo(graticuleLayer);
+}
+for (let lat = 5; lat <= 25; lat += 5) {
+  L.polyline([[lat, 98], [lat, 121]], {
+    pane:'graticulePane', color:'#9eb9bd', weight:.5, opacity:.18,
+    dashArray:'3 8', interactive:false
+  }).addTo(graticuleLayer);
+}
+
+ATLAS_DATA.land.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasLandPane', stroke:false, fillColor:'#eef2e8', fillOpacity:1,
+    interactive:false, smoothFactor:1.05
+  }).addTo(regionalLandLayer);
+});
+
+ATLAS_DATA.coasts.forEach(line => {
+  L.polyline(line, {
+    pane:'atlasBoundaryPane', color:'#8ba59f', weight:.6, opacity:.46,
+    interactive:false, smoothFactor:1.15
+  }).addTo(regionalBoundaryLayer);
+});
+ATLAS_DATA.borders.forEach(line => {
+  L.polyline(line, {
+    pane:'atlasBoundaryPane', color:'#93aaa3', weight:.58, opacity:.28,
+    dashArray:'2 5', interactive:false, smoothFactor:1.05
+  }).addTo(regionalBoundaryLayer);
+});
+
+// Việt Nam chỉ được tô nền rất nhẹ, KHÔNG vẽ viền liền quanh quốc gia.
+// Cách này tránh các đoạn nối thẳng/gãy khúc xấu khi zoom.
+ATLAS_DATA.vietnamFocus.forEach(ring => {
+  L.polygon(ring, {
+    pane:'atlasFocusPane',
+    stroke:false,
+    fillColor:'#cfe4d5', fillOpacity:.24,
+    className:'vn-national-fill', interactive:false, smoothFactor:.42
+  }).addTo(vietnamFocusLayer);
+});
+
+// Không vẽ lớp bờ biển Việt Nam đậm riêng. Mép khối đất của atlas đã tạo đường bờ tự nhiên.
+// Chỉ giữ biên giới đất liền dạng nét đứt mảnh để định hướng.
+(ATLAS_DATA.vietnamBorder || []).forEach(line => {
+  L.polyline(line, {
+    pane:'atlasBoundaryPane', color:'#426f64', weight:1.02, opacity:.58,
+    dashArray:'3 4', className:'vn-outline vn-border-outline',
+    interactive:false, smoothFactor:.55
+  }).addTo(vietnamDetailLayer);
+});
+
+const cityLabelLayer = L.layerGroup();
+const countryLabelLayer = L.layerGroup();
+const seaLabelLayer = L.layerGroup().addTo(map);
+
+ATLAS_DATA.labels.forEach(item => {
+  const targetLayer = item.kind === 'city' ? cityLabelLayer : item.kind === 'sea' ? seaLabelLayer : countryLabelLayer;
+  if (item.kind === 'city') {
+    L.circleMarker([item.lat,item.lng], {
+      pane:'atlasLabelPane', radius:2.1, color:'#50756b', weight:1,
+      fillColor:'#fff', fillOpacity:1, interactive:false
+    }).addTo(targetLayer);
   }
-}
-
-let officialMapLayer = null;
-if (L.esri && typeof L.esri.dynamicMapLayer === 'function') {
-  officialMapLayer = L.esri.dynamicMapLayer({
-    url: VNSDI_MAP_URL,
-    opacity: 1,
-    format: 'png32',
-    transparent: true,
-    useCors: true
-  }).addTo(map);
-
-  // Nếu máy chủ từ chối/gián đoạn, tiện ích vẫn còn nền không nhãn và marker học tập.
-  officialMapLayer.on('requesterror', activateMapFallback);
-  officialMapLayer.on('load', () => {
-    if (fallbackActive) {
-      map.removeLayer(fallbackReliefLayer);
-      map.removeLayer(fallbackIslandLayer);
-      fallbackActive = false;
-    }
-    const status = $('#mapStatus');
-    if (status) status.hidden = true;
+  const cls = item.kind === 'sea' ? 'atlas-sea-label' : item.kind === 'country' ? 'atlas-country-label' : 'atlas-city-label';
+  const icon = L.divIcon({
+    className:`atlas-label-icon atlas-${item.kind}-icon`,
+    html:`<div class="${cls}">${item.name}</div>`,
+    iconSize:[150,22], iconAnchor:[75, item.kind === 'city' ? -5 : 11]
   });
-} else {
-  activateMapFallback();
-}
+  L.marker([item.lat,item.lng], {icon, interactive:false, pane:'atlasLabelPane'}).addTo(targetLayer);
+});
 
-// Chỉ marker của 12 khu sinh quyển là lớp riêng của tiện ích.
-map.createPane('reserveLeaderPane');
-map.getPane('reserveLeaderPane').style.zIndex = 545;
-map.getPane('reserveLeaderPane').style.pointerEvents = 'none';
+const vietnamNameLayer = L.layerGroup().addTo(map);
+const vietnamNameIcon = L.divIcon({
+  className:'vietnam-name-icon',
+  html:'<div class="vietnam-name-label">VIỆT NAM</div>',
+  iconSize:[120,28], iconAnchor:[60,14]
+});
+L.marker([15.05,106.95], {icon:vietnamNameIcon, interactive:false, pane:'atlasLabelPane'}).addTo(vietnamNameLayer);
 
 function reserveIcon(r) {
   return L.divIcon({
@@ -156,13 +184,11 @@ function resetReserveMarkerPositions() {
   reserveLeaderLayer.clearLayers();
 }
 
-// Chống chồng marker khi xem toàn cảnh; marker chỉ dịch nhẹ trên màn hình,
-// tọa độ gốc vẫn được đánh dấu bằng đường nối mảnh. Khi zoom vào, marker trở về vị trí thật.
 let overviewZoom = 5.15;
 function layoutReserveMarkers() {
   if (!map._loaded) return;
   const z = map.getZoom();
-  const overview = z <= overviewZoom + .55;
+  const overview = z <= overviewZoom + .55 && z > WORLD_CLEAN_ZOOM;
   if (!overview) { resetReserveMarkerPositions(); return; }
 
   reserveLeaderLayer.clearLayers();
@@ -211,12 +237,12 @@ function layoutReserveMarkers() {
     markers[item.r.id]?.setLatLng(display);
     if (shifted > 2.4) {
       L.polyline([item.origin, display], {
-        pane:'reserveLeaderPane', color:'#53786e', weight:.72, opacity:.52,
+        pane:'reserveLeaderPane', color:'#53786e', weight:.75, opacity:.58,
         interactive:false, className:'reserve-leader-line'
       }).addTo(reserveLeaderLayer);
       L.circleMarker(item.origin, {
-        pane:'reserveLeaderPane', radius:1.4, color:'#fff', weight:1,
-        fillColor:'#557d72', fillOpacity:.88, interactive:false
+        pane:'reserveLeaderPane', radius:1.45, color:'#fff', weight:1,
+        fillColor:'#557d72', fillOpacity:.9, interactive:false
       }).addTo(reserveLeaderLayer);
     }
   });
@@ -232,19 +258,96 @@ BIOSPHERES.forEach(r => {
   });
 });
 
+const ARCHIPELAGO_GROUPS = [
+  {
+    name: 'Quần đảo Hoàng Sa',
+    label: [15.78, 112.15],
+    points: [
+      [16.50,112.00],[16.30,111.72],[16.82,112.32],[16.10,112.48],
+      [16.63,112.62],[15.95,111.92],[16.38,112.24]
+    ]
+  },
+  {
+    name: 'Quần đảo Trường Sa',
+    label: [8.33, 114.78],
+    points: [
+      [11.05,114.25],[10.55,114.70],[10.20,115.15],[9.72,114.25],
+      [9.25,115.52],[8.87,114.10],[8.38,115.85],[10.72,116.05],
+      [9.55,113.72],[8.95,116.25]
+    ]
+  }
+];
+
+const archipelagoLayer = L.layerGroup().addTo(map);
+ARCHIPELAGO_GROUPS.forEach(group => {
+  group.points.forEach(([lat,lng], idx) => {
+    L.circleMarker([lat,lng], {
+      pane:'archipelagoPane', radius: idx % 3 === 0 ? 2.65 : 2.0,
+      color:'#ffffff', weight:1.35, fillColor:'#176b8b', fillOpacity:.96,
+      interactive:false
+    }).addTo(archipelagoLayer);
+  });
+  const label = L.divIcon({
+    className:'archipelago-label-icon',
+    html:`<div class="archipelago-label">${group.name}</div>`,
+    iconSize:[190,24], iconAnchor:[95,12]
+  });
+  L.marker(group.label, {icon:label, interactive:false, pane:'archipelagoPane'}).addTo(archipelagoLayer);
+});
+
+const minorIslandLayer = L.layerGroup();
+function addIsland(i) {
+  const dot = L.divIcon({
+    className:'minor-island-icon', html:'<div class="island-dot"></div>',
+    iconSize:[7,7], iconAnchor:[3.5,3.5]
+  });
+  L.marker([i.lat,i.lng], {icon:dot, interactive:false, pane:'islandPane'}).addTo(minorIslandLayer);
+  const label = L.divIcon({
+    className:'minor-island-label-icon', html:`<div class="island-label">${i.name}</div>`,
+    iconSize:[110,22], iconAnchor:[55,-7]
+  });
+  L.marker([i.lat,i.lng], {icon:label, interactive:false, pane:'islandPane'}).addTo(minorIslandLayer);
+}
+ISLAND_LABELS.filter(i => !i.major).forEach(addIsland);
+
+function setLayerVisible(layer, visible) {
+  if (visible && !map.hasLayer(layer)) layer.addTo(map);
+  if (!visible && map.hasLayer(layer)) map.removeLayer(layer);
+}
+
+function updateIslandLayer() {
+  setLayerVisible(minorIslandLayer, minorIslandsVisible && map.getZoom() >= 6.15);
+}
+
 function updateMapPresentation() {
   const z = map.getZoom();
-  const overview = z <= overviewZoom + .55;
+  const worldClean = z <= WORLD_CLEAN_ZOOM;
+  const overview = !worldClean && z <= overviewZoom + .55;
+  const detail = z >= LABEL_DETAIL_MIN_ZOOM;
   const mapEl = $('#map');
+  mapEl.classList.toggle('map-world', worldClean);
   mapEl.classList.toggle('map-overview', overview);
-  mapEl.classList.toggle('map-detail', !overview);
+  mapEl.classList.toggle('map-detail', !worldClean && !overview);
+
+  // Nền khu vực chỉ xuất hiện khi đủ gần. Zoom xa chỉ còn nền biển liên tục + Việt Nam,
+  // vì vậy dù thu nhỏ sâu vẫn không thể lộ mép trái/phải/trên/dưới của dữ liệu cắt vùng.
+  setLayerVisible(regionalLandLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+  setLayerVisible(regionalBoundaryLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+  setLayerVisible(graticuleLayer, z >= REGIONAL_DETAIL_MIN_ZOOM + .15);
+  setLayerVisible(vietnamDetailLayer, z >= REGIONAL_DETAIL_MIN_ZOOM);
+
+  setLayerVisible(cityLabelLayer, detail);
+  setLayerVisible(countryLabelLayer, detail);
+  setLayerVisible(vietnamNameLayer, z < 6.7);
+  updateIslandLayer();
   layoutReserveMarkers();
 }
 
 function fitVietnam({animate=false} = {}) {
   map.fitBounds(OVERVIEW_BOUNDS, {
-    paddingTopLeft:[16,16], paddingBottomRight:[16,16], animate
+    paddingTopLeft:[18,18], paddingBottomRight:[18,18], animate
   });
+  // Lưu zoom toàn cảnh thực tế theo kích thước thiết bị để marker chống chồng lấn hoạt động ổn định.
   overviewZoom = map.getZoom();
   updateMapPresentation();
 }
@@ -253,7 +356,7 @@ let resizeTimer;
 function refreshMapLayout() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    const nearOverview = Math.abs(map.getZoom() - overviewZoom) <= .4;
+    const nearOverview = Math.abs(map.getZoom() - overviewZoom) <= .35;
     map.invalidateSize({pan:false});
     if (nearOverview) fitVietnam();
     else updateMapPresentation();
@@ -262,7 +365,15 @@ function refreshMapLayout() {
 
 map.on('zoomend moveend', updateMapPresentation);
 window.addEventListener('resize', refreshMapLayout, {passive:true});
+
 $('#resetMap').addEventListener('click', () => fitVietnam({animate:true}));
+$('#toggleIslands').addEventListener('click', (e) => {
+  minorIslandsVisible = !minorIslandsVisible;
+  e.currentTarget.classList.toggle('active', minorIslandsVisible);
+  e.currentTarget.setAttribute('aria-pressed', String(minorIslandsVisible));
+  updateIslandLayer();
+});
+
 
 // ---------------- FILTER + LIST ----------------
 function currentFiltered() {

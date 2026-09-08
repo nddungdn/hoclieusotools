@@ -64,9 +64,8 @@
           <div id="map" aria-label="Bản đồ Việt Nam và vị trí các khu dự trữ sinh quyển"></div>
           <div class="map-actions">
             <button id="resetMap" type="button" title="Xem toàn cảnh Việt Nam">⌂ Toàn cảnh</button>
+            <button id="toggleIslands" type="button" class="active" title="Ẩn hoặc hiện tên các đảo tiêu biểu; Hoàng Sa và Trường Sa luôn hiển thị" aria-pressed="true">🏝️ Đảo</button>
           </div>
-          <a class="map-source-badge" href="https://vnsdi.mae.gov.vn/" target="_blank" rel="noopener" title="Cổng thông tin không gian địa lý Việt Nam">Nguồn nền: VNSDI · Cục Đo đạc, Bản đồ & TTĐL Việt Nam ↗</a>
-          <div id="mapStatus" class="map-status" hidden></div>
           <div class="map-legend" aria-label="Chú giải bản đồ">
             <strong>Chú giải</strong>
             <span><i class="legend-pin north"></i> Miền Bắc</span>
@@ -174,7 +173,7 @@
 
   <footer>
     <div><b>Nguồn dữ liệu chính:</b> UNESCO Man and the Biosphere Programme (MAB).</div>
-    <div><b>Bản đồ nền:</b> Cổng thông tin không gian địa lý Việt Nam (VNSDI) – Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam, Bộ Nông nghiệp và Môi trường. <b>Ảnh:</b> cổng thông tin chính thống của Việt Nam; liên kết nguồn được ghi tại từng ảnh.</div>
+    <div><b>Bản đồ:</b> atlas vector nội bộ không nhãn; toàn bộ địa danh hiển thị do tiện ích ghi bằng tiếng Việt. Đối chiếu bản đồ hành chính chính thức: Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam / Nhà xuất bản Tài nguyên – Môi trường và Bản đồ Việt Nam. <b>Ảnh:</b> cổng thông tin chính thống của Việt Nam; liên kết nguồn được ghi tại từng ảnh.</div>
     <div>Tiện ích phục vụ dạy và học Địa lí; số liệu dùng cho kiểm tra hoặc tài liệu chính thức nên đối chiếu lại nguồn UNESCO/cơ quan quản lí.</div>
     <div class="copyright">Bản quyền tiện ích được thuộc về <a href="https://hoclieuso.id.vn/" aria-label="Về trang chủ Học liệu số">Học liệu số</a>!</div>
   </footer>
@@ -188,7 +187,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://unpkg.com/esri-leaflet@3.0.15/dist/esri-leaflet.js"></script>
+  <script src="atlas-data.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
