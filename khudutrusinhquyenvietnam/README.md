@@ -1,57 +1,31 @@
-# Atlas 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V9.1
+# 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V10
 
-Thư mục triển khai:
+Thư mục triển khai: `hoclieusotools/khudutrusinhquyenvietnam/`
 
-`hoclieusotools/khudutrusinhquyenvietnam/`
+Địa chỉ dự kiến: `https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
 
-Đường dẫn dự kiến:
+## Thay đổi lớn ở V10
 
-`https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
+- Thay **toàn bộ atlas vector tự dựng** bằng bản đồ hành chính chính thức của Việt Nam.
+- Nguồn nền chính: **Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam – Bộ Nông nghiệp và Môi trường**.
+- Bản đồ sử dụng: **Bản đồ hành chính nước CHXHCN Việt Nam tỷ lệ 1:9.000.000, thành lập năm 2025**.
+- PDF chính thức: `https://vnsdi.mae.gov.vn/downloads/hcvn_9tr_2025.pdf`
+- Không còn `atlas-data.js`, không còn đường biên tự vẽ, không OSM/CARTO/Google Maps, không API key.
+- Leaflet chỉ đảm nhiệm pan/zoom và lớp 12 marker sinh quyển.
+- Hoàng Sa, Trường Sa và các đảo tiêu biểu được thể hiện trực tiếp trên bản đồ chính thức.
+- Có nút **Nguồn bản đồ** mở thẳng PDF chính thức.
+- Trên trình duyệt hỗ trợ nhúng PDF, nền dùng PDF vector nên chữ/đường nét giữ độ sắc khi zoom.
+- Không dùng ảnh nền bản đồ từ nguồn không chính thống. Nếu trình duyệt không hỗ trợ nhúng PDF, người dùng vẫn có nút **Nguồn bản đồ** để mở bản đồ chính thức trực tiếp.
 
-## Thay đổi V9.1
+## Lưu ý kỹ thuật
 
-- Ba nút **Khám phá bản đồ – Thử thách vị trí – Về trang chủ** nằm cố định trên **cùng một hàng**. Ở màn hình hẹp, hàng công cụ cuộn ngang thay vì tự xuống dòng.
-- Bốn chỉ số `12 – 2000 – 2026 – 4` vẫn nằm cùng hàng, căn phải ở desktop.
-- Xóa hoàn toàn hai khối ghi chú chữ nằm dưới bản đồ.
-- Bản đồ cho phép **zoom-out sâu hơn** (tới mức locator map) mà không còn lộ mép trái, phải, trên hoặc dưới của vùng dữ liệu cắt.
-- Khi zoom xa, các lớp đất liền/lưới/biên giới khu vực tự ẩn; nền biển của viewport luôn phủ kín toàn bộ khung. Chỉ giữ Việt Nam, Biển Đông, Hoàng Sa và Trường Sa để bản đồ sạch.
-- Khi zoom trở lại mức học tập, lớp nền Đông Nam Á tự xuất hiện trở lại.
-- Hình Việt Nam có thêm **viền quốc gia liên tục** lấy từ polygon quốc gia, đặt dưới bờ biển/biên giới chi tiết. Vì vậy những đoạn dữ liệu biên giới chi tiết bị chia nhỏ không còn tạo khoảng hở thị giác.
-- Ở mức zoom rất xa, marker 12 khu được ẩn để tránh chồng thành một cụm; zoom gần hơn marker tự xuất hiện và cơ chế chống chồng lấn tiếp tục hoạt động.
-- Không sử dụng tile Google Maps, OSM hay CARTO và không có API key bản đồ.
+Bản đồ 1:9.000.000 có lưới tọa độ 102°E–118°E và 6°N–24°N. Tiện ích dùng chính khung tọa độ này để đặt 12 marker theo tọa độ tham chiếu của UNESCO.
 
-## Lưu ý về bản đồ
+`Toàn cảnh` đưa bản đồ về toàn bộ khung chính thức. Mức zoom tối thiểu được khóa theo toàn cảnh sau khi tính theo kích thước thiết bị để không thể thu nhỏ đến mức lộ phần ngoài tờ bản đồ.
 
-Bản đồ trong tiện ích là atlas học tập tự chứa. Các nhãn tiếng Việt do chính tiện ích kiểm soát. Hoàng Sa, Trường Sa và các đảo tiêu biểu được thể hiện nhằm hỗ trợ định hướng không gian trong dạy học; các điểm đảo không phải ranh giới pháp lý/hành chính.
+## Nguồn nội dung
 
-Đối với xuất bản bản đồ chính thức hoặc tài liệu cần giá trị pháp lý, cần sử dụng bản đồ/dữ liệu đã được cơ quan có thẩm quyền thẩm định theo quy định về đo đạc và bản đồ của Việt Nam.
-
-## Các file chính
-
-- `index.html` — giao diện.
-- `styles.css` — thiết kế responsive.
-- `app.js` — bản đồ, lọc, so sánh, quiz và tương tác.
-- `atlas-data.js` — dữ liệu vector atlas nội bộ.
-- `data.js` — dữ liệu 12 khu dự trữ sinh quyển, ảnh và video.
-
-## Triển khai
-
-Chép toàn bộ nội dung thư mục này vào:
-
-`hoclieusotools/khudutrusinhquyenvietnam/`
-
-Sau đó commit và push lên GitHub/Cloudflare Pages như các tiện ích khác của Học liệu số.
-
-
-## V9.1.1 — làm sạch đường nét bản đồ
-- Bỏ viền liền quanh lãnh thổ Việt Nam.
-- Bỏ lớp đường bờ biển Việt Nam tô đậm.
-- Giữ nền lãnh thổ nhẹ và biên giới đất liền nét đứt mảnh.
-- Mục tiêu: tránh các đoạn nối thẳng/gãy khúc xấu khi zoom.
-
-## V9.1 – bản sửa lỗi bản đồ
-
-- Không gọi trực tiếp lớp VNSDI/ArcGIS REST nữa vì dịch vụ có thể yêu cầu đăng nhập hoặc chặn truy cập ẩn danh.
-- Bản đồ nền mặc định là atlas vector nội bộ đi kèm dự án, vì vậy luôn hiển thị và không phụ thuộc API key/token.
-- Hoàng Sa, Trường Sa và các đảo tiêu biểu vẫn do tiện ích hiển thị bằng tiếng Việt.
-- Bản đồ chính thức của cơ quan nhà nước được dùng để đối chiếu, không bị nhúng theo cách có thể gây lỗi trắng bản đồ.
+- UNESCO Man and the Biosphere Programme (MAB): hồ sơ 12 khu dự trữ sinh quyển.
+- Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam: bản đồ hành chính Việt Nam 2025.
+- Ảnh: các cổng thông tin chính thống của Việt Nam, đường dẫn nguồn ghi ở từng ảnh.
+- Video: YouTube; ưu tiên truyền hình, khoa giáo, du lịch và cơ quan chính thống.

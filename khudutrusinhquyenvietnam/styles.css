@@ -370,3 +370,51 @@ footer{width:min(1440px,calc(100% - 26px));margin:16px auto 38px;padding:18px 3p
 }
 #map.map-overview .vn-border-outline{opacity:.42!important}
 #map.map-detail .vn-border-outline{opacity:.52!important}
+
+/* ===== V10: nền bản đồ hành chính chính thức VNSDI (PDF) ===== */
+#map{
+  background:
+    linear-gradient(90deg,#ede8d4 0 31%,#b9e5fa 31% 100%);
+  overflow:hidden;
+}
+#map .leaflet-control-attribution{display:none!important}
+#map .leaflet-control-zoom{
+  border:1px solid rgba(61,89,79,.2);border-radius:11px;overflow:hidden;
+  box-shadow:0 5px 16px rgba(27,55,46,.1)
+}
+#map .leaflet-control-zoom a{background:rgba(255,255,255,.96);color:#31564c;border-color:#d7e1dc}
+.official-map-overlay{position:absolute;overflow:hidden;background:#b9e5fa;pointer-events:none;user-select:none}
+.official-map-overlay::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(49,86,76,.06);pointer-events:none;z-index:4}
+.official-map-pdf{
+  position:absolute;max-width:none!important;pointer-events:none;border:0;margin:0;padding:0;
+  /* Cắt lề trang PDF theo khung tọa độ 102–118E, 6–24N. */
+  width:108.46%;height:121.07%;left:-4.12%;top:-12.47%;
+}
+.official-map-pdf{z-index:2;background:transparent}
+.official-map-loading{position:absolute;inset:0;z-index:1;display:grid;place-content:center;gap:5px;text-align:center;padding:24px;color:#31564c;background:linear-gradient(90deg,#eee9d7 0 31%,#b9e5fa 31% 100%);font-size:.8rem}
+.official-map-loading span{font-size:.7rem;opacity:.75}
+.official-map-overlay.pdf-ready .official-map-loading{opacity:0;transition:opacity .25s ease}
+.map-source-btn{
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+  border:1px solid #d0ded5;background:rgba(255,255,255,.95);color:#31564c;
+  border-radius:999px;padding:7px 10px;font-weight:850;box-shadow:0 5px 14px rgba(22,51,40,.11)
+}
+.map-source-btn:hover{background:#fff;color:#0b6654}
+.reserve-marker{box-shadow:0 2px 8px rgba(16,45,34,.38),0 0 0 1px rgba(15,62,48,.08)}
+.reserve-tooltip{font-family:inherit}
+
+/* Tỷ lệ khung bản đồ gần hơn với tờ bản đồ chính thức để giảm khoảng trống hai bên. */
+@media(min-width:1101px){
+  .app-shell{grid-template-columns:minmax(0,1.28fr) minmax(380px,.82fr)}
+  .map-wrap,#map{height:720px;min-height:720px}
+  .side-panel{height:794px}
+}
+@media(max-width:760px){
+  .map-wrap,#map{height:610px;min-height:610px}
+  .map-source-btn{font-size:.72rem;padding:6px 8px}
+}
+@media(max-width:520px){
+  .map-actions{max-width:calc(100% - 16px);flex-wrap:nowrap}
+  .map-actions button,.map-source-btn{white-space:nowrap}
+  .map-wrap,#map{height:560px;min-height:560px}
+}
