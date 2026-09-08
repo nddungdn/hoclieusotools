@@ -8,7 +8,7 @@
 
 /* HERO */
 .hero-header{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.58fr) minmax(280px,.42fr);gap:24px;align-items:center;padding:26px max(28px,calc((100vw - 1440px)/2));background:linear-gradient(135deg,#0a4e41,#0f6d59 58%,#1b8068);color:#fff}
-.hero-header:before,.hero-header:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.05)}.hero-header:before{width:300px;height:300px;right:-130px;top:-170px}.hero-header:after{width:240px;height:240px;left:-130px;bottom:-170px}.hero-copy,.hero-stats{position:relative;z-index:1}.home-link{display:inline-block;text-decoration:none;color:#d9eee7;font-size:.84rem;font-weight:750;margin-bottom:7px}.eyebrow{font-size:.67rem;font-weight:900;letter-spacing:.10em;color:#c8eadf}.hero-copy h1{margin:4px 0 7px;max-width:930px;font-size:clamp(1.55rem,2.0vw,3rem);line-height:1.02;letter-spacing:-.028em}.hero-copy p{margin:0;color:#d7e9e3;font-size:.91rem}.hero-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.primary-btn,.outline-btn,.soft-btn,#compareBtn{border:0;border-radius:999px;padding:7px 12px;font-weight:850;transition:.18s}.hero-actions .primary-btn,.hero-actions .outline-btn{font-size:.84rem}.home-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.primary-btn{background:#fff;color:#0c5a49}.outline-btn{background:rgba(255,255,255,.11);color:#fff;border:1px solid rgba(255,255,255,.24)}.primary-btn:hover,.outline-btn:hover,.soft-btn:hover,#compareBtn:hover{transform:translateY(-1px)}.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}.hero-stats>div{padding:10px 11px;border-radius:13px;border:1px solid rgba(255,255,255,.17);background:rgba(255,255,255,.085);backdrop-filter:blur(8px)}.hero-stats b{display:block;font-size:1.32rem;line-height:1}.hero-stats span{display:block;color:#d8e9e4;margin-top:3px;font-size:.72rem}
+.hero-header:before,.hero-header:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.05)}.hero-header:before{width:300px;height:300px;right:-130px;top:-170px}.hero-header:after{width:240px;height:240px;left:-130px;bottom:-170px}.hero-copy,.hero-stats{position:relative;z-index:1}.home-link{display:inline-block;text-decoration:none;color:#d9eee7;font-size:.84rem;font-weight:750;margin-bottom:7px}.eyebrow{font-size:.67rem;font-weight:900;letter-spacing:.10em;color:#c8eadf}.hero-copy h1{margin:4px 0 7px;max-width:930px;font-size:clamp(1.55rem,2.65vw,3rem);line-height:1.02;letter-spacing:-.028em}.hero-copy p{margin:0;color:#d7e9e3;font-size:.91rem}.hero-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.primary-btn,.outline-btn,.soft-btn,#compareBtn{border:0;border-radius:999px;padding:7px 12px;font-weight:850;transition:.18s}.hero-actions .primary-btn,.hero-actions .outline-btn{font-size:.84rem}.home-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.primary-btn{background:#fff;color:#0c5a49}.outline-btn{background:rgba(255,255,255,.11);color:#fff;border:1px solid rgba(255,255,255,.24)}.primary-btn:hover,.outline-btn:hover,.soft-btn:hover,#compareBtn:hover{transform:translateY(-1px)}.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}.hero-stats>div{padding:10px 11px;border-radius:13px;border:1px solid rgba(255,255,255,.17);background:rgba(255,255,255,.085);backdrop-filter:blur(8px)}.hero-stats b{display:block;font-size:1.32rem;line-height:1}.hero-stats span{display:block;color:#d8e9e4;margin-top:3px;font-size:.72rem}
 .quick-nav{position:sticky;top:0;z-index:800;display:flex;gap:7px;overflow-x:auto;padding:9px max(18px,calc((100vw - 1440px)/2));background:rgba(255,255,255,.95);border-bottom:1px solid var(--line);backdrop-filter:blur(12px);scrollbar-width:none}.quick-nav::-webkit-scrollbar{display:none}.quick-nav a{flex:none;text-decoration:none;padding:7px 12px;border-radius:999px;font-weight:800;color:#3e574d}.quick-nav a:hover{background:var(--soft);color:var(--green)}
 
 /* ATLAS */
@@ -370,3 +370,71 @@ footer{width:min(1440px,calc(100% - 26px));margin:16px auto 38px;padding:18px 3p
 }
 #map.map-overview .vn-border-outline{opacity:.42!important}
 #map.map-detail .vn-border-outline{opacity:.52!important}
+
+
+/* ===== V9: nền bản đồ chính thức VNSDI ===== */
+#map{
+  background:#dcecf1!important;
+}
+/* Esri Leaflet dynamic layer nằm trong overlay pane; không áp filter hay cắt lớp ảnh. */
+#map .leaflet-tile-pane{display:block!important}
+#map .leaflet-overlay-pane{background:transparent!important}
+#map .leaflet-image-layer{image-rendering:auto}
+
+/* Mọi lớp atlas tự dựng của các phiên bản trước bị vô hiệu hóa hoàn toàn. */
+#map .vn-national-outline,
+#map .vn-coast-outline,
+#map .vn-national-fill,
+#map .vn-border-outline,
+#map .atlas-label-icon,
+#map .vietnam-name-icon,
+#map .archipelago-label-icon,
+#map .minor-island-icon,
+#map .minor-island-label-icon{display:none!important}
+
+.map-source-badge{
+  position:absolute;z-index:520;left:12px;top:86px;
+  max-width:min(390px,calc(100% - 150px));
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 9px;border:1px solid rgba(48,94,79,.16);border-radius:999px;
+  background:rgba(255,255,255,.91);box-shadow:0 4px 14px rgba(22,51,40,.08);
+  color:#315d51;text-decoration:none;font-size:.68rem;font-weight:800;
+  backdrop-filter:blur(5px);
+}
+.map-source-badge:hover{background:#fff;color:#0f6957}
+.map-status{
+  position:absolute;z-index:540;left:12px;right:12px;top:126px;
+  padding:7px 10px;border:1px solid #e7c98d;border-radius:10px;
+  background:rgba(255,248,228,.96);color:#6b541d;font-size:.72rem;
+  box-shadow:0 5px 16px rgba(72,53,17,.08)
+}
+.map-status a{color:inherit;font-weight:800}
+
+/* Marker học tập là lớp duy nhất tiện ích tự phủ lên bản đồ chính thức. */
+#map.map-overview .reserve-marker{width:15px;height:15px;border-width:2.4px}
+#map.map-overview .reserve-marker span{width:4px;height:4px}
+#map.map-detail .reserve-marker{width:19px;height:19px}
+#map .reserve-leader-line{stroke-linecap:round;stroke-linejoin:round}
+
+/* Không để người dùng nhìn thấy vùng ngoài phạm vi bản đồ khi kéo/zoom. */
+#map.leaflet-container{background:#dcecf1!important;overflow:hidden}
+
+@media(max-width:760px){
+  .map-source-badge{left:8px;top:78px;max-width:calc(100% - 16px);font-size:.61rem;padding:5px 7px}
+  .map-status{left:8px;right:8px;top:112px;font-size:.66rem}
+}
+
+/* V9 fallback: nhãn do tiện ích kiểm soát, chỉ xuất hiện khi VNSDI lỗi */
+.fallback-place-label{background:transparent!important;border:0!important}
+.fallback-place-label span{
+  display:inline-block; transform:translateX(-50%); white-space:nowrap;
+  font:600 10px/1.15 Inter,system-ui,sans-serif; color:#315867;
+  text-shadow:0 1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff,0 -1px 0 #fff;
+  opacity:.82;
+}
+.fallback-place-label span.major{
+  font-size:12px; font-weight:800; color:#14577d; opacity:1;
+  padding:2px 6px; border-radius:999px; background:rgba(255,255,255,.74);
+  box-shadow:0 1px 6px rgba(29,72,88,.08);
+}
+#map.map-overview .fallback-place-label span:not(.major){display:none}
