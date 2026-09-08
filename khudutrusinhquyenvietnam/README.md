@@ -1,31 +1,54 @@
-# 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V10
+# 12 Khu dự trữ sinh quyển thế giới ở Việt Nam — V11
 
-Thư mục triển khai: `hoclieusotools/khudutrusinhquyenvietnam/`
+## Mục tiêu của V11
+V11 được làm lại phần bản đồ để loại bỏ lỗi nền trống của V10.
 
-Địa chỉ dự kiến: `https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
+### Kiến trúc bản đồ mới
+- Không Leaflet.
+- Không Google Maps / OpenStreetMap / CARTO.
+- Không API key.
+- Không gọi dịch vụ tile/REST bên ngoài.
+- Không nhúng PDF vào lớp bản đồ.
+- Nền atlas được đóng gói tại `assets/atlas-region.webp`.
+- Pan/zoom/marker được điều khiển bằng JavaScript nội bộ (`app.js`).
+- Nhãn địa danh trên bản đồ do chính tiện ích kiểm soát bằng tiếng Việt.
+- Có Hoàng Sa, Trường Sa và một số đảo tiêu biểu.
+- Có giới hạn pan/zoom để dù thu nhỏ hoặc kéo mạnh cũng không lộ mép trắng quanh bản đồ.
 
-## Thay đổi lớn ở V10
+> Bản đồ nền nội bộ phục vụ định vị và học tập, không thay thế bản đồ hành chính có giá trị pháp lý. Nút **Đối chiếu bản đồ chính thức** mở bản đồ 2025 của Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam.
 
-- Thay **toàn bộ atlas vector tự dựng** bằng bản đồ hành chính chính thức của Việt Nam.
-- Nguồn nền chính: **Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam – Bộ Nông nghiệp và Môi trường**.
-- Bản đồ sử dụng: **Bản đồ hành chính nước CHXHCN Việt Nam tỷ lệ 1:9.000.000, thành lập năm 2025**.
-- PDF chính thức: `https://vnsdi.mae.gov.vn/downloads/hcvn_9tr_2025.pdf`
-- Không còn `atlas-data.js`, không còn đường biên tự vẽ, không OSM/CARTO/Google Maps, không API key.
-- Leaflet chỉ đảm nhiệm pan/zoom và lớp 12 marker sinh quyển.
-- Hoàng Sa, Trường Sa và các đảo tiêu biểu được thể hiện trực tiếp trên bản đồ chính thức.
-- Có nút **Nguồn bản đồ** mở thẳng PDF chính thức.
-- Trên trình duyệt hỗ trợ nhúng PDF, nền dùng PDF vector nên chữ/đường nét giữ độ sắc khi zoom.
-- Không dùng ảnh nền bản đồ từ nguồn không chính thống. Nếu trình duyệt không hỗ trợ nhúng PDF, người dùng vẫn có nút **Nguồn bản đồ** để mở bản đồ chính thức trực tiếp.
+## Kiểm thử trước khi đóng gói
+Đã chạy bằng Chromium headless với toàn bộ tài nguyên bản đồ nội bộ:
+- 12/12 thẻ khu dự trữ sinh quyển render thành công.
+- 12/12 marker render thành công.
+- Không có lỗi JavaScript khi khởi tạo.
+- Click marker `Cát Bà` mở đúng chi tiết `Cát Bà`.
+- Tìm kiếm `Cần Giờ` trả về đúng 1 kết quả.
+- Chế độ thử thách khởi tạo được.
+- Ảnh nền atlas nội bộ tải đúng kích thước 7200 × 6786 px.
+- Thử thu nhỏ liên tục và kéo bản đồ mạnh: không lộ lề trắng ở bốn phía.
+- Kiểm tra desktop 1440 px và mobile 390 px.
 
-## Lưu ý kỹ thuật
+## Cấu trúc
+```text
+khudutrusinhquyenvietnam/
+├── index.html
+├── styles.css
+├── data.js
+├── app.js
+├── README.md
+└── assets/
+    ├── atlas-region.webp
+    └── photo-placeholder.svg
+```
 
-Bản đồ 1:9.000.000 có lưới tọa độ 102°E–118°E và 6°N–24°N. Tiện ích dùng chính khung tọa độ này để đặt 12 marker theo tọa độ tham chiếu của UNESCO.
+## Triển khai
+Đặt thư mục tại:
 
-`Toàn cảnh` đưa bản đồ về toàn bộ khung chính thức. Mức zoom tối thiểu được khóa theo toàn cảnh sau khi tính theo kích thước thiết bị để không thể thu nhỏ đến mức lộ phần ngoài tờ bản đồ.
+`hoclieusotools/khudutrusinhquyenvietnam/`
 
-## Nguồn nội dung
+Địa chỉ dự kiến:
 
-- UNESCO Man and the Biosphere Programme (MAB): hồ sơ 12 khu dự trữ sinh quyển.
-- Cục Đo đạc, Bản đồ và Thông tin địa lý Việt Nam: bản đồ hành chính Việt Nam 2025.
-- Ảnh: các cổng thông tin chính thống của Việt Nam, đường dẫn nguồn ghi ở từng ảnh.
-- Video: YouTube; ưu tiên truyền hình, khoa giáo, du lịch và cơ quan chính thống.
+`https://tools.hoclieuso.id.vn/khudutrusinhquyenvietnam/`
+
+Không cần build, package manager, backend hay API key.
