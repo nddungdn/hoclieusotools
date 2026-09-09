@@ -19,5 +19,6 @@ jobs:
           node-version: '22'
       - run: node --check radenguvan/config.js
       - run: node --check radenguvan/v174-patch.js
+      - run: node --check radenguvan/v175-patch.js
       - run: node --check radenguvan/data.js
       - run: node --check radenguvan/app.js
