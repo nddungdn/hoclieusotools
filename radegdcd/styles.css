@@ -1355,3 +1355,62 @@ tbody tr:hover td{background:#f5f8ff}
   .panel.active{box-shadow:0 8px 22px rgba(43,54,96,.08)}
   .review-tabs{border-radius:16px}
 }
+/* ===== HEADER: VỀ TRANG CHỦ + VERSION ===== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 34px;
+  padding: 7px 13px;
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.home-link:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.home-link:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .header-actions {
+    gap: 6px;
+  }
+
+  .home-link {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+}
