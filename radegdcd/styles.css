@@ -1419,25 +1419,3 @@ tbody tr:hover td{background:#f5f8ff}
 .version-badge {
   flex: 0 0 auto;
 }
-@media (max-width: 760px) {
-  .header-inner {
-    flex-wrap: wrap;
-    padding: 16px 0;
-    gap: 12px;
-  }
-
-  .brand {
-    width: 100%;
-  }
-
-  .brand-text h1,
-  .brand-text p {
-    white-space: normal;
-  }
-
-  .header-actions {
-    width: 100%;
-    justify-content: flex-start;
-    margin-left: 74px;
-  }
-}
