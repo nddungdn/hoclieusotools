@@ -1355,62 +1355,89 @@ tbody tr:hover td{background:#f5f8ff}
   .panel.active{box-shadow:0 8px 22px rgba(43,54,96,.08)}
   .review-tabs{border-radius:16px}
 }
-/* ===== HEADER: VỀ TRANG CHỦ + VERSION ===== */
+/* ===== HEADER LAYOUT ===== */
 
+.app-header {
+  width: 100%;
+}
+
+.header-inner {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+  min-height: 102px;
+}
+
+/* Logo + tiêu đề */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.brand-logo {
+  flex: 0 0 auto;
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-text h1 {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.brand-text p {
+  margin: 5px 0 0;
+  white-space: nowrap;
+}
+
+/* Hai nút bên phải */
 .header-actions {
+  flex: 0 0 auto;
+
   display: flex;
   align-items: center;
   justify-content: flex-end;
+
   gap: 10px;
-  flex-wrap: nowrap;
-}
+  margin-left: auto;
 
-.home-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 34px;
-  padding: 7px 13px;
-
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-
-  text-decoration: none;
   white-space: nowrap;
-
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
 }
 
-.home-link:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.45);
-  color: #ffffff;
-  transform: translateY(-1px);
+.home-link,
+.version-badge {
+  flex: 0 0 auto;
 }
-
-.home-link:focus-visible {
-  outline: 3px solid rgba(255, 255, 255, 0.45);
-  outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .header-actions {
-    gap: 6px;
+@media (max-width: 760px) {
+  .header-inner {
+    flex-wrap: wrap;
+    padding: 16px 0;
+    gap: 12px;
   }
 
-  .home-link {
-    padding: 7px 10px;
-    font-size: 12px;
+  .brand {
+    width: 100%;
+  }
+
+  .brand-text h1,
+  .brand-text p {
+    white-space: normal;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 74px;
   }
 }
