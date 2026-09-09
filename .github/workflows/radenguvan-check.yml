@@ -1,0 +1,23 @@
+name: radenguvan-check
+
+on:
+  push:
+    paths:
+      - 'radenguvan/**'
+      - '.github/workflows/radenguvan-check.yml'
+  pull_request:
+    paths:
+      - 'radenguvan/**'
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check radenguvan/config.js
+      - run: node --check radenguvan/v174-patch.js
+      - run: node --check radenguvan/data.js
+      - run: node --check radenguvan/app.js
