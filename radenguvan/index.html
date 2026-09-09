@@ -155,9 +155,9 @@
     </section>
 
     <section class="panel" id="panel-generate">
-      <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Tạo đề bằng AI</h2></div><p>AI chỉ nhận ngữ liệu, ma trận và đặc tả giáo viên đã chọn; không được tự bổ sung nguồn hoặc kiến thức thiếu căn cứ.</p></div>
-      <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai.</strong> Hãy kiểm tra lại toàn bộ nội dung trước khi sử dụng. Nếu dữ liệu nguồn chưa đủ, tiện ích phải báo thiếu thay vì tự bịa.</div>
-      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.7.1:</b> Giữ tốc độ tạo đề của V1.6; Thực hành tiếng Việt được phân bổ bằng thuật toán thay vì bắt AI tự tính; bản tạo dở không còn được hiển thị như đề hoàn chỉnh.</p></div><div class="generate-actions"><button class="btn ghost" id="resetGenerationBtn" type="button">↻ Tạo lại từ đầu</button><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div></div>
+      <div class="panel-heading"><div><span class="eyebrow">BƯỚC 6</span><h2>Tạo đề bằng AI</h2></div><p>AI chỉ nhận ngữ liệu, ma trận và đặc tả giáo viên đã chọn; không tự bổ sung nguồn hoặc kiến thức thiếu căn cứ.</p></div>
+      <div class="ai-risk-banner strong"><strong>⚠ AI có thể sai.</strong> Hãy kiểm tra lại toàn bộ nội dung trước khi sử dụng. Nếu dữ liệu nguồn chưa đủ, tiện ích sẽ báo thiếu.</div>
+      <div class="generate-card"><div><h3>Tạo đề, đáp án và hướng dẫn chấm</h3><p id="generateSummary"></p><p class="tiny"><b>V1.7.3:</b> Thực hành tiếng Việt được phân bổ bằng thuật toán thay vì bắt AI tự tính; bản tạo dở không còn được hiển thị như đề hoàn chỉnh.</p></div><div class="generate-actions"><button class="btn ghost" id="resetGenerationBtn" type="button">↻ Tạo lại từ đầu</button><button class="btn primary large" id="generateBtn">✨ Tạo đề</button></div></div>
       <div class="status-box" id="generateStatus">Chưa tạo đề.</div><div class="draft-status" id="draftStatus">Bản nháp được lưu tự động trên thiết bị; API key không được lưu.</div>
       <div class="exam-preview" id="examPreview"></div>
       <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="spec">← Quay lại</button><button class="btn primary next-btn" data-next="review">Kiểm tra & Xuất Word →</button></div>
