@@ -26,9 +26,9 @@ window.APP_CONFIG={
   APP_VERSION:'1.7.4'
 };
 
-/* index.html hiện tải config.js trước data.js/app.js. Nạp patch đồng bộ tại đây để
-   patch có thể biến đổi NV_DATA và bổ sung mode/focus vào payload trước khi app chạy. */
+/* index.html tải config.js trước data.js/app.js. Nạp patch đồng bộ để patch có thể
+   biến đổi NV_DATA và bổ sung mode/focus vào payload trước khi app chạy. */
 if(document.readyState==='loading'&&!window.__RADENGUVAN_V174_PATCH_LOADING__){
   window.__RADENGUVAN_V174_PATCH_LOADING__=true;
-  document.write('<script src="v174-patch.js?v=1.7.4"><\\/script>');
+  document.write('<script src="v174-patch.js?v=1.7.4"><\/script>');
 }
