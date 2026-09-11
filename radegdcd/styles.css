@@ -1778,3 +1778,10 @@ tbody tr:hover td{background:#f5f8ff}
     font-size:8px;
   }
 }
+
+/* ===== V2.4.3 — SỬA LỖI TỪNG CÂU ===== */
+.review-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+#repairIssuesBtn{border-color:#8b5cf6;background:linear-gradient(135deg,#f5f3ff,#eef2ff);color:#5b21b6}
+#repairIssuesBtn:hover{background:linear-gradient(135deg,#ede9fe,#e0e7ff);border-color:#7c3aed;color:#4c1d95}
+@media(max-width:620px){.review-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.review-actions .btn{width:100%;min-width:0;padding-left:8px;padding-right:8px}}
+@media(max-width:420px){.review-actions{grid-template-columns:1fr}}

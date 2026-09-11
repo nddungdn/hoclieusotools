@@ -115,7 +115,10 @@ function balanceSingleChoiceAnswers(exam){
 // ===== V2.4.2 STRICT QUALITY GUARD =====
 // Không tin điểm do AI tự tính. Điểm được đối chiếu/chuẩn hóa theo ma trận,
 // sau đó mới cho phép xem, chỉnh và xuất Word.
-const QUALITY_MAX_GENERATE_ATTEMPTS = 3;
+const QUALITY_MAX_GENERATE_ATTEMPTS = 1;
+const QUALITY_MAX_REPAIR_PASSES = 2;
+const QUALITY_REPAIR_CONCURRENCY = 2;
+const REPAIRABLE_QUESTION_CATEGORIES = new Set(['Độ dài phương án','Phương án','Đáp án','Phương án nhiễu','Đúng/Sai','Hướng dẫn chấm','Tình huống','Tên nhân vật']);
 const scoreRound = n => Math.round(nval(n)*100)/100;
 const subtypeKey = x => {
   const s=String(x||'').toLowerCase();
@@ -213,7 +216,7 @@ function optionLengthProblem(q){
   const min=Math.min(...words),max=Math.max(...words),diff=max-min,ratio=max/Math.max(1,min);
   const sorted=words.slice().sort((a,b)=>a-b),median=(sorted[1]+sorted[2])/2;
   const cmin=Math.min(...chars),cmax=Math.max(...chars),cratio=cmax/Math.max(1,cmin);
-  const bad = diff>5 || (diff>=3&&ratio>1.7) || (max>median+5) || (cmax-cmin>38&&cratio>1.8);
+  const bad = diff>4 || (diff>=3&&ratio>1.7) || (max>median+4) || (cmax-cmin>34&&cratio>1.75);
   return bad?{words,chars,min,max,diff,ratio}:null;
 }
 function matrixSubtypeCounts(form){
@@ -228,39 +231,167 @@ function strictExamQualityIssues(exam){
   exam.examCodes.forEach((code,ci)=>{
     const codeName=code.code||String.fromCharCode(65+ci),qs=code.questions||[];
     const total=scoreRound(qs.reduce((s,q)=>s+nval(q.points),0));
-    if(Math.abs(total-10)>.001)issues.push({severity:'block',category:'Tổng điểm',code:codeName,message:`Tổng điểm Đề ${codeName} là ${fmt(total)}, bắt buộc phải bằng 10,0.`});
+    if(Math.abs(total-10)>.001)issues.push({severity:'block',category:'Tổng điểm',code:codeName,codeIndex:ci,message:`Tổng điểm Đề ${codeName} là ${fmt(total)}, bắt buộc phải bằng 10,0.`});
     ['TNKQ','TL'].forEach(form=>{
       const got=scoreRound(qs.filter(q=>q.form===form).reduce((s,q)=>s+nval(q.points),0));
       const exp=expectedFormPoints(form);
-      if(Math.abs(got-exp)>.001)issues.push({severity:'block',category:'Điểm theo ma trận',code:codeName,message:`${form==='TNKQ'?'Trắc nghiệm':'Tự luận'} Đề ${codeName}: ${fmt(got)} điểm, ma trận yêu cầu ${fmt(exp)} điểm.`});
+      if(Math.abs(got-exp)>.001)issues.push({severity:'block',category:'Điểm theo ma trận',code:codeName,codeIndex:ci,message:`${form==='TNKQ'?'Trắc nghiệm':'Tự luận'} Đề ${codeName}: ${fmt(got)} điểm, ma trận yêu cầu ${fmt(exp)} điểm.`});
       const slots=expectedSlots(form);
-      if(slots&&qs.filter(q=>q.form===form).length!==slots.length)issues.push({severity:'block',category:'Số câu',code:codeName,message:`Số câu ${form==='TNKQ'?'trắc nghiệm':'tự luận'} không khớp ma trận.`});
+      if(slots&&qs.filter(q=>q.form===form).length!==slots.length)issues.push({severity:'block',category:'Số câu',code:codeName,codeIndex:ci,message:`Số câu ${form==='TNKQ'?'trắc nghiệm':'tự luận'} không khớp ma trận.`});
     });
     const expTN=matrixSubtypeCounts('TNKQ');
     if(expTN){
       const gotTN=new Map();qs.filter(q=>q.form==='TNKQ').forEach(q=>{const k=subtypeKey(q.subtype);gotTN.set(k,(gotTN.get(k)||0)+1);});
       new Set([...expTN.keys(),...gotTN.keys()]).forEach(k=>{
-        if((expTN.get(k)||0)!==(gotTN.get(k)||0))issues.push({severity:'block',category:'Dạng trắc nghiệm',code:codeName,message:`Số câu "${formLabel(k)}" không khớp ma trận (${gotTN.get(k)||0}/${expTN.get(k)||0}).`});
+        if((expTN.get(k)||0)!==(gotTN.get(k)||0))issues.push({severity:'block',category:'Dạng trắc nghiệm',code:codeName,codeIndex:ci,message:`Số câu "${formLabel(k)}" không khớp ma trận (${gotTN.get(k)||0}/${expTN.get(k)||0}).`});
       });
     }
     qs.forEach((q,qi)=>{
       const qno=q.number||qi+1;
-      if(!(nval(q.points)>0))issues.push({severity:'block',category:'Điểm câu',code:codeName,questionNumber:qno,message:'Câu hỏi có điểm bằng 0 hoặc không hợp lệ.'});
+      const base={severity:'block',code:codeName,codeIndex:ci,questionNumber:qno,questionIndex:qi};
+      if(!(nval(q.points)>0))issues.push({...base,category:'Điểm câu',message:'Câu hỏi có điểm bằng 0 hoặc không hợp lệ.'});
       if(Array.isArray(q.parts)&&q.parts.length){
         const ps=scoreRound(q.parts.reduce((s,p)=>s+nval(p.points),0));
-        if(Math.abs(ps-nval(q.points))>.001)issues.push({severity:'block',category:'Điểm các ý',code:codeName,questionNumber:qno,message:`Tổng điểm các ý ${fmt(ps)} không bằng điểm câu ${fmt(q.points)}.`});
+        if(Math.abs(ps-nval(q.points))>.001)issues.push({...base,category:'Điểm các ý',message:`Tổng điểm các ý ${fmt(ps)} không bằng điểm câu ${fmt(q.points)}.`});
       }
-      if(q.form==='TNKQ'&&(subtypeKey(q.subtype)==='single'||subtypeKey(q.subtype)==='multiple')){
-        if(!Array.isArray(q.options)||q.options.length!==4)issues.push({severity:'block',category:'Phương án',code:codeName,questionNumber:qno,message:'Câu trắc nghiệm phải có đúng 4 phương án.'});
-        else{
-          const p=optionLengthProblem(q);
-          if(p)issues.push({severity:'block',category:'Độ dài phương án',code:codeName,questionNumber:qno,message:`Các phương án chênh lệch quá lớn (số từ: ${p.words.join(' – ')}). Cần viết lại gần tương đương về độ dài và cấu trúc ngữ pháp.`});
+      if(q.form==='TNKQ'){
+        const sub=subtypeKey(q.subtype);
+        if(sub==='single'||sub==='multiple'){
+          if(!Array.isArray(q.options)||q.options.length!==4)issues.push({...base,category:'Phương án',message:'Câu trắc nghiệm phải có đúng 4 phương án.'});
+          else{
+            const p=optionLengthProblem(q);
+            if(p)issues.push({...base,category:'Độ dài phương án',message:`Các phương án chênh lệch quá lớn (số từ: ${p.words.join(' – ')}). Cần viết lại gần tương đương về độ dài và cấu trúc ngữ pháp.`});
+          }
+          const correct=sub==='multiple'?(Array.isArray(q.answer)?q.answer.map(x=>String(x).trim().toUpperCase()):[]):[String(q.answer||'').trim().toUpperCase()];
+          if(sub==='single'&&!/^[A-D]$/.test(correct[0]||''))issues.push({...base,category:'Đáp án',message:'Đáp án câu một lựa chọn phải là A, B, C hoặc D.'});
+          if(sub==='multiple'&&(!Array.isArray(q.answer)||q.answer.length<2||q.answer.some(x=>!/^[A-D]$/i.test(String(x).trim()))))issues.push({...base,category:'Đáp án',message:'Đáp án câu nhiều lựa chọn đúng chưa đúng cấu trúc.'});
+          const dis=String(q.distractor||'').trim().toUpperCase();
+          if(!/^[A-D]$/.test(dis)||correct.includes(dis))issues.push({...base,category:'Phương án nhiễu',message:'Cần có một phương án nhiễu hợp lí và không trùng với đáp án đúng.'});
         }
-        if(subtypeKey(q.subtype)==='single'&&!/^[A-D]$/i.test(String(q.answer||'').trim()))issues.push({severity:'block',category:'Đáp án',code:codeName,questionNumber:qno,message:'Đáp án câu một lựa chọn phải là A, B, C hoặc D.'});
+        if(sub==='truefalse'&&(!Array.isArray(q.statements)||q.statements.length!==4))issues.push({...base,category:'Đúng/Sai',message:'Câu Đúng/Sai phải có đúng 4 nhận định.'});
+      }
+      if(q.form==='TL'){
+        if(q.essayType==='situation'&&!String(q.context||'').trim())issues.push({...base,category:'Tình huống',message:'Câu tự luận tình huống chưa có nội dung tình huống.'});
+        if(Array.isArray(q.parts)&&q.parts.length){
+          q.parts.forEach((p,pi)=>{
+            const rub=Array.isArray(p.rubric)?p.rubric:[];
+            const rs=scoreRound(rub.reduce((s,r)=>s+nval(r.points),0));
+            if(!rub.length||Math.abs(rs-nval(p.points))>.001)issues.push({...base,partIndex:pi,category:'Hướng dẫn chấm',message:`Hướng dẫn chấm ý ${p.label||String.fromCharCode(97+pi)} chưa đủ hoặc tổng điểm rubric ${fmt(rs)} không bằng ${fmt(p.points)} điểm.`});
+          });
+        }else{
+          const rub=Array.isArray(q.rubric)?q.rubric:[];
+          const rs=scoreRound(rub.reduce((s,r)=>s+nval(r.points),0));
+          if(!rub.length||Math.abs(rs-nval(q.points))>.001)issues.push({...base,category:'Hướng dẫn chấm',message:`Hướng dẫn chấm chưa đủ hoặc tổng điểm rubric ${fmt(rs)} không bằng ${fmt(q.points)} điểm.`});
+        }
       }
     });
   });
   return issues;
+}
+function isRepairableQuestionIssue(x){
+  return Number.isInteger(x?.codeIndex)&&Number.isInteger(x?.questionIndex)&&REPAIRABLE_QUESTION_CATEGORIES.has(x.category);
+}
+function groupRepairableQuestionIssues(issues=[]){
+  const m=new Map();
+  (issues||[]).filter(isRepairableQuestionIssue).forEach(x=>{
+    const k=`${x.codeIndex}|${x.questionIndex}`;
+    if(!m.has(k))m.set(k,{codeIndex:x.codeIndex,questionIndex:x.questionIndex,issues:[]});
+    m.get(k).issues.push(x);
+  });
+  return [...m.values()];
+}
+function buildRepairPayloadForQuestion(q){
+  const p=buildPayload();
+  const lessonId=q?.lessonId;
+  if(lessonId){
+    const lessons=p.lessons.filter(x=>x.id===lessonId); if(lessons.length)p.lessons=lessons;
+    const matrix=p.matrix.filter(x=>x.lessonId===lessonId); if(matrix.length)p.matrix=matrix;
+  }
+  return p;
+}
+function repairScopeForIssues(items=[]){
+  const cats=new Set(items.map(x=>x.category));
+  if([...cats].every(x=>x==='Hướng dẫn chấm'))return 'marking';
+  if([...cats].every(x=>x==='Tình huống'))return 'context';
+  return 'whole';
+}
+function repairRequestText(items=[],q){
+  const cats=new Set(items.map(x=>x.category));
+  const detail=items.map(x=>`- ${x.message}`).join('\n');
+  let task='Chỉ sửa đúng câu này để khắc phục các lỗi dưới đây; giữ nguyên bài, yêu cầu cần đạt, mức độ, dạng câu và điểm.';
+  if([...cats].some(x=>['Độ dài phương án','Phương án','Đáp án','Phương án nhiễu'].includes(x))){
+    task+=' Với câu lựa chọn, GIỮ NGUYÊN phần dẫn/câu hỏi; viết lại 4 phương án sao cho cùng kiểu ngữ pháp, gần tương đương độ dài (ưu tiên chênh không quá 3 từ, tối đa khoảng 4 từ), không làm lộ đáp án. Đảm bảo đáp án đúng thực sự đúng và có ít nhất một nhiễu hợp lí gần đáp án đúng.';
+  }
+  if(cats.has('Đúng/Sai'))task+=' Với câu Đúng/Sai, tạo đúng 4 nhận định, rõ ràng và đúng cấu trúc đáp án.';
+  if(cats.has('Hướng dẫn chấm'))task+=' Chỉ chỉnh đáp án/hướng dẫn chấm; rubric cụ thể, không trùng ý và tổng điểm rubric phải đúng tuyệt đối bằng điểm câu/ý.';
+  if(cats.has('Tình huống'))task+=' Bổ sung/chỉnh tình huống ngắn gọn, tự nhiên, phù hợp học sinh THCS và không làm thay đổi kiến thức cần kiểm tra.';
+  return `${task}\n\nLỖI CẦN SỬA:\n${detail}`;
+}
+function mergeAutoRepairedQuestion(oldQ,newQ,items=[]){
+  const cats=new Set(items.map(x=>x.category));
+  const optionOnly=[...cats].every(x=>['Độ dài phương án','Phương án','Đáp án','Phương án nhiễu'].includes(x));
+  const markingOnly=[...cats].every(x=>x==='Hướng dẫn chấm');
+  const contextOnly=[...cats].every(x=>x==='Tình huống');
+  const out=deepClone(oldQ);
+  if(optionOnly){
+    if(Array.isArray(newQ?.options))out.options=newQ.options.map(stripChoiceLabel);
+    if(newQ?.answer!==undefined)out.answer=deepClone(newQ.answer);
+    if(newQ?.distractor!==undefined)out.distractor=newQ.distractor;
+    return out;
+  }
+  if(markingOnly){
+    if(newQ?.answer!==undefined)out.answer=deepClone(newQ.answer);
+    if(Array.isArray(newQ?.rubric))out.rubric=deepClone(newQ.rubric);
+    if(Array.isArray(out.parts)&&Array.isArray(newQ?.parts))out.parts=out.parts.map((p,i)=>({...p,answer:newQ.parts[i]?.answer??p.answer,rubric:Array.isArray(newQ.parts[i]?.rubric)?deepClone(newQ.parts[i].rubric):p.rubric}));
+    return out;
+  }
+  if(contextOnly){out.context=String(newQ?.context||'').trim();return out;}
+  const fixed=['number','configId','lessonId','level','form','subtype','essayType','points'];
+  const merged={...deepClone(newQ)}; fixed.forEach(k=>merged[k]=oldQ[k]);
+  if(Array.isArray(oldQ.parts)&&Array.isArray(merged.parts)&&oldQ.parts.length===merged.parts.length){
+    merged.parts=merged.parts.map((p,i)=>({...p,label:oldQ.parts[i].label,configId:oldQ.parts[i].configId,level:oldQ.parts[i].level,points:oldQ.parts[i].points}));
+  }
+  return merged;
+}
+async function repairOneQuestionGroup(group){
+  const code=state.exam?.examCodes?.[group.codeIndex],oldQ=code?.questions?.[group.questionIndex];
+  if(!code||!oldQ)return {ok:false,group,error:'Không tìm thấy câu cần sửa.'};
+  const field=repairScopeForIssues(group.issues);
+  const data=await post('/api/refine',{...aiRequestParams(),payload:buildRepairPayloadForQuestion(oldQ),target:{codeIndex:group.codeIndex,questionIndex:group.questionIndex,field,partIndex:null,code:code.code,question:deepClone(oldQ)},teacherRequest:repairRequestText(group.issues,oldQ)});
+  if(!data?.proposal?.question)throw new Error('AI không trả câu sửa hợp lệ.');
+  code.questions[group.questionIndex]=mergeAutoRepairedQuestion(oldQ,data.proposal.question,group.issues);
+  return {ok:true,group};
+}
+async function runRepairBatch(groups,limit=QUALITY_REPAIR_CONCURRENCY,onProgress=()=>{}){
+  const results=[];
+  for(let i=0;i<groups.length;i+=limit){
+    const batch=groups.slice(i,i+limit);
+    const r=await Promise.allSettled(batch.map(g=>repairOneQuestionGroup(g)));
+    r.forEach((x,j)=>results.push(x.status==='fulfilled'?x.value:{ok:false,group:batch[j],error:String(x.reason?.message||x.reason)}));
+    onProgress(Math.min(i+batch.length,groups.length),groups.length);
+  }
+  return results;
+}
+async function repairCurrentQuestionIssues({box=null,manual=false}={}){
+  if(!state.exam?.examCodes?.length)return {repaired:0,remaining:[]};
+  let repaired=0,failed=[];
+  for(let pass=1;pass<=QUALITY_MAX_REPAIR_PASSES;pass++){
+    state.exam=normalizeGeneratedScores(state.exam);state.exam=balanceSingleChoiceAnswers(state.exam);
+    const groups=groupRepairableQuestionIssues(strictExamQualityIssues(state.exam));
+    if(!groups.length)break;
+    if(box)box.textContent=`Đề đã tạo. Đang sửa riêng ${groups.length} câu lỗi (lượt ${pass}/${QUALITY_MAX_REPAIR_PASSES})…`;
+    const results=await runRepairBatch(groups,QUALITY_REPAIR_CONCURRENCY,(done,total)=>{if(box)box.textContent=`Đang sửa từng câu lỗi: ${done}/${total} · lượt ${pass}/${QUALITY_MAX_REPAIR_PASSES}…`;});
+    repaired+=results.filter(x=>x.ok).length;failed=results.filter(x=>!x.ok);
+    state.exam=normalizeGeneratedScores(state.exam);state.exam=balanceSingleChoiceAnswers(state.exam);
+    if(!groupRepairableQuestionIssues(strictExamQualityIssues(state.exam)).length)break;
+  }
+  const remaining=strictExamQualityIssues(state.exam);
+  renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();
+  if(manual){
+    const qleft=groupRepairableQuestionIssues(remaining).length;
+    appendChat('ai',qleft?`Đã sửa riêng các câu có thể sửa tự động; còn ${qleft} câu chưa đạt. Có thể chọn đúng câu trong Trợ lý AI để chỉnh tiếp.`:`Đã sửa xong các câu lỗi kỹ thuật mà không tạo lại toàn bộ đề.`);
+  }
+  return {repaired,failed,remaining};
 }
 function qualityFeedbackText(issues=[]){
   return issues.slice(0,12).map(x=>`- ${x.code?`Đề ${x.code}${x.questionNumber?`, câu ${x.questionNumber}`:''}: `:''}${x.message}`).join('\n');
@@ -497,28 +628,34 @@ async function generateExam(){
   if(!state.selected.size) return alert('Chưa chọn bài.');
   if(Math.abs(totalPoints()-10)>.001) return alert(`Tổng điểm ma trận hiện là ${fmt(totalPoints())}; cần bằng 10,0.`);
   const btn=$('#generateBtn'), box=$('#generateStatus');btn.disabled=true;box.classList.remove('hidden');
-  let lastIssues=[];
   try{
-    for(let attempt=1;attempt<=QUALITY_MAX_GENERATE_ATTEMPTS;attempt++){
-      box.textContent=`Đang tạo và kiểm tra đề (${attempt}/${QUALITY_MAX_GENERATE_ATTEMPTS})…`;
-      const feedback=lastIssues.length?qualityFeedbackText(lastIssues):'';
-      let data=await post('/api/generate',{...aiRequestParams(),payload:buildPayload(feedback)});
-      data=normalizeGeneratedScores(data);
-      data=balanceSingleChoiceAnswers(data);
-      const issues=strictExamQualityIssues(data);
-      if(!issues.some(x=>x.severity==='block')){
-        state.exam=data; state.editHistory=[]; state.reviewProposal=null; state.aiReview=null;
-        renderExam(); renderAudit(); renderReviewWorkspace(); resetReviewConfirmation();
-        box.textContent=attempt===1?'✓ Đã tạo đề và vượt qua kiểm tra kỹ thuật. Hãy tiếp tục kiểm tra nội dung.':`✓ Đã tự sửa/tạo lại và vượt qua kiểm tra kỹ thuật ở lần ${attempt}. Hãy tiếp tục kiểm tra nội dung.`;
-        return;
-      }
-      lastIssues=issues;
-      box.textContent=`Lần ${attempt} chưa đạt: ${issues[0]?.message||'đề chưa đúng yêu cầu'}`+(attempt<QUALITY_MAX_GENERATE_ATTEMPTS?' · Đang yêu cầu AI làm lại…':'');
+    box.textContent='Đang tạo bản đề gốc… Hệ thống chỉ tạo toàn bộ đề một lần.';
+    let data=await post('/api/generate',{...aiRequestParams(),payload:buildPayload()});
+    data=normalizeGeneratedScores(data);data=balanceSingleChoiceAnswers(data);
+    state.exam=data;state.editHistory=[];state.reviewProposal=null;state.aiReview=null;
+    renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();
+
+    let issues=strictExamQualityIssues(state.exam);
+    const qGroups=groupRepairableQuestionIssues(issues);
+    if(qGroups.length){
+      box.textContent=`✓ Đã nhận bản đề gốc. Phát hiện ${qGroups.length} câu cần sửa; đang sửa riêng từng câu, không tạo lại toàn bộ đề…`;
+      const result=await repairCurrentQuestionIssues({box});
+      issues=result.remaining;
     }
-    state.exam=null;renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();
-    throw new Error(`AI chưa tạo được đề đạt chuẩn sau ${QUALITY_MAX_GENERATE_ATTEMPTS} lần. Hệ thống đã KHÔNG nhận đề sai. ${qualityFeedbackText(lastIssues).replace(/\n/g,' ')}`);
-  }catch(e){box.textContent='✕ '+e.message;}
-  finally{btn.disabled=false;}
+
+    const blocking=issues.filter(x=>x.severity==='block');
+    const qleft=groupRepairableQuestionIssues(blocking).length;
+    const structural=blocking.filter(x=>!isRepairableQuestionIssue(x));
+    if(!blocking.length){
+      box.textContent='✓ Đã tạo đề và sửa riêng các câu lỗi. Đề vượt qua kiểm tra kỹ thuật; giáo viên tiếp tục kiểm tra nội dung.';
+    }else if(qleft){
+      box.textContent=`⚠ Đề đã được GIỮ LẠI. Còn ${qleft} câu cần chỉnh; hệ thống không tạo lại toàn bộ đề. Sang Bước 6 và dùng “Sửa các câu lỗi” hoặc chọn đúng câu trong Trợ lý AI.`;
+    }else if(structural.length){
+      box.textContent=`⚠ Đề đã được GIỮ LẠI nhưng còn lỗi cấu trúc: ${structural[0].message} Hệ thống không tự tạo lại nhiều lần để tránh chờ lâu.`;
+    }
+  }catch(e){
+    box.textContent='✕ '+e.message+' Nếu lỗi chỉ nằm ở một câu, Worker V2.4.3 sẽ trả bản đề về để sửa riêng câu đó thay vì loại toàn bộ đề.';
+  }finally{btn.disabled=false;}
 }
 function sectionScore(code,form){return (code?.questions||[]).filter(q=>q.form===form).reduce((s,q)=>s+nval(q.points),0);}
 function orderedQuestions(code){
@@ -977,6 +1114,7 @@ function bind(){
   const syncDisabled=()=>$('#disabledOptions')?.classList.toggle('hidden',!$('#disabledGuide').checked);
   $('#disabledGuide').addEventListener('change',syncDisabled); syncDisabled();
   $$('.review-tab').forEach(b=>b.addEventListener('click',()=>{state.reviewTab=b.dataset.reviewTab;renderReviewWorkspace();}));
+  $('#repairIssuesBtn')?.addEventListener('click',async()=>{const btn=$('#repairIssuesBtn');if(!state.apiOk)return alert('Hãy kiểm tra nhà cung cấp AI trước.');if(!state.exam?.examCodes?.length)return alert('Chưa có đề để sửa.');btn.disabled=true;const old=btn.textContent;btn.textContent='Đang sửa từng câu…';try{await repairCurrentQuestionIssues({manual:true});}finally{btn.disabled=false;btn.textContent=old;}});
   $('#aiReviewBtn')?.addEventListener('click',runAiReview);
   $('#aiEditBtn')?.addEventListener('click',sendAiEdit);
   $('#undoEditBtn')?.addEventListener('click',undoAiEdit);
