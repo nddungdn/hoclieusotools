@@ -112,7 +112,7 @@ function balanceSingleChoiceAnswers(exam){
   return exam;
 }
 
-// ===== V2.4.2 STRICT QUALITY GUARD =====
+// ===== V2.4.4 STRICT QUALITY GUARD + EXPLICIT ISSUE REPORT =====
 // Không tin điểm do AI tự tính. Điểm được đối chiếu/chuẩn hóa theo ma trận,
 // sau đó mới cho phép xem, chỉnh và xuất Word.
 const QUALITY_MAX_GENERATE_ATTEMPTS = 1;
@@ -388,8 +388,9 @@ async function repairCurrentQuestionIssues({box=null,manual=false}={}){
   const remaining=strictExamQualityIssues(state.exam);
   renderExam();renderAudit();renderReviewWorkspace();resetReviewConfirmation();
   if(manual){
-    const qleft=groupRepairableQuestionIssues(remaining).length;
-    appendChat('ai',qleft?`Đã sửa riêng các câu có thể sửa tự động; còn ${qleft} câu chưa đạt. Có thể chọn đúng câu trong Trợ lý AI để chỉnh tiếp.`:`Đã sửa xong các câu lỗi kỹ thuật mà không tạo lại toàn bộ đề.`);
+    const qIssues=remaining.filter(isRepairableQuestionIssue);
+    const qleft=groupRepairableQuestionIssues(qIssues).length;
+    appendChat('ai',qleft?`Đã sửa riêng các câu có thể sửa tự động nhưng còn ${qleft} câu chưa đạt:\n${qualityIssueText(qIssues,10)}\nChọn đúng câu trong danh sách cảnh báo hoặc Trợ lý AI để chỉnh tiếp. Nếu AI chưa sửa được, vẫn có thể xuất Word và sửa thủ công.`:`Đã sửa xong các câu lỗi kỹ thuật mà không tạo lại toàn bộ đề.`);
   }
   return {repaired,failed,remaining};
 }
@@ -406,6 +407,76 @@ function buildQualityRules(retryFeedback=''){
     retryFeedback?`LỖI CỦA LẦN TRƯỚC – PHẢI SỬA Ở LẦN NÀY:\n${retryFeedback}`:''
   ].filter(Boolean).join('\n');
 }
+
+function issueLocationLabel(x){
+  let s=x?.code?`Đề ${x.code}`:'Toàn đề';
+  if(x?.questionNumber!==undefined&&x?.questionNumber!==null&&x.questionNumber!=='')s+=` · Câu ${x.questionNumber}`;
+  if(Number.isInteger(x?.partIndex))s+=` · ý ${String.fromCharCode(97+x.partIndex)}`;
+  return s;
+}
+function issueSuggestedPrompt(x){
+  const c=String(x?.category||'');
+  if(c==='Độ dài phương án')return 'Chỉ sửa 4 phương án của câu này: giữ nguyên phần dẫn, kiến thức, mức độ và đáp án; viết các phương án song song về ngữ pháp, gần tương đương độ dài và không làm lộ đáp án.';
+  if(c==='Phương án')return 'Bổ sung/chỉnh đúng 4 phương án cho câu này, cùng kiểu ngữ pháp, gần tương đương độ dài; giữ nguyên kiến thức, mức độ và điểm.';
+  if(c==='Đáp án')return 'Kiểm tra lại câu này và sửa đáp án cho chính xác; nếu cần thì chỉnh phương án để câu chỉ có đáp án đúng theo đúng dạng trắc nghiệm, nhưng không đổi kiến thức, mức độ hoặc điểm.';
+  if(c==='Phương án nhiễu')return 'Chỉnh phương án nhiễu của câu này để hợp lí, gần đáp án đúng nhưng vẫn sai rõ ràng theo kiến thức; không đổi phần dẫn, mức độ hoặc điểm.';
+  if(c==='Đúng/Sai')return 'Chỉnh riêng câu Đúng/Sai này để có đúng 4 nhận định rõ ràng, phù hợp kiến thức và cấu trúc đáp án; không đổi mức độ hoặc điểm.';
+  if(c==='Hướng dẫn chấm')return 'Chỉ sửa đáp án/hướng dẫn chấm của câu hoặc ý này: tiêu chí cụ thể, không trùng ý và tổng điểm rubric phải đúng bằng điểm đã khóa trong ma trận.';
+  if(c==='Tình huống')return 'Chỉ bổ sung/chỉnh tình huống của câu này cho ngắn gọn, tự nhiên, phù hợp học sinh THCS; giữ nguyên yêu cầu cần đạt, mức độ, câu hỏi và điểm.';
+  if(c==='Tên nhân vật')return 'Chỉ sửa tên nhân vật trong tình huống thành chữ cái in hoa như A, H, M; không thay đổi nội dung, mức độ hoặc điểm.';
+  if(c==='Điểm các ý'||c==='Điểm câu'||c==='Tổng điểm'||c==='Điểm theo ma trận')return 'Kiểm tra lại cấu trúc điểm của câu/đề này theo đúng ma trận 10 điểm. Không thay đổi kiến thức; chỉ sửa phần dữ liệu điểm/hướng dẫn chấm nếu cần.';
+  return `Kiểm tra và sửa đúng lỗi sau ở ${issueLocationLabel(x)}: ${x?.message||''}. Giữ nguyên bài, yêu cầu cần đạt, mức độ, dạng câu và điểm nếu không liên quan trực tiếp đến lỗi.`;
+}
+function qualityIssueRefs(issues=[],limit=6){
+  const vals=[];const seen=new Set();
+  (issues||[]).forEach(x=>{
+    const label=issueLocationLabel(x);
+    if(!seen.has(label)){seen.add(label);vals.push(label);}
+  });
+  if(!vals.length)return '';
+  return vals.slice(0,limit).join('; ')+(vals.length>limit?` … (+${vals.length-limit})`:'');
+}
+function qualityIssueText(issues=[],limit=8){
+  const lines=(issues||[]).slice(0,limit).map(x=>`${issueLocationLabel(x)} — ${x.category}: ${x.message}`);
+  if((issues||[]).length>limit)lines.push(`… còn ${(issues||[]).length-limit} cảnh báo khác.`);
+  return lines.join('\n');
+}
+function qualityIssueHtml(issues=[]){
+  return (issues||[]).map((x,i)=>{
+    const canFocus=isRepairableQuestionIssue(x);
+    return `<div class="quality-issue-item">
+      <div class="quality-issue-main"><div class="quality-issue-title">${esc(issueLocationLabel(x))} · ${esc(x.category||'Cần kiểm tra')}</div><div class="quality-issue-message">${esc(x.message||'')}</div></div>
+      ${canFocus?`<button type="button" class="btn ghost quality-focus-btn" data-quality-issue="${i}">Chọn câu này để sửa</button>`:''}
+    </div>`;
+  }).join('');
+}
+function renderQualityIssueReport(){
+  const root=$('#qualityIssueReport');if(!root)return;
+  const issues=state.exam?strictExamQualityIssues(state.exam):[];
+  if(!issues.length){
+    root.classList.add('hidden');root.innerHTML='';return;
+  }
+  const qCount=groupRepairableQuestionIssues(issues).length;
+  const structural=issues.filter(x=>!isRepairableQuestionIssue(x)).length;
+  root.classList.remove('hidden');
+  root.innerHTML=`<div class="quality-issue-head"><div><h3>⚠ Còn ${issues.length} cảnh báo kỹ thuật${qCount?` · ${qCount} câu cần kiểm tra`:''}</h3><p>Hệ thống ghi rõ vị trí để giáo viên yêu cầu AI sửa đúng câu. Nếu AI vẫn không sửa được, giáo viên vẫn có thể xuất Word và sửa thủ công sau khi xác nhận đã kiểm tra.${structural?` Có ${structural} cảnh báo ở cấp cấu trúc/toàn đề.`:''}</p></div></div>${qualityIssueHtml(issues)}`;
+  root.querySelectorAll('[data-quality-issue]').forEach(btn=>btn.addEventListener('click',()=>{
+    const issue=issues[Number(btn.dataset.qualityIssue)];
+    if(!issue||!isRepairableQuestionIssue(issue))return;
+    const field=repairScopeForIssues([issue]);
+    const sel=$('#aiScope');
+    const candidates=[`${issue.codeIndex}|${issue.questionIndex}|${field}`,`${issue.codeIndex}|${issue.questionIndex}|whole`];
+    if(sel){
+      const values=[...sel.options].map(o=>o.value);
+      const v=candidates.find(x=>values.includes(x));
+      if(v)sel.value=v;
+    }
+    const ta=$('#aiEditRequest');if(ta)ta.value=issueSuggestedPrompt(issue);
+    $('.ai-editor-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+    appendChat('system',`Đã chọn ${issueLocationLabel(issue)} · ${issue.category}. Có thể chỉnh lại yêu cầu rồi bấm “Gửi yêu cầu”.`);
+  }));
+}
+
 function slugAscii(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'');}
 function cellSummary(rows, form){
   if(!rows?.length) return 'Chưa chọn';
@@ -649,9 +720,10 @@ async function generateExam(){
     if(!blocking.length){
       box.textContent='✓ Đã tạo đề và sửa riêng các câu lỗi. Đề vượt qua kiểm tra kỹ thuật; giáo viên tiếp tục kiểm tra nội dung.';
     }else if(qleft){
-      box.textContent=`⚠ Đề đã được GIỮ LẠI. Còn ${qleft} câu cần chỉnh; hệ thống không tạo lại toàn bộ đề. Sang Bước 6 và dùng “Sửa các câu lỗi” hoặc chọn đúng câu trong Trợ lý AI.`;
+      const qIssues=blocking.filter(isRepairableQuestionIssue);
+      box.textContent=`⚠ Đề đã được GIỮ LẠI. Còn ${qleft} câu cần chỉnh:\n${qualityIssueText(qIssues,10)}\n\nSang Bước 6, bấm “Chọn câu này để sửa” hoặc chọn đúng câu trong Trợ lý AI. Nếu AI chưa sửa được, vẫn có thể xuất Word để sửa thủ công sau khi xác nhận đã kiểm tra.`;
     }else if(structural.length){
-      box.textContent=`⚠ Đề đã được GIỮ LẠI nhưng còn lỗi cấu trúc: ${structural[0].message} Hệ thống không tự tạo lại nhiều lần để tránh chờ lâu.`;
+      box.textContent=`⚠ Đề đã được GIỮ LẠI nhưng còn cảnh báo cấu trúc:\n${qualityIssueText(structural,10)}\n\nHệ thống không tự tạo lại nhiều lần để tránh chờ lâu. Giáo viên có thể kiểm tra và vẫn xuất Word để sửa thủ công nếu cần.`;
     }
   }catch(e){
     box.textContent='✕ '+e.message+' Nếu lỗi chỉ nằm ở một câu, Worker V2.4.3 sẽ trả bản đề về để sửa riêng câu đó thay vì loại toàn bộ đề.';
@@ -692,14 +764,17 @@ function renderAudit(){
   const safety=localSafetyFlags(),quality=state.exam?strictExamQualityIssues(state.exam):[];
   const optionIssues=quality.filter(x=>x.category==='Độ dài phương án');
   const scoreIssues=quality.filter(x=>['Tổng điểm','Điểm theo ma trận','Điểm câu','Điểm các ý'].includes(x.category));
+  const qIssues=quality.filter(isRepairableQuestionIssue);
+  const qGroups=groupRepairableQuestionIssues(qIssues);
   const audits=[
     [state.apiOk,'Nhà cung cấp AI',state.apiOk?`Đã kiểm tra ${aiProvider()==='cloudflare'?'Cloudflare Workers AI':'Gemini API cá nhân'}`:'Chưa kiểm tra'],
     [state.selected.size>0,'Phạm vi bài',`${state.selected.size} bài được chọn`],
     [Math.abs(totalPoints()-10)<.001,'Tổng điểm ma trận',`${fmt(totalPoints())}/10,0 điểm`],
     [allConfigs().every(x=>{const l=lessonById(x.lessonId),lev=LEVELS.find(y=>y.id===x.level);return Boolean(l?.descriptor?.[lev.key]||ensureTeacherSpec(x.lessonId)[x.level]);}),'Đặc tả theo bài','Mọi ô ma trận đều có nguồn đặc tả tương ứng'],
     [Boolean(state.exam?.examCodes?.length),'Đề kiểm tra',state.exam?.examCodes?.length?`${state.exam.examCodes.length} mã đề`:'Chưa tạo đề'],
-    [Boolean(state.exam?.examCodes?.length)&&!scoreIssues.length,'Điểm đề = 10,0',state.exam?.examCodes?.length?state.exam.examCodes.map(c=>`${c.code}: ${fmt(examScore(c))}`).join(' · '):'Chưa có'],
-    [Boolean(state.exam?.examCodes?.length)&&!optionIssues.length,'Độ dài phương án TN',state.exam?.examCodes?.length?(optionIssues.length?`${optionIssues.length} câu cần sửa`:'Các phương án không có chênh lệch lớn theo bộ kiểm tra kỹ thuật'):'Chưa có đề'],
+    [Boolean(state.exam?.examCodes?.length)&&!scoreIssues.length,'Điểm đề = 10,0',state.exam?.examCodes?.length?(scoreIssues.length?qualityIssueRefs(scoreIssues,4):state.exam.examCodes.map(c=>`${c.code}: ${fmt(examScore(c))}`).join(' · ')):'Chưa có'],
+    [Boolean(state.exam?.examCodes?.length)&&!optionIssues.length,'Độ dài phương án TN',state.exam?.examCodes?.length?(optionIssues.length?`${qualityIssueRefs(optionIssues,6)} cần sửa`:'Các phương án không có chênh lệch lớn theo bộ kiểm tra kỹ thuật'):'Chưa có đề'],
+    [Boolean(state.exam?.examCodes?.length)&&!qGroups.length,'Câu cần sửa',state.exam?.examCodes?.length?(qGroups.length?`${qGroups.length} câu: ${qualityIssueRefs(qIssues,8)}`:'Không còn lỗi kỹ thuật cấp câu'):'Chưa có đề'],
     [!safety.some(x=>x.severity==='block'),'An toàn nội dung',safety.length?`${safety.length} cảnh báo cần giáo viên xem`:'Chưa phát hiện cảnh báo tự động']
   ];
   $('#auditGrid').innerHTML=audits.map(([ok,t,d])=>`<div class="audit-item ${ok?'ok':'bad'}"><div class="audit-icon">${ok?'✓':'!'}</div><div><strong>${esc(t)}</strong><div class="tiny">${esc(d)}</div></div></div>`).join('');
@@ -741,8 +816,11 @@ function resetReviewConfirmation(){
 function updateExportGate(){
   const btn=$('#exportDocxBtn'); if(!btn)return;
   const hardSafety=localSafetyFlags().some(x=>x.severity==='block');
-  const hardQuality=state.exam?strictExamQualityIssues(state.exam).some(x=>x.severity==='block'):true;
-  btn.disabled=!state.exam?.examCodes?.length || !$('#reviewConfirm')?.checked || hardSafety || hardQuality;
+  const quality=state.exam?strictExamQualityIssues(state.exam):[];
+  const qCount=groupRepairableQuestionIssues(quality).length;
+  btn.disabled=!state.exam?.examCodes?.length || !$('#reviewConfirm')?.checked || hardSafety;
+  btn.textContent=quality.length?`⬇ Xuất file .docx · còn ${qCount||quality.length} cảnh báo`:'⬇ Xuất file .docx';
+  btn.title=quality.length?'Vẫn có thể xuất Word để giáo viên sửa thủ công. Hãy xem danh sách cảnh báo trước khi xuất.':'Xuất file Word';
 }
 function reviewMatrixHtml(){
   const lessons=selectedLessons(); if(!lessons.length)return '<div class="notice">Chưa có ma trận.</div>';
@@ -777,7 +855,7 @@ function renderReviewWorkspace(){
   $$('.review-tab').forEach(b=>b.classList.toggle('active',b.dataset.reviewTab===state.reviewTab));
   const titles={matrix:'Ma trận',spec:'Bản đặc tả',exam:'Đề kiểm tra',marking:'Hướng dẫn chấm'};$('#reviewPreviewTitle').textContent=titles[state.reviewTab]||'Xem trước';
   $('#reviewPreview').innerHTML=state.reviewTab==='matrix'?reviewMatrixHtml():state.reviewTab==='spec'?reviewSpecHtml():state.reviewTab==='exam'?reviewExamHtml():reviewMarkingHtml();
-  renderAiScopeOptions();renderSafetyReport();updateExportGate();
+  renderAiScopeOptions();renderSafetyReport();renderQualityIssueReport();updateExportGate();
 }
 function renderAiScopeOptions(){
   const sel=$('#aiScope');if(!sel)return;const current=sel.value;let opts='<option value="">Chọn câu/ý cần chỉnh...</option>';
@@ -1072,6 +1150,11 @@ async function exportDocx(){
   if(!window.JSZip) return alert('Thiếu JSZip.'); if(!state.exam?.examCodes?.length)return alert('Chưa có đề để xuất.');
   if(!$('#reviewConfirm')?.checked)return alert('Hãy xác nhận đã kiểm tra bản cuối trước khi xuất Word.');
   const hardFlags=localSafetyFlags().filter(x=>x.severity==='block'); if(hardFlags.length)return alert('Chưa thể xuất Word vì còn cảnh báo an toàn nghiêm trọng. Hãy xem mục Kiểm tra & Xuất Word và chỉnh lại nội dung.');
+  const quality=strictExamQualityIssues(state.exam);
+  if(quality.length){
+    const msg=`Đề vẫn còn ${quality.length} cảnh báo kỹ thuật:\n\n${qualityIssueText(quality,10)}\n\nBạn vẫn muốn xuất Word để kiểm tra và sửa thủ công?`;
+    if(!window.confirm(msg))return;
+  }
   const setup=setupValue(); let body='';
   body+=headerDoc(setup,setup.examType,{});body+=wP('I. MỤC TIÊU ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(`Thu thập thông tin để đánh giá mức độ đạt yêu cầu cần đạt môn Giáo dục công dân lớp ${setup.grade} theo các bài: ${selectedLessons().map(l=>l.title).join('; ')}.`,{size:24});
   body+=wP('II. HÌNH THỨC ĐỀ KIỂM TRA',{b:true,size:24,before:100});body+=wP(setup.mode==='7991'?'Kiểm tra theo lựa chọn “Ra đề theo Công văn 7991”, kết hợp TNKQ và tự luận theo ma trận đã thiết lập.':'Kiểm tra kết hợp TNKQ và tự luận theo ma trận đã thiết lập.',{size:24});

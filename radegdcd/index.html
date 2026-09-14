@@ -32,7 +32,7 @@
       <span
         class="header-pill version-badge"
         id="versionBadge"
-      >V2.4.3</span>
+      >V2.4.4</span>
     </div>
 
   </div>
@@ -183,6 +183,7 @@
         </div>
 
         <div id="safetyReport" class="safety-report hidden" aria-live="polite"></div>
+        <div id="qualityIssueReport" class="quality-issue-report hidden" aria-live="polite"></div>
         <div class="audit-grid compact-audit" id="auditGrid"></div>
 
         <div class="review-workspace">
@@ -208,9 +209,9 @@
           </aside>
         </div>
 
-        <label class="review-confirm"><input type="checkbox" id="reviewConfirm"/><span><strong>Tôi đã kiểm tra bản cuối.</strong><small>Tôi đã xem ma trận, đặc tả, đề, đáp án/hướng dẫn chấm và các cảnh báo an toàn trước khi xuất Word.</small></span></label>
+        <label class="review-confirm"><input type="checkbox" id="reviewConfirm"/><span><strong>Tôi đã kiểm tra bản cuối.</strong><small>Tôi đã xem ma trận, đặc tả, đề, đáp án/hướng dẫn chấm và các cảnh báo. Nếu còn lỗi kỹ thuật mà AI chưa sửa được, tôi sẽ kiểm tra và sửa thủ công trong file Word trước khi sử dụng.</small></span></label>
 
-        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm · chỉ xuất sau khi giáo viên xác nhận đã kiểm tra.</p></div><button class="btn primary large" id="exportDocxBtn" disabled>⬇ Xuất file .docx</button></div>
+        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm. Cảnh báo kỹ thuật không khóa xuất Word; giáo viên có thể xuất để sửa thủ công. Cảnh báo an toàn nghiêm trọng vẫn phải xử lí trước khi xuất.</p></div><button class="btn primary large" id="exportDocxBtn" disabled>⬇ Xuất file .docx</button></div>
         <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="generate">← Quay lại</button><span></span></div>
       </section>
     </main>
@@ -229,8 +230,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.4.3"></script>
-  <script src="data.js?v=2.4.3"></script>
-  <script src="app.js?v=2.4.3"></script>
+  <script src="config.js?v=2.4.4"></script>
+  <script src="data.js?v=2.4.4"></script>
+  <script src="app.js?v=2.4.4"></script>
 </body>
 </html>
