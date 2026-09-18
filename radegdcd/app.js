@@ -16,7 +16,7 @@ const SUBTYPES_7991 = [
   ['single','Một lựa chọn đúng nhất'],['truefalse','Đúng / Sai'],['short','Trả lời ngắn']
 ];
 const ESSAY_TYPES = [['direct','Câu hỏi trực tiếp'],['situation','Câu hỏi sử dụng tình huống']];
-const CF_MODELS=[['@cf/google/gemma-4-26b-a4b-it','Gemma 4 26B A4B · khuyến nghị'],['@cf/zai-org/glm-4.7-flash','GLM-4.7-Flash · nhanh, đa ngôn ngữ']];
+const CF_MODELS=[['@cf/zai-org/glm-4.7-flash','GLM-4.7-Flash · khuyến nghị · nhanh'],['@cf/google/gemma-4-26b-a4b-it','Gemma 4 26B A4B · dự phòng']];
 const state = {
   grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, apiOk:false, provider:'cloudflare',
   models:CF_MODELS.map(x=>x[0]), model:CF_MODELS[0][0], exam:null, dialog:null, reviewTab:'matrix', reviewProposal:null, editHistory:[], aiReview:null
@@ -659,7 +659,7 @@ function renderSpec(){
 async function post(path,body){
   if(!apiBase() || /YOUR_SUBDOMAIN/.test(apiBase())) throw new Error('Chưa cấu hình API_BASE trong config.js.');
   const controller=new AbortController();
-  const timeoutMs=path==='/api/generate'?150000:90000;
+  const timeoutMs=path==='/api/generate'?210000:90000;
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     const r=await fetch(apiBase()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});

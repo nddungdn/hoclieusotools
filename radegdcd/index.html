@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.0" />
+  <link rel="stylesheet" href="styles.css?v=2.5.1" />
 </head>
 <body>
   <header class="site-header">
@@ -104,19 +104,19 @@
           <div class="api-title"><div><h3>Nhà cung cấp AI</h3><p>Cloudflare Workers AI dùng mặc định, không cần API key. Gemini API cá nhân được giữ làm phương án dự phòng.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
           <div class="provider-grid">
             <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare" checked /><span><strong>Cloudflare Workers AI</strong><small>Mặc định · chạy qua Worker · không cần API key cá nhân.</small></span></label>
-            <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" /><span><strong>Gemini API cá nhân</strong><small>Dự phòng khi Cloudflare hết hạn mức hoặc giáo viên muốn dùng Gemini.</small></span></label>
+            <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" /><span><strong>Google Gemini/Vertex API cá nhân</strong><small>Hỗ trợ cả khóa Gemini Developer API dạng AIza… và Vertex AI Express dạng AQ.…</small></span></label>
           </div>
           <div id="cloudflareAiPanel" class="provider-panel">
             <div class="provider-note"><strong>Không cần nhập API key.</strong> Yêu cầu AI được thực thi trực tiếp bằng Workers AI binding trên Cloudflare.</div>
           </div>
           <div id="geminiAiPanel" class="provider-panel hidden">
             <div class="api-row">
-              <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán Gemini API key..." /><button type="button" class="icon-btn" id="toggleKey" aria-label="Hiện/ẩn API key">👁</button></div>
+              <div class="api-input-wrap"><input id="apiKey" type="password" autocomplete="off" placeholder="Dán khóa AIza… hoặc AQ.…" /><button type="button" class="icon-btn" id="toggleKey" aria-label="Hiện/ẩn API key">👁</button></div>
             </div>
             <a id="apiGuide" class="text-link" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
           </div>
           <div class="api-row api-meta">
-            <label>Model<select id="modelSelect"><option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B A4B · khuyến nghị</option><option value="@cf/zai-org/glm-4.7-flash">GLM-4.7-Flash · nhanh, đa ngôn ngữ</option></select></label>
+            <label>Model<select id="modelSelect"><option value="@cf/zai-org/glm-4.7-flash">GLM-4.7-Flash · khuyến nghị · nhanh</option><option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B A4B · dự phòng</option></select></label>
             <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra AI</button>
           </div>
           <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra Cloudflare Workers AI.</p>
@@ -230,8 +230,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.5.0"></script>
-  <script src="data.js?v=2.5.0"></script>
-  <script src="app.js?v=2.5.0"></script>
+  <script src="config.js?v=2.5.1"></script>
+  <script src="data.js?v=2.5.1"></script>
+  <script src="app.js?v=2.5.1"></script>
 </body>
 </html>
