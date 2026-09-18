@@ -195,11 +195,11 @@
   <main>
     <section class="hero">
       <div class="hero-card">
-        <div class="eyebrow">✦ Miễn phí · Không cần API · Xử lí ngay trên trình duyệt</div>
+        <div class="eyebrow">✦ Miễn phí · Không cần API AI · Prompt lõi được bảo vệ qua Cloudflare Worker</div>
         <h1>Công cụ tạo câu lệnh</h1>
         <p>Biến yêu cầu ngắn thành một câu lệnh rõ ràng, có cấu trúc và dễ dùng với nhiều công cụ AI. Phù hợp cho học tập, công việc, sáng tạo, thiết kế, lập trình, nghiên cứu và các nhu cầu hằng ngày.</p>
         <div class="hero-badges">
-          <span class="badge">Mọi đối tượng</span><span class="badge">Mọi nội dung</span><span class="badge">Có mẫu nhanh</span><span class="badge">Tự lưu bản nháp</span><span class="badge">Không gửi dữ liệu lên máy chủ</span>
+          <span class="badge">Mọi đối tượng</span><span class="badge">Mọi nội dung</span><span class="badge">Có mẫu nhanh</span><span class="badge">Tự lưu bản nháp</span><span class="badge">Không gọi API AI</span>
         </div>
       </div>
     </section>
@@ -472,7 +472,7 @@
   </main>
 
   <footer class="footer">
-    <div><strong>Công cụ tạo câu lệnh</strong> · Học liệu số · Dữ liệu nhập trong biểu mẫu được xử lí ngay trên trình duyệt.</div>
+    <div><strong>Công cụ tạo câu lệnh</strong> · Học liệu số · Dữ liệu biểu mẫu được gửi đến Cloudflare Worker chỉ để ghép câu lệnh; không gửi tới dịch vụ AI.</div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -482,43 +482,37 @@
   'use strict';
 
   const $ = (s, root=document) => root.querySelector(s);
-  const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+  const API_ENDPOINT = 'https://hls-congcutaoprompt-builder.nddungdn.workers.dev/api/prompt/generate';
 
+  // Chỉ chứa metadata giao diện. Prompt lõi và quy tắc tạo prompt nằm trong Cloudflare Worker.
   const TEMPLATES = [
-    {id:'custom', title:'Tùy chỉnh', keywords:'tuỳ chỉnh tự do bất kỳ', data:{}},
-    {id:'image', title:'Tạo hình ảnh', keywords:'ảnh hình poster infographic minh họa thiết kế', data:{task:'Tạo hình ảnh theo mô tả và dữ liệu tôi cung cấp. Bố cục phải rõ, đúng nội dung, phù hợp đối tượng và mục đích sử dụng.', outputType:'Hình ảnh / infographic / poster', imageRatio:'Tự xác định theo nhiệm vụ', imageStyle:'Tự xác định theo nhiệm vụ', role:'Bạn là giám đốc nghệ thuật và designer chuyên nghiệp.', quality:'Tự kiểm tra bố cục, tỷ lệ, chính tả nếu có chữ, sự nhất quán hình ảnh, chi tiết thừa và mức độ phù hợp với đối tượng.', avoid:'Không tự thêm dữ kiện không được cung cấp; không tạo watermark, chữ giả hoặc chi tiết gây hiểu sai nội dung.'}},
-    {id:'writing', title:'Viết nội dung', keywords:'viết bài web blog seo caption nội dung', data:{task:'Viết nội dung hoàn chỉnh dựa trên chủ đề và dữ liệu tôi cung cấp.', outputType:'Bài viết / văn bản', role:'Bạn là biên tập viên giàu kinh nghiệm, viết rõ ràng và tự nhiên.', quality:'Kiểm tra logic, độ chính xác, tính mạch lạc, chính tả và sự phù hợp với người đọc.', avoid:'Không viết sáo rỗng, không lặp ý, không bịa dữ kiện hoặc nguồn.'}},
-    {id:'lesson', title:'Dạy & học', keywords:'giáo án bài học câu hỏi học sinh giáo viên giáo dục', data:{task:'Thiết kế nội dung hỗ trợ dạy và học dựa trên mục tiêu, đối tượng và dữ liệu tôi cung cấp.', role:'Bạn là chuyên gia giáo dục và thiết kế học tập.', context:'Sử dụng trong hoạt động dạy và học.', quality:'Đảm bảo mục tiêu, hoạt động và sản phẩm học tập thống nhất; ngôn ngữ phù hợp lứa tuổi; có thể sử dụng thực tế.', avoid:'Không tạo hoạt động chỉ để vui mà không phục vụ mục tiêu; không bịa nội dung chương trình hoặc dữ liệu.'}},
-    {id:'slides', title:'Tạo slide', keywords:'slide powerpoint trình chiếu thuyết trình deck', data:{task:'Xây dựng cấu trúc bài trình chiếu có thể sử dụng thực tế, với nội dung và gợi ý trực quan cho từng slide.', outputType:'Bài trình chiếu / slide', role:'Bạn là chuyên gia thiết kế trình chiếu và storytelling.', format:'Có cấu trúc rõ, dễ đọc', quality:'Kiểm tra mạch trình bày, lượng chữ mỗi slide, tính nhất quán và khả năng trình chiếu trên màn hình.', avoid:'Không biến slide thành trang văn bản; không lạm dụng hiệu ứng hoặc trang trí.'}},
-    {id:'video', title:'Video / Flow', keywords:'video flow veo kịch bản cảnh quay prompt video', data:{task:'Tạo kịch bản hoặc câu lệnh video chi tiết từ ý tưởng tôi cung cấp, mô tả rõ chủ thể, hành động, bối cảnh, máy quay, ánh sáng và nhịp cảnh.', outputType:'Video / kịch bản video', role:'Bạn là đạo diễn hình ảnh và chuyên gia viết prompt video.', quality:'Kiểm tra tính liên tục nhân vật, hành động, không gian, hướng chuyển động, góc máy và thời lượng.', avoid:'Không để nhân vật hoặc đạo cụ thay đổi vô lý giữa các cảnh.'}},
-    {id:'code', title:'Lập trình', keywords:'code html css js javascript app web tiện ích lập trình', data:{task:'Xây dựng hoặc chỉnh sửa mã nguồn theo yêu cầu, ưu tiên giải pháp đơn giản, ổn định, dễ triển khai và dễ bảo trì.', outputType:'Mã nguồn / tiện ích', role:'Bạn là kỹ sư phần mềm senior, chú trọng tính đúng đắn, bảo mật và trải nghiệm người dùng.', format:'Markdown', quality:'Tự kiểm tra lỗi cú pháp, logic, responsive, accessibility, trường hợp biên và hướng dẫn triển khai.', avoid:'Không xóa chức năng đang hoạt động nếu không cần; không thêm thư viện phụ thuộc khi có thể dùng giải pháp đơn giản hơn.'}},
-    {id:'research', title:'Nghiên cứu', keywords:'nghiên cứu tìm hiểu tổng hợp nguồn phân tích', data:{task:'Nghiên cứu và tổng hợp vấn đề tôi nêu, phân biệt dữ kiện, nhận định và phần chưa chắc chắn.', outputType:'Phân tích / nghiên cứu', role:'Bạn là chuyên gia nghiên cứu, tổng hợp thông tin và kiểm chứng nguồn.', sourceMode:'Ưu tiên nguồn chính thống / nguồn gốc', quality:'Đối chiếu các nguồn quan trọng, ghi rõ mốc thời gian, phạm vi áp dụng và những điểm còn bất định.', avoid:'Không bịa nguồn, không biến giả thuyết thành sự thật.'}},
-    {id:'analysis', title:'Phân tích tài liệu', keywords:'phân tích tài liệu file đối chiếu kiểm tra rà soát', data:{task:'Phân tích tài liệu hoặc dữ liệu tôi cung cấp, chỉ ra thông tin chính, điểm chưa nhất quán, sai sót và đề xuất chỉnh sửa có căn cứ.', outputType:'Phân tích / nghiên cứu', role:'Bạn là chuyên gia phân tích tài liệu, làm việc cẩn trọng và có hệ thống.', quality:'Mọi kết luận phải bám dữ liệu đầu vào; nêu rõ phần chưa đủ căn cứ.', avoid:'Không suy diễn từ nội dung không có trong tài liệu.'}},
-    {id:'plan', title:'Lập kế hoạch', keywords:'kế hoạch timeline lộ trình công việc chiến lược', data:{task:'Lập kế hoạch khả thi cho mục tiêu tôi cung cấp, gồm việc cần làm, thứ tự ưu tiên, mốc thời gian, nguồn lực và cách kiểm tra tiến độ.', outputType:'Kế hoạch / quy trình', role:'Bạn là chuyên gia lập kế hoạch và quản trị công việc.', format:'Bảng', quality:'Kiểm tra sự phụ thuộc giữa các việc, tính khả thi của thời gian, nguồn lực và tiêu chí hoàn thành.', avoid:'Không đưa ra các mốc hoặc nguồn lực phi thực tế.'}},
-    {id:'marketing', title:'Truyền thông', keywords:'marketing truyền thông quảng cáo social facebook zalo seo', data:{task:'Tạo nội dung truyền thông phù hợp mục tiêu, đối tượng và kênh sử dụng tôi cung cấp.', role:'Bạn là chuyên gia chiến lược nội dung và truyền thông số.', quality:'Thông điệp phải rõ, có trọng tâm, đúng giọng thương hiệu và phù hợp nền tảng.', avoid:'Không dùng tuyên bố phóng đại, thông tin không kiểm chứng hoặc ngôn ngữ gây hiểu nhầm.'}},
-    {id:'rewrite', title:'Biên tập / viết lại', keywords:'sửa viết lại biên tập rút gọn mở rộng chỉnh văn phong', data:{task:'Biên tập hoặc viết lại nội dung tôi cung cấp mà không làm sai ý, dữ kiện hoặc sắc thái cốt lõi.', outputType:'Bài viết / văn bản', role:'Bạn là biên tập viên tiếng Việt cẩn trọng.', quality:'Kiểm tra nghĩa, logic, chính tả, giọng điệu, độ tự nhiên và mức độ giữ nguyên dữ kiện.', avoid:'Không tự thêm dữ kiện; không thay đổi tên riêng, số liệu hoặc trích dẫn.'}},
-    {id:'email', title:'Email / tin nhắn', keywords:'email thư tin nhắn zalo messenger chat phản hồi', data:{task:'Soạn một email hoặc tin nhắn hoàn chỉnh theo mục tiêu, bối cảnh và người nhận tôi cung cấp.', outputType:'Hội thoại / tin nhắn / email', role:'Bạn là chuyên gia giao tiếp chuyên nghiệp.', quality:'Ngắn gọn, đúng mục đích, rõ hành động tiếp theo và phù hợp quan hệ giữa người gửi – người nhận.', avoid:'Không dùng giọng máy móc, phô trương hoặc gây áp lực không cần thiết.'}}
+    {id:'custom', title:'Tùy chỉnh', keywords:'tuỳ chỉnh tự do bất kỳ', ui:{}},
+    {id:'image', title:'Tạo hình ảnh', keywords:'ảnh hình poster infographic minh họa thiết kế', ui:{task:'Tạo hình ảnh theo mô tả và dữ liệu tôi cung cấp.', outputType:'Hình ảnh / infographic / poster'}},
+    {id:'writing', title:'Viết nội dung', keywords:'viết bài web blog seo caption nội dung', ui:{task:'Viết nội dung hoàn chỉnh dựa trên chủ đề và dữ liệu tôi cung cấp.', outputType:'Bài viết / văn bản'}},
+    {id:'lesson', title:'Dạy & học', keywords:'giáo án bài học câu hỏi học sinh giáo viên giáo dục', ui:{task:'Thiết kế nội dung hỗ trợ dạy và học dựa trên mục tiêu, đối tượng và dữ liệu tôi cung cấp.'}},
+    {id:'slides', title:'Tạo slide', keywords:'slide powerpoint trình chiếu thuyết trình deck', ui:{task:'Xây dựng cấu trúc bài trình chiếu có thể sử dụng thực tế.', outputType:'Bài trình chiếu / slide'}},
+    {id:'video', title:'Video / Flow', keywords:'video flow veo kịch bản cảnh quay prompt video', ui:{task:'Tạo kịch bản hoặc câu lệnh video chi tiết từ ý tưởng tôi cung cấp.', outputType:'Video / kịch bản video'}},
+    {id:'code', title:'Lập trình', keywords:'code html css js javascript app web tiện ích lập trình', ui:{task:'Xây dựng hoặc chỉnh sửa mã nguồn theo yêu cầu.', outputType:'Mã nguồn / tiện ích'}},
+    {id:'research', title:'Nghiên cứu', keywords:'nghiên cứu tìm hiểu tổng hợp nguồn phân tích', ui:{task:'Nghiên cứu và tổng hợp vấn đề tôi nêu.', outputType:'Phân tích / nghiên cứu'}},
+    {id:'analysis', title:'Phân tích tài liệu', keywords:'phân tích tài liệu file đối chiếu kiểm tra rà soát', ui:{task:'Phân tích tài liệu hoặc dữ liệu tôi cung cấp.', outputType:'Phân tích / nghiên cứu'}},
+    {id:'plan', title:'Lập kế hoạch', keywords:'kế hoạch timeline lộ trình công việc chiến lược', ui:{task:'Lập kế hoạch khả thi cho mục tiêu tôi cung cấp.', outputType:'Kế hoạch / quy trình'}},
+    {id:'marketing', title:'Truyền thông', keywords:'marketing truyền thông quảng cáo social facebook zalo seo', ui:{task:'Tạo nội dung truyền thông phù hợp mục tiêu, đối tượng và kênh sử dụng tôi cung cấp.'}},
+    {id:'rewrite', title:'Biên tập / viết lại', keywords:'sửa viết lại biên tập rút gọn mở rộng chỉnh văn phong', ui:{task:'Biên tập hoặc viết lại nội dung tôi cung cấp mà không làm sai ý hoặc dữ kiện cốt lõi.', outputType:'Bài viết / văn bản'}},
+    {id:'email', title:'Email / tin nhắn', keywords:'email thư tin nhắn zalo messenger chat phản hồi', ui:{task:'Soạn một email hoặc tin nhắn hoàn chỉnh theo mục tiêu, bối cảnh và người nhận tôi cung cấp.', outputType:'Hội thoại / tin nhắn / email'}}
   ];
 
-  const state = {
-    template:'custom',
-    files:[],
-    compact:false
-  };
-
+  const state = { template:'custom', files:[], compact:false };
   const formIds = ['task','inputData','audience','context','outputType','aiTool','imageRatio','imageStyle','imageStyleCustom','tone','detail','language','format','mustKeep','role','length','creativity','sourceMode','process','avoid','quality'];
+  let generateTimer = null;
+  let requestSeq = 0;
 
-  function escText(v=''){ return String(v).trim(); }
-  function value(id){ const el=$('#'+id); return el ? escText(el.value) : ''; }
+  function text(v=''){ return String(v).trim(); }
+  function value(id){ const el=$('#'+id); return el ? text(el.value) : ''; }
   function setValue(id,v){ const el=$('#'+id); if(el && v !== undefined) el.value=v; }
-  function imageStyleValue(){
-    const selected=value('imageStyle');
-    return selected==='__custom__' ? (value('imageStyleCustom') || 'Phong cách do người dùng tự xác định nhưng chưa nhập cụ thể') : (selected || 'Tự xác định theo nhiệm vụ');
-  }
+
   function updateImageStyleCustomVisibility(){
     const wrap=$('#imageStyleCustomWrap');
-    if(!wrap) return;
-    wrap.style.display=value('imageStyle')==='__custom__'?'block':'none';
+    if(wrap) wrap.style.display=value('imageStyle')==='__custom__'?'block':'none';
   }
 
   function renderTemplates(filter=''){
@@ -531,93 +525,87 @@
     const t=TEMPLATES.find(x=>x.id===id) || TEMPLATES[0];
     state.template=t.id;
     $('#templateLabel').textContent=t.title;
-    Object.entries(t.data).forEach(([k,v])=>setValue(k,v));
+    Object.entries(t.ui||{}).forEach(([k,v])=>setValue(k,v));
     updateImageStyleCustomVisibility();
     renderTemplates($('#templateSearch').value);
-    generatePrompt();
     saveDraft(true);
-    if(id!=='custom') toast(`Đã chọn mẫu “${t.title}”. Bạn có thể sửa mọi trường.`);
+    scheduleGenerate(0);
+    if(id!=='custom') toast(`Đã chọn mẫu “${t.title}”. Prompt lõi sẽ được ghép tại Worker.`);
   }
 
-  function referenceFiles(){
-    if(!state.files.length) return '- Không có tệp tham chiếu được liệt kê.';
-    return state.files.map((f,i)=>`- Tệp ${i+1}: “${f.name}” (${f.type || 'không rõ định dạng'}). Khi thực hiện, hãy sử dụng đúng tệp người dùng đính kèm cùng câu lệnh.`).join('\n');
+  function collectValues(){
+    const values={};
+    formIds.forEach(id=>values[id]=value(id));
+    return values;
   }
 
-  function defaultRole(){
-    const type=value('outputType');
-    if(type.includes('Hình ảnh')) return 'Bạn là giám đốc nghệ thuật và designer chuyên nghiệp, có tư duy bố cục, typography, màu sắc và trải nghiệm người xem.';
-    if(type.includes('Mã nguồn')) return 'Bạn là kỹ sư phần mềm senior, ưu tiên tính đúng đắn, đơn giản, bảo mật, hiệu năng và khả năng bảo trì.';
-    if(type.includes('Phân tích')) return 'Bạn là chuyên gia phân tích và nghiên cứu, làm việc cẩn trọng, phân biệt rõ dữ kiện, suy luận và phần chưa chắc chắn.';
-    if(type.includes('Bài trình chiếu')) return 'Bạn là chuyên gia thiết kế trình chiếu và truyền đạt thông tin trực quan.';
-    if(type.includes('Video')) return 'Bạn là đạo diễn hình ảnh và chuyên gia viết kịch bản/prompt video.';
-    return 'Bạn là chuyên gia phù hợp nhất với nhiệm vụ, làm việc cẩn trọng, rõ ràng và hướng đến sản phẩm có thể sử dụng thực tế.';
-  }
-
-  function outputSpecificRules(){
-    const type=value('outputType');
-    if(type.includes('Hình ảnh')) return `- Nếu tạo hình ảnh: mô tả rõ bố cục, chủ thể, bối cảnh, phong cách, ánh sáng, màu sắc, tỷ lệ khung hình và chi tiết thị giác quan trọng.\n- Tỉ lệ/khổ hình ưu tiên: ${value('imageRatio') || 'Tự xác định theo nhiệm vụ'}.\n- Phong cách hình ảnh ưu tiên: ${imageStyleValue()}.\n- Kiểm soát chữ, tay, khuôn mặt, vật thể và các chi tiết dễ lỗi.\n- Không tự tạo logo, nhãn hiệu, tên người thật hoặc dữ liệu nhận diện nếu người dùng không cung cấp.`;
-    if(type.includes('Mã nguồn')) return '- Nếu viết mã: ưu tiên mã chạy được, tránh phụ thuộc không cần thiết, giữ nguyên chức năng đang hoạt động khi chỉnh sửa, xử lí lỗi và responsive/accessibility nếu có giao diện.\n- Khi phù hợp, cung cấp hướng dẫn triển khai ngắn gọn sau mã.';
-    if(type.includes('Bài trình chiếu')) return '- Mỗi slide chỉ nên có một ý chính; tránh biến slide thành trang văn bản; nêu gợi ý hình ảnh/bố cục khi hữu ích.';
-    if(type.includes('Video')) return '- Mô tả tính liên tục của nhân vật, hành động, bối cảnh và hướng máy quay; tránh thay đổi vô lý giữa các cảnh.';
-    if(type.includes('Bảng')) return '- Ưu tiên cấu trúc cột rõ ràng, tên trường nhất quán và dữ liệu có thể sao chép sang bảng tính.';
-    return '- Chọn cấu trúc đầu ra phù hợp với nhiệm vụ; ưu tiên dễ đọc, dễ kiểm tra và dùng được ngay.';
-  }
-
-  function buildFullPrompt(){
-    const task=value('task');
-    if(!task) return 'Nhập yêu cầu ở bên trái để bắt đầu.';
-
-    const input=value('inputData');
-    const audience=value('audience') || 'Không nêu cụ thể; hãy xác định người dùng/người đọc hợp lý từ nhiệm vụ và không tự suy diễn thông tin cá nhân.';
-    const context=value('context') || 'Không nêu cụ thể; ưu tiên đầu ra có thể sử dụng thực tế.';
-    const role=value('role') || defaultRole();
-    const must=value('mustKeep') || 'Không tự ý thay đổi dữ kiện người dùng đã cung cấp. Nếu thiếu thông tin quan trọng, chỉ rõ phần còn thiếu thay vì bịa.';
-    const process=value('process') || 'Phân tích yêu cầu; xác định dữ liệu bắt buộc; chọn cấu trúc phù hợp; tạo sản phẩm; tự kiểm tra trước khi trả kết quả.';
-    const avoid=value('avoid') || 'Không bịa dữ kiện, nguồn, tên riêng, số liệu hoặc chi tiết nhận diện. Không thêm nội dung không phục vụ yêu cầu.';
-    const quality=value('quality') || 'Kiểm tra độ chính xác, logic, chính tả, tính nhất quán, mức độ đáp ứng yêu cầu và khả năng sử dụng thực tế.';
-    const len=value('length') || 'Tự xác định hợp lý theo nhiệm vụ; không kéo dài nếu không làm tăng giá trị.';
-
-    return `VAI TRÒ\n${role}\n\n1. NHIỆM VỤ\n${task}\n\n2. ĐỐI TƯỢNG VÀ BỐI CẢNH\n- Đối tượng/người nhận: ${audience}\n- Bối cảnh/mục đích sử dụng: ${context}\n- Công cụ AI dự kiến dùng: ${value('aiTool')}\n- Tỉ lệ ảnh/khổ hình mong muốn: ${value('imageRatio') || 'Tự xác định theo nhiệm vụ'}\n- Phong cách ảnh/hình ảnh: ${imageStyleValue()}\n\n3. DỮ LIỆU ĐẦU VÀO\n${input || '- Chưa có dữ liệu cụ thể. Chỉ sử dụng thông tin trong yêu cầu; nếu cần dữ liệu bổ sung để làm đúng, hãy nêu rõ.'}\n\n4. TỆP / ẢNH THAM CHIẾU\n${referenceFiles()}\nLưu ý: tên tệp chỉ là chỉ dẫn. Không được giả vờ đã đọc một tệp nếu nội dung tệp chưa thực sự được cung cấp cho AI.\n\n5. YÊU CẦU ĐẦU RA\n- Loại đầu ra: ${value('outputType')}\n- Ngôn ngữ: ${value('language')}\n- Giọng điệu/phong cách: ${value('tone')}\n- Tỉ lệ ảnh/khổ hình: ${value('imageRatio') || 'Tự xác định theo nhiệm vụ'}\n- Phong cách ảnh/hình ảnh: ${imageStyleValue()}\n- Mức độ chi tiết: ${value('detail')}\n- Độ dài: ${len}\n- Định dạng trình bày: ${value('format')}\n- Mức sáng tạo: ${value('creativity')}\n${outputSpecificRules()}\n\n6. ĐIỀU PHẢI GIỮ NGUYÊN / RÀNG BUỘC\n${must}\n\n7. YÊU CẦU VỀ NGUỒN VÀ ĐỘ TIN CẬY\n${value('sourceMode')}. Nếu có thông tin chưa chắc chắn, hãy nói rõ mức độ chắc chắn; không tạo trích dẫn giả.\n\n8. QUY TRÌNH THỰC HIỆN\n${process}\nNếu yêu cầu đã đủ rõ, hãy thực hiện trực tiếp thay vì hỏi lại những thông tin không thật sự cần thiết.\n\n9. TỰ KIỂM TRA TRƯỚC KHI TRẢ KẾT QUẢ\n${quality}\nĐối chiếu lần cuối với yêu cầu gốc, dữ liệu bắt buộc, đối tượng, định dạng và các giới hạn. Nếu phát hiện lỗi, tự sửa trước khi xuất kết quả.\n\n10. KHÔNG ĐƯỢC CÓ\n${avoid}\nKhông trình bày suy đoán như sự thật; không tự thêm watermark, thương hiệu, nguồn, tên người, số liệu hoặc dữ kiện chưa được cung cấp.\n\nYÊU CẦU CUỐI\nChỉ tạo sản phẩm sau khi đã hiểu các ràng buộc trên. Kết quả phải hoàn chỉnh, nhất quán, dễ kiểm tra và có thể sử dụng ngay.`;
-  }
-
-  function buildCompactPrompt(){
-    const task=value('task');
-    if(!task) return 'Nhập yêu cầu ở bên trái để bắt đầu.';
-    const parts=[
-      `Hãy thực hiện nhiệm vụ sau: ${task}`,
-      value('audience') ? `Đối tượng: ${value('audience')}.` : '',
-      value('context') ? `Bối cảnh: ${value('context')}.` : '',
-      value('inputData') ? `Dữ liệu đầu vào:\n${value('inputData')}` : '',
-      `Đầu ra: ${value('outputType')}; ${value('language')}; ${value('tone')}; ${value('detail')}; định dạng ${value('format')}.`,
-      (value('imageRatio') || value('imageStyle')) ? `Tỉ lệ ảnh/khổ hình: ${value('imageRatio') || 'Tự xác định theo nhiệm vụ'}; phong cách ảnh/hình ảnh: ${imageStyleValue()}.` : '',
-      value('mustKeep') ? `Phải giữ/tuân thủ: ${value('mustKeep')}` : 'Không tự ý đổi hoặc bịa dữ kiện.',
-      value('avoid') ? `Cần tránh: ${value('avoid')}` : 'Không bịa dữ kiện hoặc nguồn.',
-      state.files.length ? `Tệp tham chiếu: ${state.files.map(f=>f.name).join(', ')}. Chỉ dùng khi tệp thực sự được đính kèm cùng câu lệnh.` : '',
-      `Trước khi trả kết quả, tự kiểm tra độ chính xác, logic, chính tả và mức độ đáp ứng yêu cầu.`
-    ].filter(Boolean);
-    return parts.join('\n\n');
-  }
-
-  function generatePrompt(){
-    const out=state.compact ? buildCompactPrompt() : buildFullPrompt();
-    $('#promptOutput').value=out;
-    $('#aiBadge').textContent=value('aiTool') || 'AI';
-    const count=out.length;
-    $('#charCount').textContent=`${count.toLocaleString('vi-VN')} ký tự`;
-    $('#qualityLabel').textContent=value('task') ? `${state.compact?'Bản rút gọn':'Bản đầy đủ'} · ${value('outputType')} · ${value('language')}` : 'Đang chờ nội dung';
-    $('#compactBtn').textContent=state.compact?'Bản đầy đủ':'Bản rút gọn';
-    saveDraft(true);
+  function collectPayload(){
+    return {
+      version:2,
+      template:state.template,
+      compact:state.compact,
+      values:collectValues(),
+      files:state.files.map(f=>({name:f.name,type:f.type,size:f.size}))
+    };
   }
 
   function collectConfig(){
-    const values={}; formIds.forEach(id=>values[id]=value(id));
-    return {version:1,createdAt:new Date().toISOString(),template:state.template,compact:state.compact,values,files:state.files.map(f=>({name:f.name,type:f.type,size:f.size}))};
+    return {...collectPayload(), createdAt:new Date().toISOString()};
+  }
+
+  function setOutput(textValue, meta={}){
+    $('#promptOutput').value=textValue;
+    $('#aiBadge').textContent=value('aiTool') || 'AI';
+    $('#charCount').textContent=`${textValue.length.toLocaleString('vi-VN')} ký tự`;
+    $('#compactBtn').textContent=state.compact?'Bản đầy đủ':'Bản rút gọn';
+    if(!value('task')) $('#qualityLabel').textContent='Đang chờ nội dung';
+    else if(meta.loading) $('#qualityLabel').textContent='Đang tạo câu lệnh an toàn…';
+    else if(meta.error) $('#qualityLabel').textContent='Không kết nối được Worker';
+    else $('#qualityLabel').textContent=`${state.compact?'Bản rút gọn':'Bản đầy đủ'} · ${meta.outputType||value('outputType')} · ${meta.language||value('language')}`;
+  }
+
+  function scheduleGenerate(delay=500){
+    clearTimeout(generateTimer);
+    generateTimer=setTimeout(()=>generatePrompt(false),delay);
+  }
+
+  async function generatePrompt(notify=false){
+    saveDraft(true);
+    const task=value('task');
+    if(!task){
+      setOutput('Nhập yêu cầu ở bên trái để bắt đầu.');
+      return;
+    }
+
+    const seq=++requestSeq;
+    setOutput($('#promptOutput').value || 'Đang tạo câu lệnh…',{loading:true});
+
+    try{
+      const response=await fetch(API_ENDPOINT,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-HLS-Client':'prompt-builder-v2'},
+        body:JSON.stringify(collectPayload()),
+        cache:'no-store',
+        credentials:'same-origin'
+      });
+      const data=await response.json().catch(()=>({ok:false,error:'Phản hồi không hợp lệ từ Worker.'}));
+      if(seq!==requestSeq) return;
+      if(!response.ok || !data.ok || !data.prompt) throw new Error(data.error || `HTTP ${response.status}`);
+      setOutput(data.prompt,data.meta||{});
+      if(notify) toast('Câu lệnh đã được tạo bởi Worker.');
+    }catch(err){
+      if(seq!==requestSeq) return;
+      setOutput('Không thể tạo câu lệnh vì chưa kết nối được Cloudflare Worker.\n\nHãy kiểm tra Worker và route: /api/prompt/generate',{error:true});
+      if(notify) toast('Không kết nối được dịch vụ tạo câu lệnh.');
+      console.error('Prompt Worker error:',err);
+    }
   }
 
   function saveDraft(silent=false){
-    try{ localStorage.setItem('hlsPromptBuilderDraft',JSON.stringify(collectConfig())); if(!silent) toast('Đã lưu bản nháp trên thiết bị này.'); }
-    catch(e){ if(!silent) toast('Không thể lưu bản nháp trên trình duyệt này.'); }
+    try{
+      localStorage.setItem('hlsPromptBuilderDraft',JSON.stringify(collectConfig()));
+      if(!silent) toast('Đã lưu bản nháp trên thiết bị này.');
+    }catch(e){ if(!silent) toast('Không thể lưu bản nháp trên trình duyệt này.'); }
   }
 
   function loadConfig(config, notify=true){
@@ -627,7 +615,10 @@
     Object.entries(config.values||{}).forEach(([k,v])=>setValue(k,v));
     state.files=(config.files||[]).map(f=>({name:f.name||'Tệp tham chiếu',type:f.type||'',size:f.size||0,virtual:true}));
     $('#templateLabel').textContent=(TEMPLATES.find(t=>t.id===state.template)||TEMPLATES[0]).title;
-    updateImageStyleCustomVisibility(); renderFiles(); renderTemplates($('#templateSearch').value); generatePrompt();
+    updateImageStyleCustomVisibility();
+    renderFiles();
+    renderTemplates($('#templateSearch').value);
+    scheduleGenerate(0);
     if(notify) toast('Đã mở cấu hình. Hãy đính kèm lại tệp tham chiếu nếu cần.');
   }
 
@@ -642,32 +633,37 @@
 
   function addFiles(fileList){
     [...fileList].forEach(file=>state.files.push({name:file.name,type:file.type,size:file.size,virtual:false}));
-    renderFiles(); generatePrompt();
+    renderFiles();
+    scheduleGenerate(0);
   }
 
   function resetAll(){
     if(!confirm('Xóa toàn bộ nội dung đang nhập và bản nháp cục bộ?')) return;
-    $('#promptForm').reset(); state.template='custom'; state.files=[]; state.compact=false;
+    $('#promptForm').reset();
+    state.template='custom'; state.files=[]; state.compact=false;
     localStorage.removeItem('hlsPromptBuilderDraft');
-    $('#templateLabel').textContent='Tùy chỉnh'; $('#templateSearch').value='';
-    updateImageStyleCustomVisibility(); renderFiles(); renderTemplates(); generatePrompt(); toast('Đã xóa nội dung.');
+    $('#templateLabel').textContent='Tùy chỉnh';
+    $('#templateSearch').value='';
+    updateImageStyleCustomVisibility();
+    renderFiles(); renderTemplates();
+    setOutput('Nhập yêu cầu ở bên trái để bắt đầu.');
+    toast('Đã xóa nội dung.');
   }
 
   function fillSample(){
-    setValue('task','Tạo một infographic 4:5 giải thích 5 bước kiểm tra độ tin cậy của thông tin trên Internet. Nội dung phải dễ hiểu, trực quan và dùng được để đăng trên mạng xã hội.');
+    setValue('task','Tạo một infographic giải thích 5 bước kiểm tra độ tin cậy của thông tin trên Internet. Nội dung phải dễ hiểu, trực quan và dùng được để đăng trên mạng xã hội.');
     setValue('audience','Học sinh THCS và phụ huynh');
     setValue('context','Đăng trên website và nhóm phụ huynh để hướng dẫn kỹ năng số');
     setValue('outputType','Hình ảnh / infographic / poster');
     setValue('imageRatio','4:5');
     setValue('imageStyle','Infographic giáo dục');
-    setValue('tone','Rõ ràng, tự nhiên, chuyên nghiệp');
-    setValue('detail','Chi tiết');
-    setValue('format','Có cấu trúc rõ, dễ đọc');
-    setValue('mustKeep','Khổ dọc 4:5; tiếng Việt có dấu; mỗi bước có tiêu đề ngắn và một câu giải thích; không dùng hình ảnh gây sợ hãi.');
-    setValue('role','Bạn là giám đốc nghệ thuật giáo dục và chuyên gia truyền thông trực quan.');
-    setValue('avoid','Không nhồi quá nhiều chữ; không dùng template AI đại trà; không tạo watermark; không dùng icon lẫn phong cách.');
-    setValue('quality','Kiểm tra chính tả tiếng Việt, thứ tự 5 bước, khả năng đọc trên điện thoại, tương phản màu và khoảng trắng.');
-    state.template='image'; $('#templateLabel').textContent='Tạo hình ảnh'; renderTemplates($('#templateSearch').value); generatePrompt(); toast('Đã điền ví dụ để thử ngay.');
+    setValue('mustKeep','Tiếng Việt có dấu; đúng 5 bước; không dùng hình ảnh gây sợ hãi.');
+    state.template='image';
+    $('#templateLabel').textContent='Tạo hình ảnh';
+    updateImageStyleCustomVisibility();
+    renderTemplates($('#templateSearch').value);
+    scheduleGenerate(0);
+    toast('Đã điền dữ liệu ví dụ.');
   }
 
   function toast(msg){
@@ -675,26 +671,32 @@
   }
 
   async function copyPrompt(){
-    const text=$('#promptOutput').value;
+    const out=$('#promptOutput').value;
     if(!value('task')) return toast('Hãy nhập yêu cầu trước khi sao chép.');
-    try{ await navigator.clipboard.writeText(text); toast('Đã sao chép câu lệnh.'); }
+    if($('#qualityLabel').textContent.includes('Không kết nối')) return toast('Worker chưa hoạt động nên chưa có câu lệnh để sao chép.');
+    try{ await navigator.clipboard.writeText(out); toast('Đã sao chép câu lệnh.'); }
     catch(e){ $('#promptOutput').focus(); $('#promptOutput').select(); document.execCommand('copy'); toast('Đã sao chép câu lệnh.'); }
   }
 
   function downloadText(){
     if(!value('task')) return toast('Hãy nhập yêu cầu trước khi tải.');
-    const blob=new Blob([$('#promptOutput').value],{type:'text/plain;charset=utf-8'});
-    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cau-lenh-ai.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),800);
+    const content=$('#promptOutput').value;
+    const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='cau-lenh-ai.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),800);
   }
 
   function exportConfig(){
     const blob=new Blob([JSON.stringify(collectConfig(),null,2)],{type:'application/json;charset=utf-8'});
-    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cau-hinh-cong-cu-tao-cau-lenh.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),800); toast('Đã lưu cấu hình.');
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='cau-hinh-cong-cu-tao-cau-lenh.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),800);
+    toast('Đã lưu cấu hình.');
   }
 
   function toggleTheme(){
     const dark=!document.body.classList.contains('dark');
-    document.body.classList.toggle('dark',dark); localStorage.setItem('hlsPromptTheme',dark?'dark':'light');
+    document.body.classList.toggle('dark',dark);
+    localStorage.setItem('hlsPromptTheme',dark?'dark':'light');
   }
 
   function initTheme(){
@@ -705,12 +707,12 @@
   function bind(){
     $('#templateList').addEventListener('click',e=>{const b=e.target.closest('[data-template]'); if(b) applyTemplate(b.dataset.template);});
     $('#templateSearch').addEventListener('input',e=>renderTemplates(e.target.value));
-    $('#promptForm').addEventListener('input',e=>{if(e.target.id!=='fileUpload') generatePrompt();});
-    $('#promptForm').addEventListener('change',e=>{if(e.target.id==='imageStyle') updateImageStyleCustomVisibility(); if(e.target.id!=='fileUpload') generatePrompt();});
-    $('#promptForm').addEventListener('submit',e=>{e.preventDefault(); generatePrompt(); toast('Câu lệnh đã được cập nhật.');});
+    $('#promptForm').addEventListener('input',e=>{if(e.target.id!=='fileUpload') scheduleGenerate(550);});
+    $('#promptForm').addEventListener('change',e=>{if(e.target.id==='imageStyle') updateImageStyleCustomVisibility(); if(e.target.id!=='fileUpload') scheduleGenerate(100);});
+    $('#promptForm').addEventListener('submit',e=>{e.preventDefault(); generatePrompt(true);});
     $('#fileUpload').addEventListener('change',e=>{addFiles(e.target.files); e.target.value='';});
-    $('#fileList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-file]'); if(!b) return; state.files.splice(+b.dataset.removeFile,1); renderFiles(); generatePrompt();});
-    $('#clearFilesBtn').addEventListener('click',()=>{state.files=[]; renderFiles(); generatePrompt();});
+    $('#fileList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-file]'); if(!b) return; state.files.splice(+b.dataset.removeFile,1); renderFiles(); scheduleGenerate(0);});
+    $('#clearFilesBtn').addEventListener('click',()=>{state.files=[]; renderFiles(); scheduleGenerate(0);});
     $('#sampleBtn').addEventListener('click',fillSample);
     $('#saveDraftBtn').addEventListener('click',()=>saveDraft(false));
     $('#resetBtn').addEventListener('click',resetAll);
@@ -721,16 +723,21 @@
     $('#importBtn').addEventListener('click',()=>$('#importFile').click());
     $('#importFile').addEventListener('change',e=>{
       const file=e.target.files[0]; if(!file) return;
-      const reader=new FileReader(); reader.onload=()=>{try{loadConfig(JSON.parse(reader.result),true)}catch(err){toast('Tệp cấu hình không hợp lệ.')}}; reader.readAsText(file,'utf-8'); e.target.value='';
+      const reader=new FileReader();
+      reader.onload=()=>{try{loadConfig(JSON.parse(reader.result),true)}catch(err){toast('Tệp cấu hình không hợp lệ.')}};
+      reader.readAsText(file,'utf-8'); e.target.value='';
     });
-    $('#compactBtn').addEventListener('click',()=>{state.compact=!state.compact; generatePrompt();});
+    $('#compactBtn').addEventListener('click',()=>{state.compact=!state.compact; generatePrompt(false);});
     $('#themeBtn').addEventListener('click',toggleTheme);
-    document.addEventListener('keydown',e=>{
-      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){e.preventDefault();generatePrompt();toast('Câu lệnh đã được cập nhật.');}
-    });
+    document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey) && e.key==='Enter'){e.preventDefault();generatePrompt(true);}});
   }
 
-  initTheme(); renderTemplates(); bind(); restoreDraft(); updateImageStyleCustomVisibility(); generatePrompt();
+  initTheme();
+  renderTemplates();
+  bind();
+  restoreDraft();
+  updateImageStyleCustomVisibility();
+  if(!localStorage.getItem('hlsPromptBuilderDraft')) setOutput('Nhập yêu cầu ở bên trái để bắt đầu.');
 })();
 </script>
 </body>
