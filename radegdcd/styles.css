@@ -1826,3 +1826,23 @@ tbody tr:hover td{background:#f5f8ff}
   .quality-issue-item{align-items:stretch;flex-direction:column}
   .quality-focus-btn{width:100%}
 }
+
+
+/* V2.5.4 - đặc tả chỉnh trực tiếp */
+.spec-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+.spec-actions>div{display:flex;gap:8px;flex-wrap:wrap}
+.spec-save-status{font-size:12px;font-weight:700}
+.spec-save-status.neutral{color:var(--muted)}
+.spec-save-status.warning{color:#b45309}
+.spec-save-status.ok{color:#047857}
+.spec-save-status.bad{color:#b91c1c}
+.spec-edit-grid{display:grid;gap:10px;min-width:330px}
+.spec-edit-block{display:block;border:1px solid #cbdcfb;background:#f7faff;border-radius:10px;padding:8px}
+.spec-edit-block:nth-child(2){border-color:#b9e4d8;background:#f3fcf9}
+.spec-edit-block:nth-child(3){border-color:#f2d39d;background:#fffaf0}
+.spec-edit-block>span{display:block;font-size:11px;font-weight:800;margin-bottom:6px;color:#1d4ed8}
+.spec-edit-block:nth-child(2)>span{color:#0f766e}.spec-edit-block:nth-child(3)>span{color:#b45309}
+.spec-edit-block textarea{width:100%;min-height:112px;resize:vertical;font:inherit;font-size:12px;line-height:1.45;border:1px solid #cbd5e1;border-radius:8px;padding:8px;background:#fff;color:var(--text);box-sizing:border-box}
+.spec-edit-block textarea:focus{outline:2px solid rgba(59,130,246,.2);border-color:#60a5fa}
+.answer-bullets{margin:5px 0 9px 18px;padding:0}.answer-bullets li{margin:4px 0;line-height:1.45}
+@media (max-width:720px){.spec-edit-grid{min-width:280px}.spec-actions{align-items:flex-start}.spec-edit-block textarea{min-height:128px}}

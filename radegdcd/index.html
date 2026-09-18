@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.2" />
+  <link rel="stylesheet" href="styles.css?v=2.5.4" />
 </head>
 <body>
   <header class="site-header">
@@ -32,7 +32,7 @@
       <span
         class="header-pill version-badge"
         id="versionBadge"
-      >V2.5.2</span>
+      >V2.5.4</span>
     </div>
 
   </div>
@@ -104,7 +104,7 @@
           <div class="api-title"><div><h3>Nhà cung cấp AI</h3><p>Cloudflare Workers AI dùng mặc định, không cần API key. Gemini API cá nhân được giữ làm phương án dự phòng.</p></div><span class="status-dot neutral" id="apiDot"></span></div>
           <div class="provider-grid">
             <label class="provider-card"><input type="radio" name="aiProvider" value="cloudflare" checked /><span><strong>Cloudflare Workers AI</strong><small>Mặc định · chạy qua Worker · không cần API key cá nhân.</small></span></label>
-            <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" /><span><strong>Google Gemini/Vertex API cá nhân</strong><small>Hỗ trợ cả khóa Gemini Developer API dạng AIza… và Vertex AI Express dạng AQ.…</small></span></label>
+            <label class="provider-card"><input type="radio" name="aiProvider" value="gemini" /><span><strong>Google Gemini API / Agent Platform cá nhân</strong><small>Hỗ trợ khóa Gemini API dạng AIza… và AQ.…; hệ thống tự nhận diện đúng tuyến. AQ.… không mặc định là Vertex AI.</small></span></label>
           </div>
           <div id="cloudflareAiPanel" class="provider-panel">
             <div class="provider-note"><strong>Không cần nhập API key.</strong> Yêu cầu AI được thực thi trực tiếp bằng Workers AI binding trên Cloudflare.</div>
@@ -120,7 +120,7 @@
             <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra AI</button>
           </div>
           <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra Cloudflare Workers AI.</p>
-          <a id="apiActionLink" class="text-link" href="#" target="_blank" rel="noopener" hidden>Bật Vertex AI API ↗</a>
+          <a id="apiActionLink" class="text-link" href="#" target="_blank" rel="noopener" hidden>Mở trang kích hoạt API ↗</a>
         </div>
 
         <div class="choice-card-group">
@@ -148,7 +148,8 @@
       </section>
 
       <section class="panel" id="panel-spec">
-        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 4</span><h2>Bản đặc tả</h2></div><p>Nội dung đặc tả chuẩn lấy đúng theo tài liệu đính kèm và chỉ hiển thị đúng bài đã chọn. Giáo viên có thể nhập thêm đặc tả riêng ở từng mức Nhận biết – Thông hiểu – Vận dụng.</p></div>
+        <div class="panel-heading"><div><span class="eyebrow">BƯỚC 4</span><h2>Bản đặc tả</h2></div><p>Nội dung đặc tả được hệ thống đưa vào theo từng bài. Giáo viên có thể chỉnh trực tiếp ở từng mức Nhận biết – Thông hiểu – Vận dụng; nội dung đã lưu sẽ được dùng để tạo đề và xuất Word.</p></div>
+        <div class="spec-actions"><div><button type="button" class="btn primary" id="saveSpecBtn">💾 Lưu đặc tả</button><button type="button" class="btn ghost" id="resetSpecBtn">↺ Khôi phục bản gốc</button></div><span id="specSaveStatus" class="spec-save-status neutral">Có thể chỉnh trực tiếp nội dung rồi bấm “Lưu đặc tả”.</span></div>
         <div class="table-scroll"><table class="spec-table"><thead><tr><th>TT</th><th>Mạch nội dung</th><th>Bài</th><th>Mức độ đánh giá</th><th>Nhận biết</th><th>Thông hiểu</th><th>Vận dụng</th></tr></thead><tbody id="specBody"></tbody><tfoot id="specFoot"></tfoot></table></div>
         <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="matrix">← Quay lại</button><button class="btn primary next-btn" data-next="generate">Tiếp tục: Tạo đề →</button></div>
       </section>
@@ -231,8 +232,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.5.2"></script>
-  <script src="data.js?v=2.5.2"></script>
-  <script src="app.js?v=2.5.2"></script>
+  <script src="config.js?v=2.5.4"></script>
+  <script src="data.js?v=2.5.4"></script>
+  <script src="app.js?v=2.5.4"></script>
 </body>
 </html>
