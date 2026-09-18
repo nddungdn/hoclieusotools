@@ -141,7 +141,7 @@
     .statusbar{padding:10px 20px;border-top:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-size:.8rem;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);opacity:0;pointer-events:none;z-index:100;background:#2f2935;color:#fff;padding:11px 15px;border-radius:12px;box-shadow:0 14px 30px rgba(0,0,0,.18);transition:.22s ease;font-weight:750;font-size:.88rem;max-width:min(92vw,560px);text-align:center}
     .toast.show{opacity:1;transform:translate(-50%,0)}
-    .footer{width:min(var(--max),calc(100% - 28px));margin:0 auto 40px;color:var(--muted);font-size:.84rem;text-align:center}
+    .footer{width:min(var(--max),calc(100% - 28px));margin:0 auto 40px;color:var(--muted);font-size:.84rem;text-align:center}.footer a{color:var(--brand);font-weight:800;text-decoration:none}.footer a:hover{text-decoration:underline}
     .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid var(--line);background:#fff;border-bottom-width:2px;border-radius:6px;padding:1px 5px;font-size:.78rem}
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     body.dark{
@@ -229,6 +229,20 @@
               <div class="field full">
                 <label for="inputData">Nội dung / dữ liệu đầu vào <span class="hint">(không bắt buộc)</span></label>
                 <textarea id="inputData" name="inputData" data-prompt-field placeholder="Dán văn bản, dữ kiện, danh sách, thông tin phải giữ nguyên hoặc mô tả nguồn dữ liệu ở đây."></textarea>
+                <div class="upload-box">
+                  <div class="upload-row">
+                    <input id="inputFileUpload" type="file" multiple
+                      accept=".doc,.docx,.xls,.xlsx,.csv,.md,.markdown,.json,.txt,.pdf,.ppt,.pptx,.rtf,.odt,.ods,.html,.htm,.xml"
+                      style="max-width:520px">
+                    <button class="btn" id="clearInputFilesBtn" type="button">Xóa tệp dữ liệu</button>
+                  </div>
+                  <div class="upload-note">
+                    Có thể chọn DOC/DOCX, XLS/XLSX, CSV, MD, JSON, TXT, PDF, PPT/PPTX, RTF, ODT/ODS, HTML, XML…
+                    Công cụ chỉ gửi tên và định dạng tệp tới Worker để ghép câu lệnh; không gửi nội dung tệp.
+                    Khi dùng prompt với AI, hãy đính kèm lại đúng các tệp này.
+                  </div>
+                  <div class="file-list" id="inputFileList"></div>
+                </div>
               </div>
 
               <div class="field">
@@ -420,10 +434,10 @@
                     <textarea id="quality" name="quality" data-prompt-field placeholder="Ví dụ: kiểm tra chính tả, số liệu, logic, tính phù hợp với đối tượng, khả năng sử dụng thực tế..."></textarea>
                   </div>
                   <div class="field full">
-                    <label>Ảnh / tệp tham chiếu <span class="hint">(chỉ ghi tên tệp vào câu lệnh, không tải lên máy chủ)</span></label>
+                    <label>Ảnh / tệp tham chiếu <span class="hint">(ảnh mẫu, logo, tài liệu tham chiếu…)</span></label>
                     <div class="upload-box">
                       <div class="upload-row">
-                        <input id="fileUpload" type="file" multiple style="max-width:420px">
+                        <input id="fileUpload" type="file" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.md,.txt" style="max-width:520px">
                         <button class="btn" id="clearFilesBtn" type="button">Xóa danh sách tệp</button>
                       </div>
                       <div class="upload-note">Khi dùng câu lệnh với AI, hãy đính kèm lại đúng các tệp đã liệt kê. Công cụ này không đọc nội dung tệp.</div>
@@ -472,7 +486,7 @@
   </main>
 
   <footer class="footer">
-    <div><strong>Công cụ tạo câu lệnh</strong> · Học liệu số · Dữ liệu biểu mẫu được gửi đến Cloudflare Worker chỉ để ghép câu lệnh; không gửi tới dịch vụ AI.</div>
+    <div>Công cụ phát triển bởi <a href="https://www.hoclieuso.id.vn/" aria-label="Trang chủ Học liệu số">Học liệu số</a>. Prompt được tạo chỉ mang tính tham khảo. Người dùng cần kiểm tra trước khi sử dụng.</div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -501,7 +515,7 @@
     {id:'email', title:'Email / tin nhắn', keywords:'email thư tin nhắn zalo messenger chat phản hồi', ui:{task:'Soạn một email hoặc tin nhắn hoàn chỉnh theo mục tiêu, bối cảnh và người nhận tôi cung cấp.', outputType:'Hội thoại / tin nhắn / email'}}
   ];
 
-  const state = { template:'custom', files:[], compact:false };
+  const state = { template:'custom', inputFiles:[], files:[], compact:false };
   const formIds = ['task','inputData','audience','context','outputType','aiTool','imageRatio','imageStyle','imageStyleCustom','tone','detail','language','format','mustKeep','role','length','creativity','sourceMode','process','avoid','quality'];
   let generateTimer = null;
   let requestSeq = 0;
@@ -545,6 +559,7 @@
       template:state.template,
       compact:state.compact,
       values:collectValues(),
+      inputFiles:state.inputFiles.map(f=>({name:f.name,type:f.type,size:f.size})),
       files:state.files.map(f=>({name:f.name,type:f.type,size:f.size}))
     };
   }
@@ -613,9 +628,11 @@
     state.template=config.template || 'custom';
     state.compact=!!config.compact;
     Object.entries(config.values||{}).forEach(([k,v])=>setValue(k,v));
+    state.inputFiles=(config.inputFiles||[]).map(f=>({name:f.name||'Tệp dữ liệu',type:f.type||'',size:f.size||0,virtual:true}));
     state.files=(config.files||[]).map(f=>({name:f.name||'Tệp tham chiếu',type:f.type||'',size:f.size||0,virtual:true}));
     $('#templateLabel').textContent=(TEMPLATES.find(t=>t.id===state.template)||TEMPLATES[0]).title;
     updateImageStyleCustomVisibility();
+    renderInputFiles();
     renderFiles();
     renderTemplates($('#templateSearch').value);
     scheduleGenerate(0);
@@ -627,8 +644,20 @@
     catch(e){}
   }
 
+  function safeAttr(s=''){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function renderInputFiles(){
+    $('#inputFileList').innerHTML=state.inputFiles.map((f,i)=>`<div class="file-item"><span title="${safeAttr(f.name)}">📄 ${safeAttr(f.name)}</span><button class="mini-btn" type="button" data-remove-input-file="${i}" aria-label="Xóa ${safeAttr(f.name)}">×</button></div>`).join('');
+  }
+
+  function addInputFiles(fileList){
+    [...fileList].forEach(file=>state.inputFiles.push({name:file.name,type:file.type,size:file.size,virtual:false}));
+    renderInputFiles();
+    scheduleGenerate(0);
+  }
+
   function renderFiles(){
-    $('#fileList').innerHTML=state.files.map((f,i)=>`<div class="file-item"><span title="${f.name.replace(/"/g,'&quot;')}">📎 ${f.name}</span><button class="mini-btn" type="button" data-remove-file="${i}" aria-label="Xóa ${f.name.replace(/"/g,'&quot;')}">×</button></div>`).join('');
+    $('#fileList').innerHTML=state.files.map((f,i)=>`<div class="file-item"><span title="${safeAttr(f.name)}">📎 ${safeAttr(f.name)}</span><button class="mini-btn" type="button" data-remove-file="${i}" aria-label="Xóa ${safeAttr(f.name)}">×</button></div>`).join('');
   }
 
   function addFiles(fileList){
@@ -640,12 +669,12 @@
   function resetAll(){
     if(!confirm('Xóa toàn bộ nội dung đang nhập và bản nháp cục bộ?')) return;
     $('#promptForm').reset();
-    state.template='custom'; state.files=[]; state.compact=false;
+    state.template='custom'; state.inputFiles=[]; state.files=[]; state.compact=false;
     localStorage.removeItem('hlsPromptBuilderDraft');
     $('#templateLabel').textContent='Tùy chỉnh';
     $('#templateSearch').value='';
     updateImageStyleCustomVisibility();
-    renderFiles(); renderTemplates();
+    renderInputFiles(); renderFiles(); renderTemplates();
     setOutput('Nhập yêu cầu ở bên trái để bắt đầu.');
     toast('Đã xóa nội dung.');
   }
@@ -707,9 +736,12 @@
   function bind(){
     $('#templateList').addEventListener('click',e=>{const b=e.target.closest('[data-template]'); if(b) applyTemplate(b.dataset.template);});
     $('#templateSearch').addEventListener('input',e=>renderTemplates(e.target.value));
-    $('#promptForm').addEventListener('input',e=>{if(e.target.id!=='fileUpload') scheduleGenerate(550);});
-    $('#promptForm').addEventListener('change',e=>{if(e.target.id==='imageStyle') updateImageStyleCustomVisibility(); if(e.target.id!=='fileUpload') scheduleGenerate(100);});
+    $('#promptForm').addEventListener('input',e=>{if(!['fileUpload','inputFileUpload'].includes(e.target.id)) scheduleGenerate(550);});
+    $('#promptForm').addEventListener('change',e=>{if(e.target.id==='imageStyle') updateImageStyleCustomVisibility(); if(!['fileUpload','inputFileUpload'].includes(e.target.id)) scheduleGenerate(100);});
     $('#promptForm').addEventListener('submit',e=>{e.preventDefault(); generatePrompt(true);});
+    $('#inputFileUpload').addEventListener('change',e=>{addInputFiles(e.target.files); e.target.value='';});
+    $('#inputFileList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-input-file]'); if(!b) return; state.inputFiles.splice(+b.dataset.removeInputFile,1); renderInputFiles(); scheduleGenerate(0);});
+    $('#clearInputFilesBtn').addEventListener('click',()=>{state.inputFiles=[]; renderInputFiles(); scheduleGenerate(0);});
     $('#fileUpload').addEventListener('change',e=>{addFiles(e.target.files); e.target.value='';});
     $('#fileList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-file]'); if(!b) return; state.files.splice(+b.dataset.removeFile,1); renderFiles(); scheduleGenerate(0);});
     $('#clearFilesBtn').addEventListener('click',()=>{state.files=[]; renderFiles(); scheduleGenerate(0);});
@@ -733,6 +765,7 @@
   }
 
   initTheme();
+  renderInputFiles();
   renderTemplates();
   bind();
   restoreDraft();
