@@ -16,7 +16,7 @@ const SUBTYPES_7991 = [
   ['single','Một lựa chọn đúng nhất'],['truefalse','Đúng / Sai'],['short','Trả lời ngắn']
 ];
 const ESSAY_TYPES = [['direct','Câu hỏi trực tiếp'],['situation','Câu hỏi sử dụng tình huống']];
-const CF_MODELS=[['@cf/zai-org/glm-4.7-flash','GLM-4.7-Flash · khuyến nghị · nhanh'],['@cf/google/gemma-4-26b-a4b-it','Gemma 4 26B A4B · dự phòng']];
+const CF_MODELS=[['@cf/meta/llama-3.1-8b-instruct-fp8','Llama 3.1 8B FP8 · khuyến nghị · nhanh'],['@cf/zai-org/glm-4.7-flash','GLM-4.7-Flash · dự phòng']];
 const state = {
   grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, apiOk:false, provider:'cloudflare',
   models:CF_MODELS.map(x=>x[0]), model:CF_MODELS[0][0], exam:null, dialog:null, reviewTab:'matrix', reviewProposal:null, editHistory:[], aiReview:null
@@ -112,7 +112,7 @@ function balanceSingleChoiceAnswers(exam){
   return exam;
 }
 
-// ===== V2.5.0 DETERMINISTIC EXAM PIPELINE =====
+// ===== V2.5.2 DETERMINISTIC EXAM PIPELINE =====
 // Không tin điểm do AI tự tính. Điểm được đối chiếu/chuẩn hóa theo ma trận,
 // sau đó mới cho phép xem, chỉnh và xuất Word.
 const QUALITY_MAX_GENERATE_ATTEMPTS = 1;
@@ -161,6 +161,7 @@ function distributePoints(items,target){
 }
 function normalizeRubricPoints(rubric,target){
   if(!Array.isArray(rubric)||!rubric.length)return;
+  if(rubricLooksLikeAlternativeBands(rubric))return;
   distributePoints(rubric,target);
 }
 function applySlotScore(q,slot){
@@ -228,6 +229,11 @@ function matrixSubtypeCounts(form){
   const slots=expectedSlots(form);if(!slots)return null;
   const m=new Map();slots.forEach(s=>m.set(s.subtype,(m.get(s.subtype)||0)+1));return m;
 }
+function rubricLooksLikeAlternativeBands(rubric){
+  const rows=(Array.isArray(rubric)?rubric:[]).map(x=>String(x?.content||'').toLowerCase());
+  const band=/\b(?:nêu|trình bày|xác định|kể|chỉ ra|đưa ra)\s+(?:được\s+)?\d+\s*(?:ý|biểu hiện|việc làm|hành động|nội dung|dẫn chứng|ví dụ)/iu;
+  return rows.filter(x=>band.test(x)).length>=2;
+}
 function strictExamQualityIssues(exam){
   const issues=[];
   if(!exam?.examCodes?.length)return [{severity:'block',category:'Cấu trúc đề',message:'AI chưa trả cấu trúc mã đề hợp lệ.'}];
@@ -281,12 +287,16 @@ function strictExamQualityIssues(exam){
           q.parts.forEach((p,pi)=>{
             const rub=Array.isArray(p.rubric)?p.rubric:[];
             const rs=scoreRound(rub.reduce((s,r)=>s+nval(r.points),0));
+            if(!String(p.answer||'').trim())issues.push({...base,partIndex:pi,category:'Hướng dẫn chấm',message:`Ý ${p.label||String.fromCharCode(97+pi)} thiếu đáp án gợi ý tách riêng.`});
             if(!rub.length||Math.abs(rs-nval(p.points))>SCORE_EPS)issues.push({...base,partIndex:pi,category:'Hướng dẫn chấm',message:`Hướng dẫn chấm ý ${p.label||String.fromCharCode(97+pi)} chưa đủ hoặc tổng điểm rubric ${fmt(rs)} không bằng ${fmt(p.points)} điểm.`});
+            else if(rubricLooksLikeAlternativeBands(rub))issues.push({...base,partIndex:pi,category:'Hướng dẫn chấm',message:`Hướng dẫn chấm ý ${p.label||String.fromCharCode(97+pi)} đang dùng các mức điểm thay thế; cần đổi thành tiêu chí cộng điểm độc lập.`});
           });
         }else{
           const rub=Array.isArray(q.rubric)?q.rubric:[];
           const rs=scoreRound(rub.reduce((s,r)=>s+nval(r.points),0));
+          if(!String(q.answer||'').trim())issues.push({...base,category:'Hướng dẫn chấm',message:'Câu tự luận thiếu đáp án gợi ý tách riêng.'});
           if(!rub.length||Math.abs(rs-nval(q.points))>SCORE_EPS)issues.push({...base,category:'Hướng dẫn chấm',message:`Hướng dẫn chấm chưa đủ hoặc tổng điểm rubric ${fmt(rs)} không bằng ${fmt(q.points)} điểm.`});
+          else if(rubricLooksLikeAlternativeBands(rub))issues.push({...base,category:'Hướng dẫn chấm',message:'Hướng dẫn chấm đang dùng các mức điểm thay thế; cần đổi thành tiêu chí cộng điểm độc lập.'});
         }
       }
     });
@@ -328,7 +338,7 @@ function repairRequestText(items=[],q){
     task+=' Với câu lựa chọn, GIỮ NGUYÊN phần dẫn/câu hỏi; viết lại 4 phương án sao cho cùng kiểu ngữ pháp, gần tương đương độ dài (ưu tiên chênh không quá 3 từ, tối đa khoảng 4 từ), không làm lộ đáp án. Đảm bảo đáp án đúng thực sự đúng và có ít nhất một nhiễu hợp lí gần đáp án đúng.';
   }
   if(cats.has('Đúng/Sai'))task+=' Với câu Đúng/Sai, tạo đúng 4 nhận định, rõ ràng và đúng cấu trúc đáp án.';
-  if(cats.has('Hướng dẫn chấm'))task+=' Chỉ chỉnh đáp án/hướng dẫn chấm; rubric cụ thể, không trùng ý và tổng điểm rubric phải đúng tuyệt đối bằng điểm câu/ý.';
+  if(cats.has('Hướng dẫn chấm'))task+=' Chỉ chỉnh đáp án/hướng dẫn chấm. Bắt buộc trả trường answer là ĐÁP ÁN GỢI Ý hoàn chỉnh, tách riêng; rubric chỉ gồm các tiêu chí cộng điểm độc lập, không trùng ý, không dùng các mức điểm thay thế, và tổng điểm rubric phải đúng tuyệt đối bằng điểm câu/ý.';
   if(cats.has('Tình huống'))task+=' Bổ sung/chỉnh tình huống ngắn gọn, tự nhiên, phù hợp học sinh THCS và không làm thay đổi kiến thức cần kiểm tra.';
   return `${task}\n\nLỖI CẦN SỬA:\n${detail}`;
 }
@@ -408,7 +418,7 @@ function buildQualityRules(retryFeedback=''){
     '1) Mỗi mã đề phải đúng tổng 10,0 điểm; điểm phần TNKQ và TL phải đúng tuyệt đối theo ma trận. Không tự tăng/giảm điểm.',
     '2) Với câu có 4 phương án, các phương án phải song song về ngữ pháp và gần tương đương về độ dài; tránh một phương án nổi bật vì dài/ngắn bất thường. Mục tiêu chênh lệch không quá khoảng 3–5 từ.',
     '3) Không đưa A./B./C./D. vào nội dung phương án; lớp hiển thị sẽ tự thêm nhãn.',
-    '4) Tổng điểm các ý và rubric phải đúng bằng điểm câu.',
+    '4) Mỗi câu/ý tự luận phải có trường answer là đáp án gợi ý hoàn chỉnh, tách riêng khỏi rubric. Rubric chỉ gồm tiêu chí cộng điểm độc lập; không dùng các mức điểm thay thế. Tổng điểm các ý và rubric phải đúng bằng điểm câu.',
     retryFeedback?`LỖI CỦA LẦN TRƯỚC – PHẢI SỬA Ở LẦN NÀY:\n${retryFeedback}`:''
   ].filter(Boolean).join('\n');
 }
@@ -426,7 +436,7 @@ function issueSuggestedPrompt(x){
   if(c==='Đáp án')return 'Kiểm tra lại câu này và sửa đáp án cho chính xác; nếu cần thì chỉnh phương án để câu chỉ có đáp án đúng theo đúng dạng trắc nghiệm, nhưng không đổi kiến thức, mức độ hoặc điểm.';
   if(c==='Phương án nhiễu')return 'Chỉnh phương án nhiễu của câu này để hợp lí, gần đáp án đúng nhưng vẫn sai rõ ràng theo kiến thức; không đổi phần dẫn, mức độ hoặc điểm.';
   if(c==='Đúng/Sai')return 'Chỉnh riêng câu Đúng/Sai này để có đúng 4 nhận định rõ ràng, phù hợp kiến thức và cấu trúc đáp án; không đổi mức độ hoặc điểm.';
-  if(c==='Hướng dẫn chấm')return 'Chỉ sửa đáp án/hướng dẫn chấm của câu hoặc ý này: tiêu chí cụ thể, không trùng ý và tổng điểm rubric phải đúng bằng điểm đã khóa trong ma trận.';
+  if(c==='Hướng dẫn chấm')return 'Chỉ sửa đáp án/hướng dẫn chấm của câu hoặc ý này: bắt buộc có trường answer là đáp án gợi ý hoàn chỉnh, tách riêng; rubric là các tiêu chí cộng điểm độc lập, không trùng ý, không dùng mức điểm thay thế và tổng điểm phải đúng bằng điểm đã khóa trong ma trận.';
   if(c==='Tình huống')return 'Chỉ bổ sung/chỉnh tình huống của câu này cho ngắn gọn, tự nhiên, phù hợp học sinh THCS; giữ nguyên yêu cầu cần đạt, mức độ, câu hỏi và điểm.';
   if(c==='Tên nhân vật')return 'Chỉ sửa tên nhân vật trong tình huống thành chữ cái in hoa như A, H, M; không thay đổi nội dung, mức độ hoặc điểm.';
   if(c==='Điểm các ý'||c==='Điểm câu'||c==='Tổng điểm'||c==='Điểm theo ma trận')return 'Kiểm tra lại cấu trúc điểm của câu/đề này theo đúng ma trận 10 điểm. Không thay đổi kiến thức; chỉ sửa phần dữ liệu điểm/hướng dẫn chấm nếu cần.';
@@ -511,9 +521,11 @@ function showPanel(name){
   if(name==='spec') renderSpec();
   if(name==='review'){ renderAudit(); renderReviewWorkspace(); }
 }
-function setApiStatus(text,kind='neutral'){
+function setApiStatus(text,kind='neutral',actionUrl=''){
   $('#apiStatus').textContent=text;
   $('#apiDot').className=`status-dot ${kind}`;
+  const link=$('#apiActionLink');
+  if(link){link.hidden=!actionUrl;link.href=actionUrl||'#';}
 }
 function setupValue(){
   return {
@@ -664,7 +676,7 @@ async function post(path,body){
   try{
     const r=await fetch(apiBase()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
     const text=await r.text(); let data={}; try{data=JSON.parse(text)}catch{data={error:text||'Phản hồi không hợp lệ'}};
-    if(!r.ok){const error=new Error(data.error||`HTTP ${r.status}`);error.status=r.status;error.workerVersion=data.workerVersion||'';throw error;}
+    if(!r.ok){const error=new Error(data.error||`HTTP ${r.status}`);error.status=r.status;error.workerVersion=data.workerVersion||'';error.errorCode=data.errorCode||'';error.actionUrl=data.actionUrl||'';throw error;}
     return data;
   }catch(error){
     if(error?.name==='AbortError')throw new Error('Yêu cầu vượt quá thời gian chờ. Hệ thống đã dừng an toàn; dữ liệu ma trận vẫn được giữ nguyên.');
@@ -696,7 +708,7 @@ async function testApi(){
     const data=await post('/api/test-provider',{provider:p,apiKey:key,model:$('#modelSelect')?.value||state.model});
     renderModelSelect(data.models||[],data.modelLabels||{},data.recommended||'');
     state.apiOk=true;state.provider=p;setApiStatus(`✓ ${data.message||'AI hoạt động.'}`,'ok');
-  }catch(e){setApiStatus(`✕ ${e.message}`,'bad');if(p==='gemini')$('#modelSelect').disabled=true;}
+  }catch(e){setApiStatus(`✕ ${e.message}`,'bad',e.actionUrl||'');if(p==='gemini')$('#modelSelect').disabled=true;}
   finally{btn.disabled=false;btn.textContent='Kiểm tra AI';}
 }
 function buildPayload(retryFeedback=''){
@@ -855,8 +867,8 @@ function reviewExamHtml(){
 }
 function rubricHtml(rubric=[]){return (rubric||[]).map(r=>`<div class="marking-rubric">– ${esc(cleanScoreContent(r.content||''))}${r.points!==undefined&&r.points!==null?` (${fmt(r.points)}đ)`:''}</div>`).join('');}
 function markingUnitHtml(q,part=null,index=0){
-  if(part){const inline=splitInlineMarking(part.answer||''),rub=normalizedRubric(part.rubric,inline.rubric),label=String(part.label||String.fromCharCode(97+index)).replace(/[\.)]$/,'');return `<div><b>${esc(label)}.</b> ${esc(inline.answer||'')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;}
-  const inline=splitInlineMarking(answerText(q)),rub=normalizedRubric(q?.rubric,inline.rubric);return `<div>${esc(inline.answer||'')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;
+  if(part){const inline=splitInlineMarking(part.answer||''),rub=normalizedRubric(part.rubric,inline.rubric),answer=resolvedMarkingAnswer(inline.answer,rub),label=String(part.label||String.fromCharCode(97+index)).replace(/[\.)]$/,'');return `<div><b>${esc(label)}. Đáp án gợi ý:</b> ${esc(answer).replace(/\n/g,'<br>')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;}
+  const inline=splitInlineMarking(answerText(q)),rub=normalizedRubric(q?.rubric,inline.rubric),answer=resolvedMarkingAnswer(inline.answer,rub);return `<div><b>Đáp án gợi ý:</b> ${esc(answer).replace(/\n/g,'<br>')}</div>${rub.length?'<div class="marking-label">Hướng dẫn chấm:</div>'+rubricHtml(rub):''}`;
 }
 function reviewMarkingHtml(){
   const codes=state.exam?.examCodes||[]; if(!codes.length)return '<div class="notice">Chưa có hướng dẫn chấm.</div>';
@@ -1025,6 +1037,18 @@ function normalizedRubric(rawRubric, inlineRubric=[]){
     return {content:cleanScoreContent(line),points:m?Number(m[1].replace(',','.')):''};
   }).filter(r=>r.content);
 }
+function deriveAnswerFromRubric(rubric=[]){
+  const answers=[];
+  (rubric||[]).forEach(r=>{
+    const content=cleanScoreContent(r?.content||'');
+    const match=content.match(/(?:^|[.;]\s*)(?:ví\s*dụ|gợi\s*ý|đáp\s*án(?:\s*gợi\s*ý)?)\s*:\s*(.+)$/iu);
+    if(match?.[1])answers.push(match[1].trim());
+  });
+  return [...new Set(answers)].join('\n');
+}
+function resolvedMarkingAnswer(answer,rubric=[]){
+  return String(answer||'').trim()||deriveAnswerFromRubric(rubric)||'[Cần bổ sung đáp án gợi ý trước khi sử dụng]';
+}
 function markingGuideTitleDoc(){
   return wPParts([{text:'Hướng dẫn chấm:',b:true,i:true}],{size:20,after:18,before:8});
 }
@@ -1044,13 +1068,14 @@ function partMarkingCellDoc(part,index){
   const inline=splitInlineMarking(part.answer||'');
   const rubric=normalizedRubric(part.rubric,inline.rubric);
   let xml='';
-  const paras=answerParagraphs(inline.answer);
+  const paras=answerParagraphs(resolvedMarkingAnswer(inline.answer,rubric));
   if(paras.length){
     paras.forEach((para,j)=>{
       const cleaned=j===0?para.replace(new RegExp(`^\\s*${label}[\\.)]\\s*`,'i'),''):para;
-      xml+=wP(`${j===0?label+'. ':''}${cleaned}`,{size:20,after:18});
+      if(j===0)xml+=wPParts([{text:`${label}. `,b:true},{text:'Đáp án gợi ý: ',b:true},{text:cleaned}],{size:20,after:18});
+      else xml+=wP(cleaned,{size:20,after:18});
     });
-  }else xml+=wP(`${label}.`,{size:20,after:18});
+  }
   if(rubric.length){xml+=markingGuideTitleDoc();xml+=rubricDoc(rubric);}
   return xml;
 }
@@ -1059,7 +1084,7 @@ function questionMarkingCellDoc(q){
   const inline=splitInlineMarking(answerText(q));
   const rubric=normalizedRubric(q.rubric,inline.rubric);
   let xml='';
-  answerParagraphs(inline.answer).forEach(para=>xml+=wP(para,{size:20,after:18}));
+  answerParagraphs(resolvedMarkingAnswer(inline.answer,rubric)).forEach((para,i)=>xml+=i===0?wPParts([{text:'Đáp án gợi ý: ',b:true},{text:para}],{size:20,after:18}):wP(para,{size:20,after:18}));
   if(rubric.length){xml+=markingGuideTitleDoc();xml+=rubricDoc(rubric);}
   return xml||wP('',{size:20,after:18});
 }

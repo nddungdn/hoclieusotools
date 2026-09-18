@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.1" />
+  <link rel="stylesheet" href="styles.css?v=2.5.2" />
 </head>
 <body>
   <header class="site-header">
@@ -32,7 +32,7 @@
       <span
         class="header-pill version-badge"
         id="versionBadge"
-      >V2.5.0</span>
+      >V2.5.2</span>
     </div>
 
   </div>
@@ -116,10 +116,11 @@
             <a id="apiGuide" class="text-link" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
           </div>
           <div class="api-row api-meta">
-            <label>Model<select id="modelSelect"><option value="@cf/zai-org/glm-4.7-flash">GLM-4.7-Flash · khuyến nghị · nhanh</option><option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B A4B · dự phòng</option></select></label>
+            <label>Model<select id="modelSelect"><option value="@cf/meta/llama-3.1-8b-instruct-fp8">Llama 3.1 8B FP8 · khuyến nghị · nhanh</option><option value="@cf/zai-org/glm-4.7-flash">GLM-4.7-Flash · dự phòng</option></select></label>
             <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra AI</button>
           </div>
           <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra Cloudflare Workers AI.</p>
+          <a id="apiActionLink" class="text-link" href="#" target="_blank" rel="noopener" hidden>Bật Vertex AI API ↗</a>
         </div>
 
         <div class="choice-card-group">
@@ -230,8 +231,8 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.5.1"></script>
-  <script src="data.js?v=2.5.1"></script>
-  <script src="app.js?v=2.5.1"></script>
+  <script src="config.js?v=2.5.2"></script>
+  <script src="data.js?v=2.5.2"></script>
+  <script src="app.js?v=2.5.2"></script>
 </body>
 </html>
