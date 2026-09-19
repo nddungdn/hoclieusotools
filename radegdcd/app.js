@@ -16,7 +16,7 @@ const SUBTYPES_7991 = [
   ['single','Một lựa chọn đúng nhất'],['truefalse','Đúng / Sai'],['short','Trả lời ngắn']
 ];
 const ESSAY_TYPES = [['direct','Câu hỏi trực tiếp'],['situation','Câu hỏi sử dụng tình huống']];
-const CF_MODELS=[['@cf/zai-org/glm-4.7-flash','GLM 4.7 Flash · mặc định · nhanh/tiết kiệm'],['@cf/meta/llama-3.3-70b-instruct-fp8-fast','Llama 3.3 70B Fast · JSON nghiêm ngặt · dự phòng'],['@cf/meta/llama-3.1-8b-instruct-fp8','Llama 3.1 8B FP8 · dự phòng nhẹ']];
+const CF_MODELS=[['@cf/meta/llama-3.1-8b-instruct-fp8','Llama 3.1 8B FP8 · mặc định · nhẹ, ít tốn Neurons'],['@cf/zai-org/glm-4.7-flash','GLM 4.7 Flash · dự phòng đa ngôn ngữ'],['@cf/meta/llama-3.3-70b-instruct-fp8-fast','Llama 3.3 70B Fast · dự phòng JSON']];
 const SPEC_STORAGE_KEY='radegdcd_spec_overrides_v254';
 const state = {
   grade:'6', selected:new Set(), matrix:{}, teacherSpec:{}, specOverrides:{}, specDirty:false, apiOk:false, provider:'cloudflare',
@@ -31,7 +31,7 @@ const countFmt = n => { n=nval(n); const i=Math.floor(n), f=n-i; if(Math.abs(f-.
 const mode = () => ($('input[name="mode"]:checked')||{}).value || 'normal';
 const apiBase = () => String(CFG.API_BASE||'').replace(/\/$/,'');
 const aiProvider=()=>($('input[name="aiProvider"]:checked')||{}).value||'cloudflare';
-function aiRequestParams(){const p=aiProvider();return {provider:p,apiKey:p==='gemini'?($('#apiKey')?.value||'').trim():'',model:$('#modelSelect')?.value||state.model};}
+function aiRequestParams(){const p=aiProvider();return {provider:p,apiKey:p==='gemini'?($('#apiKey')?.value||'').trim():'',model:$('#modelSelect')?.value||state.model,autoFallback:$('#autoProviderFallback')?.checked!==false,fallbackApiKey:p==='cloudflare'?($('#fallbackApiKey')?.value||'').trim():''};}
 function modelLabel(id){return Object.fromEntries(CF_MODELS)[id]||id;}
 
 function currentLessons(){ return (DATA.grades?.[state.grade]?.lessons || []); }
@@ -153,6 +153,8 @@ function balanceSingleChoiceAnswers(exam){
 const QUALITY_MAX_GENERATE_ATTEMPTS = 1;
 const QUALITY_MAX_REPAIR_PASSES = 1;
 const QUALITY_REPAIR_CONCURRENCY = 1;
+const AI_CLIENT_GAP_MS = 4200;
+const wait = ms => new Promise(resolve=>setTimeout(resolve,ms));
 const SCORE_EPS = 0.02;
 const REPAIRABLE_QUESTION_CATEGORIES = new Set(['Độ dài phương án','Phương án','Đáp án','Phương án nhiễu','Đúng/Sai','Hướng dẫn chấm','Tình huống','Tên nhân vật']);
 const scoreRound = n => Math.round(nval(n)*100)/100;
@@ -237,8 +239,12 @@ function stripSinglePartPrefix(text){
   return String(text||'').replace(/^\s*a\s*(?:[\.\):\-]|\(\s*\d+(?:[\.,]\d+)?\s*(?:đ|điểm)\s*\)\s*:?)\s*/iu,'').trim();
 }
 function mergeQuestionPrompt(a,b){
-  const x=String(a||'').trim(),y=stripSinglePartPrefix(b);if(!x)return y;if(!y)return stripSinglePartPrefix(x);
-  const nx=x.toLowerCase().replace(/\s+/g,' '),ny=y.toLowerCase().replace(/\s+/g,' ');if(nx===ny||nx.includes(ny))return stripSinglePartPrefix(x);if(ny.includes(nx))return y;return `${stripSinglePartPrefix(x)} ${y}`.trim();
+  const x=stripSinglePartPrefix(String(a||'').trim()),y=stripSinglePartPrefix(b);if(!x)return y;if(!y)return x;
+  const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9đ]+/g,' ').trim().replace(/\s+/g,' ');
+  const nx=norm(x),ny=norm(y);if(nx===ny||nx.includes(ny))return x;if(ny.includes(nx))return y;
+  const xt=new Set(nx.split(' ').filter(Boolean)),yt=ny.split(' ').filter(Boolean),over=yt.filter(t=>xt.has(t)).length/Math.max(1,Math.min(xt.size,yt.length));
+  if(over>=.85)return x.length>=y.length?x:y;
+  return `${x} ${y}`.trim();
 }
 function collapseSinglePartEssays(exam){
   for(const code of exam?.examCodes||[]){
@@ -438,6 +444,7 @@ async function runRepairBatch(groups,limit=QUALITY_REPAIR_CONCURRENCY,onProgress
     const r=await Promise.allSettled(batch.map(g=>repairOneQuestionGroup(g)));
     r.forEach((x,j)=>results.push(x.status==='fulfilled'?x.value:{ok:false,group:batch[j],error:String(x.reason?.message||x.reason)}));
     onProgress(Math.min(i+batch.length,groups.length),groups.length);
+    if(i+batch.length<groups.length)await wait(AI_CLIENT_GAP_MS);
   }
   return results;
 }
@@ -759,9 +766,9 @@ async function testApi(){
   if(p==='gemini'&&!key){setApiStatus('Vui lòng nhập Gemini API key.','bad');return;}
   const btn=$('#testApiBtn');btn.disabled=true;btn.textContent='Đang kiểm tra…';state.apiOk=false;
   try{
-    const data=await post('/api/test-provider',{provider:p,apiKey:key,model:$('#modelSelect')?.value||state.model});
+    const data=await post('/api/test-provider',aiRequestParams());
     renderModelSelect(data.models||[],data.modelLabels||{},data.recommended||'');
-    state.apiOk=true;state.provider=p;setApiStatus(`✓ ${data.message||'AI hoạt động.'}`,'ok');
+    state.apiOk=true;state.provider=p;setApiStatus(`✓ ${data.message||'AI hoạt động.'}${data.fallbackMessage?` ${data.fallbackMessage}`:''}`,'ok');
   }catch(e){setApiStatus(`✕ ${e.message}`,'bad',e.actionUrl||'',e.actionLabel||'Mở trang kích hoạt API ↗');if(p==='gemini')$('#modelSelect').disabled=true;}
   finally{btn.disabled=false;btn.textContent='Kiểm tra AI';}
 }
@@ -799,8 +806,9 @@ async function generateExam(){
     const structural=blocking.filter(x=>!isRepairableQuestionIssue(x));
     if(!blocking.length){
       const derived=state.exam?.aiMeta?.derivedCodes?.length?' Mã B được tạo từ mã A bằng hoán vị có kiểm soát, bảo đảm cùng ma trận và tổng điểm.':'';
-      const chunks=state.exam?.aiMeta?.cloudflareChunks?` Cloudflare đã chia nhỏ thành ${state.exam.aiMeta.cloudflareChunks} lượt để giảm lỗi quá thời gian/JSON.`:'';
-      box.textContent='✓ Đã tạo đủ mã đề và sửa các lỗi kỹ thuật. Đề vượt qua kiểm tra cấu trúc; giáo viên tiếp tục kiểm tra nội dung.'+derived+chunks;
+      const chunks=state.exam?.aiMeta?.cloudflareChunks?` Cloudflare đã gộp theo nhóm và xử lí trong ${state.exam.aiMeta.cloudflareChunks} lượt có giãn cách để giảm RPM/quá tải.`:'';
+      const failover=state.exam?.aiMeta?.fallbackUsed?` Hệ thống đã tự dùng model/nhà cung cấp dự phòng (${state.exam.aiMeta.provider==='gemini'?'Gemini':'Cloudflare'}) để hoàn tất.`:'';
+      box.textContent='✓ Đã tạo đủ mã đề và sửa các lỗi kỹ thuật. Đề vượt qua kiểm tra cấu trúc; giáo viên tiếp tục kiểm tra nội dung.'+derived+chunks+failover;
     }else if(qleft){
       const qIssues=blocking.filter(isRepairableQuestionIssue);
       box.textContent=`⚠ Đề đã được GIỮ LẠI. Còn ${qleft} câu cần chỉnh:\n${qualityIssueText(qIssues,10)}\n\nSang Bước 6, bấm “Chọn câu này để sửa” hoặc chọn đúng câu trong Trợ lý AI. Nếu AI chưa sửa được, vẫn có thể xuất Word để sửa thủ công sau khi xác nhận đã kiểm tra.`;
@@ -808,7 +816,7 @@ async function generateExam(){
       box.textContent=`⚠ Đề đã được GIỮ LẠI nhưng còn cảnh báo cấu trúc:\n${qualityIssueText(structural,10)}\n\nHệ thống không tự tạo lại nhiều lần để tránh chờ lâu. Giáo viên có thể kiểm tra và vẫn xuất Word để sửa thủ công nếu cần.`;
     }
   }catch(e){
-    const timeout=/3046|3007|3008|3040|408|429|503|504|timeout|thời gian chờ|quá tải|capacity/i.test(String(e.message||''));
+    const timeout=/3046|3007|3008|3040|5006|408|409|429|500|502|503|504|timeout|thời gian chờ|quá tải|high\s+demand|overload|capacity|resource[_\s-]*exhausted|unavailable/i.test(String(e.message||''));
     const daily=/3036|10[.,]?000\s+neurons|hết hạn mức miễn phí/i.test(String(e.message||''));
     box.textContent='✕ '+e.message+(daily?' Đây là giới hạn tài khoản Cloudflare, mã nguồn không thể vượt qua; có thể chờ hạn mức ngày mới hoặc dùng Gemini API cá nhân.':timeout?' Dịch vụ AI không hoàn tất lần tạo đề. Hệ thống không thay đổi ma trận; hãy thử lại hoặc chuyển sang Gemini API cá nhân nếu Cloudflare đang quá tải.':' Ma trận và các thiết lập vẫn được giữ nguyên để thử lại.');
   }finally{btn.disabled=false;}
@@ -840,7 +848,7 @@ function questionHtml(q){
     else body+=`<div class="preview-options">${q.statements.map((x,i)=>`${String(x.label||String.fromCharCode(97+i)).replace(/[\.\)]$/,'')}. ${esc(x.text||x)}`).join('<br>')}</div>`;
   }
   if(q.pairsLeft?.length){const max=Math.max(q.pairsLeft.length,(q.pairsRight||[]).length);body+=`<div class="table-scroll"><table class="mini-match-table"><thead><tr><th>Cột A</th><th>Cột B</th></tr></thead><tbody>${Array.from({length:max},(_,i)=>`<tr><td>${i+1}. ${esc(q.pairsLeft[i]||'')}</td><td>${String.fromCharCode(97+i)}. ${esc((q.pairsRight||[])[i]||'')}</td></tr>`).join('')}</tbody></table></div>`;}
-  if(q.parts?.length===1) body+=`<div class="preview-options">${esc(stripSinglePartPrefix(q.parts[0].prompt||''))}</div>`;
+  if(q.parts?.length===1){const merged=mergeQuestionPrompt(q.prompt,q.parts[0].prompt);if(merged&&merged!==String(q.prompt||'').trim())body+=`<div class="preview-options">${esc(stripSinglePartPrefix(q.parts[0].prompt||''))}</div>`;}
   else if(q.parts?.length) body+=`<div class="preview-options">${q.parts.map((p,i)=>`${String(p.label||String.fromCharCode(97+i)).replace(/[\.\)]$/,'')} (${fmt(p.points)} điểm): ${esc(p.prompt||'')}`).join('<br>')}</div>`;
   return body+'</div>';
 }
@@ -1034,7 +1042,7 @@ function qDoc(q){
     }else q.statements.forEach((x,i)=>xml+=wP(`${String(x.label||String.fromCharCode(97+i)).replace(/[\.\)]$/,'')}. ${x.text||x}`,{size:24,after:20}));
   }
   if(q.pairsLeft?.length){const pairs=[];const max=Math.max(q.pairsLeft.length,(q.pairsRight||[]).length);for(let i=0;i<max;i++)pairs.push(tr([tc(`${i+1}. ${q.pairsLeft[i]||''}`),tc(`${String.fromCharCode(97+i)}. ${(q.pairsRight||[])[i]||''}`)]));xml+=tbl(pairs);}
-  if(q.parts?.length===1)xml+=wP(stripSinglePartPrefix(q.parts[0].prompt||''),{size:24,after:35});
+  if(q.parts?.length===1){const merged=mergeQuestionPrompt(q.prompt,q.parts[0].prompt);if(merged&&merged!==String(q.prompt||'').trim())xml+=wP(stripSinglePartPrefix(q.parts[0].prompt||''),{size:24,after:35});}
   else if(q.parts?.length)q.parts.forEach((p,i)=>xml+=wP(`${String(p.label||String.fromCharCode(97+i)).replace(/[\.\)]$/,'')} (${fmt(p.points)} điểm): ${p.prompt||''}`,{size:24,after:35}));
   return xml;
 }
@@ -1288,6 +1296,7 @@ function bind(){
   $('#clearLessons').addEventListener('click',()=>{state.selected.clear();renderLessons();});
   $('#saveSpecBtn')?.addEventListener('click',saveSpecOverrides);$('#resetSpecBtn')?.addEventListener('click',()=>{if(confirm('Khôi phục đặc tả gốc cho các bài đang chọn?'))resetSelectedSpecOverrides();});
   $('#toggleKey').addEventListener('click',()=>{$('#apiKey').type=$('#apiKey').type==='password'?'text':'password';});
+  $('#toggleFallbackKey')?.addEventListener('click',()=>{const el=$('#fallbackApiKey');if(el)el.type=el.type==='password'?'text':'password';});
   $('#testApiBtn').addEventListener('click',testApi);$('#modelSelect').addEventListener('change',e=>state.model=e.target.value);$$('input[name="aiProvider"]').forEach(r=>r.addEventListener('change',syncAiProviderUI));
   $('input[name="mode"][value="7991"]').addEventListener('change',()=>{renderMatrix();});$('input[name="mode"][value="normal"]').addEventListener('change',()=>{renderMatrix();});
   $('#addConfigBtn').addEventListener('click',()=>{state.dialog.rows.push(state.dialog.form==='tn'?{subtype:'single',count:1,points:.25}:{essayType:'direct',count:1,points:1,partsCount:1,partPoints:[1]});renderConfigRows();});
