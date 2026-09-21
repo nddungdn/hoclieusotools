@@ -45,7 +45,7 @@ var CF_STRICT_JSON_MODELS = /* @__PURE__ */ new Set(["@cf/meta/llama-3.3-70b-ins
 var CF_AI_IDS = new Set(CF_AI_MODELS.map((x) => x.id));
 var VERTEX_EXPRESS_MODELS = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
 var GEMINI_PREFERRED_MODELS = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
-var WORKER_VERSION = "2.5.7";
+var WORKER_VERSION = "2.5.8";
 var GENERATE_MAX_TOKENS = 6500;
 var REFINE_MAX_TOKENS = 3200;
 var REVIEW_MAX_TOKENS = 5200;
@@ -675,6 +675,7 @@ function collapseSinglePartEssays(out, payload = {}) {
         q.rubric = Array.isArray(part.rubric) ? part.rubric : q.rubric;
         q.configId = part.configId || q.configId;
         q.level = part.level || q.level;
+        if (part.matrixCount != null) q.matrixCount = part.matrixCount;
         q.points = roundScore(Number(part.points || q.points || cfg2?.pointsPerQuestion || 0));
         delete q.parts;
       }
@@ -699,8 +700,12 @@ function normalizeScoresFromMatrix(out, payload) {
           const ids = q.parts.map((p) => p.configId).filter(Boolean), same = ids.length === q.parts.length && new Set(ids).size === 1;
           const sameCfg = same ? expected.get(ids[0]) : null;
           if (sameCfg && Array.isArray(sameCfg.partPoints) && sameCfg.partPoints.length === q.parts.length) {
+            const scale = Number(sameCfg.count) < 1 ? 0.5 : 1;
+            const allocated = sameCfg.partPoints.map((points) => ({ points }));
+            normalizeRubricScore(allocated, Number(sameCfg.pointsPerQuestion) * scale);
             q.parts.forEach((part, i) => {
-              part.points = roundScore(sameCfg.partPoints[i]);
+              part.points = allocated[i].points;
+              if (scale === 0.5) part.matrixCount = 0.5;
               normalizeRubricScore(part.rubric, part.points);
             });
           } else {
@@ -711,7 +716,7 @@ function normalizeScoresFromMatrix(out, payload) {
               const index = seenIndex.get(part.configId) || 0;
               seenIndex.set(part.configId, index + 1);
               let target = Number(part.points || 0);
-              if (Number(cfg.count) < 1) target = Number(cfg.total || 0);
+              if (Number(cfg.count) < 1 || part.matrixCount === 0.5 && Math.abs(Number(cfg.count) % 1 - 0.5) < 1e-3) target = roundScore(Number(cfg.pointsPerQuestion) * 0.5);
               else if (Number(cfg.partsCount || 0) > 1 && Array.isArray(cfg.partPoints) && cfg.partPoints[index] != null) target = Number(cfg.partPoints[index]);
               else if (Number(cfg.partsCount || 1) === 1) target = Number(cfg.pointsPerQuestion || cfg.total || target);
               part.points = roundScore(target);
@@ -721,15 +726,51 @@ function normalizeScoresFromMatrix(out, payload) {
           q.points = roundScore(q.parts.reduce((s, p) => s + Number(p.points || 0), 0));
         } else {
           const cfg = expected.get(q.configId);
-          if (cfg && cfg.form === "TL") q.points = roundScore(cfg.pointsPerQuestion);
+          if (cfg && cfg.form === "TL") {
+            const half = Number(cfg.count) < 1 || q.matrixCount === 0.5 && Math.abs(Number(cfg.count) % 1 - 0.5) < 1e-3;
+            q.matrixCount = half ? 0.5 : 1;
+            q.points = roundScore(Number(cfg.pointsPerQuestion) * q.matrixCount);
+          }
           normalizeRubricScore(q.rubric, q.points);
         }
       }
     }
   }
-  return collapseSinglePartEssays(out, payload);
+  return mergeHalfEssayQuestions(collapseSinglePartEssays(out, payload));
 }
 __name(normalizeScoresFromMatrix, "normalizeScoresFromMatrix");
+function mergeHalfEssayQuestions(out) {
+  for (const code of out?.examCodes || []) {
+    const pending = new Map(), questions = [];
+    for (const q of code.questions || []) {
+      if (q.form !== "TL" || q.matrixCount !== 0.5 || q.parts?.length) {
+        questions.push(q);
+        continue;
+      }
+      // Only combine compatible halves; keep each part's level and matrix ID.
+      const key = JSON.stringify([q.lessonId, q.essayType || "direct"]);
+      if (!pending.has(key)) {
+        pending.set(key, questions.length);
+        questions.push(q);
+        continue;
+      }
+      const index = pending.get(key), first = questions[index], pair = [first, q];
+      const contexts = pair.map((x, i) => x.context ? `Tình huống ${String.fromCharCode(97 + i)}: ${x.context}` : "").filter(Boolean);
+      questions[index] = {
+        number: first.number, lessonId: first.lessonId, level: first.level, form: "TL", subtype: "essay",
+        essayType: first.essayType || "direct", prompt: "Trả lời các yêu cầu sau:",
+        context: first.context && first.context === q.context ? first.context : contexts.join("\n\n"),
+        points: roundScore(first.points + q.points),
+        parts: pair.map((x, i) => ({ label: String.fromCharCode(97 + i), configId: x.configId, level: x.level,
+          matrixCount: 0.5, points: x.points, prompt: x.prompt, answer: x.answer, rubric: x.rubric }))
+      };
+      pending.delete(key);
+    }
+    code.questions = questions.map((q, i) => ({ ...q, number: i + 1 }));
+  }
+  return out;
+}
+__name(mergeHalfEssayQuestions, "mergeHalfEssayQuestions");
 function hasLongNamedPerson(text) {
   const role = "(?:b\u1EA1n|anh|ch\u1ECB|\xF4ng|b\xE0|c\xF4|ch\xFA|b\xE1c|th\u1EA7y|em|b\xE9|b\u1ED1|m\u1EB9|cha)";
   const proper = "[A-Z\xC0\xC1\u1EA2\xC3\u1EA0\u0102\u1EAE\u1EB0\u1EB2\u1EB4\u1EB6\xC2\u1EA4\u1EA6\u1EA8\u1EAA\u1EAC\u0110\xC8\xC9\u1EBA\u1EBC\u1EB8\xCA\u1EBE\u1EC0\u1EC2\u1EC4\u1EC6\xCC\xCD\u1EC8\u0128\u1ECA\xD2\xD3\u1ECE\xD5\u1ECC\xD4\u1ED0\u1ED2\u1ED4\u1ED6\u1ED8\u01A0\u1EDA\u1EDC\u1EDE\u1EE0\u1EE2\xD9\xDA\u1EE6\u0168\u1EE4\u01AF\u1EE8\u1EEA\u1EEC\u1EEE\u1EF0\u1EF2\xDD\u1EF6\u1EF8\u1EF4][a-z\xE0\xE1\u1EA3\xE3\u1EA1\u0103\u1EAF\u1EB1\u1EB3\u1EB5\u1EB7\xE2\u1EA5\u1EA7\u1EA9\u1EAB\u1EAD\u0111\xE8\xE9\u1EBB\u1EBD\u1EB9\xEA\u1EBF\u1EC1\u1EC3\u1EC5\u1EC7\xEC\xED\u1EC9\u0129\u1ECB\xF2\xF3\u1ECF\xF5\u1ECD\xF4\u1ED1\u1ED3\u1ED5\u1ED7\u1ED9\u01A1\u1EDB\u1EDD\u1EDF\u1EE1\u1EE3\xF9\xFA\u1EE7\u0169\u1EE5\u01B0\u1EE9\u1EEB\u1EED\u1EEF\u1EF1\u1EF3\xFD\u1EF7\u1EF9\u1EF5]{1,}";
@@ -895,14 +936,20 @@ function tlChunkPayloads(payload) {
   const chunks = [];
   for (const cfg of (payload.matrix || []).filter((x) => x.form === "TL")) {
     const count = Number(cfg.count || 0);
-    if (Math.abs(count - Math.round(count)) > 1e-3) throw new Error(`Cấu hình tự luận ${cfg.id} có số câu ${count}. Số câu tự luận phải là số nguyên.`);
-    let left = Math.round(count), part = 0;
+    if (!Number.isFinite(count) || count <= 0 || Math.abs(count * 2 - Math.round(count * 2)) > 1e-3) throw new Error(`Cấu hình tự luận ${cfg.id}: số câu phải là bội số của 0,5 (½; 1; 1½; 2…).`);
+    let left = Math.round(count * 2), part = 0;
     while (left > 0) {
-      const take = 1;
+      const units = Math.min(2, left), take = units / 2;
       part++;
       const cloned = { ...JSON.parse(JSON.stringify(cfg)), count: take, total: roundScore(take * Number(cfg.pointsPerQuestion || 0)) };
-      chunks.push({ cfg: JSON.parse(JSON.stringify(cfg)), count: take, payload: compactGenerationPayload(payload, [cloned], `TỰ LUẬN · ${cfg.lessonTitle || cfg.lessonId} · ${cfg.levelName || cfg.level} · 1 câu`), part, form: "TL" });
-      left -= take;
+      if (take === 0.5) {
+        cloned.partsCount = 1;
+        cloned.partPoints = [cloned.pointsPerQuestion];
+      }
+      const partPayload = compactGenerationPayload(payload, [cloned], `TỰ LUẬN · ${cfg.lessonTitle || cfg.lessonId} · ${cfg.levelName || cfg.level} · ${take === 0.5 ? "1 ý (½ câu)" : "1 câu"}`);
+      if (take === 0.5) partPayload.setup.extraNotes += `\nCấu hình ½ câu là MỘT Ý tự luận trị giá ${cloned.total} điểm. Trả đúng một đối tượng câu hỏi độc lập với prompt, answer, rubric; không chia parts, không thêm nhãn a/b. Hệ thống sẽ ghép các ý cùng bài và cùng kiểu tự luận; không tự làm tròn số câu hoặc tăng điểm.`;
+      chunks.push({ cfg: cloned, count: 1, payload: partPayload, part, form: "TL" });
+      left -= units;
     }
   }
   return chunks;
@@ -933,7 +980,14 @@ function lockTlChunkToConfig(out, cfg, count) {
   const candidates = essays.length ? essays : all;
   if (candidates.length < count) throw new Error(`AI chỉ trả ${candidates.length}/${count} câu tự luận trong lượt nhỏ.`);
   const qs = candidates.slice(0, count).map((q, i) => {
-    const locked = { ...q, number: i + 1, configId: cfg.id, lessonId: cfg.lessonId, level: cfg.level, form: "TL", subtype: "essay", essayType: cfg.essayType || q.essayType || "direct", points: roundScore(cfg.pointsPerQuestion) };
+    const matrixCount = Number(cfg.count) === 0.5 ? 0.5 : 1;
+    const locked = { ...q, number: i + 1, configId: cfg.id, lessonId: cfg.lessonId, level: cfg.level, form: "TL", subtype: "essay", essayType: cfg.essayType || q.essayType || "direct", matrixCount, points: roundScore(Number(cfg.pointsPerQuestion) * matrixCount) };
+    if (matrixCount === 0.5 && locked.parts?.length) {
+      locked.prompt = locked.parts.reduce((text, p) => mergeQuestionPrompt(text, p.prompt), locked.prompt);
+      locked.answer = locked.parts.map((p) => p.answer).filter(Boolean).join("\n") || locked.answer;
+      locked.rubric = locked.parts.flatMap((p) => Array.isArray(p.rubric) ? p.rubric : []);
+      delete locked.parts;
+    }
     if (Array.isArray(locked.parts)) locked.parts = locked.parts.map((p, pi) => ({ ...p, label: String(p.label || String.fromCharCode(97 + pi)).replace(/[\.\)]$/, ""), configId: cfg.id, level: cfg.level }));
     return locked;
   });
@@ -1219,7 +1273,8 @@ function buildRefinedQuestion(original, proposed, field, partIndex) {
     out.parts[partIndex] = { ...out.parts[partIndex], answer: pp.answer, rubric: pp.rubric };
     return out;
   }
-  const fixed = { number: original.number, configId: original.configId, lessonId: original.lessonId, level: original.level, form: original.form, subtype: original.subtype, essayType: original.essayType, points: original.points };
+  const fixed = { number: original.number, configId: original.configId, lessonId: original.lessonId, level: original.level, form: original.form, subtype: original.subtype, essayType: original.essayType, points: original.points, matrixCount: original.matrixCount };
+  if (Array.isArray(p.parts)) p.parts = p.parts.map((part, i) => ({ ...part, matrixCount: original.parts?.[i]?.matrixCount }));
   return { ...p, ...fixed };
 }
 __name(buildRefinedQuestion, "buildRefinedQuestion");
