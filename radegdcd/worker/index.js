@@ -45,7 +45,7 @@ var CF_STRICT_JSON_MODELS = /* @__PURE__ */ new Set(["@cf/meta/llama-3.3-70b-ins
 var CF_AI_IDS = new Set(CF_AI_MODELS.map((x) => x.id));
 var VERTEX_EXPRESS_MODELS = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
 var GEMINI_PREFERRED_MODELS = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
-var WORKER_VERSION = "2.5.6";
+var WORKER_VERSION = "2.5.7";
 var GENERATE_MAX_TOKENS = 6500;
 var REFINE_MAX_TOKENS = 3200;
 var REVIEW_MAX_TOKENS = 5200;
@@ -891,6 +891,23 @@ function tnChunkPayloads(payload) {
   return chunks;
 }
 __name(tnChunkPayloads, "tnChunkPayloads");
+function tlChunkPayloads(payload) {
+  const chunks = [];
+  for (const cfg of (payload.matrix || []).filter((x) => x.form === "TL")) {
+    const count = Number(cfg.count || 0);
+    if (Math.abs(count - Math.round(count)) > 1e-3) throw new Error(`Cấu hình tự luận ${cfg.id} có số câu ${count}. Số câu tự luận phải là số nguyên.`);
+    let left = Math.round(count), part = 0;
+    while (left > 0) {
+      const take = 1;
+      part++;
+      const cloned = { ...JSON.parse(JSON.stringify(cfg)), count: take, total: roundScore(take * Number(cfg.pointsPerQuestion || 0)) };
+      chunks.push({ cfg: JSON.parse(JSON.stringify(cfg)), count: take, payload: compactGenerationPayload(payload, [cloned], `TỰ LUẬN · ${cfg.lessonTitle || cfg.lessonId} · ${cfg.levelName || cfg.level} · 1 câu`), part, form: "TL" });
+      left -= take;
+    }
+  }
+  return chunks;
+}
+__name(tlChunkPayloads, "tlChunkPayloads");
 function generationTokenBudget(partPayload, form = "TNKQ") {
   const count = (partPayload.matrix || []).reduce((sum, x) => sum + Math.max(1, Math.ceil(Number(x.count || 0))), 0);
   const parts = (partPayload.matrix || []).reduce((sum, x) => sum + Math.max(1, Number(x.partsCount || 1)) * Math.max(1, Math.ceil(Number(x.count || 0))), 0);
@@ -908,13 +925,29 @@ function lockTnChunkToConfig(out, cfg, count) {
   return out;
 }
 __name(lockTnChunkToConfig, "lockTnChunkToConfig");
+function lockTlChunkToConfig(out, cfg, count) {
+  out = normalizeOutput(out);
+  if (!out?.examCodes?.length) throw new Error("AI chưa tạo mã đề cho lượt tự luận nhỏ.");
+  const all = out.examCodes[0].questions || [];
+  const essays = all.filter((q) => q.form === "TL");
+  const candidates = essays.length ? essays : all;
+  if (candidates.length < count) throw new Error(`AI chỉ trả ${candidates.length}/${count} câu tự luận trong lượt nhỏ.`);
+  const qs = candidates.slice(0, count).map((q, i) => {
+    const locked = { ...q, number: i + 1, configId: cfg.id, lessonId: cfg.lessonId, level: cfg.level, form: "TL", subtype: "essay", essayType: cfg.essayType || q.essayType || "direct", points: roundScore(cfg.pointsPerQuestion) };
+    if (Array.isArray(locked.parts)) locked.parts = locked.parts.map((p, pi) => ({ ...p, label: String(p.label || String.fromCharCode(97 + pi)).replace(/[\.\)]$/, ""), configId: cfg.id, level: cfg.level }));
+    return locked;
+  });
+  out.examCodes = [{ ...out.examCodes[0], code: "A", questions: qs }];
+  return out;
+}
+__name(lockTlChunkToConfig, "lockTlChunkToConfig");
 async function generateValidatedCloudflarePart(env, resolved, systemPrompt, partPayload, form, { cfg = null, count = 0, fallbackResolved = null, structureAttempts = 2 } = {}) {
   let lastError = null, lastRun = null;
   for (let structureAttempt = 0; structureAttempt < structureAttempts; structureAttempt++) {
     const work = structureAttempt ? compactGenerationPayload(partPayload, partPayload.matrix, form === "TNKQ" ? "TNKQ l\u01B0\u1EE3t s\u1EEDa c\u1EA5u tr\xFAc" : "T\u1EF0 LU\u1EACN l\u01B0\u1EE3t s\u1EEDa c\u1EA5u tr\xFAc", String(lastError?.message || lastError || "")) : partPayload;
     try {
       lastRun = await runJsonAIWithFallback(env, resolved, systemPrompt, work, generationTokenBudget(work, form), "generate", fallbackResolved);
-      let out = cfg ? lockTnChunkToConfig(lastRun.data, cfg, count) : normalizeScoresFromMatrix(lastRun.data, work);
+      let out = cfg ? form === "TL" ? lockTlChunkToConfig(lastRun.data, cfg, count) : lockTnChunkToConfig(lastRun.data, cfg, count) : normalizeScoresFromMatrix(lastRun.data, work);
       out = normalizeScoresFromMatrix(out, work);
       out = pruneExcessQuestionsByMatrix(out, work);
       out = ensureRequestedExamCodes(out, 1);
@@ -949,16 +982,22 @@ async function generateCloudflareCanonicalCode(env, resolved, systemPrompt, payl
     }
     if (ti < tnItems.length - 1) await sleep(activeResolved.provider === "gemini" ? 4200 : CF_INTER_CHUNK_DELAY_MS);
   }
-  if ((payload.matrix || []).some((x) => x.form === "TL")) {
-    const tlPayload = generationPayloadForForm(payload, "TL");
+  const tlItems = tlChunkPayloads(payload);
+  for (let ti = 0; ti < tlItems.length; ti++) {
+    const item = tlItems[ti];
     if (chunks) await sleep(activeResolved.provider === "gemini" ? 4200 : CF_INTER_CHUNK_DELAY_MS);
-    const part = await generateValidatedCloudflarePart(env, activeResolved, systemPrompt, tlPayload, "TL", { fallbackResolved: activeFallback });
+    const part = await generateValidatedCloudflarePart(env, activeResolved, systemPrompt, item.payload, "TL", { cfg: item.cfg, count: item.count, fallbackResolved: activeFallback });
     chunks++;
     questions.push(...(part.out.examCodes?.[0]?.questions || []).filter((q) => q.form === "TL"));
     if (Array.isArray(part.out.notes)) notes.push(...part.out.notes);
     fallbackUsed = fallbackUsed || part.run.fallbackUsed;
     totalAttempts += Number(part.run.attemptCount || 1);
     lastRun = part.run;
+    if (part.run?.resolved) {
+      const switchedProvider = part.run.resolved.provider !== activeResolved.provider;
+      activeResolved = part.run.resolved;
+      if (switchedProvider) activeFallback = null;
+    }
   }
   if (!lastRun) throw new Error("Ma tr\u1EADn ch\u01B0a c\xF3 ph\u1EA7n c\xE2u h\u1ECFi h\u1EE3p l\u1EC7 \u0111\u1EC3 t\u1EA1o \u0111\u1EC1.");
   let out = { examCodes: [{ code: "A", questions: questions.map((q, i) => ({ ...q, number: i + 1 })) }], notes: [...new Set(notes.map(String))] };
@@ -1190,9 +1229,7 @@ function cleanReviewResult(x) {
 }
 __name(cleanReviewResult, "cleanReviewResult");
 function generationSteps(payload) {
-  const steps = tnChunkPayloads(payload);
-  if ((payload.matrix || []).some((x) => x.form === "TL")) steps.push({ cfg: null, count: 0, payload: generationPayloadForForm(payload, "TL"), part: 0, form: "TL" });
-  return steps;
+  return [...tnChunkPayloads(payload), ...tlChunkPayloads(payload)];
 }
 function checkedGenerationPayload(body) {
   const payload = cleanPayload(body.payload || {});
@@ -1372,7 +1409,7 @@ ${env.SYSTEM_PROMPT_C}`;
     }
   }
 };
-var __test = { normalizeScoresFromMatrix, pruneExcessQuestionsByMatrix, ensureRequestedExamCodes, validateOutput, choiceLengthsBalanced, retryableAIError, retrySameModel, isHighDemandError, backoffDelayMs, runJsonAIWithFallback, geminiKeyMode, validateGeminiKey, resolveGeminiAccess, shouldTryVertexForAq, rubricLooksLikeAlternativeBands, VERTEX_EXPRESS_MODELS };
+var __test = { normalizeScoresFromMatrix, pruneExcessQuestionsByMatrix, ensureRequestedExamCodes, validateOutput, generationSteps, tlChunkPayloads, lockTlChunkToConfig, choiceLengthsBalanced, retryableAIError, retrySameModel, isHighDemandError, backoffDelayMs, runJsonAIWithFallback, geminiKeyMode, validateGeminiKey, resolveGeminiAccess, shouldTryVertexForAq, rubricLooksLikeAlternativeBands, VERTEX_EXPRESS_MODELS };
 export {
   __test,
   index_default as default
