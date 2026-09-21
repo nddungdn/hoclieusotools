@@ -30,7 +30,7 @@ test('mỗi phần tạo đề có thể gọi và nhận riêng', async () => {
   const chunk = await post('/api/generate-chunk', { payload, chunkIndex: 0, provider: 'cloudflare' });
   assert.equal(chunk.status, 200, chunk.data.error);
   assert.equal(chunk.data.questions.length, 1);
-  assert.equal(chunk.data.aiMeta.workerVersion, '2.5.7');
+  assert.equal(chunk.data.aiMeta.workerVersion, '2.5.8');
   const final = await post('/api/finalize-generation', { payload, questions: chunk.data.questions, chunkMeta: [chunk.data.aiMeta] });
   assert.equal(final.status, 200, final.data.error);
   assert.equal(final.data.examCodes.length, 2);
