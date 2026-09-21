@@ -671,7 +671,7 @@ function renderConfigRows(){
     const partPts=parsePartPoints(r.partPoints); const partsCount=Math.max(1,Number(r.partsCount||1));
     return `<div class="config-row ${d.form==='tl'?'tl-row':'tn-row'}" data-row="${i}">
       ${d.form==='tn'?`<label class="subtype">Kiểu trắc nghiệm<select data-field="subtype">${subtypeOptions(r.subtype||'single')}</select></label>`:`<label class="subtype">Kiểu tự luận<select data-field="essayType">${essayTypeOptions(r.essayType||'direct')}</select></label>`}
-      <label>Số câu<input data-field="count" type="number" min="0.5" step="0.5" value="${nval(r.count)||1}" /></label>
+      <label>Số câu<input data-field="count" type="number" min="${d.form==='tl'?'0.5':'1'}" step="${d.form==='tl'?'0.5':'1'}" value="${nval(r.count)||1}" /></label>
       <label>Điểm/câu<select data-field="pointsPreset">${pointOptions(r.points)}</select><input data-field="pointsCustom" type="number" min="0.05" step="0.05" value="${nval(r.points)||.25}" style="${POINTS.includes(nval(r.points))?'display:none':''};margin-top:6px" /></label>
       ${d.form==='tl'?`<label>Số ý/câu<select data-field="partsCount">${[1,2,3,4].map(n=>`<option value="${n}" ${n===partsCount?'selected':''}>${n} ý</option>`).join('')}</select></label><label class="part-points">Điểm từng ý<input data-field="partPoints" value="${esc((partPts.length?partPts:defaultPartPoints(r.points,partsCount)).map(fmt).join('; '))}" placeholder="VD: 1; 1 hoặc 0,5; 1,5"/><small>Dùng dấu ; để ngăn cách. Tổng phải bằng điểm/câu.</small></label>`:''}
       <button type="button" class="btn ghost remove-config" data-remove="${i}" title="Xóa">✕</button>
@@ -705,7 +705,18 @@ function renderConfigRows(){
   $$('[data-remove]').forEach(b=>b.addEventListener('click',()=>{d.rows.splice(+b.dataset.remove,1);renderConfigRows();}));
   updateDialogSummary();
 }
+function validateConfigCounts(rows,form){
+  const step=form==='tl'?.5:1;
+  for(const r of rows||[]){
+    const count=nval(r.count);
+    if(!Number.isFinite(count)||count<step||Math.abs(count/step-Math.round(count/step))>.001){
+      return form==='tl'?'Số câu tự luận phải là ½; 1; 1½; 2…':'Số câu trắc nghiệm phải là số nguyên từ 1 trở lên.';
+    }
+  }
+  return '';
+}
 function validateEssayRows(rows){
+  const countError=validateConfigCounts(rows,'tl');if(countError)return countError;
   for(const r of rows||[]){
     const pc=Math.max(1,Number(r.partsCount||1)), pp=parsePartPoints(r.partPoints);
     if(nval(r.count)<1 && pc!==1)return 'Cấu hình ½ câu chỉ được dùng như một ý ghép; hãy đặt Số ý/câu = 1.';
@@ -795,10 +806,11 @@ async function generateExam(){
   const btn=$('#generateBtn'), box=$('#generateStatus');btn.disabled=true;box.classList.remove('hidden');
   try{
     const params=aiRequestParams(),payload=buildPayload();
+    for(const cfg of payload.matrix){const error=validateConfigCounts([cfg],cfg.form==='TL'?'tl':'tn');if(error)throw new Error(`${cfg.lessonTitle}: ${error}`);}
     let data;
     if(params.provider==='cloudflare'){
       const plan=await post('/api/generation-plan',{payload});
-      const fingerprint=hash32(JSON.stringify({payload,params}));
+      const fingerprint=hash32(JSON.stringify({payload,params,workerVersion:plan.workerVersion}));
       let draft=state.generationDraft;
       if(!draft||draft.fingerprint!==fingerprint||draft.totalChunks!==plan.totalChunks){
         draft={fingerprint,totalChunks:plan.totalChunks,nextIndex:0,questions:[],notes:[],chunkMeta:[]};
@@ -807,6 +819,7 @@ async function generateExam(){
       for(let i=draft.nextIndex;i<draft.totalChunks;i++){
         box.textContent=`Đang tạo phần ${i+1}/${draft.totalChunks} của mã đề A. Nếu lỗi, bấm Tạo đề lần nữa để tiếp tục từ phần này.`;
         const chunk=await post('/api/generate-chunk',{...params,payload,chunkIndex:i},210000);
+        if(chunk.aiMeta?.workerVersion!==plan.workerVersion)throw new Error('Máy chủ vừa được cập nhật. Bấm Tạo đề để tạo lại các phần theo cùng một phiên bản.');
         if(chunk.chunkIndex!==i||chunk.totalChunks!==draft.totalChunks||!Array.isArray(chunk.questions)||!chunk.questions.length)throw new Error(`Phần ${i+1} trả dữ liệu không hợp lệ; có thể thử tiếp phần này.`);
         draft.questions.push(...chunk.questions);
         draft.notes.push(...(chunk.notes||[]));
@@ -1332,7 +1345,7 @@ function bind(){
   $('input[name="mode"][value="7991"]').addEventListener('change',()=>{renderMatrix();});$('input[name="mode"][value="normal"]').addEventListener('change',()=>{renderMatrix();});
   $('#addConfigBtn').addEventListener('click',()=>{state.dialog.rows.push(state.dialog.form==='tn'?{subtype:'single',count:1,points:.25}:{essayType:'direct',count:1,points:1,partsCount:1,partPoints:[1]});renderConfigRows();});
   $('#closeDialog').addEventListener('click',()=>$('#matrixDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#matrixDialog').close());
-  $('#matrixForm').addEventListener('submit',e=>{e.preventDefault();const d=state.dialog;if(d.form==='tl'){const err=validateEssayRows(d.rows);if(err){alert(err);return;}}ensureLessonMatrix(d.lessonId)[d.level][d.form]=d.rows.filter(r=>nval(r.count)>0&&nval(r.points)>0);$('#matrixDialog').close();renderMatrix();});
+  $('#matrixForm').addEventListener('submit',e=>{e.preventDefault();const d=state.dialog;const err=d.form==='tl'?validateEssayRows(d.rows):validateConfigCounts(d.rows,'tn');if(err){alert(err);return;}ensureLessonMatrix(d.lessonId)[d.level][d.form]=d.rows.filter(r=>nval(r.count)>0&&nval(r.points)>0);$('#matrixDialog').close();renderMatrix();});
   $('#generateBtn').addEventListener('click',generateExam);$('#exportDocxBtn').addEventListener('click',exportDocx);
   const syncDisabled=()=>$('#disabledOptions')?.classList.toggle('hidden',!$('#disabledGuide').checked);
   $('#disabledGuide').addEventListener('change',syncDisabled); syncDisabled();
