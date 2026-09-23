@@ -2,6 +2,7 @@
   "use strict";
 
   const APP_VERSION = "13.0.1-secure-auto-review";
+  const EXAM_READ_TIMEOUT_MS = 75000;
   const MAX_IMAGES_PER_WRITING = Number(window.VAN10_MAX_IMAGES_PER_WRITING || 8);
   const MAX_IMAGE_BYTES = Number(window.VAN10_MAX_IMAGE_BYTES || 1500000);
   const MAX_IMAGE_SIDE = Number(window.VAN10_MAX_IMAGE_SIDE || 1800);
@@ -364,7 +365,7 @@
   async function loadExamCatalog_() {
     setStatus("Đang tải danh mục đề thi an toàn…", "");
     try {
-      const data = await apiRequest("/api/exams");
+      const data = await apiRequest("/api/exams", { timeoutMs: EXAM_READ_TIMEOUT_MS });
       const exams = normalizeRows(Array.isArray(data.items) ? data.items : []);
       if (!exams.length) throw new Error("Chưa có đề thi ở trạng thái hiển thị.");
       state.exams = exams;
@@ -591,7 +592,7 @@
     setStatus(`Đang mở đề ${summary.TinhThanh || summary.ID}…`, "");
 
     try {
-      const data = await apiRequest(`/api/exams/${encodeURIComponent(summary.ID)}`);
+      const data = await apiRequest(`/api/exams/${encodeURIComponent(summary.ID)}`, { timeoutMs: EXAM_READ_TIMEOUT_MS });
       if (requestNumber !== state.selectionRequest) return;
       const exam = normalizeRows([data.exam || {}])[0];
       const questions = normalizeRows(Array.isArray(data.questions) ? data.questions : []);
