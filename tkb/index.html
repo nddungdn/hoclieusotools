@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thời khóa biểu | THCS Lê Hồng Phong</title>
+  <meta name="description" content="Tra cứu thời khóa biểu học sinh và giáo viên Trường THCS Lê Hồng Phong, Đà Nẵng.">
+  <meta name="theme-color" content="#0750b8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.workers.dev; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="masthead"><p id="authority">UBND PHƯỜNG HẢI CHÂU</p><h1 id="school-name">TRƯỜNG THCS LÊ HỒNG PHONG</h1><p class="masthead-sub">TRA CỨU THỜI KHÓA BIỂU</p></header>
+  <main>
+    <div class="announcement" id="announcement" hidden></div>
+    <nav class="toolbar" aria-label="Tiện ích">
+      <a id="home-link" class="pill blue" href="https://www.hoclieuso.id.vn/">▣ Học liệu số</a>
+      <a id="school-link" class="pill green" href="https://lehongphongdanang.edu.vn/">◎ Website trường</a>
+      <button id="install" class="pill blue" type="button">▤ Cài App TKB</button>
+      <button id="theme" class="pill dark" type="button" aria-pressed="false">◐ Giao diện tối</button>
+    </nav>
+    <div class="tabs" role="tablist" aria-label="Loại thời khóa biểu">
+      <button id="tab-student" role="tab" aria-selected="true" aria-controls="panel-student">TKB HỌC SINH</button>
+      <button id="tab-teacher" role="tab" aria-selected="false" aria-controls="panel-teacher">TKB GIÁO VIÊN</button>
+    </div>
+    <section class="content-card">
+      <div class="clock-box"><strong id="live-status">Đang tải thời khóa biểu…</strong><span id="live-time"></span></div>
+      <div id="error" role="alert" class="error" hidden><span id="error-text"></span><button id="retry" type="button">Thử lại</button></div>
+      <section id="panel-student" role="tabpanel" aria-labelledby="tab-student">
+        <div class="filters student-filters">
+          <form id="class-search-form" class="search-box" role="search"><label class="sr-only" for="class-search">Tìm theo lớp</label><input id="class-search" type="search" placeholder="Tìm lớp, ví dụ 7/10" autocomplete="off"><button type="submit" class="search-button" aria-label="Tìm lớp" title="Tìm lớp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></button></form>
+          <label class="compact-select"><span class="sr-only">Khối lớp</span><select id="grade"><option value="">Tất cả khối</option><option value="6">Khối 6</option><option value="7">Khối 7</option><option value="8">Khối 8</option><option value="9">Khối 9</option></select></label>
+          <label class="compact-select"><span class="sr-only">Điểm trường của lớp</span><select id="class-campus"><option value="">Tất cả điểm trường</option></select></label>
+        </div>
+        <div id="class-buttons" class="class-buttons" aria-label="Chọn lớp"></div><p id="class-count" class="result-count" aria-live="polite"></p>
+      </section>
+      <section id="panel-teacher" role="tabpanel" aria-labelledby="tab-teacher" hidden>
+        <form id="login-form" class="login-card">
+          <div class="login-symbol" aria-hidden="true">▣</div><h2>GIÁO VIÊN ĐĂNG NHẬP</h2><p>Sử dụng tài khoản chung của nhà trường để xem lịch giáo viên.</p>
+          <label for="username">Tên đăng nhập</label><input id="username" name="username" autocomplete="username" required maxlength="100" placeholder="Tên đăng nhập">
+          <label for="password">Mật khẩu</label><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"><button id="show-password" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">◉</button></div>
+          <p id="login-error" class="login-error" role="alert"></p><button id="login-submit" class="login-submit" type="submit">ĐĂNG NHẬP</button><small>Phiên đăng nhập có hiệu lực tối đa 8 giờ trên tab này.</small>
+        </form>
+        <div id="teacher-tools" hidden>
+          <div class="teacher-session"><span>Đã đăng nhập</span><button id="logout" class="text-button" type="button">Đăng xuất</button></div>
+          <div class="filters teacher-filters">
+            <form id="teacher-search-form" class="search-box" role="search"><label class="sr-only" for="teacher-search">Tìm theo giáo viên</label><input id="teacher-search" type="search" placeholder="Tìm họ tên giáo viên" autocomplete="off"><button type="submit" class="search-button" aria-label="Tìm giáo viên" title="Tìm giáo viên"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></button></form>
+            <label class="compact-select"><span class="sr-only">Tổ chuyên môn</span><select id="department"><option value="">Tất cả tổ chuyên môn</option></select></label>
+            <label class="compact-select"><span class="sr-only">Điểm trường của giáo viên</span><select id="teacher-campus"><option value="">Tất cả điểm trường</option></select></label>
+          </div>
+          <div class="teacher-picker"><label for="teacher-select">Giáo viên</label><select id="teacher-select"></select><button id="open-finder" class="action cyan" type="button">Tìm GV trống tiết</button></div>
+          <p id="teacher-count" class="result-count" aria-live="polite"></p><div id="conflict-warning" class="warning" hidden></div>
+        </div>
+      </section>
+      <section id="schedule" hidden>
+        <div class="schedule-heading"><h2 id="schedule-title">THỜI KHÓA BIỂU HỌC SINH</h2><p id="effective-date"></p></div>
+        <div class="schedule-bar"><div id="schedule-meta" class="schedule-meta"></div><div class="schedule-actions"><button id="calendar" class="action green" type="button">▣ Lưu lịch</button><button id="image" class="action pink" type="button">↓ Tải ảnh</button><button id="print" class="action neutral" type="button">▧ In</button></div></div>
+        <div class="view-controls"><label for="week-filter">Tuần:</label><select id="week-filter"><option value="0">Tất cả tuần</option><option value="1">Tuần lẻ</option><option value="2">Tuần chẵn</option></select><span id="week-note"></span><button id="refresh" class="text-button" type="button">↻ Cập nhật</button></div>
+        <div id="desktop-table" class="desktop-table"></div>
+        <div class="mobile-schedule"><div class="day-navigation"><button id="previous-day" type="button" aria-label="Ngày trước">‹</button><strong id="day-title"></strong><button id="next-day" type="button" aria-label="Ngày tiếp theo">›</button></div><div id="day-buttons" class="day-buttons"></div><div id="mobile-list"></div><small class="swipe-hint">Vuốt trái/phải để chuyển ngày</small></div>
+        <p class="schedule-footnote">Chẵn/Lẻ là tuần học theo quy ước của nhà trường. Tiết trống không có lịch trong nguồn.</p>
+      </section>
+      <div id="connection" role="status" class="connection"></div>
+    </section>
+  </main>
+  <footer><h2>TRƯỜNG THCS LÊ HỒNG PHONG</h2><p>Trụ sở: 85 Hàn Mặc Tử · Phân hiệu: 36 Hải Sơn</p><p>Phường Hải Châu, thành phố Đà Nẵng</p><p class="footer-credit">Tiện ích phát triển bởi <a href="https://www.hoclieuso.id.vn/">Học liệu số</a></p></footer>
+  <dialog id="calendar-dialog"><form id="calendar-form"><div class="dialog-heading"><h2>Lưu lịch vào điện thoại</h2><button type="button" class="dialog-close" data-close="calendar-dialog" aria-label="Đóng">×</button></div><p>Tạo file lịch .ics để nhập vào Google Calendar hoặc lịch trên điện thoại.</p><label for="calendar-start">Từ ngày</label><input id="calendar-start" type="date" required><label for="calendar-weeks">Số tuần</label><select id="calendar-weeks"><option value="4">4 tuần</option><option value="8">8 tuần</option><option value="12">12 tuần</option><option value="16">16 tuần</option></select><label for="calendar-parity">Tuần của ngày bắt đầu</label><select id="calendar-parity" required><option value="">Chọn tuần lẻ/chẵn</option><option value="1">Tuần lẻ</option><option value="2">Tuần chẵn</option></select><p class="warning">Lịch đã nhập không tự cập nhật khi Google Sheet thay đổi. Nên nhập vào một lịch riêng để dễ thay thế.</p><button class="action green" type="submit">Tải file lịch</button></form></dialog>
+  <dialog id="finder-dialog"><form id="finder-form"><div class="dialog-heading"><h2>Tìm giáo viên trống tiết</h2><button type="button" class="dialog-close" data-close="finder-dialog" aria-label="Đóng">×</button></div><div class="finder-grid"><label>Buổi<select id="finder-session"><option>Sáng</option><option>Chiều</option></select></label><label>Thứ<select id="finder-day"></select></label><label>Tiết<select id="finder-period"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><label>Tuần<select id="finder-week"><option value="0">Tất cả tuần</option><option value="1">Tuần lẻ</option><option value="2">Tuần chẵn</option></select></label><label>Tổ chuyên môn<select id="finder-department"><option value="">Tất cả tổ</option></select></label><label>Điểm trường<select id="finder-campus"><option value="">Tất cả điểm trường</option></select></label></div><button id="finder-submit" class="action cyan" type="submit">Tìm giáo viên</button><p class="finder-note">Kết quả chỉ phản ánh tiết trống trong TKB; nhà trường cần xác nhận trước khi phân công dạy thay.</p></form><div id="finder-results" aria-live="polite"></div></dialog>
+  <dialog id="install-dialog"><div class="dialog-heading"><h2>Cài App TKB</h2><button type="button" class="dialog-close" data-close="install-dialog" aria-label="Đóng">×</button></div><p>Android/Chrome: mở menu ⋮ → <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</p><p>iPhone/Safari: chọn Chia sẻ → <b>Thêm vào Màn hình chính</b>.</p><p>Ứng dụng cần mạng để đọc lịch mới nhất.</p></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>Vui lòng bật JavaScript để xem thời khóa biểu.</noscript>
+</body>
+</html>
