@@ -1,6 +1,7 @@
 import {CONFIG} from './config.js';
 import {AUTH_KEY,REMEMBER_SECONDS,createAuthStore} from './auth.js';
 import {countdown} from './countdown.js';
+import {fetchTimetable} from './request.js';
 import {DAYS,SESSIONS,fold,classId,natural,active,clock,dateWeek,currentBlock,calendar,swipeDay} from './core.js';
 const $=id=>document.getElementById(id),KEY='lhp-tkb-v1:',state={mode:'student',public:null,private:null,classId:'',teacherId:'',week:0,day:Math.min(clock().day,5),token:'',install:null,touchX:null,touchY:null,toastTimer:null,requestId:0};
 const store={get(k,session=false){try{return(session?sessionStorage:localStorage).getItem(KEY+k)||'';}catch{return'';}},set(k,v,session=false){try{(session?sessionStorage:localStorage).setItem(KEY+k,v);}catch{}},remove(k,session=false){try{(session?sessionStorage:localStorage).removeItem(KEY+k);}catch{}}};
@@ -17,7 +18,7 @@ async function api(path,{method='GET',body,auth=false}={}){
   let url;try{url=new URL(CONFIG.apiUrl);}catch{throw Error('Địa chỉ API trong config.js phải bắt đầu bằng https://.');}
   if(url.protocol!=='https:'||url.pathname!=='/'||url.search||url.hash)throw Error('apiUrl cần là URL gốc của Worker, bắt đầu bằng https:// và không kèm /api.');
   const base=url.origin,headers={};if(body)headers['Content-Type']='application/json';if(auth)headers.Authorization='Bearer '+state.token;
-  let response;try{response=await fetch(base+path,{method,headers,body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(30000)});}catch{throw Error('Không kết nối được dữ liệu. Kiểm tra mạng và thử lại.');}
+  let response;try{response=await fetchTimetable(base+path,{method,headers,body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store'},{onRetry:attempt=>{$('connection').textContent='Kết nối dữ liệu bị gián đoạn · Đang thử lại ('+attempt+'/2)…';}});}catch{throw Error('Không kết nối được dữ liệu. Kiểm tra mạng và thử lại.');}
   let payload;try{payload=await response.json();}catch{throw Error('Máy chủ không trả dữ liệu JSON (HTTP '+response.status+'). Kiểm tra URL Worker trong config.js.');}
   if(auth&&response.status===401)logout(false);
   if(!response.ok||!payload.success)throw Error(payload.message||'Không tải được thời khóa biểu.');
@@ -39,7 +40,7 @@ async function loadTeachers(){
   const id=++state.requestId;$('connection').textContent='Đang tải lịch giáo viên…';
   try{
     const d=await api('/api/teachers',{auth:true});if(id!==state.requestId||!state.token)return;
-    state.private=d;$('login-form').hidden=true;$('teacher-tools').hidden=false;
+    state.private=d;err('');$('login-form').hidden=true;$('teacher-tools').hidden=false;
     const departments=[...new Set(d.teachers.flatMap(t=>t.departments))],campuses=[...new Set(d.teachers.flatMap(t=>t.campuses))];
     setOptions('department',departments,'Tất cả tổ chuyên môn');setOptions('finder-department',departments,'Tất cả tổ');setOptions('teacher-campus',campuses,'Tất cả điểm trường');setOptions('finder-campus',campuses,'Tất cả điểm trường');
     const remembered=authStore.restore()?.teacherId;state.teacherId=d.teachers.some(t=>t.id===state.teacherId)?state.teacherId:d.teachers.some(t=>t.id===remembered)?remembered:d.teachers[0]?.id||'';
