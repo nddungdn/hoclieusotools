@@ -9,3 +9,69 @@
 .schedule-notes{margin:10px 0 0;padding:8px 12px;border-left:3px solid #315ff4;background:#f4f7fd;color:#344054;font-size:.86rem}.schedule-notes p{margin:3px 0}.dark-mode .schedule-notes{background:#1e293b;color:#e2e8f0}@media print{.schedule-notes{background:white;border:0;padding:0}}
 .login-card .remember-login{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-size:13px;font-weight:500;cursor:pointer}.login-card .remember-login input{width:17px;height:17px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#0750b8}
 .live-row{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px 10px}.clock-box #live-countdown{display:inline-flex;margin:0;padding:2px 8px;border-radius:6px;background:#ffffff20;color:#fff4ad;font-size:14px;font-weight:bold;opacity:1;white-space:nowrap;font-variant-numeric:tabular-nums}@media(max-width:620px){.live-row{gap:3px 7px}.clock-box #live-countdown{font-size:12px;padding:1px 6px}}
+
+/* Lịch từng ngày: buổi sáng màu ấm, buổi chiều màu xanh; môn học là nhãn màu. */
+.toolbar #school-link{display:inline-flex}
+.mobile-schedule{width:100%;max-width:540px;margin:0 auto}
+#schedule.show-day .desktop-table{display:none}
+#schedule.show-day .mobile-schedule{display:block}
+.day-card{overflow:hidden;border:2px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--shadow)}
+.day-card.is-today{border-color:#efb526;box-shadow:0 3px 12px #d59a2420}
+.mobile-schedule .day-navigation{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:11px 10px;background:linear-gradient(105deg,#7907b6,#6503a1);border-radius:0;color:white}
+.mobile-schedule .day-navigation strong{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:17px;line-height:1.35}
+.mobile-schedule .day-navigation button{border:0;border-radius:7px;width:30px;min-width:30px;height:30px;background:#ffffff24;color:white;font-size:24px;line-height:1}
+.day-icon{font-size:20px}
+.day-today-badge{font-size:9px;font-weight:bold;letter-spacing:.25px;border:1px solid #ffffff50;background:#e87624;color:white;border-radius:15px;padding:4px 7px;white-space:nowrap}
+.is-today .day-navigation{background:linear-gradient(100deg,#f2a900,#df7e00)}
+#mobile-list{padding:12px;touch-action:pan-y}
+.mobile-session{padding:10px;background:#fff7ed;border:1px solid #f8e6d0;border-radius:13px;margin:0 0 12px}
+.mobile-session:last-child{margin-bottom:0}
+.mobile-session.afternoon{background:#eff6ff;border-color:#dbe8f8}
+.mobile-schedule .mobile-session-title{display:flex;align-items:center;gap:9px;color:#b94b17;font-size:15px;font-weight:bold;margin:0 0 10px}
+.mobile-session.afternoon .mobile-session-title{color:#205fc2}
+.mobile-session-title::after{content:'';height:2px;background:#f1d6b6;flex:1;margin-left:3px}
+.mobile-session.afternoon .mobile-session-title::after{background:#cddff8}
+.session-icon{display:grid;place-items:center;width:33px;height:33px;flex-shrink:0;border-radius:50%;background:var(--surface);color:#ef7a1b;font-size:24px;line-height:1;box-shadow:0 2px 5px #14304c08}
+.mobile-session.afternoon .session-icon{color:#3883e9}
+.mobile-schedule .mobile-row{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px;padding:9px 10px;min-height:62px;margin:7px 0 0;border:1px solid #ffffffb0;border-radius:10px;background:var(--surface);box-shadow:0 2px 5px #16395506;touch-action:pan-y}
+.mobile-schedule .mobile-period{color:var(--muted);font-size:13px;font-weight:bold;padding:0}
+.period-label{display:inline-block;padding:3px 7px;border-radius:6px;background:var(--bg);white-space:nowrap}
+.mobile-schedule .mobile-period small{color:var(--muted);font-size:9px;font-weight:normal;line-height:1.3;white-space:nowrap;margin-top:5px;display:block;font-variant-numeric:tabular-nums}
+.mobile-lessons{min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.mobile-schedule .mobile-lessons .lesson{background:var(--chip-bg,#f3f4f6);border:1px solid var(--chip-line,#d4d8de);color:var(--chip-text,#374151);border-radius:8px;padding:7px 10px;margin:0;max-width:100%;text-align:right;box-shadow:0 1px 3px #14304c08;overflow-wrap:anywhere}
+.mobile-schedule .mobile-lessons .lesson strong{font-size:14px;line-height:1.35}
+.subject-blue{--chip-bg:#dfedff;--chip-line:#a6c8f1;--chip-text:#2353a2;--chip-dark:#243c59}
+.subject-orange{--chip-bg:#fff0df;--chip-line:#f0c28c;--chip-text:#9f491b;--chip-dark:#493326}
+.subject-purple{--chip-bg:#f2e8ff;--chip-line:#d5b7ee;--chip-text:#7134a0;--chip-dark:#3d2e50}
+.subject-cyan{--chip-bg:#dcf9ff;--chip-line:#8edee8;--chip-text:#216779;--chip-dark:#21444b}
+.subject-mint{--chip-bg:#d8faeb;--chip-line:#91dfc2;--chip-text:#196852;--chip-dark:#23473d}
+.subject-gold{--chip-bg:#fff6ce;--chip-line:#f3d96a;--chip-text:#94531e;--chip-dark:#484125}
+.subject-rose{--chip-bg:#ffe6eb;--chip-line:#efb3c1;--chip-text:#a01c47;--chip-dark:#4e2c3a}
+.subject-lime{--chip-bg:#efffd5;--chip-line:#c4e68c;--chip-text:#496d21;--chip-dark:#35452b}
+.subject-pink{--chip-bg:#fce8f4;--chip-line:#eab4d2;--chip-text:#96346c;--chip-dark:#492f41}
+.subject-violet{--chip-bg:#fbe8ff;--chip-line:#e6b5ee;--chip-text:#8b2999;--chip-dark:#482e4e}
+.subject-amber{--chip-bg:#fff1d6;--chip-line:#e8c58b;--chip-text:#855823;--chip-dark:#463c2a}
+.mobile-schedule .mobile-row.free-period{background:#e9edf3;border-color:#d5dce6;box-shadow:none}
+.mobile-schedule .free-period .period-label{background:#dfe5ee;color:#687384}
+.mobile-schedule .empty-lesson{display:block;border:1px dashed #aeb9c9;border-radius:7px;background:#dfe5ee;color:#626e80;font-size:12px;padding:6px 10px;font-weight:bold}
+.desktop-table .free-cell{background:#e9edf3;color:#7a8595}
+.free-mark{font-size:12px;color:#8993a2}
+.mobile-schedule .day-buttons{display:flex;align-items:center;justify-content:center;gap:2px;margin:10px 0 0}
+.mobile-schedule .day-buttons .day-dot{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;padding:0;border:0;border-radius:7px;background:transparent}
+.day-dot::before{content:'';width:10px;height:10px;border-radius:10px;background:#ced3dc;transition:width .15s ease,background .15s ease}
+.mobile-schedule .day-buttons .day-dot[aria-pressed=true]{background:transparent;border:0;color:inherit}
+.day-dot[aria-pressed=true]::before{width:26px;background:#43bedb}
+.mobile-schedule .swipe-hint{display:block;text-align:center;color:var(--muted);font-size:10px;margin:1px 0 0}
+.day-empty{text-align:center;color:var(--muted);padding:25px 8px;margin:0;font-size:13px}
+.dark-mode .mobile-session{background:#302b25;border-color:#514232}
+.dark-mode .mobile-session.afternoon{background:#202f45;border-color:#354b67}
+.dark-mode .mobile-session-title{color:#ffbb7a}
+.dark-mode .mobile-session.afternoon .mobile-session-title{color:#a9cdff}
+.dark-mode .mobile-session-title::after{background:#5b4736}
+.dark-mode .mobile-session.afternoon .mobile-session-title::after{background:#415978}
+.dark-mode .mobile-schedule .mobile-row{border-color:var(--line)}
+.dark-mode .mobile-schedule .mobile-lessons .lesson{background:var(--chip-dark,#303a49);color:#edf4ff}
+.dark-mode .mobile-schedule .mobile-row.free-period,.dark-mode .desktop-table .free-cell{background:#273140;color:#a5b2c6}
+.dark-mode .mobile-schedule .free-period .period-label,.dark-mode .mobile-schedule .empty-lesson{background:#344052;color:#bbc7d7;border-color:#66778f}
+@media(max-width:620px){.view-toggle{display:none}.mobile-schedule .day-navigation{padding:9px 7px}.mobile-schedule .day-navigation strong{font-size:15px;gap:6px}.day-today-badge{font-size:8px;padding:3px 6px}.day-icon{font-size:17px}.mobile-schedule .mobile-session-title{font-size:13px}.mobile-schedule .mobile-lessons .lesson strong{font-size:13px}#mobile-list{padding:10px}.mobile-session{padding:9px}.mobile-schedule .mobile-row{grid-template-columns:67px minmax(0,1fr);padding:8px;min-height:58px}.mobile-schedule .mobile-period{font-size:12px}.mobile-schedule .mobile-period small{font-size:8px}.mobile-schedule .mobile-lessons .lesson{padding:6px 9px}}
+@media(prefers-reduced-motion:reduce){.day-dot::before{transition:none}}

@@ -61,7 +61,11 @@ function filteredTeachers(){const q=fold($('teacher-search').value);return(state
 function renderTeachers(){const list=filteredTeachers(),picker=$('teacher-select');picker.replaceChildren();list.forEach(t=>{const option=node('option',t.name);option.value=t.id;picker.append(option);});if(!list.some(t=>t.id===state.teacherId))state.teacherId=list[0]?.id||'';picker.value=state.teacherId;if(state.teacherId)authStore.selectTeacher(state.teacherId);picker.disabled=!list.length;$('teacher-count').textContent=list.length?list.length+' giáo viên phù hợp':'Không có giáo viên phù hợp. Thử đổi từ khóa hoặc bộ lọc.';}
 function displayLessons(list){return list.filter(l=>active(l,state.week));}
 function clashing(list){return list.some((a,i)=>list.some((b,j)=>j>i&&a.classId!==b.classId&&(!a.week||!b.week||a.week===b.week)));}
-function lessonElement(l){const el=node('div','','lesson');el.append(node('strong',l.subject+(state.mode==='teacher'?' · '+l.classId.replace('.','/'):'')));if(l.week&&state.mode==='teacher')el.append(node('span','Tuần '+(l.week===1?'lẻ':'chẵn'),'week-label'));return el;}
+function subjectTone(subject){
+  const name=fold(subject),tones=[[/^toan/,'blue'],[/^ngu van/,'orange'],[/^(ngoai ngu|tieng anh)/,'purple'],[/^(tin|cong nghe)/,'cyan'],[/^khtn/,'mint'],[/^dia/,'gold'],[/^gdcd/,'rose'],[/^gdtc/,'lime'],[/^am nhac/,'pink'],[/^(hdtn|chao co|shl)/,'violet'],[/^lich su/,'amber']];
+  return tones.find(([pattern])=>pattern.test(name))?.[1]||'neutral';
+}
+function lessonElement(l){const el=node('div','','lesson subject-'+subjectTone(l.subject));el.append(node('strong',l.subject+(state.mode==='teacher'?' · '+l.classId.replace('.','/'):'')));if(l.week&&state.mode==='teacher')el.append(node('span','Tuần '+(l.week===1?'lẻ':'chẵn'),'week-label'));return el;}
 function appendLessons(parent,list){if(state.mode==='student'&&list.length>1)parent.append(lessonElement({subject:list.map(l=>l.subject).join(' / ')}));else list.forEach(l=>parent.append(lessonElement(l)));}
 function render(){
   const item=selected();$('schedule').hidden=!item;if(!item){tick();return;}
@@ -85,19 +89,33 @@ function renderDesktop(item){
     const block=data().blocks.find(b=>b.session===s&&b.period===p);row.append(node('td',block?block.start+'–'+block.end:'','time'));
     for(let day=0;day<count;day++){
       const lessons=displayLessons(item.schedule[s][p-1][day]),cell=node('td','',day===today?'today-col':'');cell.dataset.cell=[s,p,day].join('|');
+      if(state.mode==='teacher'&&!lessons.length){cell.classList.add('free-cell');cell.append(node('span','Trống tiết','sr-only'));cell.append(node('span','—','free-mark'));}
       if(state.mode==='teacher'&&clashing(lessons))cell.classList.add('conflict-cell');appendLessons(cell,lessons);row.append(cell);
     }body.append(row);
   }});table.append(body);$('desktop-table').replaceChildren(table);
 }
 function renderMobile(item=selected()){
-  if(!item)return;const today=clock().day;$('day-title').textContent=DAYS[state.day]+(state.day===today?' · Hôm nay':'');$('day-buttons').replaceChildren();
-  DAYS.forEach((d,i)=>{const button=node('button','T'+(i+2));button.type='button';button.setAttribute('aria-label',d);button.setAttribute('aria-pressed',String(i===state.day));button.addEventListener('click',()=>{state.day=i;renderMobile();tick();});$('day-buttons').append(button);});
-  const parent=$('mobile-list');parent.replaceChildren();SESSIONS.forEach(s=>{parent.append(node('h3',s.toUpperCase(),'mobile-session-title'));for(let p=1;p<=5;p++){
-    const row=node('div','','mobile-row');row.dataset.cell=[s,p,state.day].join('|');const period=node('div','Tiết '+p,'mobile-period'),block=data().blocks.find(b=>b.session===s&&b.period===p);
-    if(block)period.append(node('small',block.start+'\n'+block.end));const content=node('div','','mobile-lessons'),lessons=displayLessons(item.schedule[s][p-1][state.day]);
-    if(state.mode==='teacher'&&clashing(lessons))row.classList.add('conflict-cell');if(lessons.length)appendLessons(content,lessons);else content.append(node('span','Không có tiết','empty-lesson'));row.append(period,content);parent.append(row);
-  }});
+  if(!item)return;const today=clock().day,count=visibleDays(item);if(state.day>=count)state.day=0;
+  const dayTitle=$('day-title');dayTitle.replaceChildren();const icon=node('span','▣','day-icon');icon.setAttribute('aria-hidden','true');dayTitle.append(icon,node('span',DAYS[state.day]));
+  if(state.day===today)dayTitle.append(node('span','HÔM NAY','day-today-badge'));
+  $('day-card').classList.toggle('is-today',state.day===today);$('day-buttons').replaceChildren();
+  DAYS.slice(0,count).forEach((d,i)=>{const button=node('button','','day-dot');button.type='button';button.setAttribute('aria-label',d);button.title=d;button.setAttribute('aria-pressed',String(i===state.day));button.addEventListener('click',()=>{state.day=i;renderMobile();tick();});$('day-buttons').append(button);});
+  const parent=$('mobile-list');parent.replaceChildren();let sessionCount=0;
+  SESSIONS.forEach(s=>{
+    const rows=Array.from({length:5},(_,i)=>({period:i+1,lessons:displayLessons(item.schedule[s][i][state.day])})).filter(r=>state.mode==='teacher'||r.lessons.length);
+    if(!rows.length)return;sessionCount++;
+    const group=node('section','','mobile-session '+(s==='Sáng'?'morning':'afternoon')),heading=node('h3','','mobile-session-title'),symbol=node('span',s==='Sáng'?'☀':'☾','session-icon');symbol.setAttribute('aria-hidden','true');heading.append(symbol,node('span','BUỔI '+s.toUpperCase()));group.append(heading);
+    rows.forEach(({period:p,lessons})=>{
+      const row=node('div','','mobile-row');row.dataset.cell=[s,p,state.day].join('|');const period=node('div','','mobile-period'),block=data().blocks.find(b=>b.session===s&&b.period===p);period.append(node('span','Tiết '+p,'period-label'));
+      if(block)period.append(node('small',block.start+'–'+block.end));const content=node('div','','mobile-lessons');
+      if(state.mode==='teacher'&&clashing(lessons))row.classList.add('conflict-cell');
+      if(lessons.length)appendLessons(content,lessons);else{row.classList.add('free-period');content.append(node('span','Trống tiết','empty-lesson'));}
+      row.append(period,content);group.append(row);
+    });parent.append(group);
+  });
+  if(!sessionCount)parent.append(node('p','Ngày này không có tiết học.','day-empty'));
 }
+function changeDay(delta){const item=selected();if(!item)return;const count=visibleDays(item);state.day=(state.day+delta+count)%count;renderMobile();tick();}
 function updateCountdown(now=new Date()){
   const el=$('live-countdown');if(!el)return;
   const result=countdown((data()||state.public)?.blocks||[],now);el.hidden=!result;
@@ -153,8 +171,9 @@ function setup(){
   $('teacher-select').onchange=()=>{state.teacherId=$('teacher-select').value;authStore.selectTeacher(state.teacherId);render();};
   $('login-form').onsubmit=login;$('logout').onclick=()=>logout();$('show-password').onclick=()=>{const visible=$('password').type==='password';$('password').type=visible?'text':'password';$('show-password').setAttribute('aria-pressed',String(visible));$('show-password').setAttribute('aria-label',visible?'Ẩn mật khẩu':'Hiện mật khẩu');};
   $('week-filter').onchange=()=>{state.week=+$('week-filter').value;render();};$('refresh').onclick=async()=>{if(state.mode==='teacher'&&state.token)await loadTeachers();else await loadPublic();};$('retry').onclick=()=>$('refresh').click();
-  $('previous-day').onclick=()=>{state.day=(state.day+5)%6;renderMobile();tick();};$('next-day').onclick=()=>{state.day=(state.day+1)%6;renderMobile();tick();};
-  $('mobile-list').addEventListener('touchstart',e=>{state.touchX=e.changedTouches[0].clientX;state.touchY=e.changedTouches[0].clientY;},{passive:true});$('mobile-list').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY,next=swipeDay(state.day,dx,dy);if(state.touchX!==null&&next!==state.day){state.day=next;renderMobile();tick();}state.touchX=null;state.touchY=null;},{passive:true});
+  $('previous-day').onclick=()=>changeDay(-1);$('next-day').onclick=()=>changeDay(1);
+  $('mobile-list').addEventListener('touchstart',e=>{state.touchX=e.changedTouches[0].clientX;state.touchY=e.changedTouches[0].clientY;},{passive:true});$('mobile-list').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY,next=swipeDay(state.day,dx,dy);if(state.touchX!==null&&next!==state.day)changeDay(dx<0?1:-1);state.touchX=null;state.touchY=null;},{passive:true});
+  $('view-toggle').onclick=()=>{const daily=$('schedule').classList.toggle('show-day');$('view-toggle').textContent=daily?'Xem theo tuần':'Xem theo ngày';$('view-toggle').setAttribute('aria-pressed',String(daily));};
   $('theme').onclick=()=>{const dark=document.documentElement.classList.toggle('dark-mode');store.set('theme',dark?'dark':'light');updateTheme();};
   $('print').onclick=()=>window.print();$('image').onclick=exportImage;
   $('calendar').onclick=()=>{$('calendar-start').value=clock().iso;const n=dateWeek(clock().iso,data().meta.week1Start);$('calendar-parity').disabled=!!n;$('calendar-parity').value=n?(n%2?'1':'2'):(state.week?String(state.week):'');$('calendar-dialog').showModal();};

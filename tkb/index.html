@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#0750b8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.workers.dev; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=1.2.1">
-  <script type="module" src="./app.js?v=1.2.3"></script>
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=1.3.0">
+  <script type="module" src="./app.js?v=1.3.0"></script>
 </head>
 <body>
   <header class="masthead"><p id="authority">UBND PHƯỜNG HẢI CHÂU</p><h1 id="school-name">TRƯỜNG THCS LÊ HỒNG PHONG</h1><p class="masthead-sub">TRA CỨU THỜI KHÓA BIỂU</p></header>
@@ -56,9 +56,9 @@
       <section id="schedule" hidden>
         <div class="schedule-heading"><h2 id="schedule-title">THỜI KHÓA BIỂU HỌC SINH</h2><p id="effective-date"></p></div>
         <div class="schedule-bar"><div id="schedule-meta" class="schedule-meta"></div><div class="schedule-actions"><button id="calendar" class="action green" type="button">▣ Lưu lịch</button><button id="image" class="action pink" type="button">↓ Tải ảnh</button><button id="print" class="action neutral" type="button">▧ In</button></div></div>
-        <div class="view-controls"><label for="week-filter">Tuần:</label><select id="week-filter"><option value="0">Tất cả tuần</option><option value="1">Tuần lẻ</option><option value="2">Tuần chẵn</option></select><span id="week-note"></span><button id="refresh" class="text-button" type="button">↻ Cập nhật</button></div>
+        <div class="view-controls"><label for="week-filter">Tuần:</label><select id="week-filter"><option value="0">Tất cả tuần</option><option value="1">Tuần lẻ</option><option value="2">Tuần chẵn</option></select><span id="week-note"></span><button id="view-toggle" class="text-button view-toggle" type="button" aria-pressed="false">Xem theo ngày</button><button id="refresh" class="text-button" type="button">↻ Cập nhật</button></div>
         <div id="desktop-table" class="desktop-table"></div>
-        <div class="mobile-schedule"><div class="day-navigation"><button id="previous-day" type="button" aria-label="Ngày trước">‹</button><strong id="day-title"></strong><button id="next-day" type="button" aria-label="Ngày tiếp theo">›</button></div><div id="day-buttons" class="day-buttons"></div><div id="mobile-list"></div><small class="swipe-hint">Vuốt trái/phải để chuyển ngày</small></div>
+        <div class="mobile-schedule"><div id="day-card" class="day-card"><div id="day-navigation" class="day-navigation"><button id="previous-day" type="button" aria-label="Ngày trước">‹</button><strong id="day-title" aria-live="polite"></strong><button id="next-day" type="button" aria-label="Ngày tiếp theo">›</button></div><div id="mobile-list"></div></div><div id="day-buttons" class="day-buttons" aria-label="Chọn ngày"></div><small class="swipe-hint">Vuốt trái/phải để chuyển ngày</small></div>
         <div id="schedule-notes" class="schedule-notes" hidden></div>
         <p class="schedule-footnote">Chẵn/Lẻ là tuần học theo quy ước của nhà trường. Tiết trống không có lịch trong nguồn.</p>
       </section>
