@@ -75,3 +75,7 @@
 .dark-mode .mobile-schedule .free-period .period-label,.dark-mode .mobile-schedule .empty-lesson{background:#344052;color:#bbc7d7;border-color:#66778f}
 @media(max-width:620px){.view-toggle{display:none}.mobile-schedule .day-navigation{padding:9px 7px}.mobile-schedule .day-navigation strong{font-size:15px;gap:6px}.day-today-badge{font-size:8px;padding:3px 6px}.day-icon{font-size:17px}.mobile-schedule .mobile-session-title{font-size:13px}.mobile-schedule .mobile-lessons .lesson strong{font-size:13px}#mobile-list{padding:10px}.mobile-session{padding:9px}.mobile-schedule .mobile-row{grid-template-columns:67px minmax(0,1fr);padding:8px;min-height:58px}.mobile-schedule .mobile-period{font-size:12px}.mobile-schedule .mobile-period small{font-size:8px}.mobile-schedule .mobile-lessons .lesson{padding:6px 9px}}
 @media(prefers-reduced-motion:reduce){.day-dot::before{transition:none}}
+
+.view-controls{justify-content:flex-end}
+
+@media(max-width:620px){.view-controls{display:none}}
