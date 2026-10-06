@@ -1,4 +1,4 @@
-import {CONFIG} from './config.js';
+import {CONFIG} from './config.js?v=1.2.3';
 import {AUTH_KEY,REMEMBER_SECONDS,createAuthStore} from './auth.js';
 import {countdown} from './countdown.js';
 import {fetchTimetable} from './request.js';

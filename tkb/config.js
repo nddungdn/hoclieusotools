@@ -4,6 +4,6 @@ export const CONFIG=Object.freeze({
   schoolName: 'TRƯỜNG THCS LÊ HỒNG PHONG',
   authority: 'UBND PHƯỜNG HẢI CHÂU',
   homeUrl: 'https://www.hoclieuso.id.vn/',
-  schoolUrl: 'https://lehongphongdanang.edu.vn/',
+  schoolUrl: 'https://www.lehongphongdanang.edu.vn/',
   refreshSeconds: 300
 });
