@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#0750b8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.workers.dev; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css">
-  <script type="module" src="./app.js?v=1.2.0-1"></script>
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=1.2.1">
+  <script type="module" src="./app.js?v=1.2.1"></script>
 </head>
 <body>
   <header class="masthead"><p id="authority">UBND PHƯỜNG HẢI CHÂU</p><h1 id="school-name">TRƯỜNG THCS LÊ HỒNG PHONG</h1><p class="masthead-sub">TRA CỨU THỜI KHÓA BIỂU</p></header>
@@ -24,7 +24,7 @@
       <button id="tab-teacher" role="tab" aria-selected="false" aria-controls="panel-teacher">TKB GIÁO VIÊN</button>
     </div>
     <section class="content-card">
-      <div class="clock-box"><strong id="live-status">Đang tải thời khóa biểu…</strong><span id="live-time"></span></div>
+      <div class="clock-box"><div class="live-row"><strong id="live-status">Đang tải thời khóa biểu…</strong><span id="live-countdown" hidden></span></div><span id="live-time"></span></div>
       <div id="error" role="alert" class="error" hidden><span id="error-text"></span><button id="retry" type="button">Thử lại</button></div>
       <section id="panel-student" role="tabpanel" aria-labelledby="tab-student">
         <div class="filters student-filters">

@@ -8,3 +8,4 @@
 
 .schedule-notes{margin:10px 0 0;padding:8px 12px;border-left:3px solid #315ff4;background:#f4f7fd;color:#344054;font-size:.86rem}.schedule-notes p{margin:3px 0}.dark-mode .schedule-notes{background:#1e293b;color:#e2e8f0}@media print{.schedule-notes{background:white;border:0;padding:0}}
 .login-card .remember-login{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-size:13px;font-weight:500;cursor:pointer}.login-card .remember-login input{width:17px;height:17px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#0750b8}
+.live-row{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px 10px}.clock-box #live-countdown{display:inline-flex;margin:0;padding:2px 8px;border-radius:6px;background:#ffffff20;color:#fff4ad;font-size:14px;font-weight:bold;opacity:1;white-space:nowrap;font-variant-numeric:tabular-nums}@media(max-width:620px){.live-row{gap:3px 7px}.clock-box #live-countdown{font-size:12px;padding:1px 6px}}

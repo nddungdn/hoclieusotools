@@ -1,9 +1,11 @@
 import {CONFIG} from './config.js';
 import {AUTH_KEY,REMEMBER_SECONDS,createAuthStore} from './auth.js';
+import {countdown} from './countdown.js';
 import {DAYS,SESSIONS,fold,classId,natural,active,clock,dateWeek,currentBlock,calendar,swipeDay} from './core.js';
 const $=id=>document.getElementById(id),KEY='lhp-tkb-v1:',state={mode:'student',public:null,private:null,classId:'',teacherId:'',week:0,day:Math.min(clock().day,5),token:'',install:null,touchX:null,touchY:null,toastTimer:null,requestId:0};
 const store={get(k,session=false){try{return(session?sessionStorage:localStorage).getItem(KEY+k)||'';}catch{return'';}},set(k,v,session=false){try{(session?sessionStorage:localStorage).setItem(KEY+k,v);}catch{}},remove(k,session=false){try{(session?sessionStorage:localStorage).removeItem(KEY+k);}catch{}}};
 const authStore=createAuthStore();
+let lastClockMinute=-1;
 function node(tag,text='',cls=''){const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;}
 function toast(message){clearTimeout(state.toastTimer);$('toast').textContent=message;$('toast').hidden=false;state.toastTimer=setTimeout(()=>$('toast').hidden=true,4500);}
 function data(){return state.mode==='teacher'?state.private:state.public;}
@@ -95,13 +97,23 @@ function renderMobile(item=selected()){
     if(state.mode==='teacher'&&clashing(lessons))row.classList.add('conflict-cell');if(lessons.length)appendLessons(content,lessons);else content.append(node('span','Không có tiết','empty-lesson'));row.append(period,content);parent.append(row);
   }});
 }
+function updateCountdown(now=new Date()){
+  const el=$('live-countdown');if(!el)return;
+  const result=countdown((data()||state.public)?.blocks||[],now);el.hidden=!result;
+  el.textContent=result?'Còn '+result.text:'';
+  if(result)el.setAttribute('aria-label',(result.block.type==='break'?'Ra chơi':'Tiết '+result.block.period)+' còn '+result.text);
+}
+function updateLiveClock(){
+  if(state.token&&!authStore.restore()){logout(false);return;}
+  const now=new Date();if(Math.floor(+now/60000)!==lastClockMinute)tick();else updateCountdown(now);
+}
 function tick(){
   if(state.token&&!authStore.restore()){logout(false);return;}
-  const c=clock();$('live-time').textContent=(c.day<6?DAYS[c.day]:'Chủ nhật')+' · '+c.iso.split('-').reverse().join('/')+' · '+c.time;
+  const now=new Date(),c=clock(now);lastClockMinute=Math.floor(+now/60000);updateCountdown(now);$('live-time').textContent=(c.day<6?DAYS[c.day]:'Chủ nhật')+' · '+c.iso.split('-').reverse().join('/')+' · '+c.time;
   document.querySelectorAll('.live-cell').forEach(e=>e.classList.remove('live-cell'));
   const d=data()||state.public,item=selected();if(!d){$('live-status').textContent='Chưa có dữ liệu thời khóa biểu';return;}
   if(c.day===6){$('live-status').textContent='Hôm nay là Chủ nhật';return;}
-  const b=currentBlock(d.blocks);if(b){
+  const b=currentBlock(d.blocks,now);if(b){
     if(b.type==='break'){$('live-status').textContent='Đang ra chơi · Buổi '+b.session.toLowerCase()+' · '+b.start+'–'+b.end;return;}
     let detail='';if(item){const ls=displayLessons(item.schedule[b.session][b.period-1][c.day]);detail=ls.length?' · '+ls.map(l=>l.subject).join(' / '):' · Không có tiết trong lịch đang xem';}
     $('live-status').textContent='Đang học tiết '+b.period+' · Buổi '+b.session.toLowerCase()+detail;
@@ -151,7 +163,8 @@ function setup(){
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.install=e;});$('install').onclick=async()=>{if(state.install){await state.install.prompt();state.install=null;}else $('install-dialog').showModal();};
   window.addEventListener('storage',e=>{if(!state.token||(e.key!==AUTH_KEY&&e.key!==null))return;if(e.newValue===null)logout(false);else{const restored=authStore.refresh();if(restored)state.token=restored.token;else logout(false);}});
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
-  loadPublic();tick();setInterval(tick,15000);setInterval(async()=>{if(document.hidden)return;await loadPublic();if(state.mode==='teacher'&&state.token)await loadTeachers();},Math.max(60,CONFIG.refreshSeconds||300)*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick();});
+  loadPublic();tick();setInterval(updateLiveClock,1000);setInterval(async()=>{if(document.hidden)return;await loadPublic();if(state.mode==='teacher'&&state.token)await loadTeachers();},Math.max(60,CONFIG.refreshSeconds||300)*1000);
 }
 function updateTheme(){const dark=document.documentElement.classList.contains('dark-mode');$('theme').textContent=dark?'☀ Giao diện sáng':'◐ Giao diện tối';$('theme').setAttribute('aria-pressed',String(dark));}
 setup();
