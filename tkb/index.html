@@ -40,7 +40,8 @@
           <div class="login-symbol" aria-hidden="true">▣</div><h2>GIÁO VIÊN ĐĂNG NHẬP</h2><p>Sử dụng tài khoản chung của nhà trường để xem lịch giáo viên.</p>
           <label for="username">Tên đăng nhập</label><input id="username" name="username" autocomplete="username" required maxlength="100" placeholder="Tên đăng nhập">
           <label for="password">Mật khẩu</label><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"><button id="show-password" type="button" aria-label="Hiện mật khẩu" aria-pressed="false">◉</button></div>
-          <p id="login-error" class="login-error" role="alert"></p><button id="login-submit" class="login-submit" type="submit">ĐĂNG NHẬP</button><small>Phiên đăng nhập có hiệu lực tối đa 8 giờ trên tab này.</small>
+          <label class="remember-login" for="remember-login"><input id="remember-login" name="remember" type="checkbox" checked>Ghi nhớ đăng nhập (30 ngày)</label>
+          <p id="login-error" class="login-error" role="alert"></p><button id="login-submit" class="login-submit" type="submit">ĐĂNG NHẬP</button><small>Bỏ chọn khi dùng máy chung: phiên chỉ lưu trong tab, tối đa 8 giờ.</small>
         </form>
         <div id="teacher-tools" hidden>
           <div class="teacher-session"><span>Đã đăng nhập</span><button id="logout" class="text-button" type="button">Đăng xuất</button></div>
