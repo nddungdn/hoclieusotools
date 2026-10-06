@@ -1,4 +1,4 @@
-const CACHE='lhp-tkb-shell-v1.0.0';
+const CACHE='lhp-tkb-shell-v1.1.0';
 const FILES=['./','./index.html','./styles.css','./app.js','./core.js','./config.js','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('lhp-tkb-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

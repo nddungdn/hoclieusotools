@@ -18,6 +18,18 @@ export function lesson(text, kind='student') {
 }
 export const active = (item,week) => !week || !item.week || item.week===week;
 export function swipeDay(day,dx,dy){return Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.3?(day+(dx<0?1:5))%6:day;}
+export function parseWeekNotes(text){
+  return clean(text).split(/\r?\n/).filter(Boolean).map(line=>{
+    const m=line.match(/^Ghi chú:\s*(Thứ [^,]+),\s*(sáng|chiều),\s*tiết\s*([1-5](?:\s*[-,]\s*[1-5])*)\s*:\s*tuần chẵn học\s+([^;]+);\s*tuần lẻ học\s+(.+?)\.?$/i);
+    if(!m)throw Error('Ghi chú tuần phải ghi rõ thứ, buổi, tiết, môn tuần chẵn và môn tuần lẻ.');
+    const day=DAYS.findIndex(d=>head(d)===head(m[1])),session=fold(m[2])==='sang'?'Sáng':'Chiều';
+    if(day<0)throw Error('Thứ trong ghi chú tuần không hợp lệ.');
+    const numbers=m[3].split(/\s*[-,]\s*/).map(Number);
+    let periods=numbers;if(m[3].includes('-')){if(numbers.length!==2||numbers[1]<numbers[0])throw Error('Khoảng tiết trong ghi chú tuần không hợp lệ.');periods=Array.from({length:numbers[1]-numbers[0]+1},(_,i)=>numbers[0]+i);}
+    if(new Set(periods).size!==periods.length)throw Error('Ghi chú tuần có tiết bị lặp.');
+    return {day,session,periods,even:clean(m[4]),odd:clean(m[5])};
+  });
+}
 export function parseStudents(rows, metadata=[]) {
   if(!Array.isArray(rows))throw Error('TKBHocSinh chưa có dữ liệu.');
   const hi=rows.findIndex(r=>r.map(head).includes('lop')&&r.map(head).includes('buoi')&&r.map(head).includes('tiet'));
@@ -31,8 +43,9 @@ export function parseStudents(rows, metadata=[]) {
     const row=rows[r], raw=classId(row[ci]);
     if(raw){if(!/^\d+\.\d+$/.test(raw))throw Error('Mã lớp không hợp lệ ở dòng '+(r+1));id=raw;session='';}
     if(!id)continue;
-    if(!result.has(id))result.set(id,{id,homeroom:'',campus:meta.get(id)?.campus||'',schedule:emptySchedule()});
+    if(!result.has(id))result.set(id,{id,homeroom:'',campus:meta.get(id)?.campus||'',notes:[],schedule:emptySchedule()});
     const item=result.get(id);if(clean(row[gi]))item.homeroom=clean(row[gi]);
+    if(fold(row[si]).startsWith('ghi chu')){item.notes.push(...clean(row[si]).split(/\r?\n/).filter(Boolean));continue;}
     const mark=fold(row[si]);if(mark==='sang')session='Sáng';else if(mark==='chieu')session='Chiều';
     const p=clean(row[pi]);if(!p)continue;
     if(!/^[1-5]$/.test(p)||!session)throw Error('Sai buổi hoặc tiết trong TKBHocSinh dòng '+(r+1));
@@ -41,6 +54,18 @@ export function parseStudents(rows, metadata=[]) {
       if(seen.has(key)&&seen.get(key)!==val)throw Error('Lớp '+id+' có hai dòng khác nhau cho cùng một tiết. Kiểm tra mã lớp dạng văn bản.');
       seen.set(key,val);item.schedule[session][+p-1][day]=lesson(val);
     });
+  }
+  for(const item of result.values()){
+    const annotated=new Set();
+    for(const rule of parseWeekNotes(item.notes.join('\n')))for(const p of rule.periods){
+      const key=[rule.session,p,rule.day].join('|');if(annotated.has(key))throw Error('Lớp '+item.id+' có ghi chú tuần trùng tiết.');annotated.add(key);
+      const cell=item.schedule[rule.session][p-1][rule.day];
+      if(cell.length!==1||cell[0].week||cell[0].teacher)throw Error('Ghi chú tuần của lớp '+item.id+' không khớp ô môn học.');
+      const subjects=cell[0].subject.split(/\s*\/\s*/).map(clean);
+      if(subjects.length!==2||[...subjects].sort().join('|')!==[rule.even,rule.odd].sort().join('|'))throw Error('Môn trong ghi chú tuần của lớp '+item.id+' không khớp ô môn học.');
+      item.schedule[rule.session][p-1][rule.day]=[{subject:rule.even,week:2,teacher:'',classId:''},{subject:rule.odd,week:1,teacher:'',classId:''}];
+    }
+    for(const session of SESSIONS)for(const days of item.schedule[session])for(const cell of days){if(cell.some(l=>l.subject.includes('/')&&!l.week))throw Error('Lớp '+item.id+' có ô môn luân phiên nhưng thiếu ghi chú tuần.');}
   }
   return [...result.values()].sort((a,b)=>natural(a.id,b.id));
 }
@@ -159,7 +184,8 @@ export function calendar(item,blocks,{startDate,weeks=4,firstWeek,anchor=null,ki
     blocks.filter(b=>b.type==='period').forEach(b=>item.schedule[b.session][b.period-1][day].filter(l=>active(l,parity)).forEach((l,i)=>{
       const value=(time)=>new Date(iso+'T'+time+':00+07:00').toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
       const uid=encodeURIComponent([kind,item.id,b.session,b.period,iso,l.subject,l.classId,l.teacher,i].join('|'))+'@tkb.hoclieuso.id.vn';
-      lines.push('BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp,'DTSTART:'+value(b.start),'DTEND:'+value(b.end),'SUMMARY:'+icsText(l.subject+(kind==='teacher'?' - '+l.classId:'')),'DESCRIPTION:'+icsText((kind==='student'?'Giáo viên: '+l.teacher:'Giáo viên: '+item.name)+'\nTiết '+b.period+' - '+b.session+'\nLịch nhập không tự cập nhật từ Google Sheet.'),'LOCATION:'+icsText(kind==='student'?item.campus:item.campuses.join(' / ')),'END:VEVENT');
+      const person=kind==='teacher'?item.name:l.teacher;
+      lines.push('BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp,'DTSTART:'+value(b.start),'DTEND:'+value(b.end),'SUMMARY:'+icsText(l.subject+(kind==='teacher'?' - '+l.classId:'')),'DESCRIPTION:'+icsText((person?'Giáo viên: '+person+'\n':'')+'Tiết '+b.period+' - '+b.session+'\nLịch nhập không tự cập nhật từ Google Sheet.'),'LOCATION:'+icsText(kind==='student'?item.campus:item.campuses.join(' / ')),'END:VEVENT');
     }));
   }
   lines.push('END:VCALENDAR');return lines.map(foldIcs).join('\r\n')+'\r\n';
