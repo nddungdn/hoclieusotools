@@ -11,7 +11,9 @@ const context = {
   window: { APP_CONFIG: {}, GDCD_DATA: { grades: {} } },
   document: { readyState: 'loading', addEventListener() {} },
 };
-vm.runInNewContext(exposed, context);
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'..','reliability.js'),'utf8'),context);
+vm.runInContext(exposed, context);
 const { optionLengthProblem, buildQualityRules } = context.qualityTest;
 
 test('phương án cân đối không bị báo lỗi', () => {
@@ -35,5 +37,5 @@ test('phát hiện phương án dài nổi bật dù chỉ hơn 4 từ', () => {
 });
 
 test('quy tắc gửi AI thống nhất với ngưỡng kiểm tra', () => {
-  assert.match(buildQualityRules(), /Chênh lệch tối đa 3 từ/);
+  assert.match(buildQualityRules(), /chênh không quá 3 tiếng/);
 });

@@ -20,8 +20,8 @@ const env = {
     return { response: { examCodes: [{ code: 'A', questions: [{
       form: 'TL', configId: 'wrong', level: 'wrong', points: 9,
       context: cfg.essayType === 'situation' ? `Tình huống riêng ${cfg.id}.` : '',
-      prompt: `Yêu cầu ${cfg.id} ${cfg.count}`,
-      parts: [{ label: 'a', prompt: `Nêu cách ứng xử ${cfg.id}.`, answer: `Đáp án ${cfg.id}.`,
+      prompt: `Yêu cầu ${cfg.id} ${cfg.count} vị trí ${payload.requestedSlots?.[0]?.questionId}`,
+      parts: [{ label: 'a', prompt: `Nêu cách ứng xử ${cfg.id} ${payload.requestedSlots?.[0]?.questionId}.`, answer: `Đáp án ${cfg.id}.`,
         points: 9, rubric: [{ content: 'Tôn trọng sự khác biệt.', points: 9 }] }],
     }] }] } };
   } }
