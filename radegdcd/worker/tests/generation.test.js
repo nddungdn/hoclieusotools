@@ -11,10 +11,15 @@ const question = {
   configId: 'cfg-1', lessonId: 'lesson-1', level: 'nb', form: 'TNKQ', subtype: 'single', points: 10,
   prompt: 'Em nên làm gì?', answer: 'A', distractor: 'B',
   options: ['Giữ gìn tài sản chung', 'Làm hỏng tài sản chung', 'Lãng phí tài sản chung', 'Bỏ mặc tài sản chung']
+  ,optionRationales:['Đúng vì bảo vệ tài sản chung.','Sai vì làm hỏng tài sản.','Sai vì sử dụng lãng phí.','Sai vì không có trách nhiệm.'],distractorRationale:'Nhầm không trực tiếp làm hỏng với việc đã có trách nhiệm bảo vệ.'
 };
 const env = {
   SYSTEM_PROMPT_A: 'A', SYSTEM_PROMPT_B: 'B', SYSTEM_PROMPT_C: 'C',
-  AI: { async run() { return { response: { examCodes: [{ code: 'A', questions: [question] }] } }; } }
+  AI: { async run(model,input) {
+    const work=JSON.parse(input.messages[1].content.slice(input.messages[1].content.indexOf('{')));
+    if(work._task==='verify')return {response:{results:work.questions.map(q=>({questionId:q.questionId,passed:true,correctAnswers:[q.answer],unambiguous:true,distractorPlausible:true,reason:'Đáp án và các nhiễu đã được đối chiếu với yêu cầu bài học.'}))}};
+    return { response: { examCodes: [{ code: 'A', questions: [question] }] } };
+  } }
 };
 async function post(path, body) {
   const response = await worker.fetch(new Request(`https://example.com${path}`, {
@@ -30,7 +35,7 @@ test('mỗi phần tạo đề có thể gọi và nhận riêng', async () => {
   const chunk = await post('/api/generate-chunk', { payload, chunkIndex: 0, provider: 'cloudflare' });
   assert.equal(chunk.status, 200, chunk.data.error);
   assert.equal(chunk.data.questions.length, 1);
-  assert.equal(chunk.data.aiMeta.workerVersion, '2.5.8');
+  assert.equal(chunk.data.aiMeta.workerVersion, '2.5.9');
   const final = await post('/api/finalize-generation', { payload, questions: chunk.data.questions, chunkMeta: [chunk.data.aiMeta] });
   assert.equal(final.status, 200, final.data.error);
   assert.equal(final.data.examCodes.length, 2);

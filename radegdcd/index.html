@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.8" />
+  <link rel="stylesheet" href="styles.css?v=2.5.9" />
 </head>
 <body>
   <header class="site-header">
@@ -32,7 +32,7 @@
       <span
         class="header-pill version-badge"
         id="versionBadge"
-      >V2.5.8</span>
+      >V2.5.9</span>
     </div>
 
   </div>
@@ -220,9 +220,9 @@
           </aside>
         </div>
 
-        <label class="review-confirm"><input type="checkbox" id="reviewConfirm"/><span><strong>Tôi đã kiểm tra bản cuối.</strong><small>Tôi đã xem ma trận, đặc tả, đề, đáp án/hướng dẫn chấm và các cảnh báo. Nếu còn lỗi kỹ thuật mà AI chưa sửa được, tôi sẽ kiểm tra và sửa thủ công trong file Word trước khi sử dụng.</small></span></label>
+        <label class="review-confirm"><input type="checkbox" id="reviewConfirm"/><span><strong>Tôi đã kiểm tra bản cuối.</strong><small>Tôi đã xem ma trận, đặc tả, đề, đáp án/hướng dẫn chấm và các cảnh báo. Các câu đã đủ theo ma trận, đúng điểm và được tôi kiểm tra về nội dung trước khi sử dụng.</small></span></label>
 
-        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm. Cảnh báo kỹ thuật không khóa xuất Word; giáo viên có thể xuất để sửa thủ công. Cảnh báo an toàn nghiêm trọng vẫn phải xử lí trước khi xuất.</p></div><button class="btn primary large" id="exportDocxBtn" disabled>⬇ Xuất file .docx</button></div>
+        <div class="export-card"><div><h3>Xuất trọn bộ .docx</h3><p>A4 · Times New Roman · lề trên/dưới 2 cm · trái 2,5 cm · phải 1,5 cm. Chỉ xuất khi đủ câu, đúng 10 điểm mỗi mã, khớp ma trận và không còn lỗi bắt buộc. Giáo viên cần duyệt lại nội dung và đáp án.</p></div><button class="btn primary large" id="exportDocxBtn" disabled>⬇ Xuất file .docx</button></div>
         <div class="panel-actions"><button class="btn ghost prev-btn" data-prev="generate">← Quay lại</button><span></span></div>
       </section>
     </main>
@@ -241,8 +241,9 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.5.8"></script>
-  <script src="data.js?v=2.5.8"></script>
-  <script src="app.js?v=2.5.8"></script>
+  <script src="config.js?v=2.5.9"></script>
+  <script src="data.js?v=2.5.9"></script>
+  <script src="reliability.js?v=2.5.9"></script>
+  <script src="app.js?v=2.5.9"></script>
 </body>
 </html>
