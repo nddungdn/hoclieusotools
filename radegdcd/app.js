@@ -756,7 +756,7 @@ function renderSpec(){
 async function post(path,body,timeoutOverrideMs){
   if(!apiBase() || /YOUR_SUBDOMAIN/.test(apiBase())) throw new Error('Chưa cấu hình API_BASE trong config.js.');
   const controller=new AbortController();
-  const timeoutMs=timeoutOverrideMs||({'/api/generate':420000,'/api/test-provider':45000,'/api/refine':175000}[path]||120000);
+  const timeoutMs=timeoutOverrideMs||({'/api/generate':420000,'/api/test-provider':120000,'/api/refine':175000}[path]||120000);
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     const r=await fetch(apiBase()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
@@ -772,9 +772,12 @@ async function post(path,body,timeoutOverrideMs){
   }finally{clearTimeout(timer);}
 }
 function renderModelSelect(models=[],labels={},recommended=''){
-  state.models=models.slice();state.model=recommended||models[0]||'';
-  const sel=$('#modelSelect');if(!sel)return;sel.disabled=!models.length;
-  sel.innerHTML=models.length?models.map(m=>`<option value="${esc(m)}" ${m===state.model?'selected':''}>${esc(labels[m]||modelLabel(m))}</option>`).join(''):'<option>Chưa có model...</option>';
+  state.models=models.slice();
+  const gemini=aiProvider()==='gemini';
+  state.model=gemini?(models.includes(recommended)?recommended:'auto'):(recommended||models[0]||'');
+  const sel=$('#modelSelect');if(!sel)return;sel.disabled=!models.length&&!gemini;
+  const auto=gemini?`<option value="auto" ${state.model==='auto'?'selected':''}>Tự động · Flash mới nhất tương thích</option>`:'';
+  sel.innerHTML=auto+models.map(m=>`<option value="${esc(m)}" ${m===state.model?'selected':''}>${esc(labels[m]||modelLabel(m))}</option>`).join('')||'<option>Chưa có model...</option>';
 }
 function syncAiProviderUI(){
   const p=aiProvider();state.provider=p;state.apiOk=false;
@@ -784,7 +787,7 @@ function syncAiProviderUI(){
     const labels=Object.fromEntries(CF_MODELS);renderModelSelect(CF_MODELS.map(x=>x[0]),labels,state.model?.startsWith('@cf/')?state.model:CF_MODELS[0][0]);
     setApiStatus('Chưa kiểm tra Cloudflare Workers AI (có kiểm tra JSON cấu trúc).','neutral');
   }else{
-    state.models=[];state.model='';const sel=$('#modelSelect');if(sel){sel.disabled=true;sel.innerHTML='<option>Kiểm tra Gemini API để tải model...</option>';}
+    state.models=[];state.model='auto';const sel=$('#modelSelect');if(sel){sel.disabled=true;sel.innerHTML='<option value="auto">Tự động · kiểm tra API để làm mới danh sách</option>';}
     setApiStatus('Chưa kiểm tra Gemini API cá nhân.','neutral');
   }
 }
@@ -793,9 +796,10 @@ async function testApi(){
   if(p==='gemini'&&!key){setApiStatus('Vui lòng nhập Gemini API key.','bad');return;}
   const btn=$('#testApiBtn');btn.disabled=true;btn.textContent='Đang kiểm tra…';state.apiOk=false;
   try{
-    const data=await post('/api/test-provider',aiRequestParams());
-    renderModelSelect(data.models||[],data.modelLabels||{},data.recommended||'');
-    state.apiOk=true;state.provider=p;setApiStatus(`✓ ${data.message||'AI hoạt động.'}${data.fallbackMessage?` ${data.fallbackMessage}`:''}`,'ok');
+    const params=aiRequestParams(),data=await post('/api/test-provider',params);
+    const selected=p==='gemini'?(params.model&&params.model!=='auto'&&(data.models||[]).includes(params.model)?params.model:'auto'):data.recommended||'';
+    renderModelSelect(data.models||[],data.modelLabels||{},selected);
+    state.apiOk=true;state.provider=p;setApiStatus(`${data.degraded?'⚠':'✓'} ${data.message||'AI hoạt động.'}${data.fallbackMessage?` ${data.fallbackMessage}`:''}`,data.degraded?'warning':'ok');
   }catch(e){setApiStatus(`✕ ${e.message}`,'bad',e.actionUrl||'',e.actionLabel||'Mở trang kích hoạt API ↗');if(p==='gemini')$('#modelSelect').disabled=true;}
   finally{btn.disabled=false;btn.textContent='Kiểm tra AI';}
 }

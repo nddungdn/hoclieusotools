@@ -1857,3 +1857,5 @@ tbody tr:hover td{background:#f5f8ff}
 .fallback-key-row>label{display:block;font-weight:700}
 .fallback-key-row .api-input-wrap{margin-top:7px}
 .compact-note{margin:10px 0 0;font-size:.9rem}
+
+.status-dot.warning{background:#b9770e;box-shadow:0 0 0 4px rgba(185,119,14,.14)}

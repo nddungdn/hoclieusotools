@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Tiện ích hỗ trợ giáo viên THCS tạo ma trận, bản đặc tả, đề kiểm tra và hướng dẫn chấm môn Giáo dục công dân." />
   <title>Ra đề kiểm tra GDCD THCS</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.10" />
+  <link rel="stylesheet" href="styles.css?v=2.5.11" />
 </head>
 <body>
   <header class="site-header">
@@ -32,7 +32,7 @@
       <span
         class="header-pill version-badge"
         id="versionBadge"
-      >V2.5.10</span>
+      >V2.5.11</span>
     </div>
 
   </div>
@@ -116,7 +116,7 @@
             <a id="apiGuide" class="text-link" target="_blank" rel="noopener">Hướng dẫn tạo Gemini API key ↗</a>
           </div>
           <div class="provider-fallback-box">
-            <label class="fallback-toggle"><input id="autoProviderFallback" type="checkbox" checked /><span><strong>Tự động dự phòng khi API quá tải</strong><small>Retry có giãn cách tăng dần, đổi model; nếu nhà cung cấp chính vẫn lỗi, hệ thống chuyển sang nhà cung cấp dự phòng khi có thể.</small></span></label>
+            <label class="fallback-toggle"><input id="autoProviderFallback" type="checkbox" checked /><span><strong>Tự động dùng dịch vụ dự phòng khi khả dụng</strong><small>Retry có giãn cách tăng dần, đổi model; nếu nhà cung cấp chính vẫn lỗi, hệ thống chuyển sang nhà cung cấp dự phòng khi có thể.</small></span></label>
             <div class="fallback-key-row">
               <label>Gemini API key dự phòng <small>(không bắt buộc khi đang dùng Cloudflare)</small>
                 <div class="api-input-wrap"><input id="fallbackApiKey" type="password" autocomplete="off" placeholder="Dán AIza… hoặc AQ.… để Cloudflare có đường lui" /><button type="button" class="icon-btn" id="toggleFallbackKey" aria-label="Hiện/ẩn API key dự phòng">👁</button></div>
@@ -128,6 +128,7 @@
             <label>Model<select id="modelSelect"><option value="@cf/meta/llama-3.1-8b-instruct-fp8">Llama 3.1 8B FP8 · mặc định · nhẹ</option><option value="@cf/zai-org/glm-4.7-flash">GLM 4.7 Flash · dự phòng</option><option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Llama 3.3 70B Fast · dự phòng JSON</option></select></label>
             <button type="button" class="btn secondary" id="testApiBtn">Kiểm tra AI</button>
           </div>
+          <p class="provider-note compact-note">Gemini có chế độ Tự động: lấy danh sách từ Google, ưu tiên Flash ổn định mới nhất tương thích và chọn lại khi mô hình bị ngừng. Lỗi vùng truy cập được báo riêng.</p>
           <p class="status-line" id="apiStatus" aria-live="polite">Chưa kiểm tra Cloudflare Workers AI.</p>
           <a id="apiActionLink" class="text-link" href="#" target="_blank" rel="noopener" hidden>Mở trang kích hoạt API ↗</a>
         </div>
@@ -241,9 +242,9 @@
   </dialog>
 
   <script src="jszip.min.js"></script>
-  <script src="config.js?v=2.5.10"></script>
-  <script src="data.js?v=2.5.10"></script>
-  <script src="reliability.js?v=2.5.10"></script>
-  <script src="app.js?v=2.5.10"></script>
+  <script src="config.js?v=2.5.11"></script>
+  <script src="data.js?v=2.5.11"></script>
+  <script src="reliability.js?v=2.5.11"></script>
+  <script src="app.js?v=2.5.11"></script>
 </body>
 </html>
