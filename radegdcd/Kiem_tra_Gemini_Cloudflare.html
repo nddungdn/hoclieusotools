@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Kiểm tra Gemini trực tiếp và qua Cloudflare</title>
+<style>body{margin:0;background:#f1f5f9;color:#172338;font:17px/1.6 system-ui,sans-serif}main{max-width:900px;margin:30px auto;padding:25px;background:white;border:1px solid #dbe4ef;border-radius:18px}h1{font-size:26px;line-height:1.3;color:#12645b}label{display:block;font-weight:650;margin-top:18px}input{box-sizing:border-box;width:100%;font:inherit;padding:11px;border:1px solid #b9c8d6;border-radius:8px}button{font:inherit;border:0;border-radius:9px;background:#147d70;color:white;padding:12px 20px;margin-top:20px;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.note{padding:13px 16px;background:#fff7df;border-left:4px solid #c6942d;border-radius:6px}#results{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid #d4dfeb;border-radius:12px;padding:16px}.card h2{font-size:19px;margin:0 0 8px}.detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}.good{color:#087451}.bad{color:#a03221}#conclusion{margin-top:20px;background:#eef7ff;border-radius:9px;padding:16px;white-space:pre-wrap}small{color:#51667d}a{color:#12645b}@media(max-width:600px){main{margin:12px;padding:18px}h1{font-size:23px}}</style></head>
+<body><main><h1>Kiểm tra Gemini: trực tiếp và qua Cloudflare</h1><p>Công cụ gọi cùng một khóa và mô hình bằng hai đường. Kết quả giúp phân biệt lỗi truy cập Gemini từ máy của thầy/cô với lỗi trên đường gọi từ Worker.</p>
+<p class="note" id="hostingNote">Đặt tệp này trong thư mục <b>radegdcd</b> của website rồi mở bằng địa chỉ HTTPS. Nếu mở tệp trực tiếp trên máy, phần kiểm tra Worker có thể bị CORS chặn và không đủ căn cứ kết luận.</p>
+<label for="apiKey">Gemini API key cá nhân</label><input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Dán khóa của thầy/cô vào đây"><small>Khóa không được lưu. Chỉ gửi tới Google và Worker do thầy/cô nhập bên dưới. Không cần gửi khóa cho người hỗ trợ.</small>
+<label for="worker">Địa chỉ Worker đang dùng</label><input id="worker" type="url" value="https://radegdcd-secure-api.nddungdn.workers.dev" spellcheck="false"><small>Chỉ dùng máy chủ của thầy/cô hoặc máy chủ thầy/cô tin cậy.</small>
+<label for="model">Mô hình cần thử (có thể để trống)</label><input id="model" placeholder="Để trống để chọn mô hình Flash từ danh sách Google trả về" spellcheck="false">
+<button id="run" type="button">Kiểm tra hai đường gọi</button><small id="progress" role="status" style="display:block;margin-top:10px">Mỗi lần kiểm tra có hai yêu cầu sinh nội dung ngắn và có thể tính vào hạn mức API.</small>
+<div id="results"><section class="card"><h2>1. Trực tiếp từ trình duyệt → Google</h2><div id="direct" class="detail">Chưa kiểm tra</div></section><section class="card"><h2>2. Trình duyệt → Worker → Google</h2><div id="viaWorker" class="detail">Chưa kiểm tra</div></section></div><div id="conclusion" role="status">Kết luận sẽ hiện sau khi hoàn tất cả hai phép thử.</div>
+<p><small>Hai phép thử chạy lần lượt trong cùng một phiên. Kết quả không xác nhận nguyên nhân cho các lỗi khác hoặc mọi thời điểm. Công cụ không gửi ngữ liệu SGK, đề kiểm tra hoặc prompt riêng của tiện ích.</small></p></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const isLocation=text=>/user location is not supported|location.*not supported|LOCATION_UNSUPPORTED/i.test(String(text));
+function conclusion(d,w){
+ if(w.corsBlocked)return 'Chưa thể so sánh: trình duyệt không đọc được phản hồi Worker. Hãy mở tệp bằng HTTPS trên chính website đã được Worker cho phép (ví dụ tools.hoclieuso.id.vn/radegdcd/Kiem_tra_Gemini_Cloudflare.html), rồi kiểm tra lại. Lỗi mạng/CORS chưa chứng minh Google từ chối vùng truy cập.';
+ if(d.ok&&w.ok&&d.model===w.model)return 'Cả hai đường đang sinh nội dung được với cùng mô hình. Lỗi vùng chưa tái hiện ở lần kiểm tra này; không thể kết luận đã hết lỗi vĩnh viễn.';
+ if(d.ok&&w.location)return 'Cùng khóa sinh nội dung được trực tiếp từ trình duyệt, nhưng Google từ chối vùng truy cập trên đường qua Worker. Kết quả này khoanh vùng lỗi ở tuyến máy chủ/điều kiện truy cập mà Google áp dụng cho tuyến đó; không chứng minh khóa bị sai. Cần kiểm tra hoặc thay nơi thực hiện lời gọi Google, không tiếp tục chỉ tăng số lần thử lại.';
+ if(d.location&&w.location)return 'Cả hai đường đều bị Google từ chối vùng. Chưa thể quy lỗi riêng cho Cloudflare; cần kiểm tra mạng/VPN, điều kiện truy cập của dự án Google và phản hồi Google.';
+ if(!d.ok&&d.location&&w.ok)return 'Worker sinh nội dung được, nhưng đường gọi trực tiếp bị từ chối vùng. Cần kiểm tra mạng/VPN của thiết bị; lần thử này không cho thấy Worker bị Google chặn vùng.';
+ if(d.ok&&w.ok)return 'Cả hai đường đều thành công nhưng Worker đã chọn mô hình khác. Chưa phải phép so sánh hoàn toàn tương đương. Thử nhập một mô hình có ở cả hai bên.';
+ return 'Chưa đủ căn cứ quy lỗi cho Cloudflare. Đối chiếu HTTP, mô hình và giai đoạn lỗi ở hai ô trên. Sai khóa/quyền, hết hạn mức, lỗi mô hình và lỗi mạng phải được xử lí riêng.';
+}
+function safeText(value,key){return String(value||'').split(key).join('[đã ẩn khóa]').replace(/AIza[\w-]{15,}|AQ\.[\w.-]{15,}/g,'[đã ẩn khóa]').slice(0,1300);}
+async function request(url,options,key){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),65000);
+ try{
+  const r=await fetch(url,{...options,signal:controller.signal,cache:'no-store',redirect:'error'});const raw=await r.text();let data;
+  try{data=JSON.parse(raw);}catch{throw Object.assign(new Error('Phản hồi không phải JSON.'),{status:r.status});}
+  if(!r.ok)throw Object.assign(new Error(safeText(data.error?.message||data.error||`HTTP ${r.status}`,key)),{status:r.status});
+  return data;
+ }finally{clearTimeout(timer);}
+}
+function resultError(e,stage,model,key){return {ok:false,status:e.status||0,stage,model:model||'',message:safeText(e.name==='AbortError'?'Hết thời gian chờ 65 giây.':e.message,key),location:isLocation(e.message),corsBlocked:e.name==='TypeError'};}
+function show(id,r){$(id).className='detail '+(r.ok?'good':'bad');$(id).textContent=(r.ok?'THÀNH CÔNG':'CHƯA THÀNH CÔNG')+'\nHTTP: '+(r.status||'Không đọc được phản hồi')+'\nGiai đoạn: '+r.stage+'\nMô hình: '+(r.model||'Chưa chọn được')+'\n'+(r.message||'');}
+$('run').addEventListener('click',async()=>{
+ const key=$('apiKey').value.trim(),base=$('worker').value.trim().replace(/\/$/,''),requested=$('model').value.trim();
+ if(!key){$('conclusion').textContent='Vui lòng nhập khóa cá nhân.';return;}
+ let workerUrl;try{workerUrl=new URL(base);if(workerUrl.protocol!=='https:'||workerUrl.username||workerUrl.password||workerUrl.search||workerUrl.hash||!workerUrl.hostname)throw Error();}catch{$('conclusion').textContent='Địa chỉ Worker phải là HTTPS, không kèm tài khoản, mật khẩu, query hoặc dấu #.';return;}
+ $('run').disabled=true;$('conclusion').textContent='Đang kiểm tra…';$('direct').textContent='Đang lấy danh sách mô hình từ Google…';$('viaWorker').textContent='Chờ thử trực tiếp xong…';
+ let d,w,model=requested,stage='Lấy danh sách mô hình';
+ try{
+  try{
+   const listed=await request('https://generativelanguage.googleapis.com/v1beta/models',{headers:{'x-goog-api-key':key}},key);
+   const models=(listed.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace(/^models\//,''));
+   if(!model)model=models.find(m=>/flash/i.test(m)&&!/image|tts|live|audio|native|robotic/i.test(m))||models.find(m=>!/image|tts|live|audio/i.test(m))||'';
+   if(!model)throw new Error('Không tìm được mô hình sinh văn bản trong danh sách Google trả về.');
+   if(!/^[a-zA-Z0-9._-]+$/.test(model))throw new Error('Tên mô hình không hợp lệ.');
+   stage='Sinh nội dung JSON ngắn';$('progress').textContent='Đang gọi trực tiếp Google với mô hình '+model+'…';
+   const data=await request('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:[{text:'Chỉ trả về JSON {"ok":true}. Không giải thích.'}]}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:2048}})},key);
+   const c=data.candidates?.[0],text=(c?.content?.parts||[]).filter(p=>p.thought!==true).map(p=>p.text||'').join('');
+   if(data.promptFeedback?.blockReason||c?.finishReason&&c.finishReason!=='STOP')throw new Error('Google chưa hoàn tất nội dung: '+(data.promptFeedback?.blockReason||c?.finishReason));
+   let parsed;try{parsed=JSON.parse(text);}catch{throw new Error('Google trả dữ liệu nhưng chưa có JSON hợp lệ.');}
+   if(parsed.ok!==true)throw new Error('Phản hồi chưa vượt phép thử JSON.');
+   d={ok:true,status:200,stage,model,message:'Đã sinh và kiểm tra JSON.'};
+  }catch(e){d=resultError(e,stage,model,key);}
+  show('direct',d);$('progress').textContent='Đang thử qua Worker…';$('viaWorker').textContent='Đang gọi Worker; công cụ không dùng Cloudflare AI thay Gemini trong phép thử này.';
+  try{
+   const data=await request(base+'/api/test-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apiKey:key,model})},key);
+   if(data.ok!==true||data.provider!=='gemini')throw new Error('Phản hồi chưa xác nhận Gemini hoạt động.');
+   w={ok:true,status:200,stage:'Kiểm tra khóa và sinh JSON qua Worker',model:data.recommended||model,message:'Worker V'+(data.workerVersion||'?')+' · '+(data.apiMode||'')+' · Đã sinh JSON.'};
+  }catch(e){w=resultError(e,'Kiểm tra khóa và sinh JSON qua Worker',model,key);}
+  show('viaWorker',w);$('conclusion').textContent=conclusion(d,w);
+ }finally{$('run').disabled=false;$('progress').textContent='Đã hoàn tất phép so sánh. Có thể chụp hai ô kết quả và phần kết luận; không cần hiển thị khóa.';}
+});
+if(location.protocol==='file:')$('hostingNote').textContent='Thầy/cô đang mở tệp trên máy. Để kiểm tra Worker đúng cách, chép tệp lên thư mục radegdcd trên website rồi mở qua HTTPS. Nếu chưa làm bước này, lỗi CORS không cho phép kết luận Cloudflare bị Google chặn vùng.';
+window.GEMINI_DIAGNOSTIC={conclusion,isLocation};
+</script></body></html>
