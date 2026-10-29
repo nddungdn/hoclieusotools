@@ -760,11 +760,14 @@ async function post(path,body,timeoutOverrideMs){
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     const r=await fetch(apiBase()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
-    const text=await r.text(); let data={}; try{data=JSON.parse(text)}catch{data={error:text||'Phản hồi không hợp lệ'}};
-    if(!r.ok){const error=new Error(data.error||`HTTP ${r.status}`);error.status=r.status;error.workerVersion=data.workerVersion||'';error.errorCode=data.errorCode||'';error.recommendedBatchSize=Number(data.recommendedBatchSize||0);error.retryAfterMs=Number(data.retryAfterMs||0);error.quotaKind=data.quotaKind||'';error.partialQuestions=data.partialQuestions||[];error.pendingQuestions=data.pendingQuestions||[];error.actionUrl=data.actionUrl||'';error.actionLabel=data.actionLabel||'';throw error;}
+    const text=await r.text();let data;
+    try{data=JSON.parse(text);if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Invalid envelope');}
+    catch{throw Object.assign(new Error(`Máy chủ API trả phản hồi không phải JSON hợp lệ (HTTP ${r.status}). Kiểm tra địa chỉ API, bản triển khai Worker và nhật kí Cloudflare.`),{status:r.status,errorCode:'API_NON_JSON'});}
+    if(!r.ok){const detail=[data.provider==='gemini'?'Gemini':data.provider==='cloudflare'?'Cloudflare':'',`HTTP ${r.status}`,data.errorCode||''].filter(Boolean).join(' · ');const error=new Error(`${data.error||'Yêu cầu chưa hoàn tất.'} (${detail})`);error.status=r.status;error.workerVersion=data.workerVersion||'';error.errorCode=data.errorCode||'';error.retryAfterMs=Number(data.retryAfterMs||0);error.quotaKind=data.quotaKind||'';error.partialQuestions=data.partialQuestions||[];error.pendingQuestions=data.pendingQuestions||[];error.actionUrl=data.actionUrl||'';error.actionLabel=data.actionLabel||'';error.attempts=data.attempts||[];throw error;}
     return data;
   }catch(error){
     if(error?.name==='AbortError')throw new Error(`Yêu cầu ${path} vượt quá ${Math.ceil(timeoutMs/1000)} giây chờ. Ma trận và đề đã nhận được vẫn được giữ nguyên.`);
+    if(error?.name==='TypeError'&&/fetch|network|load failed/i.test(error.message))throw Object.assign(new Error('Không kết nối được máy chủ API. Kiểm tra mạng, địa chỉ API và cấu hình tên miền/CORS của Worker. Phần đề đã nhận được vẫn được giữ.'),{errorCode:'API_NETWORK'});
     throw error;
   }finally{clearTimeout(timer);}
 }
@@ -796,7 +799,7 @@ async function testApi(){
   }catch(e){setApiStatus(`✕ ${e.message}`,'bad',e.actionUrl||'',e.actionLabel||'Mở trang kích hoạt API ↗');if(p==='gemini')$('#modelSelect').disabled=true;}
   finally{btn.disabled=false;btn.textContent='Kiểm tra AI';}
 }
-const PROGRESS_KEY='radegdcd_progress_v2510';
+const PROGRESS_KEY='radegdcd_progress_v259';
 function saveGenerationProgress(){
   if(!state.generationDraft)return;
   try{
@@ -848,24 +851,17 @@ async function generateExam(){
       for(let attempt=0;attempt<3;attempt++){
         box.textContent=`Đang viết và thẩm định phần ${i+1}/${draft.totalChunks}. Đã giữ ${draft.parts.reduce((n,p)=>n+(p?.questions?.length||0),0)} câu đạt. ${draft.sourceNote}`;
         try{
-          const chunk=await post('/api/generate-chunk',{...params,payload,chunkIndex:i,previousQuestions:draft.parts.slice(0,i).flatMap(p=>p.questions||[]),acceptedQuestions:part.questions,pendingQuestions:part.pending,maxBatchSize:part.batchSize||2,retryFeedback:(part.issues||[]).map(x=>x.message).join(' ')},190000);
+          const chunk=await post('/api/generate-chunk',{...params,payload,chunkIndex:i,previousQuestions:draft.parts.slice(0,i).flatMap(p=>p.questions||[]),acceptedQuestions:part.questions,pendingQuestions:part.pending,retryFeedback:(part.issues||[]).map(x=>x.message).join(' ')},190000);
           if(chunk.payloadHash!==plan.payloadHash||chunk.aiMeta?.workerVersion!==plan.workerVersion||chunk.chunkIndex!==i||chunk.totalChunks!==draft.totalChunks||!Array.isArray(chunk.questions))throw new Error('Phiên bản hoặc dữ liệu nhóm câu không thống nhất; hãy tải lại và kiểm tra cập nhật.');
-          part={batchSize:part.batchSize||2,questions:chunk.questions,pending:[],issues:chunk.issues||[],missingSlots:chunk.missingSlots||[]};draft.parts[i]=part;draft.chunkMeta[i]=chunk.aiMeta;saveGenerationProgress();
+          part={questions:chunk.questions,pending:[],issues:chunk.issues||[],missingSlots:chunk.missingSlots||[]};draft.parts[i]=part;draft.chunkMeta[i]=chunk.aiMeta;saveGenerationProgress();
           if(!part.missingSlots.length){draft.nextIndex=i+1;saveGenerationProgress();break;}
           if(attempt===2)throw new Error(`Phần ${i+1} còn ${part.missingSlots.length} vị trí chưa đạt. Bấm Tạo đề để chỉ tiếp tục phần này. ${(part.issues||[]).map(x=>x.message).join(' ')}`);
           await wait(AI_CLIENT_GAP_MS);
         }catch(error){
           if(error.partialQuestions?.length)part.questions=error.partialQuestions;
           if(error.pendingQuestions?.length)part.pending=error.pendingQuestions;
-          if(error.recommendedBatchSize===1)part.batchSize=1;
           if(error.retryAfterMs)draft.retryAt=Date.now()+error.retryAfterMs;
-          saveGenerationProgress();
-          if(error.errorCode==='CF_INFERENCE_TIMEOUT'&&attempt<2){
-            const delay=Math.max(2000,Math.min(10000,error.retryAfterMs||2000));
-            box.textContent=`Cloudflare trả lỗi 3007. Đang giữ tiến độ và thử lại từng câu sau ${Math.ceil(delay/1000)} giây…`;
-            await wait(delay);draft.retryAt=0;continue;
-          }
-          throw error;
+          saveGenerationProgress();throw error;
         }
       }
       if(i<draft.totalChunks-1)await wait(AI_CLIENT_GAP_MS);
