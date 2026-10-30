@@ -1,5 +1,5 @@
-const CACHE='lhp-tkb-shell-v2.0.0';
-const FILES=['./','./index.html','./styles.css?v=2.0.0','./app.js?v=2.0.0','./auth.js','./countdown.js','./request.js','./notes.js','./core.js?v=2.0.0','./versions.js?v=2.0.0','./config.js?v=2.0.0','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
+const CACHE='lhp-tkb-shell-v2.1.0';
+const FILES=['./','./index.html','./styles.css?v=2.1.0','./app.js?v=2.1.0','./auth.js','./countdown.js','./request.js','./notes.js','./core.js?v=2.1.0','./versions.js?v=2.1.0','./config.js?v=2.1.0','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('lhp-tkb-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

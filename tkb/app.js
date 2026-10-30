@@ -1,10 +1,10 @@
-import {CONFIG} from './config.js?v=2.0.0';
+import {CONFIG} from './config.js?v=2.1.0';
 import {AUTH_KEY,REMEMBER_SECONDS,createAuthStore} from './auth.js';
 import {countdown} from './countdown.js';
 import {fetchTimetable} from './request.js';
 import {scheduleNotes} from './notes.js';
-import {legacyVersion,versionLabel,viewingCurrent} from './versions.js?v=2.0.0';
-import {DAYS,SESSIONS,fold,classId,natural,clock,currentBlock,calendar,swipeDay} from './core.js?v=2.0.0';
+import {legacyVersion,versionLabel,viewingCurrent} from './versions.js?v=2.1.0';
+import {DAYS,SESSIONS,fold,classId,natural,clock,currentBlock,calendar,swipeDay} from './core.js?v=2.1.0';
 const $=id=>document.getElementById(id),KEY='lhp-tkb-v1:',state={mode:'student',public:null,private:null,classId:'',teacherId:'',day:Math.min(clock().day,5),token:'',install:null,touchX:null,touchY:null,toastTimer:null,requestId:0,publicRequestId:0,versionId:new URLSearchParams(location.search).get('tkb')||''};
 const store={get(k,session=false){try{return(session?sessionStorage:localStorage).getItem(KEY+k)||'';}catch{return'';}},set(k,v,session=false){try{(session?sessionStorage:localStorage).setItem(KEY+k,v);}catch{}},remove(k,session=false){try{(session?sessionStorage:localStorage).removeItem(KEY+k);}catch{}}};
 const authStore=createAuthStore();
