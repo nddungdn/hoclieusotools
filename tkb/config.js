@@ -3,7 +3,9 @@ export const CONFIG=Object.freeze({
   apiUrl: 'https://tkb-lhp-api.nddungdn.workers.dev',
   schoolName: 'TRƯỜNG THCS LÊ HỒNG PHONG',
   authority: 'UBND PHƯỜNG HẢI CHÂU',
+  schoolYear: '2026-2027',
   homeUrl: 'https://www.hoclieuso.id.vn/',
   schoolUrl: 'https://www.lehongphongdanang.edu.vn/',
   refreshSeconds: 300
 });
+

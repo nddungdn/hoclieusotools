@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#0750b8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://*.workers.dev; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=1.3.1">
-  <script type="module" src="./app.js?v=1.3.1"></script>
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=2.0.0">
+  <script type="module" src="./app.js?v=2.0.0"></script>
 </head>
 <body>
   <header class="masthead"><p id="authority">UBND PHƯỜNG HẢI CHÂU</p><h1 id="school-name">TRƯỜNG THCS LÊ HỒNG PHONG</h1><p class="masthead-sub">TRA CỨU THỜI KHÓA BIỂU</p></header>
@@ -24,6 +24,11 @@
       <button id="tab-teacher" role="tab" aria-selected="false" aria-controls="panel-teacher">TKB GIÁO VIÊN</button>
     </div>
     <section class="content-card">
+      <div id="history-controls" class="history-controls" hidden aria-label="Chọn thời khóa biểu">
+        <label><span class="sr-only">Năm học</span><select id="history-year" aria-label="Năm học"></select></label>
+        <label class="history-picker"><span class="sr-only">Lần ban hành thời khóa biểu</span><select id="history-version" aria-label="Lần ban hành thời khóa biểu"></select></label>
+        <button id="history-current" type="button" class="text-button" hidden>Hiện hành</button>
+      </div>
       <div class="clock-box"><div class="live-row"><strong id="live-status">Đang tải thời khóa biểu…</strong><span id="live-countdown" hidden></span></div><span id="live-time"></span></div>
       <div id="error" role="alert" class="error" hidden><span id="error-text"></span><button id="retry" type="button">Thử lại</button></div>
       <section id="panel-student" role="tabpanel" aria-labelledby="tab-student">
@@ -73,3 +78,4 @@
   <noscript>Vui lòng bật JavaScript để xem thời khóa biểu.</noscript>
 </body>
 </html>
+

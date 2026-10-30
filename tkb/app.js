@@ -1,10 +1,11 @@
-import {CONFIG} from './config.js?v=1.2.3';
+import {CONFIG} from './config.js?v=2.0.0';
 import {AUTH_KEY,REMEMBER_SECONDS,createAuthStore} from './auth.js';
 import {countdown} from './countdown.js';
 import {fetchTimetable} from './request.js';
 import {scheduleNotes} from './notes.js';
-import {DAYS,SESSIONS,fold,classId,natural,clock,currentBlock,calendar,swipeDay} from './core.js';
-const $=id=>document.getElementById(id),KEY='lhp-tkb-v1:',state={mode:'student',public:null,private:null,classId:'',teacherId:'',day:Math.min(clock().day,5),token:'',install:null,touchX:null,touchY:null,toastTimer:null,requestId:0};
+import {legacyVersion,versionLabel,viewingCurrent} from './versions.js?v=2.0.0';
+import {DAYS,SESSIONS,fold,classId,natural,clock,currentBlock,calendar,swipeDay} from './core.js?v=2.0.0';
+const $=id=>document.getElementById(id),KEY='lhp-tkb-v1:',state={mode:'student',public:null,private:null,classId:'',teacherId:'',day:Math.min(clock().day,5),token:'',install:null,touchX:null,touchY:null,toastTimer:null,requestId:0,publicRequestId:0,versionId:new URLSearchParams(location.search).get('tkb')||''};
 const store={get(k,session=false){try{return(session?sessionStorage:localStorage).getItem(KEY+k)||'';}catch{return'';}},set(k,v,session=false){try{(session?sessionStorage:localStorage).setItem(KEY+k,v);}catch{}},remove(k,session=false){try{(session?sessionStorage:localStorage).removeItem(KEY+k);}catch{}}};
 const authStore=createAuthStore();
 let lastClockMinute=-1;
@@ -14,12 +15,13 @@ function data(){return state.mode==='teacher'?state.private:state.public;}
 function selected(){return state.mode==='teacher'?state.private?.teachers.find(t=>t.id===state.teacherId):state.public?.classes.find(c=>c.id===state.classId);}
 function title(item=selected()){return state.mode==='teacher'?item?.name||'':'Lớp '+(item?.id||'').replace('.','/');}
 function err(message){$('error-text').textContent=message;$('error').hidden=!message;}
-async function api(path,{method='GET',body,auth=false}={}){
+async function api(path,{method='GET',body,auth=false,version=state.versionId}={}){
   if(!CONFIG.apiUrl)throw Error('Tiện ích chưa kết nối dữ liệu. Nhà trường cần hoàn tất cấu hình.');
   let url;try{url=new URL(CONFIG.apiUrl);}catch{throw Error('Địa chỉ API trong config.js phải bắt đầu bằng https://.');}
   if(url.protocol!=='https:'||url.pathname!=='/'||url.search||url.hash)throw Error('apiUrl cần là URL gốc của Worker, bắt đầu bằng https:// và không kèm /api.');
   const base=url.origin,headers={};if(body)headers['Content-Type']='application/json';if(auth)headers.Authorization='Bearer '+state.token;
-  let response;try{response=await fetchTimetable(base+path,{method,headers,body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store'},{onRetry:attempt=>{$('connection').textContent='Kết nối dữ liệu bị gián đoạn · Đang thử lại ('+attempt+'/2)…';}});}catch{throw Error('Không kết nối được dữ liệu. Kiểm tra mạng và thử lại.');}
+  const endpoint=new URL(base+path);if(version&&version!=='legacy')endpoint.searchParams.set('version',version);
+  let response;try{response=await fetchTimetable(endpoint.href,{method,headers,body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store'},{onRetry:attempt=>{$('connection').textContent='Kết nối dữ liệu bị gián đoạn · Đang thử lại ('+attempt+'/2)…';}});}catch{throw Error('Không kết nối được dữ liệu. Kiểm tra mạng và thử lại.');}
   let payload;try{payload=await response.json();}catch{throw Error('Máy chủ không trả dữ liệu JSON (HTTP '+response.status+'). Kiểm tra URL Worker trong config.js.');}
   if(auth&&response.status===401)logout(false);
   if(!response.ok||!payload.success)throw Error(payload.message||'Không tải được thời khóa biểu.');
@@ -27,32 +29,51 @@ async function api(path,{method='GET',body,auth=false}={}){
 }
 function setOptions(id,values,label){const el=$(id),old=el.value;el.replaceChildren();const first=node('option',label);first.value='';el.append(first);values.filter(Boolean).sort(natural).forEach(v=>{const option=node('option',v);option.value=v;el.append(option);});if(values.includes(old))el.value=old;}
 async function loadPublic(){
+  const id=++state.publicRequestId;
   $('retry').disabled=true;err('');$('connection').textContent='Đang đồng bộ dữ liệu…';
   try{
-    const d=await api('/api/public');if(!Array.isArray(d.classes)||!Array.isArray(d.blocks))throw Error('Dữ liệu chưa đúng mẫu.');state.public=d;
+    const raw=await api('/api/public');if(id!==state.publicRequestId)return;if(state.versionId&&state.versionId!=='legacy'&&!raw.historySupported)throw Error('Nguồn dữ liệu chưa bật lịch sử. Vui lòng xem bản hiện hành.');
+    const d=withVersion(raw);if(!Array.isArray(d.classes)||!Array.isArray(d.blocks))throw Error('Dữ liệu chưa đúng mẫu.');
+    if(state.private&&state.private.selectedVersion.id!==d.selectedVersion.id){state.private=null;state.requestId++;}state.public=d;renderVersions(d);if(state.mode==='teacher'&&!state.private)render();
     setOptions('class-campus',[...new Set(d.classes.map(c=>c.campus))],'Tất cả điểm trường');
     const wanted=classId(new URLSearchParams(location.search).get('class')||store.get('class'));
     if(!d.classes.some(c=>c.id===state.classId))state.classId=d.classes.some(c=>c.id===wanted)?wanted:(d.classes[0]?.id||'');
     renderClasses();if(state.mode==='student')render();syncMeta();
-  }catch(e){err(e.message);$('connection').textContent='Chưa đồng bộ được dữ liệu.';}finally{$('retry').disabled=false;tick();}
+  }catch(e){if(id!==state.publicRequestId)return;err(e.message);$('connection').textContent='Chưa đồng bộ được dữ liệu.';}finally{if(id===state.publicRequestId){$('retry').disabled=false;tick();}}
 }
 async function loadTeachers(){
   if(!state.token)return;
   const id=++state.requestId;$('connection').textContent='Đang tải lịch giáo viên…';
   try{
-    const d=await api('/api/teachers',{auth:true});if(id!==state.requestId||!state.token)return;
+    const d=withVersion(await api('/api/teachers',{auth:true,version:state.public?.selectedVersion.id||state.versionId}));if(id!==state.requestId||!state.token)return;
+    if(state.public&&d.selectedVersion.id!==state.public.selectedVersion.id)throw Error('Hai lịch chưa cùng phiên bản. Vui lòng thử lại.');
     state.private=d;err('');$('login-form').hidden=true;$('teacher-tools').hidden=false;
     const departments=[...new Set(d.teachers.flatMap(t=>t.departments))],campuses=[...new Set(d.teachers.flatMap(t=>t.campuses))];
     setOptions('department',departments,'Tất cả tổ chuyên môn');setOptions('finder-department',departments,'Tất cả tổ');setOptions('teacher-campus',campuses,'Tất cả điểm trường');setOptions('finder-campus',campuses,'Tất cả điểm trường');
     const remembered=authStore.restore()?.teacherId;state.teacherId=d.teachers.some(t=>t.id===state.teacherId)?state.teacherId:d.teachers.some(t=>t.id===remembered)?remembered:d.teachers[0]?.id||'';
     renderTeachers();if(state.mode==='teacher')render();syncMeta();
-  }catch(e){err(e.message);if(state.token)$('connection').textContent='Chưa tải được lịch giáo viên.';}
+  }catch(e){if(id!==state.requestId)return;err(e.message);if(state.token)$('connection').textContent='Chưa tải được lịch giáo viên.';}
+}
+function withVersion(d){const v=d.selectedVersion||legacyVersion({effectiveDate:d.meta?.effectiveDate,schoolYear:CONFIG.schoolYear});return {...d,selectedVersion:v,versions:d.versions||[v],activeVersionId:d.activeVersionId||v.id};}
+function renderVersions(d){
+  if(state.versionId===d.activeVersionId){state.versionId='';const url=new URL(location.href);url.searchParams.delete('tkb');history.replaceState({},'',url);}
+  const years=[...new Set(d.versions.map(v=>v.year))].sort(natural).reverse(),year=d.selectedVersion.year,yearPicker=$('history-year');yearPicker.replaceChildren();
+  for(const y of years){const o=node('option',y||'Năm học');o.value=y;yearPicker.append(o);}yearPicker.value=year;
+  const picker=$('history-version');picker.replaceChildren();for(const v of d.versions.filter(v=>v.year===year)){const o=node('option',v.name+(v.status==='current'?' · Hiện hành':' · Lưu trữ'));o.value=v.id;picker.append(o);}picker.value=d.selectedVersion.id;
+  $('history-controls').hidden=false;$('history-current').hidden=!state.versionId||d.selectedVersion.id===d.activeVersionId;
+}
+async function chooseVersion(id){
+  const current=state.public?.activeVersionId;state.versionId=id===current||id==='legacy'?'':id;state.public=null;state.private=null;state.requestId++;
+  $('history-controls').setAttribute('aria-busy','true');$('finder-results').replaceChildren();document.querySelectorAll('dialog[open]').forEach(d=>d.close());
+  const url=new URL(location.href);if(state.versionId)url.searchParams.set('tkb',state.versionId);else url.searchParams.delete('tkb');history.replaceState({},'',url);
+  render();await loadPublic();if(state.mode==='teacher'&&state.token&&state.public)await loadTeachers();$('history-controls').setAttribute('aria-busy','false');
 }
 function syncMeta(){
   const d=data()||state.public;if(!d)return;
   $('announcement').textContent=d.meta.announcement||'';$('announcement').hidden=!d.meta.announcement;
   const fetched=new Date(d.meta.fetchedAt);$('connection').textContent='Dữ liệu tải lúc '+(Number.isFinite(+fetched)?new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(fetched):'vừa xong')+' · Tự kiểm tra mỗi 5 phút';
-  $('effective-date').textContent=d.meta.effectiveDate?'Áp dụng từ '+d.meta.effectiveDate.split('-').reverse().join('/'):'Ngày áp dụng: nhà trường đang cập nhật';
+  const dates=[d.meta.effectiveDate,d.selectedVersion?.endDate].filter(Boolean).map(v=>v.split('-').reverse().join('/'));
+  $('effective-date').textContent=versionLabel(d.selectedVersion)+(dates.length?' · Áp dụng '+dates.join(' – '):'');
 }
 function filteredClasses(){const query=fold(classId($('class-search').value));return(state.public?.classes||[]).filter(c=>(!query||fold(c.id).includes(query))&&(!$('grade').value||c.id.split('.')[0]===$('grade').value)&&(!$('class-campus').value||c.campus===$('class-campus').value));}
 function renderClasses(){const list=filteredClasses(),parent=$('class-buttons');parent.replaceChildren();list.forEach(c=>{const button=node('button','Lớp '+c.id.replace('.','/'));button.type='button';button.setAttribute('aria-pressed',String(c.id===state.classId));button.addEventListener('click',()=>selectClass(c.id));parent.append(button);});$('class-count').textContent=list.length?list.length+' lớp':'Không có lớp phù hợp. Thử đổi từ khóa hoặc bộ lọc.';}
@@ -69,7 +90,7 @@ function subjectTone(subject){
 function lessonElement(l){const el=node('div','','lesson subject-'+subjectTone(l.subject));el.append(node('strong',l.subject+(state.mode==='teacher'?' · '+l.classId.replace('.','/'):'')));return el;}
 function appendLessons(parent,list){if(state.mode==='student'&&list.length>1)parent.append(lessonElement({subject:studentSubjects(list)}));else list.forEach(l=>parent.append(lessonElement(l)));}
 function render(){
-  const item=selected();$('schedule').hidden=!item;if(!item){tick();return;}
+  const item=selected();$('schedule').hidden=!item;if(!item){$('desktop-table').replaceChildren();$('mobile-list').replaceChildren();tick();return;}
   $('schedule-title').textContent=(state.mode==='teacher'?'THỜI KHÓA BIỂU GIÁO VIÊN':'THỜI KHÓA BIỂU HỌC SINH')+' — '+title(item);
   const meta=$('schedule-meta');meta.replaceChildren();
   if(state.mode==='student'){meta.append(node('span','GVCN: '+(item.homeroom||'Đang cập nhật'),'meta-chip'));if(item.campus)meta.append(node('span',item.campus,'meta-chip campus'));}
@@ -81,7 +102,7 @@ function render(){
 }
 function visibleDays(item){return item.schedule.Sáng.some(p=>p[5].length)||item.schedule.Chiều.some(p=>p[5].length)?6:5;}
 function renderDesktop(item){
-  const table=node('table'),caption=node('caption',title(item),'sr-only');table.append(caption);const thead=node('thead'),tr=node('tr'),today=clock().day,count=visibleDays(item);
+  const table=node('table'),caption=node('caption',title(item),'sr-only');table.append(caption);const thead=node('thead'),tr=node('tr'),today=viewingCurrent(data(),clock().iso)?clock().day:-1,count=visibleDays(item);
   for(const [text,cls] of [['Buổi','session-col'],['Tiết','period-col'],['Giờ','time-col']]){const h=node('th',text,cls);h.scope='col';tr.append(h);}
   for(let day=0;day<count;day++){const h=node('th',DAYS[day],day===today?'today-head':'');h.scope='col';if(day===today)h.append(node('span','HÔM NAY','today-badge'));tr.append(h);}
   thead.append(tr);table.append(thead);const body=node('tbody');
@@ -96,7 +117,7 @@ function renderDesktop(item){
   }});table.append(body);$('desktop-table').replaceChildren(table);
 }
 function renderMobile(item=selected()){
-  if(!item)return;const today=clock().day,count=visibleDays(item);if(state.day>=count)state.day=0;
+  if(!item)return;const today=viewingCurrent(data(),clock().iso)?clock().day:-1,count=visibleDays(item);if(state.day>=count)state.day=0;
   const dayTitle=$('day-title');dayTitle.replaceChildren();const icon=node('span','▣','day-icon');icon.setAttribute('aria-hidden','true');dayTitle.append(icon,node('span',DAYS[state.day]));
   if(state.day===today)dayTitle.append(node('span','HÔM NAY','day-today-badge'));
   $('day-card').classList.toggle('is-today',state.day===today);$('day-buttons').replaceChildren();
@@ -119,7 +140,7 @@ function renderMobile(item=selected()){
 function changeDay(delta){const item=selected();if(!item)return;const count=visibleDays(item);state.day=(state.day+delta+count)%count;renderMobile();tick();}
 function updateCountdown(now=new Date()){
   const el=$('live-countdown');if(!el)return;
-  const result=countdown((data()||state.public)?.blocks||[],now);el.hidden=!result;
+  const d=data()||state.public,result=d&&viewingCurrent(d,clock(now).iso)?countdown(d.blocks||[],now):null;el.hidden=!result;
   el.textContent=result?'Còn '+result.text:'';
   if(result)el.setAttribute('aria-label',(result.block.type==='break'?'Ra chơi':'Tiết '+result.block.period)+' còn '+result.text);
 }
@@ -132,6 +153,7 @@ function tick(){
   const now=new Date(),c=clock(now);lastClockMinute=Math.floor(+now/60000);updateCountdown(now);$('live-time').textContent=(c.day<6?DAYS[c.day]:'Chủ nhật')+' · '+c.iso.split('-').reverse().join('/')+' · '+c.time;
   document.querySelectorAll('.live-cell').forEach(e=>e.classList.remove('live-cell'));
   const d=data()||state.public,item=selected();if(!d){$('live-status').textContent='Chưa có dữ liệu thời khóa biểu';return;}
+  if(!viewingCurrent(d,c.iso)){$('live-status').textContent='Đang xem '+versionLabel(d.selectedVersion);return;}
   if(c.day===6){$('live-status').textContent='Hôm nay là Chủ nhật';return;}
   const b=currentBlock(d.blocks,now);if(b){
     if(b.type==='break'){$('live-status').textContent='Đang ra chơi · Buổi '+b.session.toLowerCase()+' · '+b.start+'–'+b.end;return;}
@@ -144,7 +166,7 @@ async function switchMode(mode){state.mode=mode;$('tab-student').setAttribute('a
 function logout(showToast=true){state.token='';state.private=null;state.teacherId='';state.requestId++;authStore.clear();$('teacher-tools').hidden=true;$('login-form').hidden=false;$('password').value='';$('teacher-select').replaceChildren();$('finder-results').replaceChildren();$('conflict-warning').replaceChildren();document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(state.mode==='teacher'){$('schedule').hidden=true;$('desktop-table').replaceChildren();$('mobile-list').replaceChildren();$('schedule-meta').replaceChildren();$('schedule-notes').replaceChildren();$('schedule-notes').hidden=true;$('schedule-title').textContent='THỜI KHÓA BIỂU';}syncMeta();tick();if(showToast)toast('Đã đăng xuất.');}
 async function login(e){e.preventDefault();$('login-submit').disabled=true;$('login-error').textContent='';try{const remember=$('remember-login').checked,r=await api('/api/login',{method:'POST',body:{username:$('username').value,password:$('password').value,remember}});const saved=authStore.save(r.token,r.expiresIn,remember);state.token=r.token;$('password').value='';err('');await loadTeachers();if(remember&&!saved)toast('Trình duyệt chặn lưu đăng nhập. Phiên này chỉ được giữ khi trình duyệt cho phép.');else if(remember&&r.expiresIn<REMEMBER_SECONDS)toast('Máy chủ vẫn dùng phiên 8 giờ. Cần cập nhật Worker để nhớ đăng nhập 30 ngày.');}catch(error){$('login-error').textContent=error.message;}finally{$('login-submit').disabled=false;}}
 function download(blob,name){const url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
-function exportCalendar(e){e.preventDefault();try{const item=selected();if(!item)throw Error('Vui lòng chọn lịch.');const text=calendar(item,data().blocks,{startDate:$('calendar-start').value,weeks:+$('calendar-weeks').value,firstWeek:+$('calendar-parity').value,kind:state.mode});download(new Blob([text],{type:'text/calendar;charset=utf-8'}),'TKB_LHP_'+(state.mode==='teacher'?item.name:item.id)+'.ics');$('calendar-dialog').close();toast('Đã tạo file lịch.');}catch(error){toast(error.message);}}
+function exportCalendar(e){e.preventDefault();try{const item=selected();if(!item)throw Error('Vui lòng chọn lịch.');const v=data().selectedVersion,start=$('calendar-start').value;if(v.startDate&&start<v.startDate||v.endDate&&start>v.endDate)throw Error('Chọn ngày bắt đầu nằm trong thời gian áp dụng của bản TKB.');const text=calendar(item,data().blocks,{startDate:start,weeks:+$('calendar-weeks').value,firstWeek:+$('calendar-parity').value,kind:state.mode,versionId:v.id,versionName:versionLabel(v),endDate:v.endDate});download(new Blob([text],{type:'text/calendar;charset=utf-8'}),'TKB_LHP_'+v.id+'_'+(state.mode==='teacher'?item.name:item.id)+'.ics');$('calendar-dialog').close();toast('Đã tạo file lịch.');}catch(error){toast(error.message);}}
 function wrappedLines(ctx,text,width){const words=text.split(/\s+/),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(ctx.measureText(candidate).width>width&&line){lines.push(line);line=word;}else line=candidate;}lines.push(line);return lines;}
 function drawWrapped(ctx,text,x,y,width,lineHeight){const lines=wrappedLines(ctx,text,width);lines.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));return lines.length;}
 async function exportImage(){
@@ -157,7 +179,7 @@ async function exportImage(){
     let y=166;ctx.fillStyle='#7907b6';ctx.fillRect(30,y,width-60,38);ctx.fillStyle='white';ctx.font='bold 15px Arial';ctx.fillText('Buổi / Tiết',30+left/2,y+10);for(let day=0;day<count;day++)ctx.fillText(DAYS[day],30+left+colW*(day+.5),y+10);y+=38;ctx.textAlign='left';
     for(const row of rows){ctx.fillStyle=row.s==='Sáng'?'#fafbfe':'#f1f6fc';ctx.fillRect(30,y,width-60,row.height);ctx.strokeStyle='#dce3ed';ctx.strokeRect(30,y,width-60,row.height);ctx.fillStyle='#ed2794';ctx.font='bold 15px Arial';ctx.fillText(row.s+' · Tiết '+row.p,40,y+12);const b=data().blocks.find(b=>b.session===row.s&&b.period===row.p);ctx.font='12px Arial';ctx.fillStyle='#667085';ctx.fillText(b.start+'–'+b.end,40,y+34);row.columns.forEach((text,day)=>{const x=30+left+colW*day;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+row.height);ctx.stroke();ctx.fillStyle='#263145';ctx.font='15px Arial';let cy=y+10;for(const paragraph of text.split('\n'))cy+=drawWrapped(ctx,paragraph,x+9,cy,colW-18,22)*22;});y+=row.height;}
     if(imageNotes.length){ctx.textAlign='left';ctx.font='15px Arial';ctx.fillStyle='#334155';for(const text of imageNotes){y+=10;y+=drawWrapped(ctx,text,40,y,width-80,22)*22;}}ctx.textAlign='center';ctx.font='12px Arial';ctx.fillStyle='#667085';ctx.fillText('Học liệu số · tools.hoclieuso.id.vn/tkb · Lịch lưu không tự cập nhật',width/2,y+14);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error();download(blob,'TKB_LHP_'+(state.mode==='teacher'?item.name:item.id)+'.png');
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error();download(blob,'TKB_LHP_'+data().selectedVersion.id+'_'+(state.mode==='teacher'?item.name:item.id)+'.png');
   }catch{toast('Không tạo được ảnh. Thầy/cô có thể dùng nút In.');}finally{$('image').disabled=false;}
 }
 async function findFree(e){e.preventDefault();const requestId=state.requestId;$('finder-submit').disabled=true;$('finder-results').replaceChildren();try{const r=await api('/api/free-teachers',{method:'POST',auth:true,body:{session:$('finder-session').value,day:+$('finder-day').value,period:+$('finder-period').value,week:+$('finder-week').value,department:$('finder-department').value,campus:$('finder-campus').value}});if(!state.token||requestId!==state.requestId)return;$('finder-results').append(node('p',r.teachers.length+' giáo viên trống tiết theo tiêu chí đã chọn.'));r.teachers.forEach(t=>{const row=node('div','','finder-result'),info=node('div',t.name);info.append(node('small',t.departments.join(' / ')+' · '+t.campuses.join(' / ')));const button=node('button','Xem TKB','action neutral');button.type='button';button.addEventListener('click',()=>{$('teacher-search').value='';$('department').value='';$('teacher-campus').value='';state.teacherId=t.id;renderTeachers();render();$('finder-dialog').close();});row.append(info,button);$('finder-results').append(row);});}catch(error){$('finder-results').append(node('p',error.message));}finally{$('finder-submit').disabled=false;}}
@@ -166,19 +188,21 @@ function setup(){
   const homeLink=$('home-link'),schoolLink=$('school-link');if(homeLink)homeLink.href=CONFIG.homeUrl;if(schoolLink)schoolLink.href=CONFIG.schoolUrl;
   const restored=authStore.restore();state.token=restored?.token||'';state.teacherId=restored?.teacherId||'';document.documentElement.classList.toggle('dark-mode',store.get('theme')==='dark');updateTheme();
   $('tab-student').onclick=()=>switchMode('student');$('tab-teacher').onclick=()=>switchMode('teacher');
+  $('history-version').onchange=()=>chooseVersion($('history-version').value);$('history-current').onclick=()=>chooseVersion('');
+  $('history-year').onchange=()=>{const options=state.public?.versions.filter(v=>v.year===$('history-year').value)||[];const v=options.find(v=>v.status==='current')||options.at(-1);if(v)return chooseVersion(v.id);};
   for(const id of ['class-search','grade','class-campus'])$(id).addEventListener(id==='class-search'?'input':'change',renderClasses);
   $('class-search-form').onsubmit=e=>{e.preventDefault();const list=filteredClasses(),exact=list.find(c=>c.id===classId($('class-search').value));if(list.length)selectClass((exact||list[0]).id);else toast('Không tìm thấy lớp.');};
   for(const id of ['teacher-search','department','teacher-campus'])$(id).addEventListener(id==='teacher-search'?'input':'change',()=>{renderTeachers();render();});
   $('teacher-search-form').onsubmit=e=>{e.preventDefault();renderTeachers();render();if(!filteredTeachers().length)toast('Không tìm thấy giáo viên.');};
   $('teacher-select').onchange=()=>{state.teacherId=$('teacher-select').value;authStore.selectTeacher(state.teacherId);render();};
   $('login-form').onsubmit=login;$('logout').onclick=()=>logout();$('show-password').onclick=()=>{const visible=$('password').type==='password';$('password').type=visible?'text':'password';$('show-password').setAttribute('aria-pressed',String(visible));$('show-password').setAttribute('aria-label',visible?'Ẩn mật khẩu':'Hiện mật khẩu');};
-  $('retry').onclick=async()=>{if(state.mode==='teacher'&&state.token)await loadTeachers();else await loadPublic();};
+  $('retry').onclick=async()=>{await loadPublic();if(state.mode==='teacher'&&state.token&&state.public)await loadTeachers();};
   $('previous-day').onclick=()=>changeDay(-1);$('next-day').onclick=()=>changeDay(1);
   $('mobile-list').addEventListener('touchstart',e=>{state.touchX=e.changedTouches[0].clientX;state.touchY=e.changedTouches[0].clientY;},{passive:true});$('mobile-list').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-state.touchX,dy=e.changedTouches[0].clientY-state.touchY,next=swipeDay(state.day,dx,dy);if(state.touchX!==null&&next!==state.day)changeDay(dx<0?1:-1);state.touchX=null;state.touchY=null;},{passive:true});
   $('view-toggle').onclick=()=>{const daily=$('schedule').classList.toggle('show-day');$('view-toggle').textContent=daily?'Xem theo tuần':'Xem theo ngày';$('view-toggle').setAttribute('aria-pressed',String(daily));};
   $('theme').onclick=()=>{const dark=document.documentElement.classList.toggle('dark-mode');store.set('theme',dark?'dark':'light');updateTheme();};
   $('print').onclick=()=>window.print();$('image').onclick=exportImage;
-  $('calendar').onclick=()=>{$('calendar-start').value=clock().iso;$('calendar-parity').disabled=false;$('calendar-parity').value='';$('calendar-dialog').showModal();};
+  $('calendar').onclick=()=>{const v=data()?.selectedVersion;$('calendar-start').value=v&&!viewingCurrent(data(),clock().iso)&&v.startDate?v.startDate:clock().iso;$('calendar-start').min=v?.startDate||'';$('calendar-start').max=v?.endDate||'';$('calendar-parity').disabled=false;$('calendar-parity').value='';$('calendar-dialog').showModal();};
   $('calendar-start').onchange=()=>{$('calendar-parity').value='';};$('calendar-form').onsubmit=exportCalendar;
   DAYS.forEach((d,i)=>{const o=node('option',d);o.value=String(i);$('finder-day').append(o);});$('open-finder').onclick=()=>{$('finder-day').value=String(state.day);$('finder-week').value='0';$('finder-dialog').showModal();};$('finder-form').onsubmit=findFree;
   document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>$(button.dataset.close).close());
@@ -190,3 +214,4 @@ function setup(){
 }
 function updateTheme(){const dark=document.documentElement.classList.contains('dark-mode');$('theme').textContent=dark?'☀ Giao diện sáng':'◐ Giao diện tối';$('theme').setAttribute('aria-pressed',String(dark));}
 setup();
+
