@@ -5,7 +5,7 @@ export const CONFIG=Object.freeze({
   authority: 'UBND PHƯỜNG HẢI CHÂU',
   schoolYear: '2026-2027',
   homeUrl: 'https://www.hoclieuso.id.vn/',
-  schoolUrl: 'http://www.lehongphongdanang.edu.vn/',
+  schoolUrl: 'http://lehongphongdanang.edu.vn/',
   refreshSeconds: 300
 });
 
