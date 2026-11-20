@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ================================================================================
-BỘ CÔNG CỤ LỚP HỌC V1 — 6 TRONG 1 — HỌC LIỆU SỐ
+BỘ CÔNG CỤ LỚP HỌC V7 — 6 TRONG 1 — HỌC LIỆU SỐ
 Copyright (c) 2026 Học liệu số | https://www.hoclieuso.id.vn/
 GIẤY PHÉP CÓ ĐIỀU KIỆN: Được sử dụng, sửa đổi, cải tiến và chia sẻ lại phục vụ
 hoạt động giáo dục, NHƯNG BẮT BUỘC giữ nút “Trang chủ” hiển thị, dẫn về đúng
@@ -23,12 +23,61 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10172c">
 <meta name="description" content="Bộ công cụ lớp học: vòng quay gọi tên, bảng điểm, đồng hồ, chia nhóm, đo tiếng ồn và máy tính. Một trang HTML dùng chung danh sách và nhạc nền.">
-<title>Bộ công cụ lớp học V1 | Học liệu số</title>
+<title>Bộ công cụ lớp học V7.3 | Học liệu số</title>
 <meta name="author" content="Học liệu số">
 <meta name="copyright" content="Copyright (c) 2026 Học liệu số">
 <meta name="license" content="Giấy phép giáo dục có điều kiện ghi nhận nguồn gốc — xem LICENSE.txt">
 <style id="hls-credit-static-css">
 #hls-home-dock{position:fixed;bottom:14px;right:14px;z-index:2147483000;background:#fff;color:#253c9f;border:2px solid #4e60e9;border-radius:999px;font:800 14px/1.2 system-ui,sans-serif;padding:10px 15px;box-shadow:0 8px 25px rgba(9,18,52,.2);text-decoration:none}
+
+/* V7.1: Giao diện máy tính lấy cảm hứng từ fx-580VN X (không sao chép nhãn hiệu). */
+#tab-calculator .calculator-layout{grid-template-columns:minmax(0,1.12fr) minmax(240px,.7fr)}
+#tab-calculator .calc-casio-layout{background:#fffafc;border:1px solid #ead2db}
+#tab-calculator .calc-device{background:linear-gradient(155deg,#f9dbe1 0%,#eebbc8 56%,#f9dce4 100%);max-width:570px;width:100%;border-radius:35px 35px 42px 42px;border:2px solid #dfb1be;padding:clamp(11px,2.6vw,24px);box-shadow:inset 0 3px 4px #fff8,0 16px 36px #a6728440;margin-inline:auto;color:#513343}
+#tab-calculator .calc-brand{display:flex;justify-content:space-between;align-items:start;gap:8px;min-height:45px;padding:3px 6px 11px}
+#tab-calculator .calc-brand strong{font-size:clamp(13px,1.8vw,20px);letter-spacing:1px;color:#fff;filter:drop-shadow(0 1px 1px #b17b90)}
+#tab-calculator .calc-brand small{display:block;color:#804f65;font-size:clamp(8px,1vw,11px);font-weight:750;letter-spacing:.35px}
+#tab-calculator .calc-model{font-size:10px;color:#9b6076;letter-spacing:.9px;font-weight:850;text-align:right;padding-top:5px}
+#tab-calculator .calc-screen{background:linear-gradient(145deg,#cadccc,#b8d0c1);border:5px solid #7c8a84;border-radius:14px;padding:12px 16px;color:#202c29;box-shadow:inset 0 2px 7px #52655b59,0 2px 3px #ffffff8a;min-height:132px}
+#tab-calculator .calc-screen label{color:#475a52;font-size:11px;font-weight:850;display:flex;align-items:center;justify-content:space-between}
+#tab-calculator .calc-screen-mode{background:#5e7768;color:#fff;border-radius:5px;padding:3px 7px;font-weight:800}
+#tab-calculator .calc-input{color:#203029;border-bottom:1px solid #77978a;min-height:39px;font-family:ui-monospace,Consolas,monospace;font-size:clamp(18px,2.3vw,25px)}
+#tab-calculator .calc-input::placeholder{color:#697d70}
+#tab-calculator .calc-output{color:#15261f;font-size:clamp(27px,4.5vw,42px);min-height:36px;margin-top:9px;text-shadow:none;overflow-wrap:anywhere;font-family:ui-monospace,Consolas,monospace}
+#tab-calculator .calc-top-control{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(102px,1.55fr) repeat(2,minmax(0,1fr));gap:clamp(4px,1vw,9px);margin:15px 0;align-items:center}
+#tab-calculator .calc-meta{border-radius:99px;background:linear-gradient(#ae6888,#874763);color:#fff;border:2px solid #d9a6b8;box-shadow:0 3px 1px #94486070;min-height:43px;font-size:clamp(9px,1.3vw,12px);font-weight:900;cursor:pointer;padding:5px 2px}
+#tab-calculator .calc-meta.shift{color:#ffe19a}
+#tab-calculator .calc-meta[aria-pressed="true"]{background:#fff1c9;color:#6d3843}
+#tab-calculator .calc-dpad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,16px);place-items:stretch;gap:0;background:#8b4b68;border-radius:50%;padding:3px 5px;box-shadow:0 3px 2px #a57c8c}
+#tab-calculator .calc-dpad button{border:0;color:#fff;background:transparent;padding:0;font-size:12px;font-weight:900;line-height:15px;cursor:pointer}
+#tab-calculator .calc-dpad button:hover{background:#ffffff21;border-radius:8px}
+#tab-calculator .calc-dpad button[data-calc-nav="up"]{grid-column:2;grid-row:1}
+#tab-calculator .calc-dpad button[data-calc-nav="left"]{grid-column:1;grid-row:2}
+#tab-calculator .calc-dpad button[data-calc-nav="right"]{grid-column:3;grid-row:2}
+#tab-calculator .calc-dpad button[data-calc-nav="down"]{grid-column:2;grid-row:3}
+#tab-calculator .calc-board{display:flex;flex-direction:column;gap:12px}
+#tab-calculator .calc-keys,#tab-calculator .calc-science{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,1vw,9px);margin:0}
+#tab-calculator .calc-key{border:2px solid #bc8297;border-radius:9px;color:#ffffff;background:linear-gradient(#d6a1b3,#b96d89);font-weight:850;font-size:clamp(15px,2.1vw,24px);min-height:clamp(43px,5vw,57px);padding:2px;box-shadow:0 3px 1px #a56580;cursor:pointer;grid-column:auto;touch-action:manipulation}
+#tab-calculator .calc-key:hover{background:#c88ca5}
+#tab-calculator .calc-key:active{transform:translateY(2px);box-shadow:0 1px 1px #a56580}
+#tab-calculator .calc-science .calc-key{background:linear-gradient(#faf2f5,#f5dde5);border-color:#bd8198;color:#7a3c5a;font-size:clamp(11px,1.55vw,17px);font-weight:800;min-height:clamp(37px,4vw,47px)}
+#tab-calculator .calc-science .calc-key:hover{background:#fff}
+#tab-calculator .calc-key.operator{background:linear-gradient(#c891a6,#a76180);color:#fff}
+#tab-calculator .calc-key.special{background:linear-gradient(#fff8e9,#f5e2c8);color:#704b3c;border-color:#a87e7b;font-size:clamp(12px,1.7vw,17px)}
+#tab-calculator .calc-key.clear{background:linear-gradient(#fff5e2,#f7dcae);color:#78463d;border-color:#a87e7b;font-size:clamp(13px,1.8vw,18px)}
+#tab-calculator .calc-key.equal{background:linear-gradient(#b97395,#8b476b);color:white;grid-column:auto;border-color:#874d6e}
+#tab-calculator .calc-memory-bar{justify-content:center;margin:13px 0 0;gap:4px}
+#tab-calculator .calc-memory-bar .btn{padding:8px 12px;border-radius:8px;font-size:12px;min-height:33px;background:#fff2f6;border-color:#e4becd;color:#783a56}
+#tab-calculator .calc-memory-status{color:#80475d;font-size:11px}
+#tab-calculator .calc-meaning{font-size:13px;margin-top:16px}
+/* Sáu tên tiện ích luôn đầy đủ, xuống dòng bên trong ô nếu cần. */
+.tab-nav .tab{white-space:normal;min-width:0;line-height:1.2;text-align:center}
+.tab-nav .tab .tab-label-full{display:block!important;overflow-wrap:normal}
+.tab-nav .tab .tab-label-short{display:none!important}
+@media(max-width:710px){.tab-nav .tab{padding:7px 1px;min-height:69px;font-size:clamp(9px,2vw,12px)}.tab-nav .tab .ico{font-size:17px}.tab-nav .tab .tab-label-full{white-space:normal}}
+@media(max-width:1000px){#tab-calculator .calculator-layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){#tab-calculator .calc-casio-layout{padding:8px!important}#tab-calculator .calc-device{padding:10px 8px;border-radius:25px 25px 32px 32px}#tab-calculator .calc-screen{padding:9px 10px;min-height:120px}#tab-calculator .calc-key{min-height:46px}#tab-calculator .calc-science .calc-key{min-height:40px}#tab-calculator .calc-top-control{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(84px,1.5fr) repeat(2,minmax(0,1fr));gap:3px}#tab-calculator .calc-meta{font-size:9px;min-height:37px}#tab-calculator .calc-dpad{grid-template-rows:repeat(3,13px)}#tab-calculator .calc-model{font-size:8px}}
+
 </style>
 <style>
 :root{--navy:#10172c;--ink:#1b2640;--muted:#68758a;--bg:#f4f6fc;--line:#e0e6f2;--white:#fff;--blue:#485cf5;--violet:#6d43cb;--teal:#009f9a;--gold:#f4ab38;--red:#ec5267;--radius:18px;--shadow:0 12px 38px rgba(17,24,47,.08)}
@@ -49,6 +98,9 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
 @media(min-width:1000px){.timer-card{padding:35px}.timer-display{margin:18px 0}}@media(max-width:950px){.wheel-grid{grid-template-columns:1fr}.wheel-board{min-height:440px}.wheel-outer{width:min(78vw,500px)}.group-controls{grid-template-columns:repeat(2,1fr)}.group-controls .field:first-child{grid-column:span 1}}@media(max-width:620px){.header{padding:13px}.header-actions{width:100%;justify-content:flex-end}.tab-nav{gap:5px;margin-top:12px}.tab{font-size:11px;padding:10px 5px;border-radius:9px}.tab .ico{display:block;margin:0 auto 3px;font-size:21px}.main-stage{padding:17px 11px 23px}.card{padding:14px}.wheel-outer{width:min(81vw,440px)}.wheel-pointer{right:-16px;width:32px;height:40px}.wheel-board{min-height:360px}.spin-center{width:65px;height:65px;font-size:14px}.score-top{grid-template-columns:1fr}.group-controls{grid-template-columns:1fr 1fr;gap:10px}.group-controls .field:first-child{grid-column:span 2}.timer-card{padding:13px 9px}.timer-display{font-size:clamp(42px,12.2vw,86px)}.timer-actions .btn{min-width:0;flex:1 1 135px}.timer-presets .btn{flex:1 1 75px}.config-row{grid-template-columns:1fr}.modal{padding:19px}.footer{font-size:12px}.group-results{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
+
+/* V7.3 - công tắc âm thanh đồng hồ, hiển thị được trên màn hình nhỏ */
+.hls-clock-switch{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;background:#eef3ff;border:1px solid #d1ddf6;border-radius:13px;color:#263c72;cursor:pointer;font-weight:750;font-size:14px;white-space:normal}.hls-clock-switch input{width:19px;height:19px;accent-color:#4d6dff}.timer-card .row:has(.hls-clock-switch){flex-wrap:wrap;gap:11px}.timer-card .pill{max-width:100%}
 /* The original wheel runs in a dedicated srcdoc iframe. Theme styles match the other tools; slice colors stay unchanged. */
 .hls-wheel-original-container{width:100%;max-width:1390px;margin:0 auto}
 #hls-original-wheel-frame{display:block;width:100%;height:755px;min-height:600px;border:0;border-radius:18px;background:#f4f6fc;box-shadow:0 10px 30px rgba(22,30,53,.08)}
@@ -148,7 +200,7 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
 #app-shell:fullscreen #tab-calculator .calc-output{font-size:clamp(50px,7vw,98px)}
 
 
-/* V1: 6 tab luôn nằm trên một hàng, giảm nhãn theo độ rộng */
+/* V7: 6 tab luôn nằm trên một hàng, giảm nhãn theo độ rộng */
 .tab-nav{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:clamp(2px,.7vw,10px)!important;overflow:visible!important;align-items:stretch}
 .tab-nav .tab{min-width:0!important;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px 4px;font-size:clamp(11px,1.3vw,15px);line-height:1.25}
 .tab-nav .tab .ico{margin:0;font-size:clamp(14px,1.8vw,20px);display:inline-block;flex:none;vertical-align:baseline}
@@ -156,7 +208,7 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
 .tab-nav .tab .tab-label-short{display:none}
 @media(max-width:710px){.tab-nav .tab{flex-direction:column;gap:2px;padding:9px 1px 8px;border-radius:9px;font-size:clamp(9px,1.85vw,12px)}.tab-nav .tab .ico{font-size:clamp(16px,3vw,21px);line-height:1.05}.tab-nav .tab .tab-label-full{display:none}.tab-nav .tab .tab-label-short{display:block}.header{padding-left:10px;padding-right:10px}}
 @media(max-width:370px){.tab-nav{gap:2px!important}.tab-nav .tab{font-size:9px;padding:7px 1px}.tab-nav .tab .ico{font-size:16px}}
-/* Máy tính V1 responsive, không làm tràn trang khi dùng điện thoại / máy tính bảng */
+/* Máy tính V7 responsive, không làm tràn trang khi dùng điện thoại / máy tính bảng */
 #tab-calculator{min-width:0}#tab-calculator .calc7-extended{margin-top:20px;min-width:0}
 .calc7-head{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}
 .calc7-head h2{font-size:clamp(19px,2.3vw,25px);margin:0 0 5px}.calc7-head p{margin:0}
@@ -191,54 +243,48 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
  #tab-calculator>.calculator-layout>aside{order:3}
 }
 
-/* Hien thi day du ten 6 tien ich tren dien thoai */
-@media (max-width: 710px) {
-  .tab-nav {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    gap: 3px !important;
-  }
-
-  .tab-nav .tab {
-    flex-direction: column;
-    justify-content: center;
-    white-space: normal;
-    font-size: 10px;
-    line-height: 1.2;
-    padding: 8px 2px;
-    min-height: 65px;
-    text-align: center;
-  }
-
-  .tab-nav .tab .ico {
-    font-size: 18px;
-    margin: 0 0 3px;
-  }
-
-  .tab-nav .tab .tab-label {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .tab-nav .tab .tab-label-full {
-    display: block !important;
-    white-space: normal;
-    overflow-wrap: normal;
-  }
-
-  .tab-nav .tab .tab-label-short {
-    display: none !important;
-  }
-}
-
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<style id="hls-v72-style">
+/* V7.2: clearly readable two-color Casio-inspired legends; functional SHIFT/ALPHA. */
+#tab-calculator .calc-key{position:relative;isolation:isolate;overflow:visible;margin-top:10px;min-height:clamp(46px,5vw,58px);line-height:1.16}
+#tab-calculator .calc-science .calc-key{min-height:clamp(44px,4.5vw,53px);font-size:clamp(12px,1.55vw,17px)}
+#tab-calculator .calc-board{gap:13px}
+#tab-calculator .calc-keys,#tab-calculator .calc-science{gap:13px 6px;align-items:stretch}
+#tab-calculator .calc-key-secondary,#tab-calculator .calc-key-alpha{position:absolute;top:-11px;font-size:clamp(8px,1.1vw,10px);line-height:10px;max-width:80%;font-weight:900;white-space:nowrap;pointer-events:none;letter-spacing:-.15px}
+#tab-calculator .calc-key-secondary{left:1px;color:#af6607;text-align:left}
+#tab-calculator .calc-key-alpha{right:1px;color:#be325d;text-align:right}
+#tab-calculator .calc-key-face{display:block;font:inherit;color:inherit;font-weight:inherit;white-space:nowrap;letter-spacing:-.3px}
+#tab-calculator .calc-meta.alpha{color:#ffc1ca}
+#tab-calculator .calc-display-indicators{display:flex;gap:6px;align-items:center}
+#tab-calculator #calc-layer-indicator{color:#ad4260;font-size:11px;font-weight:900}
+#tab-calculator .calc-layer-help{margin:16px 3px 5px;line-height:1.5;font-size:11px;color:#755468}
+#tab-calculator .calc-label-shift{color:#a8690a}
+#tab-calculator .calc-label-alpha{color:#b12d59}
+#tab-calculator .calc-memory-bar{gap:6px 4px;flex-wrap:wrap}
+#tab-calculator .calc-memory-bar .btn{font-size:11px;min-height:31px;padding:6px 8px}
+#tab-calculator #calc-sd[aria-pressed="true"]{background:#ffe0b0;color:#583f1b}
+#tab-calculator .calc-special-dialog{background:#fff9ef;border:1px solid #dfb8a1;border-radius:13px;padding:10px;margin:12px 0 8px;color:#624761}
+#tab-calculator .calc-special-dialog[hidden]{display:none!important}
+#tab-calculator .calc-special-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}
+#tab-calculator .calc-special-heading button{background:none;border:0;color:#995c79;font-size:22px;cursor:pointer}
+#tab-calculator .calc-special-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+#tab-calculator .calc-special-options button{padding:9px 4px;border:1px solid #dbc0d0;border-radius:8px;background:white;color:#603b5b;min-height:37px;font-size:12px;font-weight:750;cursor:pointer}
+#tab-calculator .calc-device.calc-off .calc-screen{filter:brightness(.4);opacity:.6}
+#tab-calculator .calc-device.calc-off .calc-board,#tab-calculator .calc-device.calc-off .calc-memory-bar{pointer-events:none;opacity:.5}
+@media(max-width:440px){#tab-calculator .calc-key-secondary,#tab-calculator .calc-key-alpha{font-size:8px;top:-10px}#tab-calculator .calc-keys,#tab-calculator .calc-science{gap:13px 3px}#tab-calculator .calc-key{padding:2px 0;font-size:clamp(15px,4vw,20px)}#tab-calculator .calc-science .calc-key{font-size:clamp(11px,2.9vw,14px)}#tab-calculator .calc-layer-help{font-size:10px}#tab-calculator .calc-special-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#tab-calculator .calc-variable-picker{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#70455e}
+#tab-calculator .calc-variable-picker select{border:1px solid #ccacc0;border-radius:7px;padding:4px;background:#fff;color:#57334c;font-size:12px;font-weight:800}
+#tab-calculator .calc-device[data-key-layer="shift"] .calc-key-secondary{color:#ff9500;text-shadow:0 0 0 #ab5a0b}
+#tab-calculator .calc-device[data-key-layer="alpha"] .calc-key-alpha{color:#ed224f}
+</style>
 </head>
 <body>
 <div id="app-shell">
 <header class="header">
   <div class="header-top">
-    <div class="branding"><div class="brand-icon">🎒</div><div><div class="brand-title">BỘ CÔNG CỤ LỚP HỌC</div><div class="brand-sub">6 tiện ích · V1 · Học liệu số</div></div></div>
+    <div class="branding"><div class="brand-icon">🎒</div><div><div class="brand-title">BỘ CÔNG CỤ LỚP HỌC</div><div class="brand-sub">6 tiện ích · V7.3 · Học liệu số</div></div></div>
     <!-- GHI NHẬN NGUỒN GỐC: Theo LICENSE.txt, nút Trang chủ không được xóa/ẩn/đổi liên kết. -->
     <div class="header-actions">
       <button class="btn ghost" id="open-settings" type="button">🎵 Nhạc &amp; cài đặt</button>
@@ -248,10 +294,10 @@ LƯU Ý BẢO MẬT: Mã hóa/giấu chuỗi ở client chỉ là biện pháp c
   </div>
   <nav class="tab-nav" aria-label="Chọn tiện ích">
     <button type="button" class="tab active" data-tab="wheel" aria-selected="true"><span class="ico">🎡</span> <span class="tab-label"><span class="tab-label-full">Gọi tên</span><span class="tab-label-short">Gọi</span></span></button>
-    <button type="button" class="tab" data-tab="score" aria-selected="false"><span class="ico">🏆</span> <span class="tab-label"><span class="tab-label-full">Tính điểm</span><span class="tab-label-short">Điểm</span></span></button>
+    <button type="button" class="tab" data-tab="score" aria-selected="false"><span class="ico">🏆</span> <span class="tab-label"><span class="tab-label-full">Điểm nhóm</span><span class="tab-label-short">Điểm</span></span></button>
     <button type="button" class="tab" data-tab="timer" aria-selected="false"><span class="ico">⏱️</span> <span class="tab-label"><span class="tab-label-full">Đồng hồ</span><span class="tab-label-short">Giờ</span></span></button>
     <button type="button" class="tab" data-tab="groups" aria-selected="false"><span class="ico">🎲</span> <span class="tab-label"><span class="tab-label-full">Chia nhóm</span><span class="tab-label-short">Nhóm</span></span></button>
-    <button type="button" class="tab" data-tab="noise" aria-selected="false"><span class="ico">🎙️</span> <span class="tab-label"><span class="tab-label-full">Tiếng ồn</span><span class="tab-label-short">Ồn</span></span></button>
+    <button type="button" class="tab" data-tab="noise" aria-selected="false"><span class="ico">🎙️</span> <span class="tab-label"><span class="tab-label-full">Đo ồn</span><span class="tab-label-short">Ồn</span></span></button>
     <button type="button" class="tab" data-tab="calculator" aria-selected="false"><span class="ico">🧮</span> <span class="tab-label"><span class="tab-label-full">Máy tính</span><span class="tab-label-short">Tính</span></span></button>
   </nav>
 </header>
@@ -654,6 +700,12 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 .hls-teacher-actions button{border:0;border-radius:8px;background:#5365db;color:white;padding:9px 11px;font-weight:700;cursor:pointer;flex:1}
 .hls-teacher-actions button+button{background:#e1e6fa;color:#334172}
 #gtnn-target-status{color:#435071;margin:10px 0 0}
+.hls-hide-called-toggle{margin:12px 0 7px!important;color:#243b78!important}
+.hls-called-row{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:6px;font-size:13px;font-weight:800;color:#314273}
+#gtnn-reset-called{flex:0 0 auto;background:#eef2ff;color:#3c4ec4;border:1px solid #cdd5fb;border-radius:8px;font-size:12px;font-weight:800;padding:7px 9px;cursor:pointer}
+#gtnn-reset-called:disabled{opacity:.5;cursor:not-allowed}
+.hls-called-history{font-size:11px;line-height:1.5;color:#66748b;max-height:53px;overflow:auto;overflow-wrap:anywhere;margin:0 0 11px}
+@media(max-width:420px){.hls-called-row{font-size:12px}.hls-hide-called-toggle{font-size:12px}}
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -683,7 +735,11 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
                 &lt;input type=&quot;number&quot; id=&quot;gtnn-spin-time&quot; value=&quot;6&quot; min=&quot;1&quot; max=&quot;60&quot; style=&quot;width: 70px; padding: 8px; border-radius: 5px; border: 2px solid #ccc; font-size: 16px; font-weight: bold; text-align: center; color: #333;&quot;&gt;
             &lt;/div&gt;
 
-            &lt;button id=&quot;gtnn-update-btn&quot; onclick=&quot;updateWheel()&quot;&gt;CẬP NHẬT VÒNG QUAY&lt;/button&gt;
+            &lt;div style=&quot;color:#5e5287;font-size:12px;margin:4px 0 8px;line-height:1.4&quot;&gt;🎵 Nhạc hồi hộp khi quay. Có thể nạp bản thu “Ai là triệu phú” tại nút 🎵 Cài đặt âm thanh phía trên.&lt;/div&gt;
+&lt;button id=&quot;gtnn-update-btn&quot; onclick=&quot;updateWheel()&quot;&gt;CẬP NHẬT VÒNG QUAY&lt;/button&gt;
+            &lt;label class=&quot;hls-action-toggle hls-hide-called-toggle&quot;&gt;&lt;input id=&quot;gtnn-hide-called&quot; type=&quot;checkbox&quot; checked&gt; Ẩn người/số đã được gọi khỏi vòng quay&lt;/label&gt;
+            &lt;div class=&quot;hls-called-row&quot;&gt;&lt;span id=&quot;gtnn-called-status&quot; aria-live=&quot;polite&quot;&gt;Đã gọi: 0 · Còn: 0&lt;/span&gt;&lt;button type=&quot;button&quot; id=&quot;gtnn-reset-called&quot;&gt;↺ Lượt mới&lt;/button&gt;&lt;/div&gt;
+            &lt;div class=&quot;hls-called-history&quot; id=&quot;gtnn-called-history&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
             &lt;label class=&quot;hls-action-toggle&quot;&gt;&lt;input id=&quot;gtnn-show-action&quot; type=&quot;checkbox&quot; checked&gt; Hiển thị thẻ phụ (phần thưởng/thử thách) khi có kết quả&lt;/label&gt;
             &lt;div class=&quot;hls-teacher-entry-wrap&quot;&gt;&lt;button id=&quot;gtnn-teacher-entry&quot; type=&quot;button&quot; title=&quot;Tùy chọn dành cho giáo viên&quot; aria-label=&quot;Tùy chọn dành cho giáo viên&quot;&gt;⚙&lt;/button&gt;&lt;/div&gt;
             &lt;div id=&quot;gtnn-teacher-panel&quot; hidden&gt;
@@ -691,7 +747,7 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
               &lt;p class=&quot;hls-teacher-explain&quot;&gt;Chọn một học sinh cho lượt quay kế tiếp. Đây là &lt;b&gt;chế độ chỉ định&lt;/b&gt;, không phải kết quả ngẫu nhiên. Sau một lượt, vòng quay tự trở về chế độ ngẫu nhiên.&lt;/p&gt;
               &lt;label for=&quot;gtnn-target-mode&quot;&gt;Cách chọn&lt;/label&gt;
               &lt;select id=&quot;gtnn-target-mode&quot;&gt;&lt;option value=&quot;number&quot;&gt;Theo số thứ tự trong danh sách&lt;/option&gt;&lt;option value=&quot;name&quot;&gt;Theo tên học sinh&lt;/option&gt;&lt;/select&gt;
-              &lt;div id=&quot;gtnn-target-number-row&quot;&gt;&lt;label for=&quot;gtnn-target-number&quot;&gt;Số thứ tự&lt;/label&gt;&lt;input id=&quot;gtnn-target-number&quot; type=&quot;number&quot; min=&quot;1&quot; step=&quot;1&quot; placeholder=&quot;VD: 12&quot;&gt;&lt;/div&gt;
+              &lt;div id=&quot;gtnn-target-number-row&quot;&gt;&lt;label for=&quot;gtnn-target-number&quot;&gt;Số thứ tự đang có trên vòng quay&lt;/label&gt;&lt;input id=&quot;gtnn-target-number&quot; type=&quot;number&quot; min=&quot;1&quot; step=&quot;1&quot; placeholder=&quot;VD: 12&quot;&gt;&lt;/div&gt;
               &lt;div id=&quot;gtnn-target-name-row&quot; hidden&gt;&lt;label for=&quot;gtnn-target-name&quot;&gt;Học sinh sẽ được chọn&lt;/label&gt;&lt;select id=&quot;gtnn-target-name&quot;&gt;&lt;/select&gt;&lt;/div&gt;
               &lt;div class=&quot;hls-teacher-actions&quot;&gt;&lt;button type=&quot;button&quot; id=&quot;gtnn-apply-target&quot;&gt;Áp dụng cho 1 lượt&lt;/button&gt;&lt;button type=&quot;button&quot; id=&quot;gtnn-cancel-target&quot;&gt;Về ngẫu nhiên&lt;/button&gt;&lt;/div&gt;
               &lt;p id=&quot;gtnn-target-status&quot; aria-live=&quot;polite&quot;&gt;Chế độ: ngẫu nhiên.&lt;/p&gt;
@@ -757,7 +813,7 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
         function isLikelyName(value) {
             const text = cleanImportedName(value);
             if (!text || isHeaderCell(text) || /^\d+(?:[.,]\d+)?$/.test(text)) return false;
-            return /[A-Za-zÀ-ỹ]/.test(text);
+            return /[A-Za-zÀ-ỹ]/.test(text) || /^\d{1,6}$/.test(text);
         }
 
         function extractNamesFromRows(rows) {
@@ -905,6 +961,12 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 &quot;Minh Thiên&quot;,
 &quot;Công Tín&quot;,
 &quot;Ngọc Vân&quot;];
+        // IDs track rows, so duplicate names or numeric entries remain distinct.
+        let hlsAllEntries = names.map((name, id) =&gt; ({id, name}));
+        let hlsActiveEntries = hlsAllEntries.slice();
+        const hlsCalledIds = new Set();
+        const hlsCallHistory = [];
+        let hlsPendingWinningIndex = -1;
         let startAngle = 0;
         let arc = 0;
         let spinTimeout = null;
@@ -948,6 +1010,8 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
         }
 
         function playWinSound() {
+            // Âm hiệu ứng phụ thuộc thiết lập chung.
+            try{if(window.parent&amp;&amp;typeof window.parent.hlsWheelSoundsEnabled===&#x27;function&#x27;&amp;&amp;!window.parent.hlsWheelSoundsEnabled())return;}catch(_){}
             if (!audioCtx) return;
             const freqs = [440, 554.37, 659.25];
             freqs.forEach(freq =&gt; {
@@ -965,9 +1029,37 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
             });
         }
 
+        // V7.3: vòng quay gọi phát nhạc trên trang chủ; dự phòng tự tạo nếu mở riêng iframe.
+        let hlsFallbackMusicTimer=null;
+        function startWheelMusic(){
+            try{if(window.parent&amp;&amp;typeof window.parent.hlsWheelStartMusic===&#x27;function&#x27;){window.parent.hlsWheelStartMusic();return;}}catch(_){}
+            if(!audioCtx)return;
+            let pos=0;
+            const notes=[196,293.66,369.99,392,293.66,440,369.99,293.66];
+            const play=()=&gt;{for(let i=0;i&lt;8;i++){
+                const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+i*.18;
+                o.type=&#x27;triangle&#x27;;o.frequency.value=notes[(i+pos)%notes.length];
+                g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.04,t+.015);
+                g.gain.exponentialRampToValueAtTime(.0001,t+.14);o.connect(g);g.connect(audioCtx.destination);
+                o.start(t);o.stop(t+.16);
+            }pos=(pos+3)%notes.length};
+            play();hlsFallbackMusicTimer=setInterval(play,1440);
+        }
+        function stopWheelMusic(){
+            if(hlsFallbackMusicTimer!==null){clearInterval(hlsFallbackMusicTimer);hlsFallbackMusicTimer=null;}
+            try{if(window.parent&amp;&amp;typeof window.parent.hlsWheelStopMusic===&#x27;function&#x27;)window.parent.hlsWheelStopMusic();}catch(_){}
+        }
+        window.addEventListener(&#x27;pagehide&#x27;,stopWheelMusic);
+
         function drawWheel() {
-            arc = Math.PI / (names.length / 2);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!names.length) {
+                ctx.fillStyle=&#x27;#eef2ff&#x27;;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2-3,0,Math.PI*2);ctx.fill();
+                ctx.fillStyle=&#x27;#354478&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.font=&#x27;bold 29px Arial&#x27;;ctx.fillText(&#x27;ĐÃ GỌI HẾT&#x27;,canvas.width/2,canvas.height/2-14);
+                ctx.font=&#x27;20px Arial&#x27;;ctx.fillText(&#x27;Nhấn Lượt mới để tiếp tục&#x27;,canvas.width/2,canvas.height/2+26);
+                return;
+            }
+            arc = 2 * Math.PI / names.length;
             
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -1039,11 +1131,12 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
                 return;
             }
             
-            names = rawNames;
+            hlsAllEntries = rawNames.map((name, id) =&gt; ({id, name}));
+            hlsCalledIds.clear();
+            hlsCallHistory.length = 0;
             hlsTeacherNextIndex = null;
-            hlsUpdateTeacherOptions();
             startAngle = 0;
-            drawWheel();
+            hlsRefreshActiveWheel();
         }
 
         let lastTickAngle = 0;
@@ -1075,7 +1168,6 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
             
             const currentArcAngle = startAngle % (Math.PI * 2);
             if (Math.abs(currentArcAngle - lastTickAngle) &gt; arc) {
-                playTickSound();
                 lastTickAngle = currentArcAngle;
             }
 
@@ -1083,69 +1175,91 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
             spinTimeout = requestAnimationFrame(rotateWheel);
         }
 
+        function hlsRandomIndex(length) {
+            // Uniform over remaining entries. Avoid modulo bias when Web Crypto is available.
+            if (length &lt;= 1) return 0;
+            if (window.crypto &amp;&amp; typeof window.crypto.getRandomValues === &#x27;function&#x27;) {
+                const values=new Uint32Array(1),max=0x100000000,limit=max-(max%length);
+                do {window.crypto.getRandomValues(values)} while(values[0]&gt;=limit);
+                return values[0]%length;
+            }
+            return Math.floor(Math.random()*length);
+        }
+
+        function hlsRefreshActiveWheel() {
+            const hide=document.getElementById(&#x27;gtnn-hide-called&#x27;).checked;
+            hlsActiveEntries=hlsAllEntries.filter(e=&gt;!hide||!hlsCalledIds.has(e.id));
+            names=hlsActiveEntries.map(e=&gt;e.name);
+            if(hlsTeacherNextIndex!==null&amp;&amp;hlsTeacherNextIndex&gt;=names.length)hlsTeacherNextIndex=null;
+            centerSpinBtn.disabled=isSpinning||names.length===0;
+            centerSpinBtn.classList.toggle(&#x27;disabled&#x27;,centerSpinBtn.disabled);
+            const called=document.getElementById(&#x27;gtnn-called-status&#x27;);
+            called.textContent=&#x27;Đã gọi: &#x27;+hlsCalledIds.size+&#x27;/&#x27;+hlsAllEntries.length+&#x27; · Còn: &#x27;+(hlsAllEntries.length-hlsCalledIds.size);
+            document.getElementById(&#x27;gtnn-reset-called&#x27;).disabled=hlsCalledIds.size===0;
+            const history=document.getElementById(&#x27;gtnn-called-history&#x27;);
+            history.textContent=hlsCallHistory.length?&#x27;Gần đây: &#x27;+hlsCallHistory.slice(-8).reverse().map(e=&gt;e.name).join(&#x27; · &#x27;):&#x27;Chưa có ai được gọi trong lượt này.&#x27;;
+            hlsUpdateTeacherOptions();
+            startAngle=0;drawWheel();
+        }
+
         function spin() {
             if (isSpinning) return;
+            if(!names.length){alert(&#x27;Đã gọi hết danh sách. Nhấn “Lượt mới” để bắt đầu lại.&#x27;);return;}
             initAudio();
+            startWheelMusic();
             isSpinning = true;
             centerSpinBtn.classList.add(&#x27;disabled&#x27;);
             centerSpinBtn.disabled = true;
-            let timeSeconds = parseFloat(document.getElementById(&#x27;gtnn-spin-time&#x27;).value);
-            if (isNaN(timeSeconds) || timeSeconds &lt;= 0) timeSeconds = 6;
-            timeSeconds=Math.max(1,Math.min(60,timeSeconds));
-            spinAngleStart = Math.random() * 10 + 20;
-            spinTime = 0;
-            spinTimeTotal = timeSeconds * 1000;
-            lastTickAngle = startAngle % (Math.PI * 2);
-            // Chỉ định một lượt: vẫn quay mượt, dừng tại đúng lát của học sinh.
-            if(hlsTeacherNextIndex!==null &amp;&amp; hlsTeacherNextIndex&gt;=0 &amp;&amp; hlsTeacherNextIndex&lt;names.length){
-              const winnerIndex=hlsTeacherNextIndex;
-              hlsTeacherNextIndex=null;hlsShowTeacherStatus();
-              const tau=Math.PI*2,arcSize=tau/names.length,initial=startAngle;
-              const current=((initial%tau)+tau)%tau;
-              const targetPhase=(tau-((winnerIndex+.5)*arcSize)%tau)%tau;
-              const offset=(targetPhase-current+tau)%tau;
-              const travel=(6+Math.floor(Math.random()*3))*tau+offset;
-              const begin=performance.now();
-              const animate=(now)=&gt;{
+            const secondsRaw=parseFloat(document.getElementById(&#x27;gtnn-spin-time&#x27;).value);
+            const timeSeconds=Number.isFinite(secondsRaw)?Math.max(1,Math.min(60,secondsRaw)):6;
+            spinTimeTotal=timeSeconds*1000;
+            let winnerIndex=hlsRandomIndex(names.length);
+            if(hlsTeacherNextIndex!==null&amp;&amp;hlsTeacherNextIndex&gt;=0&amp;&amp;hlsTeacherNextIndex&lt;names.length)winnerIndex=hlsTeacherNextIndex;
+            hlsTeacherNextIndex=null;
+            hlsPendingWinningIndex=winnerIndex;
+            hlsShowTeacherStatus();
+            const tau=Math.PI*2,arcSize=tau/names.length,initial=startAngle;
+            const current=((initial%tau)+tau)%tau;
+            // Point directly at the middle of the selected slice.
+            const targetPhase=(tau-((winnerIndex+.5)*arcSize)%tau)%tau;
+            const offset=(targetPhase-current+tau)%tau;
+            const travel=(6+hlsRandomIndex(3))*tau+offset;
+            const begin=performance.now();
+            lastTickAngle=initial;
+            const animate=now=&gt;{
                 const p=Math.min(1,(now-begin)/spinTimeTotal),e=1-Math.pow(1-p,3);
                 startAngle=initial+travel*e;
                 if(Math.floor(startAngle/arcSize)!==Math.floor(lastTickAngle/arcSize)){
-                  playTickSound();lastTickAngle=startAngle;
+                    // Nhạc hồi hộp thay âm thanh lạch cạch từng lát quay.
+                    lastTickAngle=startAngle;
                 }
                 drawWheel();
                 if(p&lt;1)spinTimeout=requestAnimationFrame(animate);
-                else {startAngle=initial+travel;drawWheel();stopRotateWheel();}
-              };
-              spinTimeout=requestAnimationFrame(animate);
-              return;
-            }
-            rotateWheel();
+                else{startAngle=initial+travel;drawWheel();stopRotateWheel();}
+            };
+            spinTimeout=requestAnimationFrame(animate);
         }
 
         function stopRotateWheel() {
             cancelAnimationFrame(spinTimeout);
-            
-            const degrees = startAngle * 180 / Math.PI + 90;
-            const arcd = arc * 180 / Math.PI;
-            
-            let adjustedAngle = (360 - (startAngle * 180 / Math.PI) % 360) % 360;
-            let index = Math.floor(adjustedAngle / arcd);
-            
-            const text = names[index];
-            
-            const randomAction = funActions[Math.floor(Math.random() * funActions.length)];
-
-            setTimeout(() =&gt; {
+            stopWheelMusic();
+            const chosen=hlsActiveEntries[hlsPendingWinningIndex];
+            hlsPendingWinningIndex=-1;
+            if(!chosen){isSpinning=false;hlsRefreshActiveWheel();return;}
+            // Count even when hiding is temporarily off; the toggle determines wheel visibility.
+            hlsCalledIds.add(chosen.id);
+            hlsCallHistory.push(chosen);
+            const randomAction=funActions[hlsRandomIndex(funActions.length)];
+            setTimeout(()=&gt;{
                 playWinSound();
-                document.getElementById(&#x27;gtnn-winner-name&#x27;).innerText = text;
-                document.getElementById(&#x27;gtnn-fun-action&#x27;).innerText = randomAction;
-                document.getElementById(&#x27;gtnn-fun-action&#x27;).style.display = document.getElementById(&#x27;gtnn-show-action&#x27;).checked ? &#x27;block&#x27; : &#x27;none&#x27;;
-                document.getElementById(&#x27;gtnn-modal&#x27;).style.display = &#x27;flex&#x27;;
-                
-                isSpinning = false;
-                centerSpinBtn.classList.remove(&#x27;disabled&#x27;);
-                centerSpinBtn.disabled = false;
-            }, 300); 
+                document.getElementById(&#x27;gtnn-winner-name&#x27;).innerText=chosen.name;
+                document.getElementById(&#x27;gtnn-fun-action&#x27;).innerText=randomAction;
+                document.getElementById(&#x27;gtnn-fun-action&#x27;).style.display=document.getElementById(&#x27;gtnn-show-action&#x27;).checked?&#x27;block&#x27;:&#x27;none&#x27;;
+                document.getElementById(&#x27;gtnn-modal&#x27;).style.display=&#x27;flex&#x27;;
+                isSpinning=false;
+                // Delay removing a slice until modal closes, so its appearance is stable.
+                centerSpinBtn.disabled=true;
+            },300);
         }
 
         function easeOut(t, b, c, d) {
@@ -1156,11 +1270,23 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 
         function closeModal() {
             document.getElementById(&#x27;gtnn-modal&#x27;).style.display = &#x27;none&#x27;;
+            hlsRefreshActiveWheel();
         }
 
-        // Khởi tạo ban đầu
+        document.getElementById(&#x27;gtnn-hide-called&#x27;).addEventListener(&#x27;change&#x27;,()=&gt;{
+            if(isSpinning){document.getElementById(&#x27;gtnn-hide-called&#x27;).checked=!document.getElementById(&#x27;gtnn-hide-called&#x27;).checked;return;}
+            try{localStorage.setItem(&#x27;hls-wheel-hide-called-v72&#x27;,document.getElementById(&#x27;gtnn-hide-called&#x27;).checked?&#x27;1&#x27;:&#x27;0&#x27;)}catch(_){}
+            hlsRefreshActiveWheel();
+        });
+        document.getElementById(&#x27;gtnn-reset-called&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{
+            if(isSpinning)return;
+            hlsCalledIds.clear();hlsCallHistory.length=0;hlsTeacherNextIndex=null;
+            hlsRefreshActiveWheel();
+        });
+        // Khởi tạo ban đầu. Danh sách trong ô nhập luôn giữ nguyên đủ người/số.
         document.getElementById(&#x27;gtnn-namelist&#x27;).value = names.join(&#x27;\n&#x27;);
-        drawWheel();
+        try{const pref=localStorage.getItem(&#x27;hls-wheel-hide-called-v72&#x27;);if(pref!==null)document.getElementById(&#x27;gtnn-hide-called&#x27;).checked=pref===&#x27;1&#x27;;}catch(_){}
+        hlsRefreshActiveWheel();
 &lt;/script&gt;
 
 &lt;style id=&quot;hls-original-wheel-fullscreen-adjustment&quot;&gt;
@@ -1317,7 +1443,7 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 </section>
 <!-- ĐỒNG HỒ -->
 <section id="tab-timer" class="tab-content" hidden>
-  <div class="section-heading"><div><h1>⏱️ Đồng hồ lớp học</h1><p>Đếm ngược, đếm tới, tạm dừng, tiếp tục; dùng chung nhạc nền gameshow.</p></div></div>
+  <div class="section-heading"><div><h1>⏱️ Đồng hồ lớp học</h1><p>Đếm ngược, đếm tới, tạm dừng, tiếp tục; âm thanh tích tắc đồng hồ đều mỗi giây.</p></div></div>
   <div class="card timer-card">
     <label for="timer-display" class="sr-only">Nhập HH:MM:SS hoặc MM:SS</label>
     <input id="timer-display" class="timer-display" inputmode="numeric" value="00:01:00" spellcheck="false" aria-label="Thời gian giờ phút giây">
@@ -1325,7 +1451,7 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
     <div class="timer-progress"><div id="timer-progress-fill"></div></div>
     <div class="timer-presets"><button class="btn" data-preset="30">30 giây</button><button class="btn" data-preset="60">1 phút</button><button class="btn" data-preset="180">3 phút</button><button class="btn" data-preset="300">5 phút</button><button class="btn" data-preset="600">10 phút</button></div>
     <div class="timer-actions"><button class="btn primary big" id="timer-down">⏳ Đếm ngược</button><button class="btn teal big" id="timer-up">⏱ Đếm tới</button><button class="btn warn big" id="timer-pause" disabled>⏸ Tạm dừng</button><button class="btn dark big" id="timer-resume" disabled>▶ Tiếp tục</button><button class="btn danger big" id="timer-reset">↺ Reset</button></div>
-    <div class="row" style="justify-content:center;margin-top:13px"><button class="btn" id="timer-bell">🔔 Chuông kết thúc (thử)</button><span class="pill" id="timer-music-label">Nhạc theo cài đặt chung</span></div>
+    <div class="row" style="justify-content:center;margin-top:13px"><button class="btn" id="timer-bell">🔔 Chuông kết thúc (thử)</button><label class="mini-check hls-clock-switch" title="Bật hoặc tắt tiếng tích tắc khi đồng hồ chạy"><input id="timer-ticking" type="checkbox" checked> 🔊 Tích tắc mỗi giây</label><span class="pill" id="timer-music-label" aria-live="polite">Âm thanh đồng hồ</span></div>
     <div class="timer-tips">Có thể nhập <b>HH:MM:SS</b>, <b>MM:SS</b> hoặc 6 chữ số liên tục (ví dụ <b>000130</b> = 1 phút 30 giây). Phím tắt: <b>Space</b> tạm dừng/tiếp tục, <b>R</b> đặt lại, <b>F</b> toàn màn hình khi không nhập liệu.</div>
   </div>
 </section>
@@ -1415,29 +1541,60 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 <section id="tab-calculator" class="tab-content" hidden>
  <div class="section-heading"><div><h1>🧮 Máy tính cầm tay</h1><p>Thực hiện phép tính cơ bản và khoa học, hỗ trợ phím máy tính và lưu lịch sử cục bộ.</p></div></div>
  <div class="calculator-layout">
-  <div class="card calc-panel">
-   <div class="calc-screen">
-    <label for="calc-expression">Biểu thức (có thể gõ trực tiếp)</label>
-    <input id="calc-expression" class="calc-input" type="text" spellcheck="false" autocomplete="off" placeholder="Ví dụ: (12.5+7.5)/4" aria-label="Nhập biểu thức toán học">
-    <div id="calc-result" class="calc-output" aria-live="polite">0</div>
+  <div class="card calc-panel calc-casio-layout">
+   <div class="calc-device">
+    <div class="calc-brand"><div><strong>HỌC LIỆU SỐ</strong><small>MÁY TÍNH KHOA HỌC · BẢN TRÌNH DUYỆT</small></div><span class="calc-model">CLASSROOM 7.2</span></div>
+    <div class="calc-screen">
+     <label for="calc-expression">BIỂU THỨC <span class="calc-display-indicators"><span id="calc-layer-indicator" aria-live="polite"></span><span class="calc-screen-mode" id="calc-screen-angle">DEG</span></span></label>
+     <input id="calc-expression" class="calc-input" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="Nhập phép tính…" aria-label="Nhập biểu thức toán học">
+     <div id="calc-result" class="calc-output" aria-live="polite">0</div>
+    </div>
+    <div id="calc-error" class="calc-error" role="alert" hidden></div>
+    <div class="calc-top-control">
+      <button type="button" id="calc-shift" class="calc-meta shift" aria-pressed="false" title="Đổi sang chức năng phụ màu cam">SHIFT</button>
+      <button type="button" id="calc-alpha" class="calc-meta alpha" aria-pressed="false" title="ALPHA: nhập biến chữ màu đỏ">ALPHA</button>
+      <div class="calc-dpad" role="group" aria-label="Di chuyển con trỏ và xem lịch sử phép tính">
+       <button type="button" data-calc-nav="up" aria-label="Lịch sử trước">▲</button>
+       <button type="button" data-calc-nav="left" aria-label="Di chuyển con trỏ sang trái">◀</button>
+       <button type="button" data-calc-nav="right" aria-label="Di chuyển con trỏ sang phải">▶</button>
+       <button type="button" data-calc-nav="down" aria-label="Lịch sử sau">▼</button>
+      </div>
+      <button type="button" id="calc-mode" class="calc-meta" title="MENU: chọn chế độ toán học nâng cao">MENU</button>
+      <button type="button" class="calc-meta" id="calc-power" title="Bật màn hình (SHIFT + ON để tắt)">ON</button>
+    </div>
+<div class="calc-special-dialog" id="calc-special-dialog" hidden>
+ <div class="calc-special-heading"><strong id="calc-special-title">Chức năng phụ</strong><button id="calc-special-close" type="button" title="Đóng">×</button></div>
+ <div class="calc-special-options" id="calc-special-options"></div>
+</div>
+    <div class="calc-board" aria-label="Bàn phím máy tính khoa học">
+      <div class="calc-science">
+       <button type="button" class="calc-key" data-calc-key="(" title="Mở ngoặc" data-alpha-key="X" data-v72-secondary="∠"><span class="calc-key-secondary" aria-hidden="true">∠</span><span class="calc-key-alpha" aria-hidden="true">X</span><span class="calc-key-face">(</span></button>
+       <button type="button" class="calc-key" data-calc-key=")" title="Đóng ngoặc" data-alpha-key="Y" data-v72-secondary="Abs"><span class="calc-key-secondary" aria-hidden="true">Abs</span><span class="calc-key-alpha" aria-hidden="true">Y</span><span class="calc-key-face">)</span></button>
+       <button type="button" class="calc-key" data-calc-key="^2" data-shift-key="^3" data-normal-text="x²" data-shift-text="x³" data-alpha-key="C" data-v72-secondary="x³" title="x²; chức năng SHIFT: x³; ALPHA: C"><span class="calc-key-secondary" aria-hidden="true">x³</span><span class="calc-key-alpha" aria-hidden="true">C</span><span class="calc-key-face">x²</span></button>
+       <button type="button" class="calc-key" data-calc-key="^" title="Lũy thừa" data-v72-secondary="ˣ√"><span class="calc-key-secondary" aria-hidden="true">ˣ√</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">xʸ</span></button>
+       <button type="button" class="calc-key" data-calc-key="sqrt(" data-shift-key="cbrt(" data-normal-text="√" data-shift-text="|x|" data-v72-secondary="∛" title="√; chức năng SHIFT: ∛"><span class="calc-key-secondary" aria-hidden="true">∛</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">√</span></button>
+       <button type="button" class="calc-key" data-calc-key="sin(" data-shift-key="asin(" data-normal-text="sin" data-shift-text="sin⁻¹" data-alpha-key="D" data-v72-secondary="sin⁻¹" title="sin; chức năng SHIFT: sin⁻¹; ALPHA: D"><span class="calc-key-secondary" aria-hidden="true">sin⁻¹</span><span class="calc-key-alpha" aria-hidden="true">D</span><span class="calc-key-face">sin</span></button>
+       <button type="button" class="calc-key" data-calc-key="cos(" data-shift-key="acos(" data-normal-text="cos" data-shift-text="cos⁻¹" data-alpha-key="E" data-v72-secondary="cos⁻¹" title="cos; chức năng SHIFT: cos⁻¹; ALPHA: E"><span class="calc-key-secondary" aria-hidden="true">cos⁻¹</span><span class="calc-key-alpha" aria-hidden="true">E</span><span class="calc-key-face">cos</span></button>
+       <button type="button" class="calc-key" data-calc-key="tan(" data-shift-key="atan(" data-normal-text="tan" data-shift-text="tan⁻¹" data-alpha-key="F" data-v72-secondary="tan⁻¹" title="tan; chức năng SHIFT: tan⁻¹; ALPHA: F"><span class="calc-key-secondary" aria-hidden="true">tan⁻¹</span><span class="calc-key-alpha" aria-hidden="true">F</span><span class="calc-key-face">tan</span></button>
+       <button type="button" class="calc-key" data-calc-key="log(" data-shift-key="10^(" data-normal-text="log" data-shift-text="10ˣ" data-v72-secondary="10ˣ" title="log; chức năng SHIFT: 10ˣ"><span class="calc-key-secondary" aria-hidden="true">10ˣ</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">log</span></button>
+       <button type="button" class="calc-key" data-calc-key="ln(" data-shift-key="e^(" data-normal-text="ln" data-shift-text="eˣ" data-v72-secondary="eˣ" title="ln; chức năng SHIFT: eˣ"><span class="calc-key-secondary" aria-hidden="true">eˣ</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">ln</span></button>
+       <button type="button" class="calc-key" data-calc-key="abs(" title="Giá trị tuyệt đối" data-shift-key="fact(" data-alpha-key="A" data-v72-secondary="x!"><span class="calc-key-secondary" aria-hidden="true">x!</span><span class="calc-key-alpha" aria-hidden="true">A</span><span class="calc-key-face">|x|</span></button>
+       <button type="button" class="calc-key" data-calc-key="π" data-shift-key="pi" data-alpha-key="B" data-v72-secondary="π" title="π; chức năng SHIFT: π; ALPHA: B"><span class="calc-key-secondary" aria-hidden="true">π</span><span class="calc-key-alpha" aria-hidden="true">B</span><span class="calc-key-face">π</span></button>
+       <button type="button" class="calc-key" data-calc-key="e" data-shift-key="e" data-alpha-key="Z" data-v72-secondary="e" title="e; chức năng SHIFT: e; ALPHA: Z"><span class="calc-key-secondary" aria-hidden="true">e</span><span class="calc-key-alpha" aria-hidden="true">Z</span><span class="calc-key-face">e</span></button>
+       <button type="button" class="calc-key" data-calc-key="1/(" title="Nhập 1/(...) để lấy nghịch đảo" data-v72-secondary="x⁻¹"><span class="calc-key-secondary" aria-hidden="true">x⁻¹</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">1/x</span></button>
+       <button type="button" class="calc-key" data-calc-key="%" title="Phần trăm" data-shift-key="round(" data-v72-secondary="Rnd"><span class="calc-key-secondary" aria-hidden="true">Rnd</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">%</span></button>
+      </div>
+      <div class="calc-keys">
+       <button type="button" class="calc-key numeric" data-calc-key="7" data-v72-secondary="CONST" title="7; chức năng SHIFT: CONST"><span class="calc-key-secondary" aria-hidden="true">CONST</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">7</span></button><button type="button" class="calc-key numeric" data-calc-key="8" data-v72-secondary="CONV" title="8; chức năng SHIFT: CONV"><span class="calc-key-secondary" aria-hidden="true">CONV</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">8</span></button><button type="button" class="calc-key numeric" data-calc-key="9" data-v72-secondary="RESET" title="9; chức năng SHIFT: RESET"><span class="calc-key-secondary" aria-hidden="true">RESET</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">9</span></button><button type="button" class="calc-key special" data-calc-key="DEL" data-v72-secondary="INS" title="DEL; chức năng SHIFT: INS"><span class="calc-key-secondary" aria-hidden="true">INS</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">DEL</span></button><button type="button" class="calc-key clear" data-calc-key="C" data-v72-secondary="OFF" title="AC; chức năng SHIFT: OFF"><span class="calc-key-secondary" aria-hidden="true">OFF</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">AC</span></button>
+       <button type="button" class="calc-key numeric" data-calc-key="4" data-v72-secondary="" title="4"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">4</span></button><button type="button" class="calc-key numeric" data-calc-key="5" data-v72-secondary="" title="5"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">5</span></button><button type="button" class="calc-key numeric" data-calc-key="6" data-v72-secondary="" title="6"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">6</span></button><button type="button" class="calc-key operator" data-calc-key="*" data-shift-key="gcd(" data-v72-secondary="GCD" title="×; chức năng SHIFT: GCD"><span class="calc-key-secondary" aria-hidden="true">GCD</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">×</span></button><button type="button" class="calc-key operator" data-calc-key="/" data-shift-key="lcm(" data-v72-secondary="LCM" title="÷; chức năng SHIFT: LCM"><span class="calc-key-secondary" aria-hidden="true">LCM</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">÷</span></button>
+       <button type="button" class="calc-key numeric" data-calc-key="1" data-v72-secondary="" title="1"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">1</span></button><button type="button" class="calc-key numeric" data-calc-key="2" data-v72-secondary="" title="2"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">2</span></button><button type="button" class="calc-key numeric" data-calc-key="3" data-v72-secondary="" title="3"><span class="calc-key-secondary" aria-hidden="true"></span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">3</span></button><button type="button" class="calc-key operator" data-calc-key="+" data-v72-secondary="Pol" title="+; chức năng SHIFT: Pol"><span class="calc-key-secondary" aria-hidden="true">Pol</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">+</span></button><button type="button" class="calc-key operator" data-calc-key="-" data-v72-secondary="Rec" title="−; chức năng SHIFT: Rec"><span class="calc-key-secondary" aria-hidden="true">Rec</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">−</span></button>
+       <button type="button" class="calc-key numeric" data-calc-key="0" data-shift-key="round(" data-v72-secondary="Rnd" title="0; chức năng SHIFT: Rnd"><span class="calc-key-secondary" aria-hidden="true">Rnd</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">0</span></button><button type="button" class="calc-key numeric" data-calc-key="." data-shift-key="rand()" data-v72-secondary="Ran#" title=".; chức năng SHIFT: Ran#"><span class="calc-key-secondary" aria-hidden="true">Ran#</span><span class="calc-key-alpha" aria-hidden="true"></span><span class="calc-key-face">.</span></button><button type="button" class="calc-key" data-calc-key="ANS" data-shift-key="preans" data-alpha-key="M" data-v72-secondary="% / PreAns" title="Ans; chức năng SHIFT: % / PreAns; ALPHA: M"><span class="calc-key-secondary" aria-hidden="true">% / PreAns</span><span class="calc-key-alpha" aria-hidden="true">M</span><span class="calc-key-face">Ans</span></button><button type="button" class="calc-key operator" id="calc-negate" title="Đổi dấu số đang nhập"><span class="calc-key-secondary" aria-hidden="true">x10ˣ</span><span class="calc-key-face">±</span></button><button type="button" class="calc-key equal" id="calc-equal" title="SHIFT: hiển thị giá trị gần đúng"><span class="calc-key-secondary" aria-hidden="true">≈</span><span class="calc-key-face">=</span></button>
+      </div>
+    </div>
+    <p class="calc-layer-help">Ký hiệu <b class="calc-label-shift">vàng/cam</b>: bấm SHIFT trước; ký hiệu <b class="calc-label-alpha">đỏ</b>: bấm ALPHA trước. Phím chính vẫn hiện rõ trên điện thoại.</p>
+    <div class="calc-toolbar calc-memory-bar"><button class="btn" type="button" id="calc-sd" aria-pressed="false" title="Đổi dạng phân số ↔ thập phân">S⇔D</button><button class="btn" type="button" id="calc-angle" aria-pressed="false" title="Đổi độ / radian">DEG</button><button class="btn" data-memory="MC" type="button">MC</button><button class="btn" data-memory="MR" type="button">MR</button><button class="btn" data-memory="M+" type="button">M+</button><button class="btn" data-memory="M-" type="button">M−</button><span class="calc-memory-status" id="calc-memory-value">M: trống</span><label class="calc-variable-picker" for="calc-var-select">Biến <select id="calc-var-select" aria-label="Chọn biến A đến M"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>X</option><option>Y</option><option>Z</option><option>M</option></select></label><button class="btn" id="calc-sto" type="button" title="Lưu kết quả hoặc biểu thức vào biến đã chọn">STO</button><button class="btn" id="calc-rcl" type="button" title="Gọi lại giá trị biến đã chọn">RCL</button></div>
    </div>
-   <div id="calc-error" class="calc-error" role="alert" hidden></div>
-   <div class="calc-toolbar"><button class="btn" data-memory="MC" type="button">MC</button><button class="btn" data-memory="MR" type="button">MR</button><button class="btn" data-memory="M+" type="button">M+</button><button class="btn" data-memory="M-" type="button">M−</button><span class="calc-memory-status" id="calc-memory-value">M: trống</span></div>
-   <div class="calc-keys">
-    <button type="button" class="calc-key clear" data-calc-key="C">C</button><button type="button" class="calc-key special" data-calc-key="DEL">⌫</button><button type="button" class="calc-key operator" data-calc-key="%">%</button><button type="button" class="calc-key operator" data-calc-key="/">÷</button>
-    <button type="button" class="calc-key" data-calc-key="7">7</button><button type="button" class="calc-key" data-calc-key="8">8</button><button type="button" class="calc-key" data-calc-key="9">9</button><button type="button" class="calc-key operator" data-calc-key="*">×</button>
-    <button type="button" class="calc-key" data-calc-key="4">4</button><button type="button" class="calc-key" data-calc-key="5">5</button><button type="button" class="calc-key" data-calc-key="6">6</button><button type="button" class="calc-key operator" data-calc-key="-">−</button>
-    <button type="button" class="calc-key" data-calc-key="1">1</button><button type="button" class="calc-key" data-calc-key="2">2</button><button type="button" class="calc-key" data-calc-key="3">3</button><button type="button" class="calc-key operator" data-calc-key="+">+</button>
-    <button type="button" class="calc-key" data-calc-key="0">0</button><button type="button" class="calc-key" data-calc-key=".">.</button><button type="button" class="calc-key operator" data-calc-key="(">(</button><button type="button" class="calc-key operator" data-calc-key=")">)</button>
-    <button type="button" class="calc-key" data-calc-key="ANS">Ans</button><button type="button" class="calc-key special" data-calc-key="^2">x²</button><button type="button" class="calc-key equal" id="calc-equal">=</button>
-   </div>
-   <h3 style="margin:22px 0 10px;font-size:18px">Các phép tính khoa học</h3>
-   <div class="calc-science">
-    <button type="button" class="calc-key operator" id="calc-angle" aria-pressed="false">DEG</button><button type="button" class="calc-key" data-calc-key="sin(">sin</button><button type="button" class="calc-key" data-calc-key="cos(">cos</button><button type="button" class="calc-key" data-calc-key="tan(">tan</button>
-    <button type="button" class="calc-key" data-calc-key="sqrt(">√</button><button type="button" class="calc-key" data-calc-key="^">xʸ</button><button type="button" class="calc-key" data-calc-key="log(">log</button><button type="button" class="calc-key" data-calc-key="ln(">ln</button>
-    <button type="button" class="calc-key" data-calc-key="π">π</button><button type="button" class="calc-key" data-calc-key="e">e</button><button type="button" class="calc-key" data-calc-key="abs(">abs</button><button type="button" class="calc-key" data-calc-key="1/(" title="Mở biểu thức nghịch đảo; nhập số rồi đóng ngoặc">1/x</button>
-   </div>
-   <div class="calc-meaning">Phép cộng, trừ, nhân, chia số thập phân dùng <b>số hữu tỉ BigInt</b>, tránh lỗi nhị phân như <code>0.1 + 0.2</code>. Kết quả phân số vô hạn được <b>làm tròn đến khoảng 15 chữ số có nghĩa</b>; hàm lượng giác, log và căn phi hữu tỉ vẫn là kết quả xấp xỉ. Dấu <b>%</b> có nghĩa chia cho 100, ví dụ <code>200*10%=20</code>. Nhấn <b>Enter</b> để tính, <b>Esc</b> để xóa.</div>
+   <div class="calc-meaning">Giao diện học tập có các nhãn phụ trên phím: <b>SHIFT</b> (vàng), <b>ALPHA</b> (đỏ), <b>MENU</b> chọn chế độ, <b>S⇔D</b> đổi dạng kết quả. Các hàm đã triển khai có thể bấm trực tiếp; một số chức năng máy Casio còn cần chế độ riêng hoặc chưa được mô phỏng. Công cụ này không thuộc Casio và không thay thế máy fx-580VN X chính hãng.</div>
   </div>
   <aside class="card calc-panel">
    <div class="row" style="justify-content:space-between;align-items:center"><h2 style="font-size:21px;margin:0">🕘 Lịch sử</h2><button class="btn" type="button" id="calc-clear-history">Xóa lịch sử</button></div>
@@ -1446,10 +1603,10 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
    <button type="button" class="btn teal" id="calc-copy" style="width:100%;margin-top:17px">📋 Sao chép kết quả</button>
   </aside>
  </div>
-<!-- V1: Chế độ tính toán nâng cao, hiển thị có điều kiện trong máy tính -->
+<!-- V7: Chế độ tính toán nâng cao, hiển thị có điều kiện trong máy tính -->
 <div class="calc7-extended card" id="calc7-extended">
   <div class="calc7-head">
-    <div><h2>Chế độ khoa học V1</h2><p class="small muted">Các chế độ hỗ trợ toán THCS–THPT. Chọn chế độ để nhập dữ liệu.</p></div>
+    <div><h2>Chế độ khoa học V7.2</h2><p class="small muted">Các chế độ hỗ trợ toán THCS–THPT. Chọn chế độ để nhập dữ liệu.</p></div>
     <label class="calc7-mode-label" for="calc7-mode">Chế độ
       <select id="calc7-mode" class="select">
         <option value="combinatorics">Phân số · Tổ hợp · Số học</option>
@@ -1481,17 +1638,17 @@ html.hls-host-fullscreen #gtnn-center-spin{width:clamp(58px,8vmin,90px)!importan
 <script id="hls-attribution-bootstrap">
 /* Copyright (c) 2026 Học liệu số. Quy định: LICENSE.txt.
    Cơ chế này dùng mã hóa chuỗi có thể đảo; KHÔNG phải chống sao chép tuyệt đối. */
-(()=>{const k=[72, 76, 83, 45, 50, 48, 50, 54, 45, 69, 68, 85],p="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";try{const x=atob(p),v=new Uint8Array(x.length);for(let i=0;i<x.length;i++)v[i]=x.charCodeAt(i)^k[i%k.length];(new Function(new TextDecoder().decode(v)))();}catch(e){console.warn('Không khởi động được thành phần ghi nhận nguồn gốc.',e);}})();
+(()=>{const k=[72, 76, 83, 45, 50, 48, 50, 54, 45, 69, 68, 85],p="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";try{const x=atob(p),v=new Uint8Array(x.length);for(let i=0;i<x.length;i++)v[i]=x.charCodeAt(i)^k[i%k.length];(new Function(new TextDecoder().decode(v)))();}catch(e){console.warn('Không khởi động được thành phần ghi nhận nguồn gốc.',e);}})();
 </script>
 <!-- Modal âm nhạc -->
-<div id="settings-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="modal"><div class="heading"><h2 id="settings-title">🎵 Nhạc nền &amp; cài đặt chung</h2><button id="close-settings" class="btn square" aria-label="Đóng">×</button></div>
-  <div class="notice warn">Các tệp mã nguồn không kèm bản nhạc <b>“Hãy chọn giá đúng”</b>. Muốn nghe đúng nhạc chương trình, hãy nạp tệp MP3/WAV mà bạn có quyền sử dụng. Nhạc mặc định là giai điệu gameshow <b>tự tạo, không phải nhạc gốc</b>.</div>
-  <div class="setting-label">Nguồn nhạc</div>
-  <div class="field"><select id="music-mode" class="select"><option value="synth">🎶 Gameshow vui (nhạc tự tạo)</option><option value="file">📁 Nhạc tải lên: Hãy chọn giá đúng (nếu có)</option><option value="off">🔇 Tắt nhạc</option></select></div>
+<div id="settings-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="modal"><div class="heading"><h2 id="settings-title">🎵 Nhạc vòng quay &amp; âm thanh</h2><button id="close-settings" class="btn square" aria-label="Đóng">×</button></div>
+  <div class="notice warn"><b>Vòng quay:</b> phát nhạc hồi hộp kiểu chương trình đố vui. Để dùng <b>đúng nhạc hiệu “Ai là triệu phú”</b>, hãy nạp tệp MP3/WAV mà bạn có quyền sử dụng. Bản mặc định là nhạc <b>tự tạo, không sao chép giai điệu gốc</b>.<br><b>Đồng hồ:</b> phát tiếng tích tắc mỗi giây, không dùng nhạc nền vòng quay.</div>
+  <div class="setting-label">Nhạc khi quay (và khi chia nhóm)</div>
+  <div class="field"><select id="music-mode" class="select"><option value="synth">🎶 Nhạc hồi hộp kiểu Ai là triệu phú (tự tạo)</option><option value="file">📁 Nhạc Ai là triệu phú / tệp của bạn</option><option value="off">🔇 Tắt nhạc vòng quay</option></select></div>
   <div class="row" style="margin-top:12px"><label for="music-file" class="btn primary">📂 Chọn tệp MP3/WAV</label><input id="music-file" class="sr-only" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a"><button class="btn" id="music-preview">▶ Nghe thử</button><button class="btn danger" id="music-remove">× Xóa nhạc đã tải</button></div>
   <div id="music-file-label" class="small muted" style="margin-top:9px">Chưa tải tệp âm thanh.</div>
-  <div class="config-row" style="margin-top:13px"><div class="field"><label for="music-volume">Âm lượng <span id="volume-number">55%</span></label><input id="music-volume" type="range" min="0" max="100" value="55" style="width:100%;accent-color:#5066ed"></div><div class="field" style="justify-content:center"><label class="mini-check"><input type="checkbox" id="music-auto" checked> Tự phát nhạc khi bắt đầu</label><label class="mini-check"><input type="checkbox" id="sound-effects" checked> Bật âm hiệu ứng, chuông</label></div></div>
-  <div class="small muted" style="margin-top:10px">Tệp âm thanh được lưu cục bộ trên trình duyệt nếu thiết bị hỗ trợ IndexedDB. Với bản web đăng trên mạng, hãy chú ý quyền sử dụng nhạc khi công khai.</div>
+  <div class="config-row" style="margin-top:13px"><div class="field"><label for="music-volume">Âm lượng <span id="volume-number">55%</span></label><input id="music-volume" type="range" min="0" max="100" value="55" style="width:100%;accent-color:#5066ed"></div><div class="field" style="justify-content:center"><label class="mini-check"><input type="checkbox" id="music-auto" checked> Tự phát nhạc khi quay / chia nhóm</label><label class="mini-check"><input type="checkbox" id="sound-effects" checked> Bật âm hiệu ứng, tích tắc &amp; chuông</label></div></div>
+  <div class="small muted" style="margin-top:10px">Tệp nhạc được lưu trên thiết bị nếu trình duyệt hỗ trợ IndexedDB. Cài đặt âm lượng áp dụng cả tích tắc. Nhạc vòng quay dừng ngay khi hiện người/số được gọi. Đồng hồ chỉ tích tắc trong lúc chạy và im lặng khi tạm dừng. Với nhạc tải lên, hãy bảo đảm quyền sử dụng khi đăng tải công khai.</div>
   <div class="row" style="justify-content:flex-end;margin-top:19px"><button class="btn teal" id="settings-done">✓ Xong</button></div>
 </div></div>
 <!-- Modal trúng thưởng -->
@@ -1513,9 +1670,9 @@ const STORAGE='hls-classroom-suite-v1';
 const PLACEHOLDERS=['Học sinh 01','Học sinh 02','Học sinh 03','Học sinh 04','Học sinh 05','Học sinh 06','Học sinh 07','Học sinh 08'];
 const FUN=['👏 Cả lớp vỗ tay cổ vũ!','🤝 Được chọn một bạn hỗ trợ.','💡 Chia sẻ một điều thú vị.','🎁 Được quyền chọn câu hỏi.','🌟 Em là ngôi sao may mắn hôm nay!'];
 const COLOR=['#fd5961','#ff9a3d','#ffd354','#65cc7f','#4aace9','#6574e9','#9c6ce8','#ef73be','#39c7bb','#f97f85','#7897fd','#e7b252'];
-const base={names:[...PLACEHOLDERS],isSample:true,used:[],history:[],noRepeat:true,wheelSeconds:6,challenge:'off',scoreTitle:'BẢNG ĐIỂM ĐỘI NHÓM',teams:[{name:'Đội A',score:0},{name:'Đội B',score:0},{name:'Đội C',score:0},{name:'Đội D',score:0}],timerLast:60,groupMode:'numbers',classSize:40,groupTotal:6,groupSeconds:3,groups:[],groupLabels:[],groupProfiles:[],groupResultMode:'numbers',groupZoom:true,musicMode:'synth',musicAuto:true,effects:true,volume:.55,musicName:''};
+const base={names:[...PLACEHOLDERS],isSample:true,used:[],history:[],noRepeat:true,wheelSeconds:6,challenge:'off',scoreTitle:'BẢNG ĐIỂM ĐỘI NHÓM',teams:[{name:'Đội A',score:0},{name:'Đội B',score:0},{name:'Đội C',score:0},{name:'Đội D',score:0}],timerLast:60,groupMode:'numbers',classSize:40,groupTotal:6,groupSeconds:3,groups:[],groupLabels:[],groupProfiles:[],groupResultMode:'numbers',groupZoom:true,musicMode:'synth',musicAuto:true,effects:true,volume:.55,musicName:'',timerTicks:true};
 let state;
-try{const raw=JSON.parse(localStorage.getItem(STORAGE)||'null');state={...base,...(raw&&typeof raw==='object'?raw:{})};if(!Array.isArray(state.names))state.names=[...PLACEHOLDERS];if(!Array.isArray(state.teams))state.teams=base.teams;if(!Array.isArray(state.used))state.used=[];if(!Array.isArray(state.history))state.history=[];if(!Array.isArray(state.groups))state.groups=[];if(!Array.isArray(state.groupLabels))state.groupLabels=[];if(!Array.isArray(state.groupProfiles))state.groupProfiles=[];}catch(_){state={...base};}
+try{const raw=JSON.parse(localStorage.getItem(STORAGE)||'null');state={...base,...(raw&&typeof raw==='object'?raw:{})};if(!Array.isArray(state.names))state.names=[...PLACEHOLDERS];if(!Array.isArray(state.teams))state.teams=base.teams;if(!Array.isArray(state.used))state.used=[];if(!Array.isArray(state.history))state.history=[];if(!Array.isArray(state.groups))state.groups=[];if(!Array.isArray(state.groupLabels))state.groupLabels=[];if(!Array.isArray(state.groupProfiles))state.groupProfiles=[];if(typeof state.timerTicks!=='boolean')state.timerTicks=true;}catch(_){state={...base};}
 function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(_){}}
 let toastTimer=0;function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}
 function safeInt(v,min,max,fallback){const n=Number(v);return Number.isInteger(n)&&n>=min&&n<=max?n:fallback}
@@ -1557,21 +1714,77 @@ $('fullscreen-main').addEventListener('click',async()=>{
 });
 document.addEventListener('fullscreenchange',syncSuiteFullscreen);
 document.addEventListener('webkitfullscreenchange',syncSuiteFullscreen);
-// ----- Nhạc: nguồn mặc định là bản nhạc ngắn tự tạo, không sao chép tác phẩm thương mại -----
-const music={ctx:null,melodyTimer:null,clip:new Audio(),fileURL:null,previewing:false,playing:false,notes:[523.25,659.25,783.99,1046.5,783.99,698.46,659.25,587.33,523.25,659.25,880,783.99,659.25,587.33,523.25,392],step:0};
+// ----- V7.3: nhạc hồi hộp nguyên bản cho vòng quay; tiếng tích tắc riêng cho đồng hồ -----
+const music={ctx:null,melodyTimer:null,clip:new Audio(),fileURL:null,previewing:false,playing:false,synthMaster:null,step:0};
 music.clip.loop=true;
 function audioCtx(){if(!music.ctx){const T=window.AudioContext||window.webkitAudioContext;if(!T)return null;music.ctx=new T();}if(music.ctx.state==='suspended')music.ctx.resume().catch(()=>{});return music.ctx}
-function note(frequency,duration=.16,gain=.11,when=0,type='triangle'){const ctx=audioCtx();if(!ctx)return;const start=when||ctx.currentTime;const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(frequency,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain*state.volume),start+.015);g.gain.exponentialRampToValueAtTime(.0001,start+duration);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+duration+.015)}
-function motif(){const ctx=audioCtx();if(!ctx)return;const t=ctx.currentTime+.035;for(let i=0;i<8;i++){const index=(music.step+i)%music.notes.length;note(music.notes[index],.18,.125,t+i*.205,'triangle');if(i%2===0)note(music.notes[index]/2,.28,.034,t+i*.205,'sine');}music.step=(music.step+8)%music.notes.length}
-function stopMusic(){music.playing=false;if(music.melodyTimer!==null){clearInterval(music.melodyTimer);music.melodyTimer=null;}music.clip.pause();music.previewing=false;$('music-preview').textContent='▶ Nghe thử'}
-function startMusic(fromBeginning=true,force=false){stopMusic();if(!force&&!state.musicAuto)return;if(state.musicMode==='off')return;if(state.musicMode==='file'){if(!music.fileURL){toast('Chưa có nhạc tải lên. Hãy chọn tệp MP3 hoặc dùng nhạc mặc định.');return;}music.clip.volume=state.volume;if(fromBeginning)try{music.clip.currentTime=0}catch(_){}music.clip.play().catch(()=>toast('Trình duyệt chặn phát nhạc. Hãy bấm Nghe thử trong cài đặt.'));}else{music.step=0;motif();music.melodyTimer=setInterval(motif,1640);}music.playing=true;}
-function effect(kind='win'){if(!state.effects)return;const ctx=audioCtx();if(!ctx)return;const t=ctx.currentTime+.02;if(kind==='tick'){note(740,.04,.09,t,'sine');return;}if(kind==='bell'){[850,880,900].forEach((x,i)=>note(x,.3,.18,t+i*.34,'sine'));return;}[523.25,659.25,783.99,1046.5].forEach((freq,i)=>note(freq,.31,.18,t+i*.12,'triangle'));}
+function note(frequency,duration=.16,gain=.11,when=0,type='triangle',channel='effect'){
+  const ctx=audioCtx();if(!ctx||!frequency)return;
+  const start=when||ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(frequency,start);
+  g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(Math.max(.0002,gain*state.volume),start+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  o.connect(g);g.connect(channel==='music'&&music.synthMaster?music.synthMaster:ctx.destination);
+  o.start(start);o.stop(start+duration+.015);
+}
+// Các nốt là sáng tác mới, sử dụng chuỗi âm hồi hộp và nhịp bass, không trích nhạc hiệu truyền hình.
+function motif(){const ctx=audioCtx();if(!ctx)return;const t=ctx.currentTime+.04,bar=music.step++;
+  const seq=[196,293.66,369.99,392,293.66,440,369.99,293.66,220,329.63,392,440,329.63,493.88,392,329.63];
+  const base=bar%4<2?98:110;
+  for(let i=0;i<16;i++){
+    const at=t+i*.155,nn=seq[(i+4*bar)%seq.length];
+    if(i%2===0)note(nn,.105,.086,at,'triangle','music');
+    if(i%4===3)note(nn*2,.055,.045,at,'sine','music');
+    if(i%4===0){note(base,.24,.105,at,'sine','music');note(base*2,.13,.026,at,'triangle','music');}
+  }
+}
+function stopMusic(){
+  music.playing=false;if(music.melodyTimer!==null){clearInterval(music.melodyTimer);music.melodyTimer=null;}
+  if(music.synthMaster){try{music.synthMaster.gain.setValueAtTime(0,music.ctx.currentTime);music.synthMaster.disconnect();}catch(_){}music.synthMaster=null;}
+  music.clip.pause();music.previewing=false;$('music-preview').textContent='▶ Nghe thử';
+}
+function startMusic(fromBeginning=true,force=false){
+  stopMusic();if(!force&&!state.musicAuto)return;if(state.musicMode==='off')return;
+  if(state.musicMode==='file'){
+    if(!music.fileURL){toast('Chưa có tệp nhạc. Hãy chọn MP3/WAV của bạn hoặc dùng nhạc hồi hộp mặc định.');return;}
+    music.clip.volume=state.volume;if(fromBeginning)try{music.clip.currentTime=0}catch(_){}
+    music.clip.play().catch(()=>toast('Trình duyệt chặn phát nhạc. Hãy bấm Nghe thử trong cài đặt.'));
+  }else{
+    const ctx=audioCtx();if(!ctx)return;
+    music.synthMaster=ctx.createGain();music.synthMaster.gain.value=1;music.synthMaster.connect(ctx.destination);
+    music.step=0;motif();music.melodyTimer=setInterval(motif,2480);
+  }
+  music.playing=true;
+}
+// Âm thanh vòng quay được điều khiển từ iframe nguyên bản, cùng chế độ nhạc với trang chính.
+window.hlsWheelStartMusic=()=>startMusic(true,false);
+window.hlsWheelStopMusic=()=>stopMusic();
+window.hlsWheelSoundsEnabled=()=>Boolean(state.effects);
+function effect(kind='win'){if(!state.effects)return;const ctx=audioCtx();if(!ctx)return;const t=ctx.currentTime+.02;
+  if(kind==='tick'){note(740,.04,.09,t,'sine');return;}
+  if(kind==='bell'){[850,880,900].forEach((x,i)=>note(x,.3,.18,t+i*.34,'sine'));return;}
+  [523.25,659.25,783.99,1046.5].forEach((freq,i)=>note(freq,.31,.18,t+i*.12,'triangle'));
+}
+// Tích tắc đồng hồ cơ: xung nhiễu ngắn, luân phiên cao độ tíc và tắc, không phát nhạc.
+function clockTickSound(n){
+  if(!state.timerTicks||!state.effects||state.volume<=0)return;
+  const ctx=audioCtx();if(!ctx)return;
+  const size=Math.max(32,Math.floor(ctx.sampleRate*.022));
+  if(!music.tickNoise||music.tickNoise.sampleRate!==ctx.sampleRate){
+    music.tickNoise=ctx.createBuffer(1,size,ctx.sampleRate);
+    const data=music.tickNoise.getChannelData(0);
+    for(let i=0;i<size;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/size,4);
+  }
+  const tick=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),vol=ctx.createGain();
+  tick.buffer=music.tickNoise;filter.type='bandpass';filter.frequency.value=n%2?1400:2200;filter.Q.value=.9;
+  vol.gain.value=Math.min(.19,.16*state.volume);tick.connect(filter);filter.connect(vol);vol.connect(ctx.destination);
+  tick.start();
+}
 function showMusicSettings(){stopMusic();$('music-mode').value=state.musicMode;$('music-auto').checked=state.musicAuto;$('sound-effects').checked=state.effects;$('music-volume').value=Math.round(state.volume*100);$('volume-number').textContent=Math.round(state.volume*100)+'%';updateMusicLabel();$('settings-modal').classList.add('show')}
-function updateMusicLabel(){$('music-file-label').textContent=state.musicName?'Đã nạp: '+state.musicName:'Chưa tải tệp âm thanh. Tệp tải lên sẽ được dùng chung trong các tiện ích.';$('timer-music-label').textContent=state.musicMode==='off'?'Nhạc đang tắt':state.musicMode==='file'?'Nhạc theo tệp tải lên':'Nhạc gameshow mặc định'}
+function updateMusicLabel(){$('music-file-label').textContent=state.musicName?'Đã nạp: '+state.musicName:'Chưa tải tệp nhạc. Tệp sẽ dùng cho vòng quay và chia nhóm.';$('timer-music-label').textContent=state.timerTicks&&state.effects?'Tiếng tích tắc đang bật':'Tiếng tích tắc đang tắt';$('timer-ticking').checked=Boolean(state.timerTicks)}
 $('open-settings').addEventListener('click',showMusicSettings);$('close-settings').addEventListener('click',()=>{stopMusic();$('settings-modal').classList.remove('show')});$('settings-done').addEventListener('click',()=>{stopMusic();$('settings-modal').classList.remove('show')});
 $('settings-modal').addEventListener('click',e=>{if(e.target===$('settings-modal')){$('settings-modal').classList.remove('show');stopMusic()}});
 $('music-mode').addEventListener('change',e=>{stopMusic();state.musicMode=e.target.value;save();updateMusicLabel();if(state.musicMode==='file'&&!music.fileURL)toast('Bạn cần tải bản nhạc lên trước khi chọn nguồn tệp.')});
-$('music-auto').addEventListener('change',e=>{state.musicAuto=e.target.checked;save()});$('sound-effects').addEventListener('change',e=>{state.effects=e.target.checked;save()});$('music-volume').addEventListener('input',e=>{state.volume=Number(e.target.value)/100;music.clip.volume=state.volume;$('volume-number').textContent=e.target.value+'%';save()});
+$('music-auto').addEventListener('change',e=>{state.musicAuto=e.target.checked;save()});$('sound-effects').addEventListener('change',e=>{state.effects=e.target.checked;save();updateMusicLabel()});$('timer-ticking').addEventListener('change',e=>{state.timerTicks=e.target.checked;save();updateMusicLabel()});$('music-volume').addEventListener('input',e=>{state.volume=Number(e.target.value)/100;music.clip.volume=state.volume;$('volume-number').textContent=e.target.value+'%';save()});
 $('music-preview').addEventListener('click',()=>{if(music.previewing){stopMusic();return;}startMusic(true,true);if(music.playing){music.previewing=true;$('music-preview').textContent='■ Dừng nghe';}});
 function applyAudioBlob(blob,name,selectFileMode=true){if(music.fileURL)URL.revokeObjectURL(music.fileURL);music.fileURL=URL.createObjectURL(blob);music.clip.src=music.fileURL;music.clip.volume=state.volume;state.musicName=name;if(selectFileMode)state.musicMode='file';$('music-mode').value=state.musicMode;updateMusicLabel();save()}
 const DBNAME='hls-classroom-audio-v1';
@@ -1611,17 +1824,17 @@ function addTeam(){const name=$('new-team').value.trim();if(!name){toast('Hãy n
 $('reset-scores').addEventListener('click',()=>{if(!confirm('Đưa điểm của TẤT CẢ các đội về 0? (Tên đội được giữ nguyên)'))return;state.teams.forEach(t=>t.score=0);$('leader-display').hidden=true;save();renderTeams()});
 $('show-leaders').addEventListener('click',()=>{if(!state.teams.length){toast('Chưa có đội.');return;}const top=Math.max(...state.teams.map(x=>x.score));const winners=state.teams.filter(t=>t.score===top);const text=top>0?'🏆 '+(winners.length>1?'Các đội đồng dẫn đầu: ':'Đội dẫn đầu: ')+winners.map(x=>x.name).join(' · ')+' — '+top+' điểm':'Chưa có đội dẫn đầu: tất cả đội đang có 0 điểm.';$('leader-display').textContent=text;$('leader-display').hidden=false;effect('win')});
 // ----- Đồng hồ -----
-const clock={mode:null,status:'idle',begin:0,pausedTotal:0,pauseAt:0,initial:60,target:Infinity,raf:0,last:-1};
+const clock={mode:null,status:'idle',begin:0,pausedTotal:0,pauseAt:0,initial:60,target:Infinity,raf:0,last:-1,lastSoundSecond:-1};
 const pad=n=>String(n).padStart(2,'0');function fmt(sec){const s=Math.max(0,Math.floor(sec));return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`}
 function parseTime(str){const s=String(str||'').trim();if(!s)return 0;if(s.includes(':')){const parts=s.split(':');if(parts.length>3||parts.some(x=>!/^[0-9]+$/.test(x.trim())))return NaN;return parts.reduce((acc,x)=>acc*60+Number(x),0)}if(!/^\d+$/.test(s))return NaN;const sec=Number(s.slice(-2)||0),min=Number(s.slice(-4,-2)||0),hr=Number(s.slice(0,-4)||0);return hr*3600+min*60+sec}
 function showTime(sec){$('timer-display').value=fmt(sec);document.title=fmt(sec)+' · Bộ công cụ lớp học'}
 function setTimerButtons(){const running=clock.status==='running',paused=clock.status==='paused';$('timer-down').disabled=running||paused;$('timer-up').disabled=running||paused;$('timer-pause').disabled=!running;$('timer-resume').disabled=!paused;$('timer-display').readOnly=running||paused;for(const p of document.querySelectorAll('[data-preset]'))p.disabled=running||paused}
-function timerTick(){if(clock.status!=='running')return;const el=(performance.now()-clock.begin-clock.pausedTotal)/1000;let out,ratio;if(clock.mode==='down'){const remain=clock.initial-el;out=Math.max(0,Math.ceil(remain));ratio=clock.initial?Math.min(1,el/clock.initial):1;if(remain<=0){showTime(0);$('timer-progress-fill').style.width='100%';finishTimer();return;}}else{out=Math.floor(el);ratio=Number.isFinite(clock.target)?Math.min(1,el/clock.target):0;if(Number.isFinite(clock.target)&&el>=clock.target){showTime(clock.target);$('timer-progress-fill').style.width='100%';finishTimer();return;}}if(out!==clock.last){clock.last=out;showTime(out)}$('timer-progress-fill').style.width=(ratio*100)+'%';clock.raf=requestAnimationFrame(timerTick)}
-function finishTimer(){clock.status='done';cancelAnimationFrame(clock.raf);stopMusic();effect('bell');$('timer-status').textContent='🔔 Đã hết thời gian!';setTimerButtons()}
-function startTimer(mode){if(clock.status==='running'||clock.status==='paused')return;const secs=parseTime($('timer-display').value);if(!Number.isFinite(secs)||secs<0||secs>359999){toast('Thời gian không hợp lệ (tối đa 99:59:59).');return;}if(mode==='down'&&secs===0){toast('Đếm ngược cần thời gian lớn hơn 0.');return;}clock.mode=mode;clock.status='running';clock.initial=secs;clock.target=mode==='up'?(secs||Infinity):secs;clock.begin=performance.now();clock.pausedTotal=0;clock.last=-1;state.timerLast=secs;save();if(mode==='up')showTime(0);$('timer-status').textContent=mode==='down'?'⏳ Đang đếm ngược…':'⏱️ Đang đếm tới…';setTimerButtons();startMusic();clock.raf=requestAnimationFrame(timerTick)}
-function pauseTimer(){if(clock.status!=='running')return;clock.status='paused';clock.pauseAt=performance.now();cancelAnimationFrame(clock.raf);stopMusic();$('timer-status').textContent='⏸ Đã tạm dừng';setTimerButtons()}
-function resumeTimer(){if(clock.status!=='paused')return;clock.pausedTotal+=performance.now()-clock.pauseAt;clock.status='running';$('timer-status').textContent='▶ Đang tiếp tục…';setTimerButtons();startMusic();clock.raf=requestAnimationFrame(timerTick)}
-function resetTimer(){cancelAnimationFrame(clock.raf);stopMusic();clock.status='idle';clock.mode=null;showTime(state.timerLast||60);$('timer-progress-fill').style.width='0%';$('timer-status').textContent='Sẵn sàng';setTimerButtons()}
+function timerTick(){if(clock.status!=='running')return;const el=(performance.now()-clock.begin-clock.pausedTotal)/1000;const second=Math.max(0,Math.floor(el));if(second!==clock.lastSoundSecond){clock.lastSoundSecond=second;clockTickSound(second);}let out,ratio;if(clock.mode==='down'){const remain=clock.initial-el;out=Math.max(0,Math.ceil(remain));ratio=clock.initial?Math.min(1,el/clock.initial):1;if(remain<=0){showTime(0);$('timer-progress-fill').style.width='100%';finishTimer();return;}}else{out=Math.floor(el);ratio=Number.isFinite(clock.target)?Math.min(1,el/clock.target):0;if(Number.isFinite(clock.target)&&el>=clock.target){showTime(clock.target);$('timer-progress-fill').style.width='100%';finishTimer();return;}}if(out!==clock.last){clock.last=out;showTime(out)}$('timer-progress-fill').style.width=(ratio*100)+'%';clock.raf=requestAnimationFrame(timerTick)}
+function finishTimer(){clock.status='done';cancelAnimationFrame(clock.raf);effect('bell');$('timer-status').textContent='🔔 Đã hết thời gian!';setTimerButtons()}
+function startTimer(mode){if(clock.status==='running'||clock.status==='paused')return;const secs=parseTime($('timer-display').value);if(!Number.isFinite(secs)||secs<0||secs>359999){toast('Thời gian không hợp lệ (tối đa 99:59:59).');return;}if(mode==='down'&&secs===0){toast('Đếm ngược cần thời gian lớn hơn 0.');return;}clock.mode=mode;clock.status='running';clock.initial=secs;clock.target=mode==='up'?(secs||Infinity):secs;clock.begin=performance.now();clock.pausedTotal=0;clock.last=-1;state.timerLast=secs;save();if(mode==='up')showTime(0);$('timer-status').textContent=mode==='down'?'⏳ Đang đếm ngược…':'⏱️ Đang đếm tới…';setTimerButtons();clock.lastSoundSecond=-1;clock.raf=requestAnimationFrame(timerTick)}
+function pauseTimer(){if(clock.status!=='running')return;clock.status='paused';clock.pauseAt=performance.now();cancelAnimationFrame(clock.raf);$('timer-status').textContent='⏸ Đã tạm dừng';setTimerButtons()}
+function resumeTimer(){if(clock.status!=='paused')return;clock.pausedTotal+=performance.now()-clock.pauseAt;clock.status='running';$('timer-status').textContent='▶ Đang tiếp tục…';setTimerButtons();clock.raf=requestAnimationFrame(timerTick)}
+function resetTimer(){cancelAnimationFrame(clock.raf);clock.status='idle';clock.lastSoundSecond=-1;clock.mode=null;showTime(state.timerLast||60);$('timer-progress-fill').style.width='0%';$('timer-status').textContent='Sẵn sàng';setTimerButtons()}
 $('timer-down').addEventListener('click',()=>startTimer('down'));$('timer-up').addEventListener('click',()=>startTimer('up'));$('timer-pause').addEventListener('click',pauseTimer);$('timer-resume').addEventListener('click',resumeTimer);$('timer-reset').addEventListener('click',resetTimer);$('timer-bell').addEventListener('click',()=>effect('bell'));for(const p of document.querySelectorAll('[data-preset]'))p.addEventListener('click',()=>{const n=Number(p.dataset.preset);state.timerLast=n;save();showTime(n);$('timer-progress-fill').style.width='0%'});
 $('timer-display').addEventListener('blur',()=>{if(clock.status==='running'||clock.status==='paused')return;const n=parseTime($('timer-display').value);if(Number.isFinite(n)&&n>=0&&n<=359999){showTime(n);state.timerLast=n;save()}else{showTime(state.timerLast||60);toast('Vui lòng nhập thời gian hợp lệ.')}});$('timer-display').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();startTimer('down')}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWinner();$('settings-modal').classList.remove('show');return;}const focused=document.activeElement;if(focused&&(['INPUT','TEXTAREA','SELECT'].includes(focused.tagName)||focused.isContentEditable))return;if(!$('tab-timer').hidden){if(e.code==='Space'){e.preventDefault();if(clock.status==='running')pauseTimer();else if(clock.status==='paused')resumeTimer()}else if(e.key.toLowerCase()==='r')resetTimer();}if(e.key.toLowerCase()==='f'&&!e.altKey&&!e.ctrlKey){e.preventDefault();$('fullscreen-main').click()}});
@@ -1958,11 +2171,12 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id),input=$('calc-expression'),out=$('calc-result'),error=$('calc-error'),hist=$('calc-history');
- let result=null,ans=null,memory=null,history=[],radians=false,justEvaluated=false,variableX=null;
+ let result=null,ans=null,preAns=null,memory=null,history=[],radians=false,justEvaluated=false,variableX=null,calcPoweredOff=false;
  const fail=message=>{throw new Error(message)};
  const abs=n=>n<0n?-n:n;
  const gcd=(a,b)=>{a=abs(a);b=abs(b);while(b!==0n){const c=a%b;a=b;b=c}return a||1n};
  function R(n,d=1n){if(d===0n)fail('Không thể chia cho 0.');if(d<0n){n=-n;d=-d}if(n===0n)return {n:0n,d:1n};let g=gcd(n,d);return {n:n/g,d:d/g}}
+ const variables=Object.fromEntries(['A','B','C','D','E','F','X','Y','Z','M'].map(k=>[k,R(0n)]));
  const add=(a,b)=>R(a.n*b.d+b.n*a.d,a.d*b.d),sub=(a,b)=>R(a.n*b.d-b.n*a.d,a.d*b.d);
  const mul=(a,b)=>R(a.n*b.n,a.d*b.d),div=(a,b)=>R(a.n*b.d,a.d*b.n);
  function decimal(str){
@@ -1981,6 +2195,17 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
  function func(name,arg){
   const v=toNumber(arg);if(!Number.isFinite(v))fail('Giá trị vượt phạm vi hàm khoa học.');
   if(name==='abs')return R(abs(arg.n),arg.d);
+  if(name==='fact'){
+   if(arg.d!==1n||arg.n<0n||arg.n>150n)fail('Giai thừa chỉ nhận số nguyên từ 0 đến 150.');
+   let v=1n;for(let i=2n;i<=arg.n;i++)v*=i;return R(v);
+  }
+  if(name==='cbrt')return fromNumber(Math.cbrt(v));
+  if(name==='round')return fromNumber(Math.round(v));
+  if(['asin','acos','atan'].includes(name)){
+   if((name==='asin'||name==='acos') && (v < -1 || v > 1)) fail('Hàm lượng giác ngược chỉ xác định trong đoạn [-1; 1].');
+   const inverse=name==='asin'?Math.asin(v):name==='acos'?Math.acos(v):Math.atan(v);
+   return fromNumber(radians?inverse:inverse*180/Math.PI);
+  }
   if(name==='sqrt'){if(arg.n<0n)fail('Không thể tính căn bậc hai của số âm.');return fromNumber(Math.sqrt(v))}
   if(name==='ln'){if(v<=0)fail('ln chỉ xác định với số dương.');return fromNumber(Math.log(v))}
   if(name==='log'){if(v<=0)fail('log chỉ xác định với số dương.');return fromNumber(Math.log10(v))}
@@ -1995,8 +2220,8 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
    const s=str.slice(i),n=s.match(/^(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][+-]?\d+)?/);
    if(n){tokens.push({type:'num',value:n[0]});i+=n[0].length;continue}
    const name=s.match(/^[a-zA-Z]+/);
-   if(name){tokens.push({type:'id',value:name[0].toLowerCase()});i+=name[0].length;continue}
-   if('+-*/^()%'.includes(str[i])){tokens.push({type:str[i]});i++;continue}
+   if(name){tokens.push({type:'id',value:/^[A-FXYZM]$/.test(name[0])?name[0]:name[0].toLowerCase()});i+=name[0].length;continue}
+   if('+-*/^()%;'.includes(str[i])){tokens.push({type:str[i]});i++;continue}
    fail('Ký tự không được hỗ trợ: '+str[i]);
   }
   if(tokens.length>200)fail('Biểu thức quá phức tạp.');tokens.push({type:'end'});return tokens;
@@ -2010,11 +2235,24 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
    else if(token.type==='+'||token.type==='-'){v=expression(3);if(token.type==='-')v=R(-v.n,v.d)}
    else if(token.type==='('){v=expression(0);if(peek()!==')')fail('Thiếu dấu ngoặc đóng ).');consume()}
    else if(token.type==='id'){
-    if(token.value==='x'){if(variableX===null)fail('Chỉ có thể dùng biến x ở chế độ Bảng hàm/Đạo hàm/Tích phân.');v=fromNumber(variableX)}
+    if(Object.prototype.hasOwnProperty.call(variables,token.value))v=token.value==='M'?(memory||R(0n)):variables[token.value];
+    else if(token.value==='x'){if(variableX===null)fail('Chỉ có thể dùng biến x ở chế độ Bảng hàm/Đạo hàm/Tích phân.');v=fromNumber(variableX)}
     else if(token.value==='pi')v=decimal(Math.PI.toPrecision(16));
     else if(token.value==='e')v=decimal(Math.E.toPrecision(16));
     else if(token.value==='ans'){if(ans===null)fail('Chưa có kết quả Ans.');v=ans}
-    else if(['sin','cos','tan','sqrt','ln','log','abs'].includes(token.value)){
+    else if(token.value==='preans'){if(preAns===null)fail('Chưa có kết quả PreAns.');v=preAns}
+    else if(token.value==='rand'){
+     if(peek()!=='(')fail('Dùng rand() để tạo số ngẫu nhiên.');consume();
+     if(peek()!==')')fail('rand() không có tham số.');consume();v=fromNumber(Math.random());
+    }
+    else if(token.value==='gcd'||token.value==='lcm'){
+     if(peek()!=='(')fail('Dùng '+token.value+'(số1;số2).');consume();
+     const a=expression(0);if(peek()!==';')fail('Phân cách hai số bằng dấu ;');consume();
+     const b=expression(0);if(peek()!==')')fail('Thiếu ngoặc đóng ).');consume();
+     if(a.d!==1n||b.d!==1n)fail('GCD và LCM cần hai số nguyên.');
+     const g=gcd(a.n,b.n);v=token.value==='gcd'?R(g):R(abs((a.n/g)*b.n));
+    }
+    else if(['sin','cos','tan','asin','acos','atan','sqrt','cbrt','ln','log','abs','fact','round'].includes(token.value)){
      if(peek()!=='(')fail('Hàm '+token.value+' cần dấu ngoặc mở (.');consume();const x=expression(0);
      if(peek()!==')')fail('Thiếu dấu ngoặc đóng cho '+token.value+'.');consume();v=func(token.value,x);
     }else fail('Tên không được hỗ trợ: '+token.value);
@@ -2056,8 +2294,8 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
  function saveHistory(){try{localStorage.setItem('hls-calc-history-v6',JSON.stringify(history))}catch(_){}}
  function renderHistory(){hist.replaceChildren();for(const item of history){const b=document.createElement('button');b.className='calc-history-item';b.type='button';const a=document.createElement('small');a.textContent=item.expression;const v=document.createElement('strong');v.textContent=item.answer;b.append(a,v);b.addEventListener('click',()=>{input.value=item.expression;justEvaluated=false;input.focus();clearError()});hist.append(b)}$('calc-clear-history').disabled=!history.length}
  function evaluate(){
-  try{if(!input.value.trim())fail('Hãy nhập một phép tính.');let x=calculate(input.value);let label=format(x);
-   result=x;ans=x;out.textContent=label;clearError();justEvaluated=true;
+  try{if(calcPoweredOff)fail('Máy tính đang tắt. Nhấn ON để bật.');if(!input.value.trim())fail('Hãy nhập một phép tính.');let x=calculate(input.value);let label=format(x);
+   preAns=ans;result=x;ans=x;const frac=$('calc-sd').getAttribute('aria-pressed')==='true';out.textContent=frac?(x.d===1n?x.n.toString():x.n.toString()+'/'+x.d.toString()):label;clearError();justEvaluated=true;
    history.unshift({expression:input.value,answer:label});history=history.slice(0,24);saveHistory();renderHistory();
   }catch(e){showError(e.message);}
  }
@@ -2067,27 +2305,150 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
    const start=a===b?Math.max(0,a-1):a;input.setRangeText('',start,b,'end');input.focus();return}
   if(text==='='){evaluate();return}
   if(text==='ANS')text='Ans';if(text==='π')text='pi';
-  if(justEvaluated&&/^[\d.,(]|^(?:pi|Ans|sin\(|cos\(|tan\(|sqrt\(|log\(|ln\(|abs\()$/.test(text)){
+  if(justEvaluated&&(/^[\d.,(A-FXYZM]$/.test(text)||/^(?:pi|e|Ans|preans|rand\(\)|sin\(|cos\(|tan\(|asin\(|acos\(|atan\(|sqrt\(|cbrt\(|log\(|ln\(|abs\(|fact\(|round\(|gcd\(|lcm\()$/.test(text))){
    input.value='';}else if(justEvaluated&&['+','-','*','/','^','%'].includes(text)&&result){input.value=format(result)}
   justEvaluated=false;clearError();const start=input.selectionStart??input.value.length,end=input.selectionEnd??start;
   input.setRangeText(text,start,end,'end');input.focus();
  }
- document.querySelectorAll('[data-calc-key]').forEach(b=>b.addEventListener('click',()=>insert(b.dataset.calcKey)));
- $('calc-equal').addEventListener('click',evaluate);
+ let shiftMode=false,alphaMode=false,historyCursor=-1;
+ const shiftBtn=$('calc-shift'),alphaBtn=$('calc-alpha'),calcDevice=document.querySelector('#tab-calculator .calc-device');
+ function updateKeyLayer(){
+  shiftBtn.setAttribute('aria-pressed',String(shiftMode));
+  alphaBtn.setAttribute('aria-pressed',String(alphaMode));
+  $('calc-layer-indicator').textContent=shiftMode?'SHIFT':alphaMode?'ALPHA':'';
+  calcDevice.dataset.keyLayer=shiftMode?'shift':alphaMode?'alpha':'normal';
+ }
+ function setShiftMode(value){shiftMode=!!value;if(shiftMode)alphaMode=false;updateKeyLayer()}
+ function setAlphaMode(value){alphaMode=!!value;if(alphaMode)shiftMode=false;updateKeyLayer()}
+ shiftBtn.addEventListener('click',()=>setShiftMode(!shiftMode));
+ alphaBtn.addEventListener('click',()=>setAlphaMode(!alphaMode));
+ function showSpecial(title,items){
+  const pane=$('calc-special-dialog'),list=$('calc-special-options');
+  $('calc-special-title').textContent=title;list.replaceChildren();
+  for(const item of items){
+   const btn=document.createElement('button');btn.type='button';btn.textContent=item.label;
+   btn.addEventListener('click',()=>{try{item.action()}finally{pane.hidden=true}});list.append(btn);
+  }
+  pane.hidden=false;
+ }
+ $('calc-special-close').addEventListener('click',()=>{$('calc-special-dialog').hidden=true});
+ function resetCalculator(){
+  if(!confirm('Xóa biểu thức, các biến đã lưu, bộ nhớ và lịch sử phép tính?'))return;
+  input.value='';out.textContent='0';result=null;ans=null;preAns=null;memory=null;history=[];
+  Object.keys(variables).forEach(k=>variables[k]=R(0n));
+  saveHistory();renderHistory();updateMemory();clearError();
+ }
+ function setPoweredOff(value){
+  calcPoweredOff=value;calcDevice.classList.toggle('calc-off',value);
+  input.disabled=value;shiftBtn.disabled=value;alphaBtn.disabled=value;
+  $('calc-mode').disabled=value;
+  $('calc-layer-indicator').textContent=value?'OFF':'';
+  if(value){out.textContent='';input.value='';}else{out.textContent='0';}
+  setShiftMode(false);setAlphaMode(false);
+  if(value)$('calc-layer-indicator').textContent='OFF';
+ }
+ function secondaryAction(button){
+  const token=button.dataset.calcKey;
+  if(button.dataset.shiftKey){insert(button.dataset.shiftKey);return}
+  switch(token){
+   case '7':showSpecial('CONST · Hằng số',[
+    {label:'π · Pi',action:()=>insert('pi')},
+    {label:'e · Euler',action:()=>insert('e')},
+    {label:'φ · Tỉ số vàng',action:()=>insert('1.618033988749895')},
+    {label:'c · Tốc độ ánh sáng (m/s)',action:()=>insert('299792458')},
+    {label:'g₀ · Gia tốc trọng trường (m/s²)',action:()=>insert('9.80665')},
+    {label:'√2',action:()=>insert('sqrt(2)')}]);return;
+   case '8':showSpecial('CONV · Quy đổi nhanh',[
+    {label:'km → m (×1000)',action:()=>insert('*1000')},
+    {label:'m → km (÷1000)',action:()=>insert('/1000')},
+    {label:'cm → m (÷100)',action:()=>insert('/100')},
+    {label:'kg → g (×1000)',action:()=>insert('*1000')},
+    {label:'Độ → rad (×π/180)',action:()=>insert('*pi/180')},
+    {label:'Rad → độ (×180/π)',action:()=>insert('*180/pi')}]);return;
+   case '9':resetCalculator();return;
+   case 'DEL':showError('INS: Trình duyệt hiện nhập theo chế độ chèn. Có thể đặt con trỏ vào vị trí muốn nhập.');return;
+   case 'C':setPoweredOff(true);return;
+   case '+':case '-':showError((token==='+'?'Pol':'Rec')+' là phép chuyển tọa độ hai thành phần. Hãy chọn Ma trận · Vectơ ở Chế độ khoa học.');return;
+   case '(':showError('Góc ∠ đang được minh họa trên bàn phím; không hỗ trợ kết quả góc số phức ở màn hình cơ bản.');return;
+   case ')':insert('abs(');return;
+   case '^':showError('Căn bậc n: có thể dùng lũy thừa x^(1/n), ví dụ 32^(1/5).');return;
+   case '1/(':insert('1/(');return;
+   default:insert(token);return;
+  }
+ }
+ document.querySelectorAll('[data-calc-key]').forEach(b=>b.addEventListener('click',()=>{
+  if(calcPoweredOff)return;
+  if(shiftMode){secondaryAction(b);setShiftMode(false);return}
+  if(alphaMode){if(b.dataset.alphaKey)insert(b.dataset.alphaKey);else showError('Phím này không có ký hiệu ALPHA màu đỏ.');setAlphaMode(false);return}
+  insert(b.dataset.calcKey);
+ }));
+ $('calc-mode').addEventListener('click',()=>{
+  const wasShift=shiftMode;setShiftMode(false);
+  if(wasShift){$('calc-angle').focus();showError('SETUP: dùng nút DEG/RAD để đặt đơn vị góc, hoặc chọn Chế độ khoa học ở phía dưới.');return;}
+  const select=$('calc7-mode');const section=$('calc7-extended');
+  if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
+  if(select)select.focus({preventScroll:true});
+ });
+ $('calc-power').addEventListener('click',()=>{
+  if(calcPoweredOff){setPoweredOff(false);return;}
+  if(shiftMode){setPoweredOff(true);return;}
+  clearError();input.focus();
+ });
+ $('calc-negate').addEventListener('click',()=>{
+  if(shiftMode){insert('*10^(');setShiftMode(false);return;}if(alphaMode){setAlphaMode(false);showError('Phím này không có ký hiệu ALPHA.');return;}
+  const start=input.selectionStart??input.value.length,end=input.selectionEnd??start;
+  if(start!==end){const selected=input.value.slice(start,end);input.setRangeText('(-('+selected+'))',start,end,'end');}
+  else if(input.value.trim()&&!justEvaluated){input.value='-('+input.value+')';}
+  else if(result){input.value='-('+format(result)+')';justEvaluated=false;}
+  else insert('-');
+  input.focus();
+ });
+ $('calc-sd').addEventListener('click',()=>{
+  const el=$('calc-sd');let showFraction=el.getAttribute('aria-pressed')==='true';
+  showFraction=!showFraction;el.setAttribute('aria-pressed',String(showFraction));
+  if(result){out.textContent=showFraction?(result.d===1n?result.n.toString():result.n.toString()+'/'+result.d.toString()):format(result);}
+ });
+ document.querySelectorAll('[data-calc-nav]').forEach(b=>b.addEventListener('click',()=>{
+  const dir=b.dataset.calcNav;
+  if(dir==='up'||dir==='down'){
+   if(!history.length)return;
+   historyCursor=dir==='up'?Math.min(historyCursor+1,history.length-1):Math.max(historyCursor-1,-1);
+   if(historyCursor>=0){input.value=history[historyCursor].expression;out.textContent=history[historyCursor].answer;}
+   else input.value='';justEvaluated=false;
+  }else{
+   input.focus();const i=input.selectionStart??input.value.length;
+   const pos=Math.max(0,Math.min(input.value.length,i+(dir==='left'?-1:1)));
+   input.setSelectionRange(pos,pos);
+  }
+ }));
+ $('calc-equal').addEventListener('click',()=>{
+  if(shiftMode){setShiftMode(false);$('calc-sd').click();return;}
+  if(alphaMode)setAlphaMode(false);evaluate();
+ });
  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();evaluate()}else if(e.key==='Escape'){e.preventDefault();insert('C')}});
- $('calc-angle').addEventListener('click',()=>{radians=!radians;$('calc-angle').textContent=radians?'RAD':'DEG';$('calc-angle').setAttribute('aria-pressed',String(radians));});
+ $('calc-angle').addEventListener('click',()=>{radians=!radians;$('calc-angle').textContent=radians?'RAD':'DEG';$('calc-screen-angle').textContent=radians?'RAD':'DEG';$('calc-angle').setAttribute('aria-pressed',String(radians));});
  $('calc-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(out.textContent);$('calc-copy').textContent='✓ Đã sao chép';setTimeout(()=>$('calc-copy').textContent='📋 Sao chép',1500)}catch(e){showError('Không sao chép được trên trình duyệt này; hãy chọn số và sao chép thủ công.')}});
  $('calc-clear-history').addEventListener('click',()=>{history=[];saveHistory();renderHistory()});
  function updateMemory(){const el=$('calc-memory-value');el.textContent=memory===null?'M: trống':'M: '+format(memory)}
  function memoryAction(which){
   try{
-   if(which==='MC'){memory=null;updateMemory();return}
+   if(which==='MC'){memory=null;variables.M=R(0n);updateMemory();return}
    if(which==='MR'){if(memory===null)fail('Bộ nhớ đang trống.');insert(format(memory));return}
    const v=result||calculate(input.value);memory=which==='M+'?add(memory||R(0n),v):sub(memory||R(0n),v);
-   updateMemory();clearError();
+   variables.M=memory;updateMemory();clearError();
   }catch(e){showError(e.message)}
  }
  document.querySelectorAll('[data-memory]').forEach(b=>b.addEventListener('click',()=>memoryAction(b.dataset.memory)));
+ $('calc-sto').addEventListener('click',()=>{
+  try{const k=$('calc-var-select').value,v=result||calculate(input.value);
+   variables[k]=v;if(k==='M'){memory=v;updateMemory()}
+   clearError();$('calc-sto').textContent='✓ Đã lưu';setTimeout(()=>$('calc-sto').textContent='STO',1100);
+  }catch(e){showError(e.message)}
+ });
+ $('calc-rcl').addEventListener('click',()=>{
+  const k=$('calc-var-select').value,v=k==='M'?memory: variables[k];
+  insert(format(v||R(0n)));
+ });
  try{const old=JSON.parse(localStorage.getItem('hls-calc-history-v6')||'[]');if(Array.isArray(old))history=old.filter(x=>x&&typeof x.expression==='string'&&typeof x.answer==='string').slice(0,24)}catch(_){}
  renderHistory();updateMemory();
  // API kiểm thử các phép tính chính xác không thông qua DOM.
@@ -2097,8 +2458,8 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
  };
 })();
 </script>
-<script id="hls-V1-advanced">
-/* HỌC LIỆU SỐ V1 — Các chế độ toán học mở rộng, không dùng eval. */
+<script id="hls-v7-advanced">
+/* HỌC LIỆU SỐ V7 — Các chế độ toán học mở rộng, không dùng eval. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id), mode=$('calc7-mode'),workspace=$('calc7-workspace'),output=$('calc7-output'),err=$('calc7-error');
@@ -2236,7 +2597,7 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(wheel.frame);ca
  }}catch(ex){err.hidden=false;err.textContent=ex?.message||'Không thể tính toán với dữ liệu đã nhập.';output.textContent='Kiểm tra lại dữ liệu và miền xác định.'}}
  mode.addEventListener('change',render);$('calc7-run').addEventListener('click',run);$('calc7-clear').addEventListener('click',()=>{err.hidden=true;output.textContent='Đã xóa kết quả.'});workspace.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'){event.preventDefault();run()}});
  render();
- window.HLSV1MathTest={rootsQuadratic,rootsCubic,determinant,gaussian,intervalIneq,normalCdf,binomP,choose,factorial,numberArray,evalFunc};
+ window.HLSV7MathTest={rootsQuadratic,rootsCubic,determinant,gaussian,intervalIneq,normalCdf,binomP,choose,factorial,numberArray,evalFunc};
 })();
 
 </script>
